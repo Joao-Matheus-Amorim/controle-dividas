@@ -71,6 +71,21 @@ export type DbReceivableIncome = {
   family_members: Pick<DbFamilyMember, "id" | "name"> | null;
 };
 
+type MaybeArray<T> = T | T[] | null;
+
+type RawExpense = Omit<DbExpense, "family_members" | "expense_categories"> & {
+  family_members: MaybeArray<Pick<DbFamilyMember, "id" | "name" | "monthly_limit">>;
+  expense_categories: MaybeArray<Pick<DbExpenseCategory, "id" | "name">>;
+};
+
+type RawPayableBill = Omit<DbPayableBill, "family_members"> & {
+  family_members: MaybeArray<Pick<DbFamilyMember, "id" | "name">>;
+};
+
+type RawReceivableIncome = Omit<DbReceivableIncome, "family_members"> & {
+  family_members: MaybeArray<Pick<DbFamilyMember, "id" | "name">>;
+};
+
 export type FamilyMemberFormState = {
   error?: string;
   success?: string;
@@ -100,6 +115,32 @@ async function getCurrentUserId() {
   }
 
   return String(data.claims.sub);
+}
+
+function firstRelation<T>(relation: MaybeArray<T>): T | null {
+  return Array.isArray(relation) ? relation[0] ?? null : relation;
+}
+
+function normalizeExpense(expense: RawExpense): DbExpense {
+  return {
+    ...expense,
+    family_members: firstRelation(expense.family_members),
+    expense_categories: firstRelation(expense.expense_categories),
+  };
+}
+
+function normalizePayableBill(bill: RawPayableBill): DbPayableBill {
+  return {
+    ...bill,
+    family_members: firstRelation(bill.family_members),
+  };
+}
+
+function normalizeReceivableIncome(income: RawReceivableIncome): DbReceivableIncome {
+  return {
+    ...income,
+    family_members: firstRelation(income.family_members),
+  };
 }
 
 export async function seedInitialFinanceData() {
@@ -197,7 +238,7 @@ export async function getExpenses() {
     throw new Error(error.message);
   }
 
-  return (data ?? []) as DbExpense[];
+  return ((data ?? []) as RawExpense[]).map(normalizeExpense);
 }
 
 export async function getExpenseDashboardData() {
@@ -253,7 +294,7 @@ export async function getPayableBills() {
     throw new Error(error.message);
   }
 
-  return (data ?? []) as DbPayableBill[];
+  return ((data ?? []) as RawPayableBill[]).map(normalizePayableBill);
 }
 
 export async function getPayableBillsDashboardData() {
@@ -304,7 +345,7 @@ export async function getReceivableIncomes() {
     throw new Error(error.message);
   }
 
-  return (data ?? []) as DbReceivableIncome[];
+  return ((data ?? []) as RawReceivableIncome[]).map(normalizeReceivableIncome);
 }
 
 export async function getReceivableIncomesDashboardData() {
