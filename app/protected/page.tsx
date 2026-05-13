@@ -10,17 +10,49 @@ import {
 import { CategorySummary } from "@/components/finance/category-summary";
 import { PersonBalanceCard } from "@/components/finance/person-balance-card";
 import { StatCard } from "@/components/finance/stat-card";
-import { UpcomingBills } from "@/components/finance/upcoming-bills";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatCurrency } from "@/lib/finance/calculations";
+import { getBanksDashboardData } from "@/lib/finance/banks-server";
 import {
-  formatCurrency,
-  getDashboardSummary,
-  getMemberName,
-} from "@/lib/finance/calculations";
-import { bankAccounts, receivableIncomes } from "@/lib/finance/mock-data";
+  getExpenseDashboardData,
+  getPayableBillsDashboardData,
+  getReceivableIncomesDashboardData,
+} from "@/lib/finance/server";
 
-export default function ProtectedPage() {
-  const summary = getDashboardSummary();
+export default async function ProtectedPage() {
+  const [expenseData, payableData, receivableData, bankData] = await Promise.all([
+    getExpenseDashboardData(),
+    getPayableBillsDashboardData(),
+    getReceivableIncomesDashboardData(),
+    getBanksDashboardData(),
+  ]);
+
+  const totalMonthlyLimit = expenseData.memberSummaries.reduce(
+    (total, member) => total + Number(member.monthly_limit),
+    0,
+  );
+  const remainingMonthlyLimit = totalMonthlyLimit - expenseData.totalExpenses;
+  const totalPayableBills = payableData.totalPending + payableData.totalOverdue;
+  const totalReceivableIncomes = receivableData.totalExpected + receivableData.totalOverdue;
+
+  const categorySummaries = expenseData.categories
+    .map((category) => {
+      const total = expenseData.expenses
+        .filter((expense) => expense.category_id === category.id)
+        .reduce((sum, expense) => sum + Number(expense.amount), 0);
+
+      return {
+        id: category.id,
+        name: category.name,
+        total,
+      };
+    })
+    .filter((category) => category.total > 0)
+    .sort((a, b) => b.total - a.total);
+
+  const upcomingBills = payableData.bills
+    .filter((bill) => bill.computed_status !== "pago")
+    .slice(0, 5);
 
   return (
     <div className="flex w-full flex-col gap-8">
@@ -42,26 +74,26 @@ export default function ProtectedPage() {
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <StatCard
           title="Saldo mensal restante"
-          value={formatCurrency(summary.remainingMonthlyLimit)}
-          description={`${formatCurrency(summary.totalExpenses)} gastos de ${formatCurrency(summary.totalMonthlyLimit)} disponíveis`}
+          value={formatCurrency(remainingMonthlyLimit)}
+          description={`${formatCurrency(expenseData.totalExpenses)} gastos de ${formatCurrency(totalMonthlyLimit)} disponíveis`}
           icon={Users}
         />
         <StatCard
           title="Contas a pagar"
-          value={formatCurrency(summary.totalPayableBills)}
-          description="Pendentes e atrasadas no mês atual"
+          value={formatCurrency(totalPayableBills)}
+          description={`${payableData.pendingCount} pendente(s) e ${payableData.overdueCount} atrasada(s)`}
           icon={CalendarClock}
         />
         <StatCard
           title="Contas a receber"
-          value={formatCurrency(summary.totalReceivableIncomes)}
-          description="Valores previstos ainda não recebidos"
+          value={formatCurrency(totalReceivableIncomes)}
+          description={`${receivableData.expectedCount} prevista(s) e ${receivableData.overdueCount} atrasada(s)`}
           icon={TrendingUp}
         />
         <StatCard
           title="Saldo nos bancos"
-          value={formatCurrency(summary.totalBankBalance)}
-          description="Soma das contas cadastradas por pessoa"
+          value={formatCurrency(bankData.totalBalance)}
+          description={`${bankData.totalAccounts} conta(s) bancária(s) cadastrada(s)`}
           icon={Banknote}
         />
       </section>
@@ -76,15 +108,69 @@ export default function ProtectedPage() {
           </p>
         </div>
         <div className="grid gap-4 lg:grid-cols-2">
-          {summary.memberSummaries.map((member) => (
-            <PersonBalanceCard key={member.id} {...member} />
+          {expenseData.memberSummaries.map((member) => (
+            <PersonBalanceCard
+              key={member.id}
+              name={member.name}
+              role={member.role || "Membro"}
+              monthlyLimit={Number(member.monthly_limit)}
+              spent={member.spent}
+              remaining={member.remaining}
+              usedPercent={member.usedPercent}
+              exceeded={member.exceeded}
+            />
           ))}
         </div>
       </section>
 
       <section className="grid gap-4 xl:grid-cols-[1fr_1.2fr]">
-        <CategorySummary categories={summary.categorySummaries} />
-        <UpcomingBills bills={summary.upcomingBills} />
+        {categorySummaries.length > 0 ? (
+          <CategorySummary categories={categorySummaries} />
+        ) : (
+          <Card>
+            <CardHeader>
+              <CardTitle>Gastos por categoria</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Cadastre gastos para visualizar o resumo por categoria.
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Próximos vencimentos</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {upcomingBills.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                Nenhuma conta pendente ou atrasada cadastrada.
+              </p>
+            ) : (
+              upcomingBills.map((bill) => (
+                <div key={bill.id} className="flex items-center justify-between gap-4 rounded-lg border p-3">
+                  <div>
+                    <p className="font-medium">{bill.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {bill.category || "Sem categoria"} · {bill.family_members?.name || "Sem responsável"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Vencimento: {new Date(`${bill.due_date}T00:00:00`).toLocaleDateString("pt-BR")}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-semibold">{formatCurrency(Number(bill.amount))}</p>
+                    <p className={bill.computed_status === "atrasado" ? "text-xs text-destructive" : "text-xs text-muted-foreground"}>
+                      {bill.computed_status}
+                    </p>
+                  </div>
+                </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
       </section>
 
       <section className="grid gap-4 xl:grid-cols-2">
@@ -93,20 +179,26 @@ export default function ProtectedPage() {
             <CardTitle>Resumo de bancos</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {bankAccounts.map((account) => (
-              <div
-                key={account.id}
-                className="flex items-center justify-between rounded-lg border p-3"
-              >
-                <div>
-                  <p className="font-medium">{account.bankName}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {getMemberName(account.familyMemberId)} · {account.accountType}
-                  </p>
+            {bankData.accounts.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                Cadastre bancos para visualizar o saldo por conta.
+              </p>
+            ) : (
+              bankData.accounts.slice(0, 6).map((account) => (
+                <div
+                  key={account.id}
+                  className="flex items-center justify-between rounded-lg border p-3"
+                >
+                  <div>
+                    <p className="font-medium">{account.bank_name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {account.family_members?.name || "Sem pessoa vinculada"} · {account.account_type || "Tipo não informado"}
+                    </p>
+                  </div>
+                  <p className="font-semibold">{formatCurrency(Number(account.current_balance))}</p>
                 </div>
-                <p className="font-semibold">{formatCurrency(account.currentBalance)}</p>
-              </div>
-            ))}
+              ))
+            )}
           </CardContent>
         </Card>
 
@@ -115,32 +207,38 @@ export default function ProtectedPage() {
             <CardTitle>Resumo de rendas</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {receivableIncomes.map((income) => (
-              <div
-                key={income.id}
-                className="flex items-center justify-between rounded-lg border p-3"
-              >
-                <div className="flex items-start gap-3">
-                  <div className="rounded-full bg-muted p-2">
-                    {income.incomeType === "fixa" ? (
-                      <CreditCard className="h-4 w-4 text-muted-foreground" />
-                    ) : (
-                      <TrendingDown className="h-4 w-4 text-muted-foreground" />
-                    )}
+            {receivableData.incomes.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                Cadastre contas a receber para visualizar rendas fixas e variáveis.
+              </p>
+            ) : (
+              receivableData.incomes.slice(0, 6).map((income) => (
+                <div
+                  key={income.id}
+                  className="flex items-center justify-between rounded-lg border p-3"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="rounded-full bg-muted p-2">
+                      {income.income_type === "fixa" ? (
+                        <CreditCard className="h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <TrendingDown className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-medium">{income.source}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {income.family_members?.name || "Sem pessoa vinculada"} · renda {income.income_type} · {income.receiving_bank || "Sem banco"}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-medium">{income.source}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {getMemberName(income.receiverMemberId)} · renda {income.incomeType} · {income.bank}
-                    </p>
+                  <div className="text-right">
+                    <p className="font-semibold">{formatCurrency(Number(income.amount))}</p>
+                    <p className="text-xs capitalize text-muted-foreground">{income.computed_status}</p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="font-semibold">{formatCurrency(income.amount)}</p>
-                  <p className="text-xs capitalize text-muted-foreground">{income.status}</p>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </CardContent>
         </Card>
       </section>
