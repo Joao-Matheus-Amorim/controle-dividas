@@ -56,6 +56,21 @@ export type DbPayableBill = {
   family_members: Pick<DbFamilyMember, "id" | "name"> | null;
 };
 
+export type DbReceivableIncome = {
+  id: string;
+  owner_id: string;
+  receiver_member_id: string | null;
+  source: string;
+  income_type: "fixa" | "variavel";
+  amount: number;
+  expected_date: string;
+  status: "previsto" | "recebido" | "atrasado";
+  receiving_bank: string | null;
+  notes: string | null;
+  created_at: string;
+  family_members: Pick<DbFamilyMember, "id" | "name"> | null;
+};
+
 export type FamilyMemberFormState = {
   error?: string;
   success?: string;
@@ -67,6 +82,11 @@ export type ExpenseFormState = {
 };
 
 export type PayableBillFormState = {
+  error?: string;
+  success?: string;
+};
+
+export type ReceivableIncomeFormState = {
   error?: string;
   success?: string;
 };
@@ -262,5 +282,62 @@ export async function getPayableBillsDashboardData() {
     pendingCount: pendingBills.length,
     overdueCount: overdueBills.length,
     paidCount: paidBills.length,
+  };
+}
+
+export async function getReceivableIncomes() {
+  await seedInitialFinanceData();
+
+  const supabase = await createClient();
+  const ownerId = await getCurrentUserId();
+
+  const { data, error } = await supabase
+    .from("receivable_incomes")
+    .select(
+      "id, owner_id, receiver_member_id, source, income_type, amount, expected_date, status, receiving_bank, notes, created_at, family_members(id, name)",
+    )
+    .eq("owner_id", ownerId)
+    .order("expected_date", { ascending: true })
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data ?? []) as DbReceivableIncome[];
+}
+
+export async function getReceivableIncomesDashboardData() {
+  const [members, incomes] = await Promise.all([
+    getActiveFamilyMembers(),
+    getReceivableIncomes(),
+  ]);
+
+  const today = new Date().toISOString().slice(0, 10);
+  const enrichedIncomes = incomes.map((income) => ({
+    ...income,
+    computed_status:
+      income.status !== "recebido" && income.expected_date < today
+        ? "atrasado"
+        : income.status,
+  }));
+
+  const expectedIncomes = enrichedIncomes.filter((income) => income.computed_status === "previsto");
+  const overdueIncomes = enrichedIncomes.filter((income) => income.computed_status === "atrasado");
+  const receivedIncomes = enrichedIncomes.filter((income) => income.computed_status === "recebido");
+  const fixedIncomes = enrichedIncomes.filter((income) => income.income_type === "fixa");
+  const variableIncomes = enrichedIncomes.filter((income) => income.income_type === "variavel");
+
+  return {
+    members,
+    incomes: enrichedIncomes,
+    totalExpected: expectedIncomes.reduce((total, income) => total + Number(income.amount), 0),
+    totalOverdue: overdueIncomes.reduce((total, income) => total + Number(income.amount), 0),
+    totalReceived: receivedIncomes.reduce((total, income) => total + Number(income.amount), 0),
+    totalFixed: fixedIncomes.reduce((total, income) => total + Number(income.amount), 0),
+    totalVariable: variableIncomes.reduce((total, income) => total + Number(income.amount), 0),
+    expectedCount: expectedIncomes.length,
+    overdueCount: overdueIncomes.length,
+    receivedCount: receivedIncomes.length,
   };
 }
