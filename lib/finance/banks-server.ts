@@ -16,6 +16,10 @@ export type DbBankAccount = {
   family_members: Pick<DbFamilyMember, "id" | "name"> | null;
 };
 
+type RawBankAccount = Omit<DbBankAccount, "family_members"> & {
+  family_members: Pick<DbFamilyMember, "id" | "name"> | Pick<DbFamilyMember, "id" | "name">[] | null;
+};
+
 export type BankAccountFormState = {
   error?: string;
   success?: string;
@@ -30,6 +34,17 @@ async function getCurrentUserId() {
   }
 
   return String(data.claims.sub);
+}
+
+function normalizeBankAccount(account: RawBankAccount): DbBankAccount {
+  const familyMember = Array.isArray(account.family_members)
+    ? account.family_members[0] ?? null
+    : account.family_members;
+
+  return {
+    ...account,
+    family_members: familyMember,
+  };
 }
 
 export async function getBankAccounts() {
@@ -51,7 +66,7 @@ export async function getBankAccounts() {
     throw new Error(error.message);
   }
 
-  return (data ?? []) as DbBankAccount[];
+  return ((data ?? []) as RawBankAccount[]).map(normalizeBankAccount);
 }
 
 export async function getBanksDashboardData() {
