@@ -2,13 +2,13 @@ import { AlertTriangle, CheckCircle2, Clock3, Repeat, Trash2, WalletCards } from
 
 import { deleteReceivableIncome, updateReceivableIncomeStatus } from "./actions";
 import { ReceivableIncomeForm } from "@/components/finance/receivable-income-form";
-import { Badge } from "@/components/ui/badge";
+import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/finance/calculations";
 import { getReceivableIncomesDashboardData } from "@/lib/finance/server";
 
-function statusVariant(status: string) {
+function statusVariant(status: string): BadgeProps["variant"] {
   if (status === "recebido") return "secondary";
   if (status === "atrasado") return "destructive";
   return "outline";
