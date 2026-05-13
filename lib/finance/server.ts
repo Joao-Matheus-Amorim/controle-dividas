@@ -147,16 +147,7 @@ export async function seedInitialFinanceData() {
   const supabase = await createClient();
   const ownerId = await getCurrentUserId();
 
-  const { count } = await supabase
-    .from("family_members")
-    .select("id", { count: "exact", head: true })
-    .eq("owner_id", ownerId);
-
-  if (count && count > 0) {
-    return;
-  }
-
-  await supabase.from("family_members").insert(
+  await supabase.from("family_members").upsert(
     familyMembers.map((member) => ({
       owner_id: ownerId,
       name: member.name,
@@ -165,14 +156,16 @@ export async function seedInitialFinanceData() {
       currency: member.currency,
       is_active: true,
     })),
+    { onConflict: "owner_id,name", ignoreDuplicates: true },
   );
 
-  await supabase.from("expense_categories").insert(
+  await supabase.from("expense_categories").upsert(
     expenseCategories.map((category) => ({
       owner_id: ownerId,
       name: category.name,
       is_default: true,
     })),
+    { onConflict: "owner_id,name", ignoreDuplicates: true },
   );
 }
 
