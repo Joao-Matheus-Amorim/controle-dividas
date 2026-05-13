@@ -2,13 +2,13 @@ import { AlertTriangle, CalendarDays, CheckCircle2, Trash2 } from "lucide-react"
 
 import { deletePayableBill, updatePayableBillStatus } from "./actions";
 import { PayableBillForm } from "@/components/finance/payable-bill-form";
-import { Badge } from "@/components/ui/badge";
+import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/finance/calculations";
 import { getPayableBillsDashboardData } from "@/lib/finance/server";
 
-function statusVariant(status: string) {
+function statusVariant(status: string): BadgeProps["variant"] {
   if (status === "pago") return "secondary";
   if (status === "atrasado") return "destructive";
   return "outline";
