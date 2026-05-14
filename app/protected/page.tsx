@@ -315,49 +315,65 @@ export default async function ProtectedPage() {
       <section className="grid gap-4 xl:grid-cols-2">
         <AppCard className="space-y-3">
           <div className="flex items-center justify-between">
-            <AppSectionTitle>Próximos vencimentos</AppSectionTitle>
+            <div>
+              <AppSectionTitle>Próximos vencimentos</AppSectionTitle>
+              <p className="mt-1 text-sm text-white/35">Contas que ainda precisam de atenção</p>
+            </div>
             <CalendarClock className="h-4 w-4 text-white/30" />
           </div>
           {upcomingBills.length === 0 ? (
-            <p className="text-sm text-white/35">Nenhuma conta pendente.</p>
+            <div className="rounded-2xl border border-white/10 bg-[#080810]/45 p-4 text-sm text-white/35">
+              Nenhuma conta pendente.
+            </div>
           ) : (
-            upcomingBills.map((bill) => (
-              <AppCard key={bill.id} variant="inner" padding="sm" className="flex items-center gap-3">
-                <div className={bill.computed_status === "atrasado" ? "flex h-10 w-10 items-center justify-center rounded-2xl bg-[#f0506e]/10 text-[#f0506e]" : "flex h-10 w-10 items-center justify-center rounded-2xl bg-[#f7b84b]/10 text-[#f7b84b]"}>
-                  <CalendarClock className="h-5 w-5" />
+            <div className="space-y-2">
+              {upcomingBills.map((bill) => (
+                <div key={bill.id} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-[#080810]/45 p-3">
+                  <div className={bill.computed_status === "atrasado" ? "flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#f0506e]/10 text-[#f0506e]" : "flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#f7b84b]/10 text-[#f7b84b]"}>
+                    <CalendarClock className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-white">{bill.name}</p>
+                    <p className="mt-0.5 truncate text-xs text-white/35">
+                      {bill.category || "Sem categoria"} · {bill.family_members?.name || "Sem responsável"}
+                    </p>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <p className="text-sm font-bold text-white">{compactCurrency(Number(bill.amount))}</p>
+                    <p className={bill.computed_status === "atrasado" ? "text-[10px] font-bold uppercase tracking-wider text-[#f0506e]" : "text-[10px] font-bold uppercase tracking-wider text-[#f7b84b]"}>
+                      {bill.computed_status}
+                    </p>
+                  </div>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-white">{bill.name}</p>
-                  <p className="mt-0.5 truncate text-xs text-white/35">
-                    {bill.category || "Sem categoria"} · {bill.family_members?.name || "Sem responsável"}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-bold text-white">{compactCurrency(Number(bill.amount))}</p>
-                  <p className={bill.computed_status === "atrasado" ? "text-[10px] font-bold uppercase tracking-wider text-[#f0506e]" : "text-[10px] font-bold uppercase tracking-wider text-[#f7b84b]"}>
-                    {bill.computed_status}
-                  </p>
-                </div>
-              </AppCard>
-            ))
+              ))}
+            </div>
           )}
         </AppCard>
 
         <AppCard className="space-y-3">
           <div className="flex items-center justify-between">
-            <AppSectionTitle>Categorias</AppSectionTitle>
+            <div>
+              <AppSectionTitle>Categorias</AppSectionTitle>
+              <p className="mt-1 text-sm text-white/35">Maiores saídas do mês</p>
+            </div>
             <TrendingDown className="h-4 w-4 text-white/30" />
           </div>
           {categorySummaries.length === 0 ? (
-            <p className="text-sm text-white/35">Cadastre gastos para ver categorias.</p>
+            <div className="rounded-2xl border border-white/10 bg-[#080810]/45 p-4 text-sm text-white/35">
+              Cadastre gastos para ver categorias.
+            </div>
           ) : (
-            <div className="app-scrollbar-hidden flex gap-2 overflow-x-auto pb-1">
-              {categorySummaries.slice(0, 6).map((category) => (
-                <AppCard key={category.id} variant="inner" padding="sm" className="min-w-[92px] text-center">
-                  <p className="truncate text-[11px] font-semibold text-white/60">{category.name}</p>
-                  <p className="mt-2 text-sm font-bold text-white">{compactCurrency(category.total)}</p>
-                  <div className="mt-3 h-0.5 rounded-full bg-[#8b72f8]" />
-                </AppCard>
+            <div className="space-y-2">
+              {categorySummaries.slice(0, 5).map((category, index) => (
+                <div key={category.id} className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-[#080810]/45 p-3">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/10 text-xs font-bold text-white/45">
+                      {index + 1}
+                    </div>
+                    <p className="min-w-0 truncate text-sm font-semibold text-white/65">{category.name}</p>
+                  </div>
+                  <p className="shrink-0 text-sm font-bold text-white">{compactCurrency(category.total)}</p>
+                </div>
               ))}
             </div>
           )}
@@ -367,48 +383,62 @@ export default async function ProtectedPage() {
       <section className="grid gap-4 xl:grid-cols-2">
         <AppCard className="space-y-3">
           <div className="flex items-center justify-between">
-            <AppSectionTitle>Bancos</AppSectionTitle>
+            <div>
+              <AppSectionTitle>Bancos</AppSectionTitle>
+              <p className="mt-1 text-sm text-white/35">Saldos vinculados à família</p>
+            </div>
             <Banknote className="h-4 w-4 text-white/30" />
           </div>
           {bankData.accounts.length === 0 ? (
-            <p className="text-sm text-white/35">Nenhum banco cadastrado.</p>
+            <div className="rounded-2xl border border-white/10 bg-[#080810]/45 p-4 text-sm text-white/35">
+              Nenhum banco cadastrado.
+            </div>
           ) : (
-            bankData.accounts.slice(0, 4).map((account) => (
-              <AppCard key={account.id} variant="inner" padding="sm" className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-semibold text-white">{account.bank_name}</p>
-                  <p className="mt-0.5 text-xs text-white/35">
-                    {account.family_members?.name || "Sem pessoa"} · {account.account_type || "Conta"}
-                  </p>
+            <div className="space-y-2">
+              {bankData.accounts.slice(0, 4).map((account) => (
+                <div key={account.id} className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-[#080810]/45 p-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-white">{account.bank_name}</p>
+                    <p className="mt-0.5 truncate text-xs text-white/35">
+                      {account.family_members?.name || "Sem pessoa"} · {account.account_type || "Conta"}
+                    </p>
+                  </div>
+                  <p className="shrink-0 text-sm font-bold text-[#1de9b2]">{compactCurrency(Number(account.current_balance))}</p>
                 </div>
-                <p className="text-sm font-bold text-[#1de9b2]">{compactCurrency(Number(account.current_balance))}</p>
-              </AppCard>
-            ))
+              ))}
+            </div>
           )}
         </AppCard>
 
         <AppCard className="space-y-3">
           <div className="flex items-center justify-between">
-            <AppSectionTitle>Rendas</AppSectionTitle>
+            <div>
+              <AppSectionTitle>Rendas</AppSectionTitle>
+              <p className="mt-1 text-sm text-white/35">Entradas previstas e recebidas</p>
+            </div>
             <TrendingUp className="h-4 w-4 text-white/30" />
           </div>
           {receivableData.incomes.length === 0 ? (
-            <p className="text-sm text-white/35">Nenhuma renda cadastrada.</p>
+            <div className="rounded-2xl border border-white/10 bg-[#080810]/45 p-4 text-sm text-white/35">
+              Nenhuma renda cadastrada.
+            </div>
           ) : (
-            receivableData.incomes.slice(0, 4).map((income) => (
-              <AppCard key={income.id} variant="inner" padding="sm" className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#1de9b2]/10 text-[#1de9b2]">
-                  {income.income_type === "fixa" ? <CreditCard className="h-5 w-5" /> : <TrendingUp className="h-5 w-5" />}
+            <div className="space-y-2">
+              {receivableData.incomes.slice(0, 4).map((income) => (
+                <div key={income.id} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-[#080810]/45 p-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#1de9b2]/10 text-[#1de9b2]">
+                    {income.income_type === "fixa" ? <CreditCard className="h-5 w-5" /> : <TrendingUp className="h-5 w-5" />}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-white">{income.source}</p>
+                    <p className="mt-0.5 truncate text-xs text-white/35">
+                      {income.family_members?.name || "Sem pessoa"} · {income.income_type}
+                    </p>
+                  </div>
+                  <p className="shrink-0 text-sm font-bold text-[#1de9b2]">{compactCurrency(Number(income.amount))}</p>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-white">{income.source}</p>
-                  <p className="mt-0.5 truncate text-xs text-white/35">
-                    {income.family_members?.name || "Sem pessoa"} · {income.income_type}
-                  </p>
-                </div>
-                <p className="text-sm font-bold text-[#1de9b2]">{compactCurrency(Number(income.amount))}</p>
-              </AppCard>
-            ))
+              ))}
+            </div>
           )}
         </AppCard>
       </section>
