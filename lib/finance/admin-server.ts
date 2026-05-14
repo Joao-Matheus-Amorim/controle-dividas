@@ -71,6 +71,15 @@ function normalizeProfile(profile: RawProfile): DbProfile {
   };
 }
 
+function getConfiguredAdminEmail() {
+  return process.env.ADMIN_EMAIL?.trim().toLowerCase() ?? null;
+}
+
+function isConfiguredAdminEmail(email: string | null) {
+  const adminEmail = getConfiguredAdminEmail();
+  return Boolean(adminEmail && email && email.toLowerCase() === adminEmail);
+}
+
 async function getProfileByAuthUserId(authUserId: string) {
   const supabase = await createClient();
 
@@ -90,18 +99,25 @@ async function getProfileByAuthUserId(authUserId: string) {
 export async function ensureAdminProfile() {
   const supabase = await createClient();
   const user = await getCurrentUser();
-
   const existingProfile = await getProfileByAuthUserId(user.id);
 
   if (existingProfile) {
+    if (existingProfile.role !== "admin" || !existingProfile.is_active) {
+      redirect("/protected");
+    }
+
     return existingProfile;
+  }
+
+  if (!isConfiguredAdminEmail(user.email)) {
+    redirect("/protected");
   }
 
   const { error } = await supabase.from("profiles").upsert(
     {
       owner_id: user.id,
       auth_user_id: user.id,
-      name: user.email?.split("@")[0] || "Admin",
+      name: "Danyel",
       email: user.email,
       role: "admin",
       is_active: true,
@@ -115,15 +131,25 @@ export async function ensureAdminProfile() {
 
   const profile = await getProfileByAuthUserId(user.id);
 
-  if (!profile) {
-    throw new Error("Nao foi possivel carregar o perfil Admin apos a inicializacao.");
+  if (!profile || profile.role !== "admin" || !profile.is_active) {
+    redirect("/protected");
+  }
+
+  return profile;
+}
+
+export async function requireAdminProfile() {
+  const profile = await ensureAdminProfile();
+
+  if (profile.role !== "admin" || !profile.is_active) {
+    redirect("/protected");
   }
 
   return profile;
 }
 
 export async function getAdminDashboardData() {
-  const adminProfile = await ensureAdminProfile();
+  const adminProfile = await requireAdminProfile();
   const [profiles, members, permissions] = await Promise.all([
     getFamilyProfiles(adminProfile),
     getFamilyMembers(),
@@ -141,7 +167,7 @@ export async function getAdminDashboardData() {
 
 export async function getFamilyProfiles(adminProfileParam?: DbProfile) {
   const supabase = await createClient();
-  const adminProfile = adminProfileParam ?? (await ensureAdminProfile());
+  const adminProfile = adminProfileParam ?? (await requireAdminProfile());
 
   const { data, error } = await supabase
     .from("profiles")
@@ -159,7 +185,7 @@ export async function getFamilyProfiles(adminProfileParam?: DbProfile) {
 
 export async function getFamilyPermissions(adminProfileParam?: DbProfile) {
   const supabase = await createClient();
-  const adminProfile = adminProfileParam ?? (await ensureAdminProfile());
+  const adminProfile = adminProfileParam ?? (await requireAdminProfile());
 
   const { data, error } = await supabase
     .from("user_module_permissions")
