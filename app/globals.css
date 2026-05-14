@@ -94,6 +94,7 @@
 @layer components {
   .app-container {
     @apply mx-auto flex w-full max-w-md flex-col gap-5 md:max-w-7xl;
+    animation: app-fade-up 420ms ease-out both;
   }
 
   .app-scrollbar-hidden {
@@ -102,6 +103,10 @@
 
   .app-scrollbar-hidden::-webkit-scrollbar {
     display: none;
+  }
+
+  .app-soft-press {
+    @apply transition duration-200 active:scale-[0.98];
   }
 
   .dark select {
@@ -127,5 +132,32 @@
 
   .dark form button[type="submit"]:not([data-variant]) {
     @apply rounded-2xl;
+  }
+}
+
+@layer utilities {
+  @keyframes app-fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes app-pulse-soft {
+    0%,
+    100% {
+      opacity: 0.65;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+
+  .animate-app-pulse-soft {
+    animation: app-pulse-soft 1.8s ease-in-out infinite;
   }
 }
