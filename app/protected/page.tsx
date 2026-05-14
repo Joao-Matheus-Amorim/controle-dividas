@@ -2,11 +2,14 @@ import {
   Banknote,
   CalendarClock,
   CreditCard,
+  Plus,
   ReceiptText,
+  ShieldCheck,
   TrendingDown,
   TrendingUp,
   Users,
 } from "lucide-react";
+import Link from "next/link";
 
 import { AppCard, AppSectionTitle } from "@/components/app/app-card";
 import { AppHeroCard, AppHeroSplit } from "@/components/app/app-hero-card";
@@ -80,6 +83,33 @@ export default async function ProtectedPage() {
           ]}
         />
       </AppHeroCard>
+
+      <section className="grid grid-cols-4 gap-2">
+        <Link href="/protected/gastos" className="group rounded-[1.35rem] border border-white/10 bg-white/[0.045] p-3 text-center shadow-[0_14px_38px_rgba(0,0,0,0.22)] transition active:scale-[0.97] hover:border-[#f0506e]/35 hover:bg-[#f0506e]/10">
+          <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-2xl bg-[#f0506e]/10 text-[#f0506e] transition group-hover:scale-105">
+            <Plus className="h-5 w-5" />
+          </div>
+          <p className="mt-2 text-[10px] font-bold uppercase tracking-wider text-white/45">Gasto</p>
+        </Link>
+        <Link href="/protected/contas-a-pagar" className="group rounded-[1.35rem] border border-white/10 bg-white/[0.045] p-3 text-center shadow-[0_14px_38px_rgba(0,0,0,0.22)] transition active:scale-[0.97] hover:border-[#f7b84b]/35 hover:bg-[#f7b84b]/10">
+          <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-2xl bg-[#f7b84b]/10 text-[#f7b84b] transition group-hover:scale-105">
+            <CalendarClock className="h-5 w-5" />
+          </div>
+          <p className="mt-2 text-[10px] font-bold uppercase tracking-wider text-white/45">Conta</p>
+        </Link>
+        <Link href="/protected/bancos" className="group rounded-[1.35rem] border border-white/10 bg-white/[0.045] p-3 text-center shadow-[0_14px_38px_rgba(0,0,0,0.22)] transition active:scale-[0.97] hover:border-[#1de9b2]/35 hover:bg-[#1de9b2]/10">
+          <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-2xl bg-[#1de9b2]/10 text-[#1de9b2] transition group-hover:scale-105">
+            <Banknote className="h-5 w-5" />
+          </div>
+          <p className="mt-2 text-[10px] font-bold uppercase tracking-wider text-white/45">Banco</p>
+        </Link>
+        <Link href="/protected/admin" className="group rounded-[1.35rem] border border-white/10 bg-white/[0.045] p-3 text-center shadow-[0_14px_38px_rgba(0,0,0,0.22)] transition active:scale-[0.97] hover:border-[#8b72f8]/35 hover:bg-[#8b72f8]/10">
+          <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-2xl bg-[#8b72f8]/10 text-[#b09cff] transition group-hover:scale-105">
+            <ShieldCheck className="h-5 w-5" />
+          </div>
+          <p className="mt-2 text-[10px] font-bold uppercase tracking-wider text-white/45">Admin</p>
+        </Link>
+      </section>
 
       <section className="grid grid-cols-3 gap-2 md:grid-cols-4">
         <AppStatCard title="Gastos" value={compactCurrency(expenseData.totalExpenses)} icon={ReceiptText} tone="danger" />
