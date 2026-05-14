@@ -71,50 +71,63 @@ function normalizeProfile(profile: RawProfile): DbProfile {
   };
 }
 
+async function getProfileByAuthUserId(authUserId: string) {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, owner_id, auth_user_id, linked_family_member_id, name, email, role, is_active, created_at, family_members(id, name)")
+    .eq("auth_user_id", authUserId)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data ? normalizeProfile(data as RawProfile) : null;
+}
+
 export async function ensureAdminProfile() {
   const supabase = await createClient();
   const user = await getCurrentUser();
 
-  const { data: existingProfile, error: existingError } = await supabase
-    .from("profiles")
-    .select("id, owner_id, auth_user_id, linked_family_member_id, name, email, role, is_active, created_at, family_members(id, name)")
-    .eq("auth_user_id", user.id)
-    .maybeSingle();
-
-  if (existingError) {
-    throw new Error(existingError.message);
-  }
+  const existingProfile = await getProfileByAuthUserId(user.id);
 
   if (existingProfile) {
-    return normalizeProfile(existingProfile as RawProfile);
+    return existingProfile;
   }
 
-  const { data, error } = await supabase
-    .from("profiles")
-    .insert({
+  const { error } = await supabase.from("profiles").upsert(
+    {
       owner_id: user.id,
       auth_user_id: user.id,
       name: user.email?.split("@")[0] || "Admin",
       email: user.email,
       role: "admin",
       is_active: true,
-    })
-    .select("id, owner_id, auth_user_id, linked_family_member_id, name, email, role, is_active, created_at, family_members(id, name)")
-    .single();
+    },
+    { onConflict: "auth_user_id", ignoreDuplicates: true },
+  );
 
   if (error) {
     throw new Error(error.message);
   }
 
-  return normalizeProfile(data as RawProfile);
+  const profile = await getProfileByAuthUserId(user.id);
+
+  if (!profile) {
+    throw new Error("Nao foi possivel carregar o perfil Admin apos a inicializacao.");
+  }
+
+  return profile;
 }
 
 export async function getAdminDashboardData() {
   const adminProfile = await ensureAdminProfile();
   const [profiles, members, permissions] = await Promise.all([
-    getFamilyProfiles(),
+    getFamilyProfiles(adminProfile),
     getFamilyMembers(),
-    getFamilyPermissions(),
+    getFamilyPermissions(adminProfile),
   ]);
 
   return {
@@ -126,9 +139,9 @@ export async function getAdminDashboardData() {
   };
 }
 
-export async function getFamilyProfiles() {
+export async function getFamilyProfiles(adminProfileParam?: DbProfile) {
   const supabase = await createClient();
-  const adminProfile = await ensureAdminProfile();
+  const adminProfile = adminProfileParam ?? (await ensureAdminProfile());
 
   const { data, error } = await supabase
     .from("profiles")
@@ -144,9 +157,9 @@ export async function getFamilyProfiles() {
   return ((data ?? []) as RawProfile[]).map(normalizeProfile);
 }
 
-export async function getFamilyPermissions() {
+export async function getFamilyPermissions(adminProfileParam?: DbProfile) {
   const supabase = await createClient();
-  const adminProfile = await ensureAdminProfile();
+  const adminProfile = adminProfileParam ?? (await ensureAdminProfile());
 
   const { data, error } = await supabase
     .from("user_module_permissions")
