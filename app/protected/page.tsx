@@ -12,7 +12,6 @@ import {
 import Link from "next/link";
 
 import { AppCard, AppSectionTitle } from "@/components/app/app-card";
-import { AppStatCard } from "@/components/app/app-stat-card";
 import { formatCurrency } from "@/lib/finance/calculations";
 import { getBanksDashboardData } from "@/lib/finance/banks-server";
 import {
@@ -182,42 +181,135 @@ export default async function ProtectedPage() {
         </div>
       </section>
 
-      <section className="grid grid-cols-3 gap-2 md:grid-cols-4">
-        <AppStatCard title="Gastos" value={compactCurrency(expenseData.totalExpenses)} icon={ReceiptText} tone="danger" />
-        <AppStatCard title="Contas" value={compactCurrency(totalPayableBills)} icon={CalendarClock} tone="warning" />
-        <AppStatCard title="Bancos" value={compactCurrency(bankData.totalBalance)} icon={Banknote} tone="success" />
-        <AppStatCard className="hidden md:block" title="Limite" value={compactCurrency(totalMonthlyLimit)} icon={Users} tone="primary" />
+      <section className="grid gap-3 md:grid-cols-[1.2fr_0.8fr]">
+        <AppCard className="space-y-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <AppSectionTitle>Resumo financeiro</AppSectionTitle>
+              <p className="mt-1 text-sm text-white/35">Leitura rápida do mês</p>
+            </div>
+            <ReceiptText className="h-4 w-4 text-white/25" />
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-[#080810]/45 p-3">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-[#f0506e]/10 text-[#f0506e]">
+                  <ReceiptText className="h-4 w-4" />
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-white">Gastos do mês</p>
+                  <p className="truncate text-xs text-white/30">Saídas lançadas</p>
+                </div>
+              </div>
+              <p className="shrink-0 text-sm font-bold text-white">{compactCurrency(expenseData.totalExpenses)}</p>
+            </div>
+
+            <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-[#080810]/45 p-3">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-[#f7b84b]/10 text-[#f7b84b]">
+                  <CalendarClock className="h-4 w-4" />
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-white">Contas em aberto</p>
+                  <p className="truncate text-xs text-white/30">Pendentes e atrasadas</p>
+                </div>
+              </div>
+              <p className="shrink-0 text-sm font-bold text-white">{compactCurrency(totalPayableBills)}</p>
+            </div>
+
+            <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-[#080810]/45 p-3">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-[#1de9b2]/10 text-[#1de9b2]">
+                  <Banknote className="h-4 w-4" />
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-white">Saldo em bancos</p>
+                  <p className="truncate text-xs text-white/30">Contas cadastradas</p>
+                </div>
+              </div>
+              <p className="shrink-0 text-sm font-bold text-[#1de9b2]">{compactCurrency(bankData.totalBalance)}</p>
+            </div>
+          </div>
+        </AppCard>
+
+        <AppCard className="space-y-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <AppSectionTitle>Uso do limite</AppSectionTitle>
+              <p className="mt-1 text-sm text-white/35">{usedPercent.toFixed(0)}% utilizado</p>
+            </div>
+            <Users className="h-4 w-4 text-white/25" />
+          </div>
+
+          <div className="rounded-[1.35rem] border border-white/10 bg-[#080810]/45 p-4">
+            <p className="text-3xl font-black tracking-[-0.05em] text-white">{usedPercent.toFixed(0)}%</p>
+            <p className="mt-1 text-xs text-white/35">do limite familiar foi usado</p>
+            <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/10">
+              <div
+                className={healthyMonth ? "h-full rounded-full bg-[#8b72f8]" : "h-full rounded-full bg-[#f0506e]"}
+                style={{ width: `${usedPercent}%` }}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <div className="min-w-0 rounded-2xl border border-white/10 bg-white/[0.035] p-3">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-white/25">Membros</p>
+              <p className="mt-1 text-sm font-bold text-white">{expenseData.memberSummaries.length}</p>
+            </div>
+            <div className="min-w-0 rounded-2xl border border-white/10 bg-white/[0.035] p-3">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-white/25">Restante</p>
+              <p className={healthyMonth ? "mt-1 truncate text-sm font-bold text-[#1de9b2]" : "mt-1 truncate text-sm font-bold text-[#f0506e]"}>
+                {compactCurrency(remainingMonthlyLimit)}
+              </p>
+            </div>
+          </div>
+        </AppCard>
       </section>
 
       <section className="space-y-3">
-        <div className="flex items-center justify-between">
-          <AppSectionTitle>Membros</AppSectionTitle>
-          <p className="text-xs font-semibold text-[#8b72f8]">ver todos</p>
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <AppSectionTitle>Família</AppSectionTitle>
+            <p className="mt-1 text-sm text-white/35">Limites individuais do mês</p>
+          </div>
+          <Link href="/protected/pessoas" className="text-xs font-semibold text-[#8b72f8]">ver todos</Link>
         </div>
-        <div className="app-scrollbar-hidden flex gap-2 overflow-x-auto pb-1">
+
+        <AppCard className="space-y-2">
           {expenseData.memberSummaries.map((member) => {
-            const usedPercent = Math.min(Math.max(member.usedPercent, 0), 100);
+            const memberUsedPercent = Math.min(Math.max(member.usedPercent, 0), 100);
             const exceeded = member.remaining < 0;
 
             return (
-              <AppCard key={member.id} padding="sm" interactive className="min-w-[76px] text-center">
-                <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-full bg-[#8b72f8]/15 text-xs font-bold text-[#b09cff]">
-                  {initials(member.name)}
+              <div key={member.id} className="rounded-2xl border border-white/10 bg-[#080810]/45 p-3">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#8b72f8]/15 text-xs font-bold text-[#b09cff]">
+                    {initials(member.name)}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="truncate text-sm font-semibold text-white">{member.name}</p>
+                      <p className={exceeded ? "shrink-0 text-sm font-bold text-[#f0506e]" : "shrink-0 text-sm font-bold text-[#1de9b2]"}>
+                        {compactCurrency(member.remaining)}
+                      </p>
+                    </div>
+                    <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10">
+                      <div
+                        className={exceeded ? "h-full rounded-full bg-[#f0506e]" : "h-full rounded-full bg-[#8b72f8]"}
+                        style={{ width: `${memberUsedPercent}%` }}
+                      />
+                    </div>
+                    <p className="mt-1 text-xs text-white/30">
+                      {compactCurrency(member.spent)} usados de {compactCurrency(Number(member.monthly_limit))}
+                    </p>
+                  </div>
                 </div>
-                <p className="mt-2 truncate text-[11px] font-semibold text-white/70">{member.name}</p>
-                <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/10">
-                  <div
-                    className={exceeded ? "h-full rounded-full bg-[#f0506e]" : "h-full rounded-full bg-[#8b72f8]"}
-                    style={{ width: `${usedPercent}%` }}
-                  />
-                </div>
-                <p className={exceeded ? "mt-2 text-[11px] font-bold text-[#f0506e]" : "mt-2 text-[11px] font-bold text-[#1de9b2]"}>
-                  {compactCurrency(member.remaining)}
-                </p>
-              </AppCard>
+              </div>
             );
           })}
-        </div>
+        </AppCard>
       </section>
 
       <section className="grid gap-4 xl:grid-cols-2">
