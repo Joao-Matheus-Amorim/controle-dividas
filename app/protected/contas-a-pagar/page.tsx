@@ -26,7 +26,6 @@ export default async function ContasAPagarPage() {
     totalPaid,
     pendingCount,
     overdueCount,
-    paidCount,
   } = await getPayableBillsDashboardData();
 
   return (
