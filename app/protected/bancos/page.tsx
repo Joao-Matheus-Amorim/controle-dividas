@@ -4,156 +4,159 @@ import { deleteBankAccount, updateBankAccountBalance } from "./actions";
 import { BankAccountForm } from "@/components/finance/bank-account-form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { formatCurrency } from "@/lib/finance/calculations";
 import { getBanksDashboardData } from "@/lib/finance/banks-server";
+
+function compactCurrency(value: number) {
+  return formatCurrency(value).replace("€", "€ ");
+}
+
+function initials(name: string) {
+  return name
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
 
 export default async function BancosPage() {
   const { members, accounts, accountsByMember, totalBalance, totalAccounts } =
     await getBanksDashboardData();
 
   return (
-    <div className="space-y-6">
-      <section className="rounded-3xl border bg-background p-8 shadow-sm">
-        <p className="text-sm font-medium uppercase tracking-[0.3em] text-muted-foreground">
-          FamilyFinance
-        </p>
-        <h1 className="mt-3 text-3xl font-bold tracking-tight md:text-4xl">
-          Bancos
-        </h1>
-        <p className="mt-3 max-w-3xl text-muted-foreground">
-          Cadastre bancos e contas por pessoa para relacionar gastos, contas a pagar e recebimentos.
-        </p>
-      </section>
-
-      <section className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Saldo total em bancos</CardTitle>
-            <Banknote className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{formatCurrency(totalBalance)}</p>
-            <p className="text-xs text-muted-foreground">Soma das contas cadastradas</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Contas cadastradas</CardTitle>
-            <CreditCard className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{totalAccounts}</p>
-            <p className="text-xs text-muted-foreground">Bancos, cartoes e contas por pessoa</p>
-          </CardContent>
-        </Card>
-      </section>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Cadastrar novo banco</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <BankAccountForm members={members} />
-        </CardContent>
-      </Card>
-
-      <section className="space-y-4">
+    <div className="mx-auto flex w-full max-w-md flex-col gap-5 md:max-w-7xl">
+      <section className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-semibold tracking-tight">Saldo por pessoa</h2>
-          <p className="text-sm text-muted-foreground">
-            Veja quais bancos estao vinculados a cada membro da familia.
-          </p>
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-white/25">Família</p>
+          <h1 className="mt-1 text-3xl font-bold tracking-tight text-white md:text-4xl">Bancos</h1>
+          <p className="mt-1 text-sm text-white/40">Contas e saldos</p>
         </div>
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-[#5caaff]">
+          <Banknote className="h-5 w-5" />
+        </div>
+      </section>
+
+      <section className="relative overflow-hidden rounded-[1.75rem] border border-[#5caaff]/20 bg-[linear-gradient(135deg,#07172e_0%,#061020_55%,#080810_100%)] p-5 shadow-2xl shadow-black/30">
+        <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-[#5caaff]/10 blur-2xl" />
+        <div className="relative">
+          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/35">Saldo total em bancos</p>
+          <p className="mt-2 text-4xl font-semibold tracking-tight text-white md:text-5xl">
+            {compactCurrency(totalBalance)}
+          </p>
+          <div className="mt-5 grid grid-cols-2 divide-x divide-white/10">
+            <div className="pr-4">
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30">Contas</p>
+              <p className="mt-1 text-sm font-semibold text-[#5caaff]">{totalAccounts} cadastrada(s)</p>
+            </div>
+            <div className="pl-4">
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30">Membros</p>
+              <p className="mt-1 text-sm font-semibold text-white/85">{members.length} pessoa(s)</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="grid grid-cols-2 gap-2 md:grid-cols-3">
+        <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3">
+          <Banknote className="h-4 w-4 text-[#5caaff]" />
+          <p className="mt-3 text-[10px] font-bold uppercase tracking-widest text-white/25">Saldo</p>
+          <p className="mt-1 text-sm font-bold text-white">{compactCurrency(totalBalance)}</p>
+        </div>
+        <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3">
+          <CreditCard className="h-4 w-4 text-[#b09cff]" />
+          <p className="mt-3 text-[10px] font-bold uppercase tracking-widest text-white/25">Contas</p>
+          <p className="mt-1 text-sm font-bold text-white">{totalAccounts}</p>
+        </div>
+        <div className="hidden rounded-2xl border border-white/10 bg-white/[0.04] p-3 md:block">
+          <Users className="h-4 w-4 text-[#1de9b2]" />
+          <p className="mt-3 text-[10px] font-bold uppercase tracking-widest text-white/25">Pessoas</p>
+          <p className="mt-1 text-sm font-bold text-white">{members.length}</p>
+        </div>
+      </section>
+
+      <section className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
+        <div className="mb-4 flex items-center justify-between">
+          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/25">Novo banco</p>
+          <p className="text-xs font-semibold text-[#8b72f8]">formulário</p>
+        </div>
+        <BankAccountForm members={members} />
+      </section>
+
+      <section className="space-y-3">
+        <div className="flex items-center justify-between">
+          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/25">Saldo por pessoa</p>
+          <p className="text-xs font-semibold text-[#8b72f8]">membros</p>
+        </div>
+        <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {accountsByMember.map((member) => (
-            <Card key={member.id}>
-              <CardHeader>
-                <div className="flex items-center justify-between gap-3">
-                  <CardTitle className="text-base">{member.name}</CardTitle>
-                  <Badge variant="secondary">{formatCurrency(member.totalBalance)}</Badge>
+            <div key={member.id} className="min-w-[118px] rounded-2xl border border-white/10 bg-white/[0.04] p-3">
+              <div className="flex items-center gap-2">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#5caaff]/15 text-xs font-bold text-[#5caaff]">
+                  {initials(member.name)}
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {member.accounts.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">Nenhuma conta vinculada.</p>
-                ) : (
-                  member.accounts.map((account) => (
-                    <div key={account.id} className="flex items-center justify-between rounded-lg border p-3">
-                      <div>
-                        <p className="font-medium">{account.bank_name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {account.account_type || "Tipo nao informado"}
-                        </p>
-                      </div>
-                      <p className="font-semibold">{formatCurrency(Number(account.current_balance))}</p>
-                    </div>
-                  ))
-                )}
-              </CardContent>
-            </Card>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-white">{member.name}</p>
+                  <p className="text-xs text-white/35">{member.accounts.length} conta(s)</p>
+                </div>
+              </div>
+              <p className="mt-3 text-sm font-bold text-[#1de9b2]">{compactCurrency(member.totalBalance)}</p>
+            </div>
           ))}
         </div>
       </section>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Todos os bancos cadastrados</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {accounts.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Nenhum banco cadastrado ainda.</p>
-          ) : (
-            accounts.map((account) => (
-              <div
-                key={account.id}
-                className="flex flex-col gap-4 rounded-xl border p-4 xl:flex-row xl:items-center xl:justify-between"
-              >
-                <div className="flex items-start gap-3">
-                  <div className="rounded-full bg-primary/10 p-2 text-primary">
-                    <Users className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-semibold">{account.bank_name}</p>
-                      <Badge variant="outline">{account.currency}</Badge>
-                    </div>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {account.family_members?.name || "Sem pessoa vinculada"} · {account.account_type || "Tipo nao informado"}
-                    </p>
-                    {account.notes ? (
-                      <p className="mt-1 text-sm text-muted-foreground">{account.notes}</p>
-                    ) : null}
-                  </div>
+      <section className="space-y-3 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
+        <div className="flex items-center justify-between">
+          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/25">Bancos cadastrados</p>
+          <p className="text-xs font-semibold text-[#8b72f8]">{accounts.length}</p>
+        </div>
+
+        {accounts.length === 0 ? (
+          <p className="text-sm text-white/35">Nenhum banco cadastrado ainda.</p>
+        ) : (
+          accounts.map((account) => (
+            <div key={account.id} className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-[#080810]/50 p-3 md:flex-row md:items-center md:justify-between">
+              <div className="flex min-w-0 flex-1 items-start gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#5caaff]/10 text-[#5caaff]">
+                  <Banknote className="h-5 w-5" />
                 </div>
-
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center xl:justify-end">
-                  <form action={updateBankAccountBalance} className="flex gap-2">
-                    <input type="hidden" name="id" value={account.id} />
-                    <Input
-                      name="current_balance"
-                      type="number"
-                      step="0.01"
-                      defaultValue={Number(account.current_balance)}
-                      className="w-32"
-                    />
-                    <Button type="submit" variant="outline">Salvar</Button>
-                  </form>
-
-                  <form action={deleteBankAccount}>
-                    <input type="hidden" name="id" value={account.id} />
-                    <Button type="submit" variant="outline" size="icon" aria-label="Excluir banco">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </form>
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="truncate text-sm font-semibold text-white">{account.bank_name}</p>
+                    <Badge variant="outline" className="border-white/10 text-white/50">{account.currency}</Badge>
+                  </div>
+                  <p className="mt-1 truncate text-xs text-white/35">
+                    {account.family_members?.name || "Sem pessoa vinculada"} · {account.account_type || "Tipo não informado"}
+                  </p>
+                  {account.notes ? <p className="mt-0.5 truncate text-xs text-white/25">{account.notes}</p> : null}
                 </div>
               </div>
-            ))
-          )}
-        </CardContent>
-      </Card>
+
+              <div className="flex items-center justify-between gap-3 md:justify-end">
+                <form action={updateBankAccountBalance} className="flex gap-2">
+                  <input type="hidden" name="id" value={account.id} />
+                  <Input
+                    name="current_balance"
+                    type="number"
+                    step="0.01"
+                    defaultValue={Number(account.current_balance)}
+                    className="h-9 w-28 rounded-xl border-white/10 bg-[#080810] text-xs text-white"
+                  />
+                  <Button type="submit" variant="outline" className="h-9 rounded-xl border-white/10 bg-transparent text-white/60 hover:bg-white/10 hover:text-white">Salvar</Button>
+                </form>
+                <form action={deleteBankAccount}>
+                  <input type="hidden" name="id" value={account.id} />
+                  <Button type="submit" variant="outline" size="icon" aria-label="Excluir banco" className="h-9 w-9 rounded-xl border-white/10 bg-transparent text-white/35 hover:bg-white/10 hover:text-white">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </form>
+              </div>
+            </div>
+          ))
+        )}
+      </section>
     </div>
   );
 }
