@@ -3,7 +3,6 @@ import {
   Banknote,
   CalendarClock,
   CheckCircle2,
-  CircleDollarSign,
   PieChart,
   TrendingDown,
   TrendingUp,
