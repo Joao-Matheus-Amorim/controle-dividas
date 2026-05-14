@@ -37,16 +37,16 @@ export default function ProtectedLayout({
   children: React.ReactNode;
 }) {
   return (
-    <main className="dark min-h-screen bg-[#080810] text-foreground">
-      <div className="pointer-events-none fixed inset-x-0 top-0 h-72 bg-[radial-gradient(ellipse_at_top,rgba(139,114,248,0.24),transparent_65%)]" />
+    <main className="app-no-x-scroll dark min-h-screen bg-[#080810] text-foreground">
+      <div className="pointer-events-none fixed inset-x-0 top-0 h-72 max-w-full bg-[radial-gradient(ellipse_at_top,rgba(139,114,248,0.24),transparent_65%)]" />
 
-      <nav className="sticky top-0 z-40 border-b border-white/5 bg-[#080810]/90 backdrop-blur-xl">
+      <nav className="sticky top-0 z-40 max-w-full overflow-hidden border-b border-white/5 bg-[#080810]/90 backdrop-blur-xl">
         <div className="mx-auto flex min-h-16 w-full max-w-7xl flex-col gap-3 px-4 py-3 md:px-6">
-          <div className="flex items-center justify-between gap-4">
-            <Link href="/protected" className="text-lg font-bold tracking-tight text-white">
+          <div className="flex min-w-0 items-center justify-between gap-3">
+            <Link href="/protected" className="min-w-0 shrink-0 text-lg font-bold tracking-tight text-white">
               FamilyFinance
             </Link>
-            <div className="flex items-center gap-3">
+            <div className="flex min-w-0 shrink items-center justify-end gap-3 overflow-hidden">
               {!hasEnvVars ? (
                 <EnvVarWarning />
               ) : (
@@ -70,12 +70,12 @@ export default function ProtectedLayout({
         </div>
       </nav>
 
-      <div className="relative z-10 mx-auto w-full max-w-7xl px-4 py-6 pb-28 md:px-6 md:py-8 md:pb-8">
+      <div className="relative z-10 mx-auto w-full max-w-7xl overflow-x-clip px-4 py-6 pb-28 md:px-6 md:py-8 md:pb-8">
         {children}
       </div>
 
-      <nav className="fixed inset-x-0 bottom-0 z-50 bg-gradient-to-t from-[#080810] via-[#080810]/98 to-transparent px-3 pb-5 pt-3 backdrop-blur md:hidden">
-        <div className="mx-auto grid max-w-md grid-cols-5 gap-1 rounded-[1.75rem] border border-white/10 bg-white/[0.05] p-1.5 shadow-2xl shadow-black/40">
+      <nav className="fixed inset-x-0 bottom-0 z-50 max-w-full overflow-hidden bg-gradient-to-t from-[#080810] via-[#080810]/98 to-transparent px-3 pb-5 pt-3 backdrop-blur md:hidden">
+        <div className="mx-auto grid w-full max-w-md grid-cols-5 gap-1 rounded-[1.75rem] border border-white/10 bg-white/[0.05] p-1.5 shadow-2xl shadow-black/40">
           {mobileNavigation.map((item) => {
             const Icon = item.icon;
 
@@ -83,10 +83,10 @@ export default function ProtectedLayout({
               <Link
                 key={item.href}
                 href={item.href}
-                className="flex flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-[10px] font-semibold uppercase tracking-wide text-white/35 transition hover:bg-white/[0.08] hover:text-[#b09cff]"
+                className="flex min-w-0 flex-col items-center justify-center gap-1 rounded-2xl px-1.5 py-2 text-[10px] font-semibold uppercase tracking-wide text-white/35 transition hover:bg-white/[0.08] hover:text-[#b09cff]"
               >
-                <Icon className="h-5 w-5" />
-                <span>{item.label}</span>
+                <Icon className="h-5 w-5 shrink-0" />
+                <span className="max-w-full truncate">{item.label}</span>
               </Link>
             );
           })}
