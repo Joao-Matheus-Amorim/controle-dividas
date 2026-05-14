@@ -3,13 +3,6 @@
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
@@ -34,7 +27,7 @@ export function SignUpForm({
     setError(null);
 
     if (password !== repeatPassword) {
-      setError("Passwords do not match");
+      setError("As senhas não conferem.");
       setIsLoading(false);
       return;
     }
@@ -50,71 +43,77 @@ export function SignUpForm({
       if (error) throw error;
       router.push("/auth/sign-up-success");
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred");
+      setError(error instanceof Error ? error.message : "Não foi possível criar a conta.");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">Sign up</CardTitle>
-          <CardDescription>Create a new account</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSignUp}>
-            <div className="flex flex-col gap-6">
-              <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-              <div className="grid gap-2">
-                <div className="flex items-center">
-                  <Label htmlFor="password">Password</Label>
-                </div>
-                <Input
-                  id="password"
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
-              <div className="grid gap-2">
-                <div className="flex items-center">
-                  <Label htmlFor="repeat-password">Repeat Password</Label>
-                </div>
-                <Input
-                  id="repeat-password"
-                  type="password"
-                  required
-                  value={repeatPassword}
-                  onChange={(e) => setRepeatPassword(e.target.value)}
-                />
-              </div>
-              {error && <p className="text-sm text-red-500">{error}</p>}
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Creating an account..." : "Sign up"}
-              </Button>
-            </div>
-            <div className="mt-4 text-center text-sm">
-              Already have an account?{" "}
-              <Link href="/auth/login" className="underline underline-offset-4">
-                Login
-              </Link>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+    <div className={cn("w-full", className)} {...props}>
+      <div className="mb-8 text-center">
+        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-3xl bg-primary text-xl font-bold text-primary-foreground shadow-sm">
+          F
+        </div>
+        <p className="text-sm font-medium text-muted-foreground">FamilyFinance</p>
+        <h1 className="mt-2 text-3xl font-bold tracking-tight">Criar conta</h1>
+      </div>
+
+      <form onSubmit={handleSignUp} className="space-y-5">
+        <div className="space-y-2">
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            type="email"
+            placeholder="voce@email.com"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="h-12 rounded-2xl bg-background px-4 text-base"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="password">Senha</Label>
+          <Input
+            id="password"
+            type="password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="h-12 rounded-2xl bg-background px-4 text-base"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="repeat-password">Repetir senha</Label>
+          <Input
+            id="repeat-password"
+            type="password"
+            required
+            value={repeatPassword}
+            onChange={(e) => setRepeatPassword(e.target.value)}
+            className="h-12 rounded-2xl bg-background px-4 text-base"
+          />
+        </div>
+
+        {error ? (
+          <div className="rounded-2xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            {error}
+          </div>
+        ) : null}
+
+        <Button type="submit" className="h-12 w-full rounded-2xl text-base font-semibold" disabled={isLoading}>
+          {isLoading ? "Criando..." : "Continuar"}
+        </Button>
+
+        <p className="text-center text-sm text-muted-foreground">
+          Já tem conta?{" "}
+          <Link href="/auth/login" className="font-semibold text-foreground underline-offset-4 hover:underline">
+            Entrar
+          </Link>
+        </p>
+      </form>
     </div>
   );
 }
