@@ -11,6 +11,16 @@ O painel web sera usado pelo Admin familiar, inicialmente Danyel.
 
 O app mobile sera usado pelos demais membros da familia para operacoes do dia a dia.
 
+## Decisao sobre Admin no app
+
+A opcao escolhida e a Opcao B.
+
+O app mobile podera exibir um atalho Admin apenas para Danyel.
+
+Ao clicar nesse atalho, o app abrira o painel web Admin em uma WebView ou no navegador externo autenticado.
+
+A administracao nao sera reconstruida dentro do app mobile. O app apenas direciona Danyel para o painel web Admin.
+
 ## Painel Web Admin
 
 O painel web nao sera a interface principal da familia.
@@ -45,23 +55,35 @@ O app mobile sera a interface principal para a rotina da familia.
 - Consulta de bancos autorizados.
 - Acoes permitidas conforme permissao configurada pelo Danyel.
 
-## Admin no app mobile
+## Atalho Admin no app mobile
 
-O app mobile nao deve conter uma area Admin completa.
+O atalho Admin sera condicionado ao usuario autenticado.
 
-Existem duas possibilidades futuras:
+### Regra de exibicao
 
-### Opcao A - Sem aba Admin no app
+- Se o usuario logado for Danyel/Admin, o app exibe o atalho Admin.
+- Se o usuario logado for familiar comum, o app nao exibe o atalho Admin.
 
-O app familiar nao exibe Admin. O Danyel acessa o painel web diretamente pelo navegador.
+### Comportamento ao clicar
 
-### Opcao B - Atalho Admin no app
+O app deve abrir:
 
-O app pode exibir um botao ou item discreto chamado Admin apenas para o Danyel.
+```txt
+https://controle-dividas-seven.vercel.app/protected/admin
+```
 
-Ao clicar, o app abre o painel web Admin em uma WebView ou no navegador externo.
+A abertura pode ser feita de duas formas:
 
-Esse atalho nao implementa a administracao dentro do app. Ele apenas redireciona para o painel web.
+1. Navegador externo.
+2. WebView interna do app.
+
+A recomendacao inicial e usar navegador externo, por ser mais simples, seguro e facil de manter.
+
+### Regra de seguranca
+
+Mesmo que um usuario comum descubra a URL do painel Admin, as regras de autenticacao e permissao devem impedir acesso indevido.
+
+O atalho no app e apenas conveniencia visual. A seguranca real deve estar no backend e nas regras do painel web.
 
 ## Regras de autenticacao
 
@@ -82,3 +104,4 @@ O FamilyFinance nao tera dois sistemas concorrentes. A divisao sera clara:
 
 - Web Admin: configuracao e controle pelo Danyel.
 - App Mobile: uso diario pela familia.
+- Atalho Admin no app: visivel apenas para Danyel e direcionando para o painel web.
