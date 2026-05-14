@@ -66,3 +66,30 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer components {
+  .dark select {
+    @apply h-11 rounded-2xl border border-white/10 bg-[#080810] px-4 py-2 text-sm text-white shadow-sm outline-none transition-colors;
+  }
+
+  .dark select:focus {
+    @apply border-[#8b72f8] ring-1 ring-[#8b72f8];
+  }
+
+  .dark select option {
+    background-color: #080810;
+    color: #f8f8ff;
+  }
+
+  .dark input:-webkit-autofill,
+  .dark input:-webkit-autofill:hover,
+  .dark input:-webkit-autofill:focus {
+    -webkit-text-fill-color: #ffffff;
+    box-shadow: 0 0 0 1000px #080810 inset;
+    caret-color: #ffffff;
+  }
+
+  .dark form button[type="submit"]:not([data-variant]) {
+    @apply rounded-2xl;
+  }
+}
