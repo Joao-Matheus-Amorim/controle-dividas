@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useMemo, useState } from "react";
+import { Check, KeyRound, ShieldCheck, SlidersHorizontal, UserRound } from "lucide-react";
 
 import { saveProfilePermissions } from "@/app/protected/admin/actions";
 import { Button } from "@/components/ui/button";
@@ -10,8 +11,18 @@ import type {
   PermissionFormState,
 } from "@/lib/finance/admin-server";
 import { FINANCE_MODULES, PERMISSION_ACTIONS } from "@/lib/finance/permissions";
+import { cn } from "@/lib/utils";
 
 const initialState: PermissionFormState = {};
+
+function initials(name: string) {
+  return name
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
 
 export function PermissionsForm({
   profiles,
@@ -23,60 +34,175 @@ export function PermissionsForm({
   const editableProfiles = profiles.filter((profile) => profile.role !== "admin");
   const [selectedProfileId, setSelectedProfileId] = useState(editableProfiles[0]?.id ?? "");
   const [state, formAction, isPending] = useActionState(saveProfilePermissions, initialState);
-  const selectedPermissions = permissions.filter((permission) => permission.profile_id === selectedProfileId);
+
+  const selectedProfile = editableProfiles.find((profile) => profile.id === selectedProfileId);
+  const selectedPermissions = useMemo(
+    () => permissions.filter((permission) => permission.profile_id === selectedProfileId),
+    [permissions, selectedProfileId],
+  );
 
   if (editableProfiles.length === 0) {
-    return <p className="text-sm text-muted-foreground">Cadastre um usuario familiar antes.</p>;
+    return (
+      <div className="rounded-[1.5rem] border border-white/10 bg-[#080810]/60 p-6 text-center shadow-2xl shadow-black/30">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-3xl bg-[#8b72f8]/15 text-[#b09cff]">
+          <UserRound className="h-5 w-5" />
+        </div>
+        <p className="mt-4 text-sm font-semibold text-white">Nenhum usuário familiar cadastrado</p>
+        <p className="mt-1 text-sm text-white/35">Cadastre um usuário familiar antes de configurar permissões.</p>
+      </div>
+    );
   }
 
   return (
     <form action={formAction} className="space-y-5">
       <input type="hidden" name="profile_id" value={selectedProfileId} />
 
-      <select
-        value={selectedProfileId}
-        onChange={(event) => setSelectedProfileId(event.target.value)}
-        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
-      >
-        {editableProfiles.map((profile) => (
-          <option key={profile.id} value={profile.id}>
-            {profile.name}
-          </option>
-        ))}
-      </select>
+      <section className="grid gap-4 lg:grid-cols-[280px_1fr]">
+        <aside className="rounded-[1.75rem] border border-white/10 bg-[linear-gradient(145deg,rgba(255,255,255,0.075),rgba(255,255,255,0.025))] p-4 shadow-[0_22px_70px_rgba(0,0,0,0.35)] backdrop-blur-xl">
+          <div className="mb-4 flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#8b72f8]/15 text-[#b09cff] shadow-lg shadow-[#8b72f8]/10">
+              <SlidersHorizontal className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/25">Usuários</p>
+              <p className="text-sm font-semibold text-white">Escolha um perfil</p>
+            </div>
+          </div>
 
-      <div className="space-y-3">
-        {FINANCE_MODULES.map((module) => {
-          const modulePermission = selectedPermissions.find(
-            (permission) => permission.module === module.key,
-          );
+          <div className="space-y-2">
+            {editableProfiles.map((profile) => {
+              const isSelected = profile.id === selectedProfileId;
 
-          return (
-            <div key={module.key} className="rounded-xl border p-4">
-              <p className="mb-3 font-medium">{module.label}</p>
-              <div className="grid gap-3 md:grid-cols-4">
-                {PERMISSION_ACTIONS.map((action) => (
-                  <label key={action.key} className="flex items-center gap-2 text-sm">
-                    <input
-                      type="checkbox"
-                      name={`${module.key}.${action.key}`}
-                      defaultChecked={Boolean(modulePermission?.[action.key])}
-                    />
-                    {action.label}
-                  </label>
-                ))}
+              return (
+                <button
+                  key={profile.id}
+                  type="button"
+                  onClick={() => setSelectedProfileId(profile.id)}
+                  className={cn(
+                    "group flex w-full items-center gap-3 rounded-2xl border p-3 text-left transition duration-200",
+                    isSelected
+                      ? "border-[#8b72f8]/50 bg-[#8b72f8]/15 shadow-[0_14px_35px_rgba(139,114,248,0.18)]"
+                      : "border-white/10 bg-[#080810]/50 hover:border-white/20 hover:bg-white/[0.055] hover:shadow-xl hover:shadow-black/20",
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-bold transition",
+                      isSelected ? "bg-[#8b72f8] text-white" : "bg-white/10 text-white/45 group-hover:text-white",
+                    )}
+                  >
+                    {initials(profile.name)}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-white">{profile.name}</p>
+                    <p className="truncate text-xs text-white/35">{profile.email || "Sem email"}</p>
+                  </div>
+                  {isSelected ? <Check className="h-4 w-4 text-[#b09cff]" /> : null}
+                </button>
+              );
+            })}
+          </div>
+        </aside>
+
+        <section className="rounded-[1.75rem] border border-white/10 bg-[radial-gradient(circle_at_top_right,rgba(139,114,248,0.13),transparent_35%),rgba(255,255,255,0.045)] p-4 shadow-[0_28px_90px_rgba(0,0,0,0.38)] backdrop-blur-xl md:p-5">
+          <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#8b72f8]/15 text-[#b09cff] shadow-lg shadow-[#8b72f8]/10">
+                <KeyRound className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/25">Matriz de permissões</p>
+                <p className="text-sm font-semibold text-white">
+                  {selectedProfile?.name || "Perfil selecionado"}
+                </p>
               </div>
             </div>
-          );
-        })}
+            <div className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-1.5 text-xs font-semibold text-white/45">
+              {FINANCE_MODULES.length} módulo(s)
+            </div>
+          </div>
+
+          <div className="grid gap-3">
+            {FINANCE_MODULES.map((module) => {
+              const modulePermission = selectedPermissions.find(
+                (permission) => permission.module === module.key,
+              );
+              const enabledActions = PERMISSION_ACTIONS.filter((action) =>
+                Boolean(modulePermission?.[action.key]),
+              ).length;
+
+              return (
+                <div
+                  key={module.key}
+                  className="rounded-[1.5rem] border border-white/10 bg-[#080810]/55 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_16px_45px_rgba(0,0,0,0.22)] transition duration-200 hover:-translate-y-0.5 hover:border-white/20 hover:bg-[#10101a]/80 hover:shadow-[0_24px_70px_rgba(0,0,0,0.34)]"
+                >
+                  <div className="mb-4 flex items-center justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/10 text-white/55">
+                        <ShieldCheck className="h-5 w-5" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-white">{module.label}</p>
+                        <p className="truncate text-xs text-white/30">{module.key}</p>
+                      </div>
+                    </div>
+                    <span className="rounded-full border border-white/10 bg-white/[0.05] px-2.5 py-1 text-[11px] font-bold text-white/40">
+                      {enabledActions}/{PERMISSION_ACTIONS.length}
+                    </span>
+                  </div>
+
+                  <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+                    {PERMISSION_ACTIONS.map((action) => {
+                      const inputId = `${module.key}.${action.key}`;
+
+                      return (
+                        <label
+                          key={action.key}
+                          htmlFor={inputId}
+                          className="group flex cursor-pointer items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.035] p-3 text-sm text-white/55 transition duration-200 hover:border-[#8b72f8]/35 hover:bg-[#8b72f8]/10 hover:text-white"
+                        >
+                          <input
+                            id={inputId}
+                            type="checkbox"
+                            name={`${module.key}.${action.key}`}
+                            defaultChecked={Boolean(modulePermission?.[action.key])}
+                            className="peer sr-only"
+                          />
+                          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-lg border border-white/15 bg-[#080810] text-transparent transition peer-checked:border-[#8b72f8] peer-checked:bg-[#8b72f8] peer-checked:text-white group-hover:border-[#8b72f8]/50">
+                            <Check className="h-3.5 w-3.5" />
+                          </span>
+                          <span className="font-medium peer-checked:text-white">{action.label}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      </section>
+
+      {state.error ? (
+        <p className="rounded-2xl border border-[#f0506e]/20 bg-[#f0506e]/10 p-3 text-sm text-[#f0506e]">
+          {state.error}
+        </p>
+      ) : null}
+      {state.success ? (
+        <p className="rounded-2xl border border-[#1de9b2]/20 bg-[#1de9b2]/10 p-3 text-sm text-[#1de9b2]">
+          {state.success}
+        </p>
+      ) : null}
+
+      <div className="sticky bottom-24 z-20 flex justify-end md:bottom-6">
+        <Button
+          type="submit"
+          disabled={isPending}
+          className="h-12 rounded-2xl bg-[#8b72f8] px-6 font-semibold text-white shadow-[0_18px_45px_rgba(139,114,248,0.28)] hover:bg-[#7d66e4]"
+        >
+          {isPending ? "Salvando..." : "Salvar permissões"}
+        </Button>
       </div>
-
-      {state.error ? <p className="text-sm text-destructive">{state.error}</p> : null}
-      {state.success ? <p className="text-sm text-emerald-600">{state.success}</p> : null}
-
-      <Button type="submit" disabled={isPending}>
-        {isPending ? "Salvando..." : "Salvar permissoes"}
-      </Button>
     </form>
   );
 }
