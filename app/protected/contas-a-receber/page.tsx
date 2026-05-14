@@ -26,7 +26,6 @@ export default async function ContasAReceberPage() {
     totalReceived,
     totalFixed,
     totalVariable,
-    expectedCount,
     overdueCount,
     receivedCount,
   } = await getReceivableIncomesDashboardData();
