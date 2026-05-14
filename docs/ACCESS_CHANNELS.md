@@ -4,22 +4,47 @@
 
 O FamilyFinance tera dois canais principais:
 
-1. Painel Web Admin
-2. App Mobile Familiar
+1. App Mobile Familiar
+2. Painel Web Admin
 
-O painel web sera usado pelo Admin familiar, inicialmente Danyel.
+O app mobile sera usado por todos os membros que tiverem login, incluindo Danyel.
 
-O app mobile sera usado pelos demais membros da familia para operacoes do dia a dia.
+O painel web Admin sera usado para configuracao e gerenciamento, acessado pelo Danyel quando precisar administrar.
+
+## Danyel no sistema
+
+Danyel tem dois papeis ao mesmo tempo:
+
+1. Membro financeiro da familia.
+2. Admin familiar.
+
+Como membro financeiro, Danyel usa o app nativo normalmente para:
+
+- ver seu saldo;
+- lancar seus gastos;
+- acompanhar suas contas;
+- consultar bancos autorizados;
+- participar dos relatorios da familia.
+
+Como Admin familiar, Danyel ve no app um atalho Admin.
+
+Ao clicar nesse atalho, o app abre o painel web de gerenciamento.
+
+## Familiares no sistema
+
+Pai, Mae, Gabryel e demais usuarios familiares usam apenas o app nativo.
+
+Eles nao acessam a area Admin, exceto se o Danyel futuramente conceder papel de Admin a outro usuario.
 
 ## Decisao sobre Admin no app
 
 A opcao escolhida e a Opcao B.
 
-O app mobile podera exibir um atalho Admin apenas para Danyel.
+O app mobile exibira um atalho Admin apenas para usuarios com perfil Admin.
 
-Ao clicar nesse atalho, o app abrira o painel web Admin em uma WebView ou no navegador externo autenticado.
+Na pratica inicial, esse usuario sera Danyel.
 
-A administracao nao sera reconstruida dentro do app mobile. O app apenas direciona Danyel para o painel web Admin.
+A administracao nao sera reconstruida dentro do app mobile. O app apenas direciona o Admin para o painel web.
 
 ## Painel Web Admin
 
@@ -54,15 +79,18 @@ O app mobile sera a interface principal para a rotina da familia.
 - Consulta de contas autorizadas.
 - Consulta de bancos autorizados.
 - Acoes permitidas conforme permissao configurada pelo Danyel.
+- Exibir atalho Admin apenas para perfil Admin.
 
 ## Atalho Admin no app mobile
 
-O atalho Admin sera condicionado ao usuario autenticado.
+O atalho Admin sera condicionado ao perfil do usuario autenticado.
 
 ### Regra de exibicao
 
-- Se o usuario logado for Danyel/Admin, o app exibe o atalho Admin.
-- Se o usuario logado for familiar comum, o app nao exibe o atalho Admin.
+- Se o usuario logado tiver `profile.role = admin`, o app exibe o atalho Admin.
+- Se o usuario logado tiver `profile.role = user`, o app nao exibe o atalho Admin.
+
+Nao deve ser usado o nome da pessoa para decidir se mostra Admin. A regra deve ser baseada no perfil e permissao.
 
 ### Comportamento ao clicar
 
@@ -83,11 +111,11 @@ A recomendacao inicial e usar navegador externo, por ser mais simples, seguro e 
 
 Mesmo que um usuario comum descubra a URL do painel Admin, as regras de autenticacao e permissao devem impedir acesso indevido.
 
-O atalho no app e apenas conveniencia visual. A seguranca real deve estar no backend e nas regras do painel web.
+O atalho no app e apenas conveniencia visual. A seguranca real deve estar no backend, nas rotas protegidas e nas regras do painel web.
 
 ## Regras de autenticacao
 
-- Danyel autentica no painel web Admin.
+- Danyel autentica no app como membro financeiro e tambem pode autenticar no painel web Admin.
 - Familiares autenticam no app mobile.
 - O mesmo backend Supabase gerencia autenticacao e dados.
 - As permissoes configuradas no painel web controlam o app.
@@ -102,6 +130,6 @@ O app mobile deve permanecer simples, voltado para uso diario, sem excesso de co
 
 O FamilyFinance nao tera dois sistemas concorrentes. A divisao sera clara:
 
+- App Mobile: uso diario por Danyel e familiares.
 - Web Admin: configuracao e controle pelo Danyel.
-- App Mobile: uso diario pela familia.
-- Atalho Admin no app: visivel apenas para Danyel e direcionando para o painel web.
+- Atalho Admin no app: visivel apenas para perfil Admin e direcionando para o painel web.
