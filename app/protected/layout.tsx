@@ -14,6 +14,7 @@ const navigation = [
   { href: "/protected/bancos", label: "Bancos" },
   { href: "/protected/relatorios", label: "Relatórios" },
   { href: "/protected/configuracoes", label: "Configurações" },
+  { href: "/protected/admin", label: "Admin" },
 ];
 
 export default function ProtectedLayout({
