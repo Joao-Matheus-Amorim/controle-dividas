@@ -137,31 +137,49 @@ export default async function ProtectedPage() {
         </div>
       </section>
 
-      <section className="grid grid-cols-4 gap-2">
-        <Link href="/protected/gastos" className="group rounded-[1.35rem] border border-white/10 bg-white/[0.045] p-3 text-center shadow-[0_14px_38px_rgba(0,0,0,0.22)] transition active:scale-[0.97] hover:border-[#f0506e]/35 hover:bg-[#f0506e]/10">
-          <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-2xl bg-[#f0506e]/10 text-[#f0506e] transition group-hover:scale-105">
-            <Plus className="h-5 w-5" />
-          </div>
-          <p className="mt-2 text-[10px] font-bold uppercase tracking-wider text-white/45">Gasto</p>
-        </Link>
-        <Link href="/protected/contas-a-pagar" className="group rounded-[1.35rem] border border-white/10 bg-white/[0.045] p-3 text-center shadow-[0_14px_38px_rgba(0,0,0,0.22)] transition active:scale-[0.97] hover:border-[#f7b84b]/35 hover:bg-[#f7b84b]/10">
-          <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-2xl bg-[#f7b84b]/10 text-[#f7b84b] transition group-hover:scale-105">
-            <CalendarClock className="h-5 w-5" />
-          </div>
-          <p className="mt-2 text-[10px] font-bold uppercase tracking-wider text-white/45">Conta</p>
-        </Link>
-        <Link href="/protected/bancos" className="group rounded-[1.35rem] border border-white/10 bg-white/[0.045] p-3 text-center shadow-[0_14px_38px_rgba(0,0,0,0.22)] transition active:scale-[0.97] hover:border-[#1de9b2]/35 hover:bg-[#1de9b2]/10">
-          <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-2xl bg-[#1de9b2]/10 text-[#1de9b2] transition group-hover:scale-105">
-            <Banknote className="h-5 w-5" />
-          </div>
-          <p className="mt-2 text-[10px] font-bold uppercase tracking-wider text-white/45">Banco</p>
-        </Link>
-        <Link href="/protected/admin" className="group rounded-[1.35rem] border border-white/10 bg-white/[0.045] p-3 text-center shadow-[0_14px_38px_rgba(0,0,0,0.22)] transition active:scale-[0.97] hover:border-[#8b72f8]/35 hover:bg-[#8b72f8]/10">
-          <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-2xl bg-[#8b72f8]/10 text-[#b09cff] transition group-hover:scale-105">
-            <ShieldCheck className="h-5 w-5" />
-          </div>
-          <p className="mt-2 text-[10px] font-bold uppercase tracking-wider text-white/45">Admin</p>
-        </Link>
+      <section className="space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <AppSectionTitle>Ações rápidas</AppSectionTitle>
+          <p className="text-xs font-medium text-white/30">Atalhos do dia</p>
+        </div>
+        <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+          <Link href="/protected/gastos" className="group flex min-w-0 items-center gap-3 rounded-[1.35rem] border border-white/10 bg-white/[0.04] p-3 shadow-[0_14px_34px_rgba(0,0,0,0.2)] transition active:scale-[0.97] hover:border-[#f0506e]/35 hover:bg-[#f0506e]/10">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#f0506e]/10 text-[#f0506e] transition group-hover:scale-105">
+              <Plus className="h-5 w-5" />
+            </div>
+            <div className="min-w-0 text-left">
+              <p className="truncate text-sm font-bold text-white">Registrar gasto</p>
+              <p className="truncate text-xs text-white/30">Lançamento rápido</p>
+            </div>
+          </Link>
+          <Link href="/protected/contas-a-pagar" className="group flex min-w-0 items-center gap-3 rounded-[1.35rem] border border-white/10 bg-white/[0.04] p-3 shadow-[0_14px_34px_rgba(0,0,0,0.2)] transition active:scale-[0.97] hover:border-[#f7b84b]/35 hover:bg-[#f7b84b]/10">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#f7b84b]/10 text-[#f7b84b] transition group-hover:scale-105">
+              <CalendarClock className="h-5 w-5" />
+            </div>
+            <div className="min-w-0 text-left">
+              <p className="truncate text-sm font-bold text-white">Nova conta</p>
+              <p className="truncate text-xs text-white/30">Vencimentos</p>
+            </div>
+          </Link>
+          <Link href="/protected/bancos" className="group flex min-w-0 items-center gap-3 rounded-[1.35rem] border border-white/10 bg-white/[0.04] p-3 shadow-[0_14px_34px_rgba(0,0,0,0.2)] transition active:scale-[0.97] hover:border-[#1de9b2]/35 hover:bg-[#1de9b2]/10">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#1de9b2]/10 text-[#1de9b2] transition group-hover:scale-105">
+              <Banknote className="h-5 w-5" />
+            </div>
+            <div className="min-w-0 text-left">
+              <p className="truncate text-sm font-bold text-white">Bancos</p>
+              <p className="truncate text-xs text-white/30">Saldos e contas</p>
+            </div>
+          </Link>
+          <Link href="/protected/admin" className="group flex min-w-0 items-center gap-3 rounded-[1.35rem] border border-white/10 bg-white/[0.04] p-3 shadow-[0_14px_34px_rgba(0,0,0,0.2)] transition active:scale-[0.97] hover:border-[#8b72f8]/35 hover:bg-[#8b72f8]/10">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#8b72f8]/10 text-[#b09cff] transition group-hover:scale-105">
+              <ShieldCheck className="h-5 w-5" />
+            </div>
+            <div className="min-w-0 text-left">
+              <p className="truncate text-sm font-bold text-white">Admin</p>
+              <p className="truncate text-xs text-white/30">Regras e acesso</p>
+            </div>
+          </Link>
+        </div>
       </section>
 
       <section className="grid grid-cols-3 gap-2 md:grid-cols-4">
