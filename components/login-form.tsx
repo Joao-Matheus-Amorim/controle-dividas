@@ -52,7 +52,7 @@ export function LoginForm({
       <div className="mb-7">
         <div className="mb-5 flex items-center justify-between gap-4">
           <div className="flex h-14 w-14 items-center justify-center rounded-[1.35rem] border border-white/10 bg-[#8b72f8] text-xl font-black text-white shadow-[0_18px_45px_rgba(139,114,248,0.35)]">
-            F
+            S
           </div>
           <div className="rounded-full border border-white/10 bg-[#080810]/65 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.22em] text-[#1de9b2]">
             seguro
@@ -66,7 +66,7 @@ export function LoginForm({
           Entrar
         </h1>
         <p className="mt-2 text-sm leading-6 text-white/40">
-          Acesse o painel privado da família para acompanhar gastos, contas e permissões.
+          Acesse o painel privado da família Souza para acompanhar gastos, contas e permissões.
         </p>
       </div>
 
@@ -135,7 +135,7 @@ export function LoginForm({
               <ShieldCheck className="h-4 w-4" />
             </div>
             <p className="text-xs leading-5 text-white/35">
-              Ambiente privado. Os dados financeiros ficam protegidos pelo acesso da família.
+              Ambiente privado. Os dados financeiros ficam protegidos pelo acesso da família Souza.
             </p>
           </div>
         </div>
