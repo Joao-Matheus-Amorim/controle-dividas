@@ -1,7 +1,7 @@
 import { Plus, ReceiptText, Trash2, TrendingDown, Users } from "lucide-react";
 
 import { deleteExpense } from "./actions";
-import { ExpenseForm } from "@/components/finance/expense-form";
+import { ExpenseFormDialog } from "@/components/finance/expense-form-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/finance/calculations";
@@ -119,13 +119,17 @@ export default async function GastosPage() {
       </section>
 
       <section className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
-        <div className="mb-4 flex items-center justify-between">
-          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/25">
-            Novo gasto
-          </p>
-          <p className="text-xs font-semibold text-[#8b72f8]">formulário</p>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/25">
+              Novo gasto
+            </p>
+            <p className="mt-1 text-sm text-white/40">
+              Registre um lançamento sem poluir a tela principal.
+            </p>
+          </div>
+          <ExpenseFormDialog members={members} categories={categories} />
         </div>
-        <ExpenseForm members={members} categories={categories} />
       </section>
 
       <section className="space-y-3">
