@@ -4,7 +4,42 @@
 
 O FamilyFinance sera planejado como app nativo Android e iOS para uso diario da familia.
 
-O painel web atual continuara existindo como backoffice administrativo e ambiente de configuracao.
+O painel web atual continuara existindo, mas seu papel sera especifico: sera o painel Admin privado utilizado pelo Danyel.
+
+## Divisao oficial de canais
+
+### Web Admin
+
+A web sera usada apenas pelo Admin familiar, inicialmente Danyel.
+
+Papel da web:
+
+- backoffice administrativo;
+- configuracao da familia;
+- gestao de usuarios familiares;
+- gestao de permissoes;
+- ajuste de limites;
+- categorias;
+- bancos;
+- relatorios consolidados;
+- suporte e manutencao.
+
+A web nao sera a interface principal dos demais membros da familia.
+
+### App nativo
+
+O app Android/iOS sera a interface principal da familia.
+
+Papel do app:
+
+- uso diario por Pai, Mae, Gabryel e demais usuarios familiares;
+- lancamento rapido de gastos;
+- consulta de saldo individual;
+- visualizacao de contas autorizadas;
+- recebimentos autorizados;
+- bancos autorizados;
+- notificacoes futuras;
+- experiencia simples e mobile-first.
 
 ## Arquitetura recomendada
 
@@ -15,6 +50,14 @@ O painel web atual continuara existindo como backoffice administrativo e ambient
 - Auth: Supabase Auth.
 - Build mobile: EAS Build.
 - Futuro: Expo Notifications.
+
+## Principio de acesso
+
+- Danyel acessa a web como Admin familiar.
+- Familiares acessam o app nativo.
+- Permissoes configuradas na web controlam o que aparece e o que pode ser feito no app.
+- A web pode continuar com acesso total do Admin.
+- O app deve esconder ou bloquear funcoes sem permissao.
 
 ## Por que React Native + Expo
 
@@ -33,24 +76,12 @@ O app mobile deve priorizar:
 - operacao em poucos passos;
 - permissoes aplicadas por usuario.
 
-## Papel do painel web
-
-O painel web deve priorizar:
-
-- configuracoes administrativas;
-- gestao de usuarios;
-- permissoes;
-- relatorios consolidados;
-- ajustes de limites;
-- gestao de categorias;
-- suporte e manutencao.
-
 ## Estrutura futura recomendada
 
 ```txt
 familyfinance/
   apps/
-    web/
+    web-admin/
     mobile/
   packages/
     shared/
@@ -60,23 +91,22 @@ familyfinance/
 
 ## Fases mobile
 
-### Fase Mobile 1 - MVP
+### Fase Mobile 1 - MVP do app familiar
 
 - Login.
-- Dashboard familiar.
 - Dashboard individual.
 - Lancar gasto.
-- Ver gastos.
-- Ver contas a pagar.
-- Ver contas a receber.
-- Ver bancos.
+- Ver gastos autorizados.
+- Ver contas a pagar autorizadas.
+- Ver contas a receber autorizadas.
+- Ver bancos autorizados.
 
-### Fase Mobile 2 - Admin familiar
+### Fase Mobile 2 - Permissoes aplicadas no app
 
-- Criar usuarios.
-- Vincular usuarios a membros financeiros.
-- Configurar permissoes.
-- Controlar o que cada usuario pode ver, criar, editar e excluir.
+- Menu dinamico por permissao.
+- Bloqueio de criar, editar e excluir por usuario.
+- Dashboard individual por membro financeiro.
+- Regras de acesso respeitadas no app e no backend.
 
 ### Fase Mobile 3 - Experiencia avancada
 
@@ -99,4 +129,4 @@ familyfinance/
 
 ## Decisao
 
-Antes da implementacao mobile, o MVP web deve ser estabilizado e a documentacao aprovada. O app mobile deve nascer alinhado ao escopo personalizado da familia.
+Antes da implementacao mobile, a web deve ser consolidada como Admin privado do Danyel. O app mobile deve nascer como interface da familia, consumindo as permissoes definidas pelo Admin web.
