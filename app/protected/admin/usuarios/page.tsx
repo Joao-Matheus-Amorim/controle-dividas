@@ -1,4 +1,4 @@
-import { ShieldCheck, UserRoundCheck, UserRoundX, UsersRound } from "lucide-react";
+import { ShieldCheck, UserRoundCheck, UsersRound } from "lucide-react";
 
 import { toggleFamilyUserStatus } from "../actions";
 import { FamilyUserForm } from "@/components/finance/family-user-form";
