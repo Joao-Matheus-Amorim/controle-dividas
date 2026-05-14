@@ -1,3 +1,5 @@
+"use client";
+
 import { Plus } from "lucide-react";
 
 import { AppFormDialog } from "@/components/app/app-form-dialog";
