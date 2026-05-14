@@ -12,8 +12,6 @@ import {
 import Link from "next/link";
 
 import { AppCard, AppSectionTitle } from "@/components/app/app-card";
-import { AppHeroCard, AppHeroSplit } from "@/components/app/app-hero-card";
-import { AppPageHeader } from "@/components/app/app-page-header";
 import { AppStatCard } from "@/components/app/app-stat-card";
 import { formatCurrency } from "@/lib/finance/calculations";
 import { getBanksDashboardData } from "@/lib/finance/banks-server";
@@ -51,6 +49,10 @@ export default async function ProtectedPage() {
   const remainingMonthlyLimit = totalMonthlyLimit - expenseData.totalExpenses;
   const totalPayableBills = payableData.totalPending + payableData.totalOverdue;
   const totalReceivableIncomes = receivableData.totalExpected + receivableData.totalOverdue;
+  const usedPercent = totalMonthlyLimit > 0
+    ? Math.min((expenseData.totalExpenses / totalMonthlyLimit) * 100, 100)
+    : 0;
+  const healthyMonth = remainingMonthlyLimit >= 0;
 
   const categorySummaries = expenseData.categories
     .map((category) => {
@@ -73,16 +75,67 @@ export default async function ProtectedPage() {
 
   return (
     <div className="app-container">
-      <AppPageHeader eyebrow="Junho" title="Família" description="Visão geral do mês" badge="ADM" />
+      <section className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/25">
+            Junho · Família
+          </p>
+          <h1 className="mt-2 text-3xl font-black tracking-[-0.055em] text-white md:text-5xl">
+            Visão do mês
+          </h1>
+          <p className="mt-2 max-w-sm text-sm leading-6 text-white/40">
+            Limites, contas e entradas organizados em uma leitura rápida.
+          </p>
+        </div>
+        <Link
+          href="/protected/admin"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.055] text-[#b09cff] shadow-[0_16px_42px_rgba(0,0,0,0.25)] transition active:scale-[0.96]"
+          aria-label="Abrir admin"
+        >
+          <ShieldCheck className="h-5 w-5" />
+        </Link>
+      </section>
 
-      <AppHeroCard eyebrow="Saldo familiar restante" value={compactCurrency(remainingMonthlyLimit)}>
-        <AppHeroSplit
-          items={[
-            { label: "Gasto no mês", value: compactCurrency(expenseData.totalExpenses) },
-            { label: "A receber", value: compactCurrency(totalReceivableIncomes) },
-          ]}
-        />
-      </AppHeroCard>
+      <section className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[radial-gradient(circle_at_85%_12%,rgba(139,114,248,0.28),transparent_34%),linear-gradient(145deg,#17112f_0%,#0b0b14_52%,#07070c_100%)] p-5 shadow-[0_30px_90px_rgba(0,0,0,0.42)]">
+        <div className="pointer-events-none absolute -right-20 -top-24 h-56 w-56 rounded-full border border-white/10 bg-white/[0.035]" />
+        <div className="relative">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-white/35">
+                Disponível
+              </p>
+              <p className="mt-2 truncate text-4xl font-black tracking-[-0.06em] text-white md:text-6xl">
+                {compactCurrency(remainingMonthlyLimit)}
+              </p>
+            </div>
+            <div className={healthyMonth ? "shrink-0 rounded-full border border-[#1de9b2]/20 bg-[#1de9b2]/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-[#1de9b2]" : "shrink-0 rounded-full border border-[#f0506e]/20 bg-[#f0506e]/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-[#f0506e]"}>
+              {healthyMonth ? "saudável" : "atenção"}
+            </div>
+          </div>
+
+          <div className="mt-5 h-2 overflow-hidden rounded-full bg-white/10">
+            <div
+              className={healthyMonth ? "h-full rounded-full bg-[#8b72f8]" : "h-full rounded-full bg-[#f0506e]"}
+              style={{ width: `${usedPercent}%` }}
+            />
+          </div>
+
+          <div className="mt-5 grid grid-cols-3 gap-2">
+            <div className="min-w-0 rounded-2xl border border-white/10 bg-white/[0.055] p-3">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-white/25">Gasto</p>
+              <p className="mt-1 truncate text-sm font-bold text-white">{compactCurrency(expenseData.totalExpenses)}</p>
+            </div>
+            <div className="min-w-0 rounded-2xl border border-white/10 bg-white/[0.055] p-3">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-white/25">Limite</p>
+              <p className="mt-1 truncate text-sm font-bold text-white">{compactCurrency(totalMonthlyLimit)}</p>
+            </div>
+            <div className="min-w-0 rounded-2xl border border-white/10 bg-white/[0.055] p-3">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-white/25">Receber</p>
+              <p className="mt-1 truncate text-sm font-bold text-[#1de9b2]">{compactCurrency(totalReceivableIncomes)}</p>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <section className="grid grid-cols-4 gap-2">
         <Link href="/protected/gastos" className="group rounded-[1.35rem] border border-white/10 bg-white/[0.045] p-3 text-center shadow-[0_14px_38px_rgba(0,0,0,0.22)] transition active:scale-[0.97] hover:border-[#f0506e]/35 hover:bg-[#f0506e]/10">
