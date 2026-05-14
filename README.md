@@ -1,109 +1,164 @@
-<a href="https://demo-nextjs-with-supabase.vercel.app/">
-  <img alt="Next.js and Supabase Starter Kit - the fastest way to build apps with Next.js and Supabase" src="https://demo-nextjs-with-supabase.vercel.app/opengraph-image.png">
-  <h1 align="center">Next.js and Supabase Starter Kit</h1>
-</a>
+# FamilyFinance
 
-<p align="center">
- The fastest way to build apps with Next.js and Supabase
-</p>
+Aplicativo financeiro familiar personalizado para uma familia especifica, com painel web administrativo e evolucao planejada para app nativo Android e iOS.
 
-<p align="center">
-  <a href="#features"><strong>Features</strong></a> ·
-  <a href="#demo"><strong>Demo</strong></a> ·
-  <a href="#deploy-to-vercel"><strong>Deploy to Vercel</strong></a> ·
-  <a href="#clone-and-run-locally"><strong>Clone and run locally</strong></a> ·
-  <a href="#feedback-and-issues"><strong>Feedback and issues</strong></a>
-  <a href="#more-supabase-examples"><strong>More Examples</strong></a>
-</p>
-<br/>
+## Visao do projeto
 
-## Features
+O FamilyFinance nao e um SaaS e nao sera tratado, nesta fase, como produto para venda publica.
 
-- Works across the entire [Next.js](https://nextjs.org) stack
-  - App Router
-  - Pages Router
-  - Proxy
-  - Client
-  - Server
-  - It just works!
-- supabase-ssr. A package to configure Supabase Auth to use cookies
-- Password-based authentication block installed via the [Supabase UI Library](https://supabase.com/ui/docs/nextjs/password-based-auth)
-- Styling with [Tailwind CSS](https://tailwindcss.com)
-- Components with [shadcn/ui](https://ui.shadcn.com/)
-- Optional deployment with [Supabase Vercel Integration and Vercel deploy](#deploy-your-own)
-  - Environment variables automatically assigned to Vercel project
+O objetivo e criar uma solucao sob medida para uma familia, permitindo que um Admin familiar controle:
 
-## Demo
+- membros da familia;
+- limites mensais;
+- gastos;
+- contas a pagar;
+- contas a receber;
+- bancos;
+- relatorios;
+- categorias;
+- permissoes de visualizacao, criacao, edicao e exclusao por usuario.
 
-You can view a fully working demo at [demo-nextjs-with-supabase.vercel.app](https://demo-nextjs-with-supabase.vercel.app/).
+## Produto final desejado
 
-## Deploy to Vercel
+A direcao do projeto e mobile-first:
 
-Vercel deployment will guide you through creating a Supabase account and project.
+- App nativo Android e iOS para uso diario da familia.
+- Painel web para administracao, configuracoes e validacao das regras.
+- Backend em Supabase compartilhado entre web e mobile.
 
-After installation of the Supabase integration, all relevant environment variables will be assigned to the project so the deployment is fully functioning.
+## Status atual
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fnext.js%2Ftree%2Fcanary%2Fexamples%2Fwith-supabase&project-name=nextjs-with-supabase&repository-name=nextjs-with-supabase&demo-title=nextjs-with-supabase&demo-description=This+starter+configures+Supabase+Auth+to+use+cookies%2C+making+the+user%27s+session+available+throughout+the+entire+Next.js+app+-+Client+Components%2C+Server+Components%2C+Route+Handlers%2C+Server+Actions+and+Middleware.&demo-url=https%3A%2F%2Fdemo-nextjs-with-supabase.vercel.app%2F&external-id=https%3A%2F%2Fgithub.com%2Fvercel%2Fnext.js%2Ftree%2Fcanary%2Fexamples%2Fwith-supabase&demo-image=https%3A%2F%2Fdemo-nextjs-with-supabase.vercel.app%2Fopengraph-image.png)
+O MVP web ja possui os principais modulos financeiros:
 
-The above will also clone the Starter kit to your GitHub, you can clone that locally and develop locally.
+- Dashboard familiar.
+- Pessoas.
+- Gastos.
+- Contas a pagar.
+- Contas a receber.
+- Bancos.
+- Relatorios.
+- Configuracoes.
 
-If you wish to just develop locally and not deploy to Vercel, [follow the steps below](#clone-and-run-locally).
+## Admin familiar
 
-## Clone and run locally
+O Admin continua sendo parte central do sistema.
 
-1. You'll first need a Supabase project which can be made [via the Supabase dashboard](https://database.new)
+Ele sera responsavel por:
 
-2. Create a Next.js app using the Supabase Starter template npx command
+- ver o dashboard consolidado;
+- criar usuarios familiares;
+- vincular usuarios a membros financeiros;
+- alterar limites mensais;
+- gerenciar categorias;
+- gerenciar bancos;
+- liberar ou bloquear modulos;
+- definir quem pode ver, criar, editar ou excluir dados;
+- validar relatorios da familia.
 
-   ```bash
-   npx create-next-app --example with-supabase with-supabase-app
-   ```
+## Usuarios familiares
 
-   ```bash
-   yarn create next-app --example with-supabase with-supabase-app
-   ```
+Usuarios familiares poderao ter acesso limitado conforme configuracao do Admin.
 
-   ```bash
-   pnpm create next-app --example with-supabase with-supabase-app
-   ```
+Exemplo:
 
-3. Use `cd` to change into the app's directory
+- Pai pode ver e criar gastos, mas nao excluir.
+- Mae pode ver contas da casa e editar alguns lancamentos.
+- Gabryel pode lancar seus proprios gastos.
+- Caleb pode existir apenas como membro financeiro, sem login obrigatorio.
 
-   ```bash
-   cd with-supabase-app
-   ```
+## Escopo desta fase
 
-4. Rename `.env.example` to `.env.local` and update the following:
+Dentro do escopo:
 
-  ```env
-  NEXT_PUBLIC_SUPABASE_URL=[INSERT SUPABASE PROJECT URL]
-  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=[INSERT SUPABASE PROJECT API PUBLISHABLE OR ANON KEY]
-  ```
-  > [!NOTE]
-  > This example uses `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, which refers to Supabase's new **publishable** key format.
-  > Both legacy **anon** keys and new **publishable** keys can be used with this variable name during the transition period. Supabase's dashboard may show `NEXT_PUBLIC_SUPABASE_ANON_KEY`; its value can be used in this example.
-  > See the [full announcement](https://github.com/orgs/supabase/discussions/29260) for more information.
+- projeto personalizado para uma unica familia;
+- Admin familiar;
+- membros financeiros;
+- permissoes por modulo e acao;
+- app nativo planejado;
+- painel web administrativo;
+- backend Supabase;
+- documentacao de projeto.
 
-  Both `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` can be found in [your Supabase project's API settings](https://supabase.com/dashboard/project/_?showConnect=true)
+Fora do escopo desta fase:
 
-5. You can now run the Next.js local development server:
+- SaaS publico;
+- multiplas familias independentes;
+- planos pagos;
+- assinatura;
+- area comercial;
+- venda em escala;
+- integracao bancaria automatica;
+- Open Finance;
+- IA financeira.
 
-   ```bash
-   npm run dev
-   ```
+## Stack atual
 
-   The starter kit should now be running on [localhost:3000](http://localhost:3000/).
+- Next.js
+- React
+- TypeScript
+- Tailwind CSS
+- Supabase Auth
+- Supabase Database
+- Row Level Security
 
-6. This template comes with the default shadcn/ui style initialized. If you instead want other ui.shadcn styles, delete `components.json` and [re-install shadcn/ui](https://ui.shadcn.com/docs/installation/next)
+## Stack mobile planejada
 
-> Check out [the docs for Local Development](https://supabase.com/docs/guides/getting-started/local-development) to also run Supabase locally.
+- React Native
+- Expo
+- Expo Router
+- Supabase JS
+- EAS Build
+- Android
+- iOS
 
-## Feedback and issues
+## Documentacao principal
 
-Please file feedback and issues over on the [Supabase GitHub org](https://github.com/supabase/supabase/issues/new/choose).
+- `docs/PRODUCT_VISION.md`
+- `docs/MOBILE_STRATEGY.md`
+- `docs/COST_ESTIMATE.md`
+- `docs/ADMIN_PERMISSIONS.md`
+- `docs/pm/01_TERMO_DE_ABERTURA.md`
+- `docs/pm/02_ESCOPO_PERSONALIZADO.md`
+- `docs/pm/03_WBS_EAP.md`
+- `docs/pm/04_REQUISITOS.md`
+- `docs/pm/05_RISCOS_QUALIDADE_MUDANCAS.md`
+- `docs/pm/06_ACEITE_ROADMAP.md`
 
-## More Supabase examples
+## Como rodar localmente
 
-- [Next.js Subscription Payments Starter](https://github.com/vercel/nextjs-subscription-payments)
-- [Cookie-based Auth and the Next.js 13 App Router (free course)](https://youtube.com/playlist?list=PL5S4mPUpp4OtMhpnp93EFSo42iQ40XjbF)
-- [Supabase Auth and the Next.js App Router](https://github.com/supabase/supabase/tree/master/examples/auth/nextjs)
+Instale as dependencias:
+
+```bash
+npm install
+```
+
+Configure `.env.local`:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=URL_DO_SUPABASE
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=CHAVE_PUBLICA_DO_SUPABASE
+```
+
+Execute as migrations no Supabase SQL Editor:
+
+```txt
+supabase/migrations/001_family_finance_schema.sql
+supabase/migrations/002_dedupe_and_seed_constraints.sql
+```
+
+Rode o projeto:
+
+```bash
+npm run dev
+```
+
+Valide qualidade:
+
+```bash
+npm run lint
+npm run build
+```
+
+## Decisao atual
+
+Antes de iniciar a implementacao mobile, o projeto deve ser documentado e aprovado como solucao personalizada para uma familia, com Admin familiar e permissoes por modulo.
