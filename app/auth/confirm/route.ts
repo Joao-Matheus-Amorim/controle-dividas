@@ -1,3 +1,4 @@
+import { linkAuthUserToFamilyProfile } from "@/lib/finance/profile-linking";
 import { createClient } from "@/lib/supabase/server";
 import { type EmailOtpType } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
@@ -7,7 +8,7 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const token_hash = searchParams.get("token_hash");
   const type = searchParams.get("type") as EmailOtpType | null;
-  const next = searchParams.get("next") ?? "/";
+  const next = searchParams.get("next") ?? "/protected";
 
   if (token_hash && type) {
     const supabase = await createClient();
@@ -16,15 +17,21 @@ export async function GET(request: NextRequest) {
       type,
       token_hash,
     });
+
     if (!error) {
-      // redirect user to specified redirect URL or root of app
+      const { data } = await supabase.auth.getClaims();
+      const authUserId = data?.claims?.sub ? String(data.claims.sub) : null;
+      const email = typeof data?.claims?.email === "string" ? data.claims.email : null;
+
+      if (authUserId) {
+        await linkAuthUserToFamilyProfile({ authUserId, email });
+      }
+
       redirect(next);
-    } else {
-      // redirect the user to an error page with some instructions
-      redirect(`/auth/error?error=${error?.message}`);
     }
+
+    redirect(`/auth/error?error=${error?.message}`);
   }
 
-  // redirect the user to an error page with some instructions
   redirect(`/auth/error?error=No token hash or type`);
 }
