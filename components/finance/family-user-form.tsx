@@ -18,7 +18,7 @@ export function FamilyUserForm({ members }: { members: DbFamilyMember[] }) {
     <form action={formAction} className="space-y-5">
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <div className="space-y-2">
-          <Label htmlFor="name">Nome do usuário</Label>
+          <Label htmlFor="name">Nome do acesso</Label>
           <Input id="name" name="name" placeholder="Ex: Pai" required />
         </div>
 
@@ -45,24 +45,23 @@ export function FamilyUserForm({ members }: { members: DbFamilyMember[] }) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="role">Perfil inicial</Label>
+          <Label htmlFor="access_model">Modelo de acesso</Label>
           <select
-            id="role"
-            name="role"
-            defaultValue="adult"
+            id="access_model"
+            name="access_model"
+            defaultValue="basic"
             className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
-            <option value="adult">Adulto</option>
-            <option value="child">Criança / restrito</option>
+            <option value="basic">Básico</option>
+            <option value="family">Familiar</option>
+            <option value="admin">Admin</option>
             <option value="custom">Personalizado</option>
-            <option value="user">Usuário familiar</option>
-            <option value="admin">Admin familiar</option>
           </select>
         </div>
       </div>
 
       <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-xs leading-5 text-white/35">
-        Todo acesso precisa estar vinculado a um membro da família. O Admin pode alterar as permissões depois em Admin &gt; Permissões.
+        O modelo de acesso só define as permissões iniciais. Depois o Admin pode liberar ou bloquear qualquer módulo em Admin &gt; Permissões.
       </div>
 
       {state.error ? <p className="text-sm text-destructive">{state.error}</p> : null}
