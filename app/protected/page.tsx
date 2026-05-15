@@ -15,6 +15,7 @@ import { AppCard, AppSectionTitle } from "@/components/app/app-card";
 import { getVisibleModuleKeys } from "@/lib/finance/access-control";
 import type { FinanceModuleKey } from "@/lib/finance/permissions";
 import { formatCurrency } from "@/lib/finance/calculations";
+import { getCurrentPeriodContextLabel } from "@/lib/finance/period-context";
 import { getBanksDashboardData } from "@/lib/finance/banks-server";
 import {
   getExpenseDashboardData,
@@ -47,12 +48,13 @@ const dashboardModules: FinanceModuleKey[] = [
 ];
 
 export default async function ProtectedPage() {
-  const [visibleModuleKeys, expenseData, payableData, receivableData, bankData] = await Promise.all([
+  const [visibleModuleKeys, expenseData, payableData, receivableData, bankData, periodContextLabel] = await Promise.all([
     getVisibleModuleKeys(dashboardModules),
     getExpenseDashboardData(),
     getPayableBillsDashboardData(),
     getReceivableIncomesDashboardData(),
     getBanksDashboardData(),
+    getCurrentPeriodContextLabel(),
   ]);
 
   const visibleModules = new Set(visibleModuleKeys);
@@ -196,7 +198,7 @@ export default async function ProtectedPage() {
     <div className="app-container">
       <section className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/25">Junho · Família</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/25">{periodContextLabel}</p>
           <h1 className="mt-2 text-3xl font-black tracking-[-0.055em] text-white md:text-5xl">
             Visão do mês
           </h1>
