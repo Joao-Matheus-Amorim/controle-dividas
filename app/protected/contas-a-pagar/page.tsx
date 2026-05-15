@@ -4,6 +4,7 @@ import { deletePayableBill, updatePayableBillStatus } from "./actions";
 import { PayableBillFormDialog } from "@/components/finance/payable-bill-form-dialog";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { getCurrentProfile, getModulePermission } from "@/lib/finance/access-control";
 import { formatCurrency } from "@/lib/finance/calculations";
 import { getPayableBillsDashboardData } from "@/lib/finance/server";
 
@@ -18,6 +19,15 @@ function compactCurrency(value: number) {
 }
 
 export default async function ContasAPagarPage() {
+  const [profile, payableData] = await Promise.all([
+    getCurrentProfile(),
+    getPayableBillsDashboardData(),
+  ]);
+  const permission = profile.role === "admin" ? null : await getModulePermission(profile.id, "CONTAS_A_PAGAR");
+  const canCreate = profile.role === "admin" || Boolean(permission?.can_create);
+  const canEdit = profile.role === "admin" || Boolean(permission?.can_edit);
+  const canDelete = profile.role === "admin" || Boolean(permission?.can_delete);
+
   const {
     members,
     bills,
@@ -26,7 +36,7 @@ export default async function ContasAPagarPage() {
     totalPaid,
     pendingCount,
     overdueCount,
-  } = await getPayableBillsDashboardData();
+  } = payableData;
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-col gap-5 md:max-w-7xl">
@@ -79,15 +89,17 @@ export default async function ContasAPagarPage() {
         </div>
       </section>
 
-      <section className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/25">Nova conta</p>
-            <p className="mt-1 text-sm text-white/40">Cadastre pagamentos e vencimentos sem poluir a tela principal.</p>
+      {canCreate ? (
+        <section className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/25">Nova conta</p>
+              <p className="mt-1 text-sm text-white/40">Cadastre pagamentos e vencimentos sem poluir a tela principal.</p>
+            </div>
+            <PayableBillFormDialog members={members} />
           </div>
-          <PayableBillFormDialog members={members} />
-        </div>
-      </section>
+        </section>
+      ) : null}
 
       <section className="space-y-3 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
         <div className="flex items-center justify-between">
@@ -112,21 +124,25 @@ export default async function ContasAPagarPage() {
 
               <div className="flex items-center justify-between gap-3 md:justify-end">
                 <p className="text-sm font-bold text-white">{compactCurrency(Number(bill.amount))}</p>
-                <form action={updatePayableBillStatus} className="flex gap-2">
-                  <input type="hidden" name="id" value={bill.id} />
-                  <select name="status" defaultValue={bill.status} className="h-9 rounded-xl border border-white/10 bg-[#080810] px-2 text-xs text-white/70">
-                    <option value="pendente">Pendente</option>
-                    <option value="pago">Pago</option>
-                    <option value="atrasado">Atrasado</option>
-                  </select>
-                  <Button type="submit" variant="outline" className="h-9 rounded-xl border-white/10 bg-transparent text-white/60 hover:bg-white/10 hover:text-white">Salvar</Button>
-                </form>
-                <form action={deletePayableBill}>
-                  <input type="hidden" name="id" value={bill.id} />
-                  <Button type="submit" variant="outline" size="icon" aria-label="Excluir conta" className="h-9 w-9 rounded-xl border-white/10 bg-transparent text-white/35 hover:bg-white/10 hover:text-white">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </form>
+                {canEdit ? (
+                  <form action={updatePayableBillStatus} className="flex gap-2">
+                    <input type="hidden" name="id" value={bill.id} />
+                    <select name="status" defaultValue={bill.status} className="h-9 rounded-xl border border-white/10 bg-[#080810] px-2 text-xs text-white/70">
+                      <option value="pendente">Pendente</option>
+                      <option value="pago">Pago</option>
+                      <option value="atrasado">Atrasado</option>
+                    </select>
+                    <Button type="submit" variant="outline" className="h-9 rounded-xl border-white/10 bg-transparent text-white/60 hover:bg-white/10 hover:text-white">Salvar</Button>
+                  </form>
+                ) : null}
+                {canDelete ? (
+                  <form action={deletePayableBill}>
+                    <input type="hidden" name="id" value={bill.id} />
+                    <Button type="submit" variant="outline" size="icon" aria-label="Excluir conta" className="h-9 w-9 rounded-xl border-white/10 bg-transparent text-white/35 hover:bg-white/10 hover:text-white">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </form>
+                ) : null}
               </div>
             </div>
           ))
