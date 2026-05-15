@@ -4,7 +4,7 @@ import { PermissionsForm } from "@/components/finance/permissions-form";
 import { getAdminDashboardData } from "@/lib/finance/admin-server";
 
 export default async function AdminPermissoesPage() {
-  const { profiles, permissions, modules } = await getAdminDashboardData();
+  const { profiles, permissions, modules, members } = await getAdminDashboardData();
   const familyUsers = profiles.filter((profile) => profile.role !== "admin");
   const configuredProfiles = new Set(permissions.map((permission) => permission.profile_id));
 
@@ -60,9 +60,9 @@ export default async function AdminPermissoesPage() {
       <section className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
         <div className="mb-4 flex items-center justify-between">
           <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/25">Configurar permissões</p>
-          <p className="text-xs font-semibold text-[#8b72f8]">ver · criar · editar · excluir</p>
+          <p className="text-xs font-semibold text-[#8b72f8]">ações · escopo · pessoas</p>
         </div>
-        <PermissionsForm profiles={profiles} permissions={permissions} />
+        <PermissionsForm profiles={profiles} permissions={permissions} members={members} />
       </section>
 
       <section className="space-y-3 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
