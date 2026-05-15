@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
 
+import { linkAuthUserToFamilyProfile } from "@/lib/finance/profile-linking";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type { FinanceModuleKey, PermissionAction } from "./permissions";
 
@@ -48,26 +50,83 @@ function isConfiguredAdminEmail(email: string | null) {
   return Boolean(adminEmail && email && email.toLowerCase() === adminEmail);
 }
 
-export async function getCurrentProfile() {
+async function getProfileByAuthUserId(authUserId: string) {
   const supabase = await createClient();
-  const user = await getCurrentUser();
 
-  const { data: existingProfile, error } = await supabase
+  const { data, error } = await supabase
     .from("profiles")
     .select("id, owner_id, auth_user_id, linked_family_member_id, name, email, role, is_active")
-    .eq("auth_user_id", user.id)
+    .eq("auth_user_id", authUserId)
     .maybeSingle();
 
   if (error) {
     throw new Error(error.message);
   }
 
+  return data as CurrentProfile | null;
+}
+
+async function getProfileByAuthorizedEmail(email: string | null) {
+  const normalizedEmail = email?.trim().toLowerCase();
+
+  if (!normalizedEmail) {
+    return null;
+  }
+
+  const adminSupabase = createAdminClient();
+
+  const { data, error } = await adminSupabase
+    .from("profiles")
+    .select("id, owner_id, auth_user_id, linked_family_member_id, name, email, role, is_active")
+    .ilike("email", normalizedEmail)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data as CurrentProfile | null;
+}
+
+export async function getCurrentProfile() {
+  const supabase = await createClient();
+  const user = await getCurrentUser();
+
+  const existingProfile = await getProfileByAuthUserId(user.id);
+
   if (existingProfile) {
-    return existingProfile as CurrentProfile;
+    return existingProfile;
+  }
+
+  const authorizedProfile = await getProfileByAuthorizedEmail(user.email);
+
+  if (authorizedProfile) {
+    if (!authorizedProfile.is_active) {
+      redirect("/auth/error?error=Este acesso esta bloqueado pelo Admin familiar.");
+    }
+
+    if (authorizedProfile.auth_user_id && authorizedProfile.auth_user_id !== user.id) {
+      redirect("/auth/error?error=Este email ja esta vinculado a outro acesso.");
+    }
+
+    const linkResult = await linkAuthUserToFamilyProfile({
+      authUserId: user.id,
+      email: user.email,
+    });
+
+    if (!linkResult.linked) {
+      redirect(`/auth/error?error=${encodeURIComponent(linkResult.reason)}`);
+    }
+
+    const linkedProfile = await getProfileByAuthUserId(user.id);
+
+    if (linkedProfile) {
+      return linkedProfile;
+    }
   }
 
   if (!isConfiguredAdminEmail(user.email)) {
-    redirect("/protected");
+    redirect("/auth/error?error=Seu email ainda nao foi autorizado pelo Admin familiar.");
   }
 
   const { error: upsertError } = await supabase.from("profiles").upsert(
@@ -86,17 +145,13 @@ export async function getCurrentProfile() {
     throw new Error(upsertError.message);
   }
 
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select("id, owner_id, auth_user_id, linked_family_member_id, name, email, role, is_active")
-    .eq("auth_user_id", user.id)
-    .single();
+  const profile = await getProfileByAuthUserId(user.id);
 
-  if (profileError) {
-    throw new Error(profileError.message);
+  if (!profile) {
+    throw new Error("Nao foi possivel carregar o perfil atual.");
   }
 
-  return profile as CurrentProfile;
+  return profile;
 }
 
 async function getAllActiveMemberIds(ownerId: string) {
