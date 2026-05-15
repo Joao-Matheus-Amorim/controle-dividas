@@ -29,12 +29,12 @@ export const mswFinanceHandlers = [
   http.get(`${mockSupabaseUrl}/rest/v1/user_module_permissions`, ({ request }) => {
     const url = new URL(request.url);
     const profileId = readEqFilter(url.searchParams.get("profile_id"));
-    const module = readEqFilter(url.searchParams.get("module"));
+    const moduleKey = readEqFilter(url.searchParams.get("module"));
 
     return HttpResponse.json(
       mockPermissions.filter((permission) => {
         if (profileId && permission.profile_id !== profileId) return false;
-        if (module && permission.module !== module) return false;
+        if (moduleKey && permission.module !== moduleKey) return false;
         return true;
       }),
     );
@@ -44,8 +44,13 @@ export const mswFinanceHandlers = [
     const url = new URL(request.url);
     const memberIds = readInFilter(url.searchParams.get("family_member_id"));
 
-    if (memberIds.length === 0) return HttpResponse.json(mockExpenses);
-    return HttpResponse.json(mockExpenses.filter((expense) => memberIds.includes(expense.family_member_id)));
+    if (memberIds.length > 0) {
+      return HttpResponse.json(
+        mockExpenses.filter((expense) => memberIds.includes(expense.family_member_id)),
+      );
+    }
+
+    return HttpResponse.json(mockDashboardTables.expenses);
   }),
 
   http.get(`${mockSupabaseUrl}/rest/v1/:table`, ({ params }) => {
