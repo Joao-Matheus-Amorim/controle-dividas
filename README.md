@@ -2,7 +2,7 @@
 
 Aplicativo financeiro familiar personalizado, mobile-first, para uma familia especifica.
 
-O produto final desejado e um app nativo Android/iOS para uso diario da familia. A web atual sera mantida como painel Admin privado do Danyel, responsavel por configuracoes, membros, usuarios, permissoes, limites e relatorios.
+O FamilyFinance deve evoluir para uma central financeira familiar com controle individual por pessoa, permissoes dinamicas, dashboard contextual, contas fixas, contas a pagar, contas a receber, bancos, rendas, investimentos, acoes, graficos, alertas e relatorios.
 
 ## Decisao atual do produto
 
@@ -12,26 +12,90 @@ Nao sera tratado como sistema para venda publica, multiplas familias, assinatura
 
 O projeto sera entregue como solucao personalizada para uma familia, com:
 
-- app mobile para uso diario;
+- app mobile/PWA para uso diario;
 - web Admin para Danyel;
 - Supabase como backend;
-- permissoes por modulo e por acao;
-- experiencia visual mobile-first.
+- permissoes por modulo, acao, funcionalidade e escopo de dados;
+- dashboard contextual por usuario;
+- experiencia visual mobile-first e com cara de app nativo.
+
+## Visao oficial de permissoes
+
+A regra principal do produto e:
+
+```txt
+Role define o padrao inicial.
+Admin define a permissao real.
+Permissao sempre vence o role.
+```
+
+Por padrao, cada usuario ve apenas os proprios dados financeiros.
+
+O Admin pode liberar:
+
+- modulos inteiros;
+- funcionalidades especificas;
+- acoes de ver, criar, editar e excluir;
+- dados de outras pessoas;
+- escopo familiar completo;
+- acesso a dashboard, bancos, relatorios, investimentos, acoes e modulos futuros.
+
+Perfis infantis ou restritos, como Caleb, sao apenas presets iniciais. Eles podem comecar vendo apenas limite proprio, gastos proprios e historico proprio, mas o Admin pode liberar qualquer modulo ou funcionalidade para eles.
+
+## Escopos de dados
+
+O sistema deve trabalhar com tres escopos:
+
+```txt
+own      -> apenas dados do proprio membro financeiro
+selected -> pessoas especificas liberadas pelo Admin
+family   -> toda a familia
+```
+
+Todas as telas, menus, consultas, server actions e regras de banco devem respeitar esse escopo.
+
+## Dashboard
+
+O Dashboard nao e apenas uma home visual. Ele sera a central financeira do produto.
+
+O Dashboard deve mudar conforme o usuario:
+
+- usuario comum: dashboard pessoal;
+- usuario com permissoes selecionadas: dashboard das pessoas liberadas;
+- Admin: dashboard consolidado da familia.
+
+Blocos esperados no Dashboard final:
+
+- visao geral do mes;
+- saude financeira;
+- contas fixas;
+- contas a pagar;
+- contas a receber;
+- gastos por pessoa;
+- gastos por categoria;
+- bancos e saldos;
+- rendas fixas e variaveis;
+- investimentos;
+- acoes e graficos;
+- alertas;
+- projecoes.
 
 ## Canais de acesso
 
-### App Mobile Familiar
+### App Mobile / PWA Familiar
 
-Todos os membros com login usam o app nativo, incluindo Danyel.
+Todos os membros com login usam a experiencia mobile-first, incluindo Danyel.
 
-O app deve permitir:
+O app deve permitir, conforme permissao:
 
 - login;
-- dashboard individual;
+- dashboard individual ou autorizado;
 - lancamento rapido de gastos;
 - consulta de saldo;
 - consulta de contas autorizadas;
 - consulta de bancos autorizados;
+- consulta de rendas autorizadas;
+- consulta de investimentos autorizados;
 - execucao de acoes conforme permissao.
 
 Danyel tambem usa o app como membro financeiro. Por possuir perfil Admin, o app dele exibira um atalho Admin.
@@ -46,25 +110,14 @@ Ela permite:
 - criar usuarios familiares;
 - vincular usuarios a membros;
 - configurar permissoes;
+- configurar escopo de dados;
+- liberar funcionalidades especificas;
 - ajustar limites;
 - gerenciar categorias;
 - gerenciar bancos;
 - ver relatorios consolidados;
-- administrar regras da familia.
-
-## Atalho Admin no app
-
-O app nao tera uma area Admin completa embutida.
-
-Se o usuario logado tiver `profile.role = admin`, o app exibira um atalho Admin.
-
-Ao tocar nesse atalho, o app abrira:
-
-```txt
-https://controle-dividas-seven.vercel.app/protected/admin
-```
-
-A recomendacao inicial e abrir no navegador externo. WebView pode ser considerada depois.
+- administrar regras da familia;
+- futuramente gerenciar investimentos, acoes e alertas.
 
 ## Design e UX
 
@@ -74,17 +127,20 @@ Diretrizes:
 
 - mobile-first;
 - autenticacao simples;
-- sem copy de marketing;
+- sem copy de marketing desnecessaria;
 - telas limpas;
 - cards arredondados;
 - botoes grandes;
 - poucos textos;
 - acoes rapidas;
+- formularios de criacao em modal/sheet quando fizer sentido;
+- navegacao inferior dinamica conforme permissao;
+- nenhuma rolagem lateral;
 - experiencia parecida com app financeiro moderno.
 
 ## Status atual
 
-MVP web em validacao com:
+MVP web/PWA em validacao com:
 
 - Dashboard familiar;
 - Pessoas;
@@ -96,7 +152,23 @@ MVP web em validacao com:
 - Configuracoes;
 - Admin familiar;
 - Usuarios familiares;
-- Permissoes por modulo e acao.
+- Permissoes por modulo e acao;
+- design mobile-first em evolucao.
+
+## Proximas prioridades tecnicas
+
+1. Adicionar `scope` e `allowed_member_ids` nas permissoes.
+2. Criar `user_feature_permissions`.
+3. Criar helpers de permissao no backend.
+4. Aplicar filtros de permissao nas queries server.
+5. Tornar menu dinamico por permissao.
+6. Ajustar Dashboard para `own`, `selected` e `family`.
+7. Evoluir Admin > Permissoes para escopo e membros liberados.
+8. Criar contas fixas.
+9. Criar alertas financeiros.
+10. Criar investimentos.
+11. Criar cotacoes, acoes e graficos.
+12. Reforcar RLS no Supabase.
 
 ## Stack atual
 
@@ -133,6 +205,7 @@ Antes de publicar em App Store ou Google Play, o FamilyFinance pode ser validado
 ## Documentacao principal
 
 - `docs/PRODUCT_VISION.md`
+- `docs/PERMISSION_AND_DASHBOARD_STRATEGY.md`
 - `docs/MOBILE_STRATEGY.md`
 - `docs/MOBILE_FIRST_UX.md`
 - `docs/FREE_APP_DISTRIBUTION.md`
@@ -197,4 +270,8 @@ Danyel administra pela web.
 
 A familia usa o app.
 
-O app deve ser bonito, simples, fluido e mobile-first.
+Cada usuario ve apenas o que foi liberado.
+
+O Admin pode liberar tudo.
+
+O app deve ser bonito, simples, fluido, seguro, permissionado e mobile-first.
