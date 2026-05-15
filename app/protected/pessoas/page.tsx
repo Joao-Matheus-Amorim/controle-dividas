@@ -1,11 +1,14 @@
 import { UserRoundCheck, UserRoundX, UsersRound } from "lucide-react";
 
-import { toggleFamilyMemberStatus } from "./actions";
+import { toggleFamilyMemberStatus, updateFamilyMember } from "./actions";
 import { FamilyMemberFormDialog } from "@/components/finance/family-member-form-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { getCurrentProfile } from "@/lib/finance/access-control";
 import { formatCurrency } from "@/lib/finance/calculations";
 import { getFamilyMembers } from "@/lib/finance/server";
+import { createClient } from "@/lib/supabase/server";
 
 function compactCurrency(value: number) {
   return formatCurrency(value).replace("€", "€ ");
@@ -20,8 +23,31 @@ function initials(name: string) {
     .toUpperCase();
 }
 
+async function getAccessProfilesByMember(ownerId: string) {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, name, email, role, is_active, auth_user_id, linked_family_member_id")
+    .eq("owner_id", ownerId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return new Map(
+    (data ?? [])
+      .filter((profile) => profile.linked_family_member_id)
+      .map((profile) => [String(profile.linked_family_member_id), profile]),
+  );
+}
+
 export default async function PessoasPage() {
-  const members = await getFamilyMembers();
+  const profile = await getCurrentProfile();
+  const [members, accessByMember] = await Promise.all([
+    getFamilyMembers(),
+    getAccessProfilesByMember(profile.owner_id),
+  ]);
   const activeMembers = members.filter((member) => member.is_active);
   const totalLimit = members.reduce(
     (total, member) => total + Number(member.monthly_limit),
@@ -34,7 +60,7 @@ export default async function PessoasPage() {
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-white/25">Família</p>
           <h1 className="mt-1 text-3xl font-bold tracking-tight text-white md:text-4xl">Pessoas</h1>
-          <p className="mt-1 text-sm text-white/40">Membros e limites</p>
+          <p className="mt-1 text-sm text-white/40">Membros, limites e acessos vinculados</p>
         </div>
         <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-[#b09cff]">
           <UsersRound className="h-5 w-5" />
@@ -54,8 +80,8 @@ export default async function PessoasPage() {
               <p className="mt-1 text-sm font-semibold text-[#1de9b2]">{activeMembers.length} membro(s)</p>
             </div>
             <div className="pl-4">
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30">Total</p>
-              <p className="mt-1 text-sm font-semibold text-white/85">{members.length} pessoa(s)</p>
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30">Com acesso</p>
+              <p className="mt-1 text-sm font-semibold text-white/85">{accessByMember.size} login(s)</p>
             </div>
           </div>
         </div>
@@ -74,8 +100,8 @@ export default async function PessoasPage() {
         </div>
         <div className="hidden rounded-2xl border border-white/10 bg-white/[0.04] p-3 md:block">
           <UserRoundX className="h-4 w-4 text-[#f0506e]" />
-          <p className="mt-3 text-[10px] font-bold uppercase tracking-widest text-white/25">Inativos</p>
-          <p className="mt-1 text-sm font-bold text-white">{members.length - activeMembers.length}</p>
+          <p className="mt-3 text-[10px] font-bold uppercase tracking-widest text-white/25">Sem login</p>
+          <p className="mt-1 text-sm font-bold text-white">{members.length - accessByMember.size}</p>
         </div>
       </section>
 
@@ -83,7 +109,7 @@ export default async function PessoasPage() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/25">Nova pessoa</p>
-            <p className="mt-1 text-sm text-white/40">Cadastre membros sem poluir a tela principal.</p>
+            <p className="mt-1 text-sm text-white/40">Primeiro crie o membro. Depois crie o acesso em Admin &gt; Usuários.</p>
           </div>
           <FamilyMemberFormDialog />
         </div>
@@ -95,37 +121,65 @@ export default async function PessoasPage() {
           <p className="text-xs font-semibold text-[#8b72f8]">{members.length}</p>
         </div>
 
-        {members.map((member) => (
-          <div key={member.id} className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-[#080810]/50 p-3 md:flex-row md:items-center md:justify-between">
-            <div className="flex min-w-0 items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#8b72f8]/15 text-xs font-bold text-[#b09cff]">
-                {initials(member.name)}
-              </div>
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <p className="truncate text-sm font-semibold text-white">{member.name}</p>
-                  <Badge variant={member.is_active ? "secondary" : "outline"}>
-                    {member.is_active ? "Ativo" : "Inativo"}
-                  </Badge>
-                </div>
-                <p className="mt-1 truncate text-xs text-white/35">
-                  {member.role || "Sem perfil informado"}
-                </p>
-                <p className="mt-0.5 text-xs font-semibold text-[#1de9b2]">
-                  Limite: {compactCurrency(Number(member.monthly_limit))}
-                </p>
-              </div>
-            </div>
+        {members.map((member) => {
+          const access = accessByMember.get(member.id);
+          const hasLogin = Boolean(access?.auth_user_id);
 
-            <form action={toggleFamilyMemberStatus}>
-              <input type="hidden" name="id" value={member.id} />
-              <input type="hidden" name="is_active" value={String(member.is_active)} />
-              <Button type="submit" variant="outline" className="h-9 rounded-xl border-white/10 bg-transparent text-white/60 hover:bg-white/10 hover:text-white">
-                {member.is_active ? "Desativar" : "Ativar"}
-              </Button>
-            </form>
-          </div>
-        ))}
+          return (
+            <div key={member.id} className="space-y-3 rounded-2xl border border-white/10 bg-[#080810]/50 p-3">
+              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <div className="flex min-w-0 items-start gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#8b72f8]/15 text-xs font-bold text-[#b09cff]">
+                    {initials(member.name)}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="truncate text-sm font-semibold text-white">{member.name}</p>
+                      <Badge variant={member.is_active ? "secondary" : "outline"}>
+                        {member.is_active ? "Ativo" : "Inativo"}
+                      </Badge>
+                      <Badge variant={access ? "outline" : "destructive"} className={access ? "border-white/10 text-white/50" : ""}>
+                        {access ? (hasLogin ? "Login ativo" : "Aguardando primeiro acesso") : "Sem acesso"}
+                      </Badge>
+                    </div>
+                    <p className="mt-1 truncate text-xs text-white/35">
+                      {member.role || "Sem perfil informado"}
+                    </p>
+                    <p className="mt-0.5 text-xs font-semibold text-[#1de9b2]">
+                      Limite: {compactCurrency(Number(member.monthly_limit))}
+                    </p>
+                    <p className="mt-0.5 truncate text-xs text-white/25">
+                      Acesso: {access?.email || "não criado"}
+                    </p>
+                  </div>
+                </div>
+
+                <form action={toggleFamilyMemberStatus}>
+                  <input type="hidden" name="id" value={member.id} />
+                  <input type="hidden" name="is_active" value={String(member.is_active)} />
+                  <Button type="submit" variant="outline" className="h-9 rounded-xl border-white/10 bg-transparent text-white/60 hover:bg-white/10 hover:text-white">
+                    {member.is_active ? "Desativar" : "Ativar"}
+                  </Button>
+                </form>
+              </div>
+
+              <details className="rounded-2xl border border-white/10 bg-white/[0.035] p-3">
+                <summary className="cursor-pointer text-xs font-bold uppercase tracking-[0.18em] text-white/35">
+                  Editar pessoa
+                </summary>
+                <form action={updateFamilyMember} className="mt-4 grid gap-3 md:grid-cols-4">
+                  <input type="hidden" name="id" value={member.id} />
+                  <Input name="name" defaultValue={member.name} placeholder="Nome" className="h-10 rounded-xl" required />
+                  <Input name="role" defaultValue={member.role || ""} placeholder="Perfil familiar" className="h-10 rounded-xl" />
+                  <Input name="monthly_limit" type="number" step="0.01" min="0" defaultValue={Number(member.monthly_limit)} placeholder="Limite" className="h-10 rounded-xl" required />
+                  <Button type="submit" className="h-10 rounded-xl bg-[#8b72f8] text-white hover:bg-[#7d66e4]">
+                    Salvar
+                  </Button>
+                </form>
+              </details>
+            </div>
+          );
+        })}
       </section>
     </div>
   );
