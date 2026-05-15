@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { linkAuthUserToFamilyProfile } from "@/lib/finance/profile-linking";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import type { FinanceModuleKey, PermissionAction } from "./permissions";
+import type { FeaturePermissionKey, FinanceModuleKey, PermissionAction } from "./permissions";
 
 export type CurrentProfile = {
   id: string;
@@ -25,6 +25,12 @@ type ModulePermission = {
   can_delete: boolean;
   scope: "own" | "selected" | "family";
   allowed_member_ids: string[] | null;
+};
+
+type FeaturePermission = {
+  profile_id: string;
+  feature_key: FeaturePermissionKey;
+  is_enabled: boolean;
 };
 
 async function getCurrentUser() {
@@ -185,6 +191,38 @@ export async function getModulePermission(profileId: string, module: FinanceModu
   }
 
   return data as ModulePermission | null;
+}
+
+export async function getFeaturePermission(profileId: string, featureKey: FeaturePermissionKey) {
+  const adminSupabase = createAdminClient();
+
+  const { data, error } = await adminSupabase
+    .from("user_feature_permissions")
+    .select("profile_id, feature_key, is_enabled")
+    .eq("profile_id", profileId)
+    .eq("feature_key", featureKey)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data as FeaturePermission | null;
+}
+
+export async function canUseFeature(featureKey: FeaturePermissionKey) {
+  const profile = await getCurrentProfile();
+
+  if (!profile.is_active) {
+    return false;
+  }
+
+  if (profile.role === "admin") {
+    return true;
+  }
+
+  const permission = await getFeaturePermission(profile.id, featureKey);
+  return Boolean(permission?.is_enabled);
 }
 
 export async function canViewModule(module: FinanceModuleKey) {
