@@ -43,6 +43,7 @@ export function PermissionsForm({
     () => permissions.filter((permission) => permission.profile_id === selectedProfileId),
     [permissions, selectedProfileId],
   );
+  const visibleModulesCount = selectedPermissions.filter((permission) => permission.can_view).length;
 
   if (editableProfiles.length === 0) {
     return (
@@ -57,7 +58,7 @@ export function PermissionsForm({
   }
 
   return (
-    <form action={formAction} className="space-y-5">
+    <form action={formAction} className="space-y-5" key={selectedProfileId}>
       <input type="hidden" name="profile_id" value={selectedProfileId} />
 
       <section className="grid gap-4 lg:grid-cols-[280px_1fr]">
@@ -75,6 +76,7 @@ export function PermissionsForm({
           <div className="space-y-2">
             {editableProfiles.map((profile) => {
               const isSelected = profile.id === selectedProfileId;
+              const profileVisibleCount = permissions.filter((permission) => permission.profile_id === profile.id && permission.can_view).length;
 
               return (
                 <button
@@ -98,7 +100,7 @@ export function PermissionsForm({
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold text-white">{profile.name}</p>
-                    <p className="truncate text-xs text-white/35">{profile.email || "Sem email"}</p>
+                    <p className="truncate text-xs text-white/35">{profileVisibleCount} módulo(s) visível(is)</p>
                   </div>
                   {isSelected ? <Check className="h-4 w-4 text-[#b09cff]" /> : null}
                 </button>
@@ -121,7 +123,7 @@ export function PermissionsForm({
               </div>
             </div>
             <div className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-1.5 text-xs font-semibold text-white/45">
-              {FINANCE_MODULES.length} módulo(s)
+              {visibleModulesCount}/{FINANCE_MODULES.length} visíveis
             </div>
           </div>
 
@@ -138,7 +140,7 @@ export function PermissionsForm({
 
               return (
                 <div
-                  key={module.key}
+                  key={`${selectedProfileId}-${module.key}`}
                   className="rounded-[1.5rem] border border-white/10 bg-[#080810]/55 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_16px_45px_rgba(0,0,0,0.22)] transition duration-200 hover:-translate-y-0.5 hover:border-white/20 hover:bg-[#10101a]/80 hover:shadow-[0_24px_70px_rgba(0,0,0,0.34)]"
                 >
                   <div className="mb-4 flex items-center justify-between gap-3">
@@ -158,7 +160,7 @@ export function PermissionsForm({
 
                   <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
                     {PERMISSION_ACTIONS.map((action) => {
-                      const inputId = `${module.key}.${action.key}`;
+                      const inputId = `${selectedProfileId}.${module.key}.${action.key}`;
 
                       return (
                         <label
@@ -189,7 +191,7 @@ export function PermissionsForm({
                     </div>
                     <div className="grid gap-2 md:grid-cols-3">
                       {PERMISSION_SCOPES.map((scopeOption) => {
-                        const inputId = `${module.key}.scope.${scopeOption.key}`;
+                        const inputId = `${selectedProfileId}.${module.key}.scope.${scopeOption.key}`;
 
                         return (
                           <label
@@ -223,7 +225,7 @@ export function PermissionsForm({
                       </p>
                       <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
                         {members.map((member) => {
-                          const inputId = `${module.key}.member.${member.id}`;
+                          const inputId = `${selectedProfileId}.${module.key}.member.${member.id}`;
 
                           return (
                             <label
