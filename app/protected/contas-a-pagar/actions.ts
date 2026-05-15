@@ -1,20 +1,43 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 
-import { createClient } from "@/lib/supabase/server";
+import {
+  assertCanAccessMember,
+  getCurrentProfile,
+} from "@/lib/finance/access-control";
+import type { PermissionAction } from "@/lib/finance/permissions";
 import type { PayableBillFormState } from "@/lib/finance/server";
+import { createClient } from "@/lib/supabase/server";
 
-async function getCurrentUserId() {
+async function assertCanManagePayableBill(
+  billId: string,
+  action: Extract<PermissionAction, "can_edit" | "can_delete">,
+) {
   const supabase = await createClient();
-  const { data, error } = await supabase.auth.getClaims();
+  const profile = await getCurrentProfile();
 
-  if (error || !data?.claims?.sub) {
-    redirect("/auth/login");
+  const { data: bill, error } = await supabase
+    .from("payable_bills")
+    .select("id, owner_id, responsible_member_id")
+    .eq("id", billId)
+    .eq("owner_id", profile.owner_id)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
   }
 
-  return String(data.claims.sub);
+  if (!bill?.responsible_member_id) {
+    throw new Error("Conta nao encontrada ou sem responsavel vinculado.");
+  }
+
+  await assertCanAccessMember("CONTAS_A_PAGAR", action, String(bill.responsible_member_id));
+
+  return {
+    profile,
+    bill,
+  };
 }
 
 export async function createPayableBill(
@@ -30,6 +53,10 @@ export async function createPayableBill(
   const bankUsed = String(formData.get("bank_used") ?? "").trim();
   const recurrence = String(formData.get("recurrence") ?? "").trim();
   const notes = String(formData.get("notes") ?? "").trim();
+
+  if (!responsibleMemberId) {
+    return { error: "Selecione o responsavel pela conta." };
+  }
 
   if (!name) {
     return { error: "Informe o nome da conta." };
@@ -48,15 +75,26 @@ export async function createPayableBill(
   }
 
   const supabase = await createClient();
-  const ownerId = await getCurrentUserId();
+  const profile = await getCurrentProfile();
+
+  try {
+    await assertCanAccessMember("CONTAS_A_PAGAR", "can_create", responsibleMemberId);
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "Voce nao tem permissao para cadastrar conta para esta pessoa.",
+    };
+  }
 
   const { error } = await supabase.from("payable_bills").insert({
-    owner_id: ownerId,
+    owner_id: profile.owner_id,
     name,
     category: category || null,
     amount,
     due_date: dueDate,
-    responsible_member_id: responsibleMemberId || null,
+    responsible_member_id: responsibleMemberId,
     status,
     bank_used: bankUsed || null,
     recurrence: recurrence || null,
@@ -81,17 +119,21 @@ export async function updatePayableBillStatus(formData: FormData) {
     return;
   }
 
-  const supabase = await createClient();
-  const ownerId = await getCurrentUserId();
+  try {
+    const { profile } = await assertCanManagePayableBill(id, "can_edit");
+    const supabase = await createClient();
 
-  await supabase
-    .from("payable_bills")
-    .update({ status })
-    .eq("id", id)
-    .eq("owner_id", ownerId);
+    await supabase
+      .from("payable_bills")
+      .update({ status })
+      .eq("id", id)
+      .eq("owner_id", profile.owner_id);
 
-  revalidatePath("/protected/contas-a-pagar");
-  revalidatePath("/protected");
+    revalidatePath("/protected/contas-a-pagar");
+    revalidatePath("/protected");
+  } catch {
+    return;
+  }
 }
 
 export async function deletePayableBill(formData: FormData) {
@@ -101,15 +143,19 @@ export async function deletePayableBill(formData: FormData) {
     return;
   }
 
-  const supabase = await createClient();
-  const ownerId = await getCurrentUserId();
+  try {
+    const { profile } = await assertCanManagePayableBill(id, "can_delete");
+    const supabase = await createClient();
 
-  await supabase
-    .from("payable_bills")
-    .delete()
-    .eq("id", id)
-    .eq("owner_id", ownerId);
+    await supabase
+      .from("payable_bills")
+      .delete()
+      .eq("id", id)
+      .eq("owner_id", profile.owner_id);
 
-  revalidatePath("/protected/contas-a-pagar");
-  revalidatePath("/protected");
+    revalidatePath("/protected/contas-a-pagar");
+    revalidatePath("/protected");
+  } catch {
+    return;
+  }
 }
