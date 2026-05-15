@@ -7,13 +7,17 @@ import {
   receivableIncomes,
 } from "@/__tests__/fixtures/mock-data";
 
-export const currencyFormatter = new Intl.NumberFormat("pt-PT", {
+export const currencyFormatter = new Intl.NumberFormat("pt-BR", {
   style: "currency",
-  currency: "EUR",
+  currency: "BRL",
 });
 
 export function formatCurrency(value: number) {
   return currencyFormatter.format(value);
+}
+
+export function compactCurrency(value: number) {
+  return formatCurrency(value).replace(/\s+/g, " ").trim();
 }
 
 export function calculateRemainingLimit(monthlyLimit: number, spent: number) {
@@ -61,7 +65,7 @@ export function getTotalReceivableIncomes() {
 }
 
 export function getTotalBankBalance() {
-  return bankAccounts.reduce((total, account) => total + account.currentBalance, 0);
+  return bankAccounts.reduce((total, account) => account.currentBalance + total, 0);
 }
 
 export function getMemberSummaries() {
