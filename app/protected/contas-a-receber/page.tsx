@@ -4,6 +4,7 @@ import { deleteReceivableIncome, updateReceivableIncomeStatus } from "./actions"
 import { ReceivableIncomeFormDialog } from "@/components/finance/receivable-income-form-dialog";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { getCurrentProfile, getModulePermission } from "@/lib/finance/access-control";
 import { formatCurrency } from "@/lib/finance/calculations";
 import { getReceivableIncomesDashboardData } from "@/lib/finance/server";
 
@@ -18,6 +19,15 @@ function compactCurrency(value: number) {
 }
 
 export default async function ContasAReceberPage() {
+  const [profile, receivableData] = await Promise.all([
+    getCurrentProfile(),
+    getReceivableIncomesDashboardData(),
+  ]);
+  const permission = profile.role === "admin" ? null : await getModulePermission(profile.id, "CONTAS_A_RECEBER");
+  const canCreate = profile.role === "admin" || Boolean(permission?.can_create);
+  const canEdit = profile.role === "admin" || Boolean(permission?.can_edit);
+  const canDelete = profile.role === "admin" || Boolean(permission?.can_delete);
+
   const {
     members,
     incomes,
@@ -28,7 +38,7 @@ export default async function ContasAReceberPage() {
     totalVariable,
     overdueCount,
     receivedCount,
-  } = await getReceivableIncomesDashboardData();
+  } = receivableData;
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-col gap-5 md:max-w-7xl">
@@ -91,15 +101,17 @@ export default async function ContasAReceberPage() {
         </div>
       </section>
 
-      <section className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/25">Novo recebimento</p>
-            <p className="mt-1 text-sm text-white/40">Cadastre entradas e rendas sem poluir a tela principal.</p>
+      {canCreate ? (
+        <section className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/25">Novo recebimento</p>
+              <p className="mt-1 text-sm text-white/40">Cadastre entradas e rendas sem poluir a tela principal.</p>
+            </div>
+            <ReceivableIncomeFormDialog members={members} />
           </div>
-          <ReceivableIncomeFormDialog members={members} />
-        </div>
-      </section>
+        </section>
+      ) : null}
 
       <section className="space-y-3 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
         <div className="flex items-center justify-between">
@@ -124,21 +136,25 @@ export default async function ContasAReceberPage() {
 
               <div className="flex items-center justify-between gap-3 md:justify-end">
                 <p className="text-sm font-bold text-[#1de9b2]">{compactCurrency(Number(income.amount))}</p>
-                <form action={updateReceivableIncomeStatus} className="flex gap-2">
-                  <input type="hidden" name="id" value={income.id} />
-                  <select name="status" defaultValue={income.status} className="h-9 rounded-xl border border-white/10 bg-[#080810] px-2 text-xs text-white/70">
-                    <option value="previsto">Previsto</option>
-                    <option value="recebido">Recebido</option>
-                    <option value="atrasado">Atrasado</option>
-                  </select>
-                  <Button type="submit" variant="outline" className="h-9 rounded-xl border-white/10 bg-transparent text-white/60 hover:bg-white/10 hover:text-white">Salvar</Button>
-                </form>
-                <form action={deleteReceivableIncome}>
-                  <input type="hidden" name="id" value={income.id} />
-                  <Button type="submit" variant="outline" size="icon" aria-label="Excluir recebimento" className="h-9 w-9 rounded-xl border-white/10 bg-transparent text-white/35 hover:bg-white/10 hover:text-white">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </form>
+                {canEdit ? (
+                  <form action={updateReceivableIncomeStatus} className="flex gap-2">
+                    <input type="hidden" name="id" value={income.id} />
+                    <select name="status" defaultValue={income.status} className="h-9 rounded-xl border border-white/10 bg-[#080810] px-2 text-xs text-white/70">
+                      <option value="previsto">Previsto</option>
+                      <option value="recebido">Recebido</option>
+                      <option value="atrasado">Atrasado</option>
+                    </select>
+                    <Button type="submit" variant="outline" className="h-9 rounded-xl border-white/10 bg-transparent text-white/60 hover:bg-white/10 hover:text-white">Salvar</Button>
+                  </form>
+                ) : null}
+                {canDelete ? (
+                  <form action={deleteReceivableIncome}>
+                    <input type="hidden" name="id" value={income.id} />
+                    <Button type="submit" variant="outline" size="icon" aria-label="Excluir recebimento" className="h-9 w-9 rounded-xl border-white/10 bg-transparent text-white/35 hover:bg-white/10 hover:text-white">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </form>
+                ) : null}
               </div>
             </div>
           ))
