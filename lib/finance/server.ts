@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 
+import { getAccessibleMemberIds, getCurrentProfile } from "@/lib/finance/access-control";
 import { createClient } from "@/lib/supabase/server";
 import { expenseCategories, familyMembers } from "./mock-data";
 
@@ -169,11 +170,8 @@ export async function seedInitialFinanceData() {
   );
 }
 
-export async function getFamilyMembers() {
-  await seedInitialFinanceData();
-
+async function getFamilyMembersByOwner(ownerId: string) {
   const supabase = await createClient();
-  const ownerId = await getCurrentUserId();
 
   const { data, error } = await supabase
     .from("family_members")
@@ -186,6 +184,13 @@ export async function getFamilyMembers() {
   }
 
   return (data ?? []) as DbFamilyMember[];
+}
+
+export async function getFamilyMembers() {
+  await seedInitialFinanceData();
+
+  const ownerId = await getCurrentUserId();
+  return getFamilyMembersByOwner(ownerId);
 }
 
 export async function getActiveFamilyMembers() {
@@ -212,18 +217,40 @@ export async function getExpenseCategories() {
   return (data ?? []) as DbExpenseCategory[];
 }
 
+async function getExpenseCategoriesByOwner(ownerId: string) {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("expense_categories")
+    .select("id, owner_id, name, description, is_default, created_at")
+    .eq("owner_id", ownerId)
+    .order("name", { ascending: true });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data ?? []) as DbExpenseCategory[];
+}
+
 export async function getExpenses() {
   await seedInitialFinanceData();
 
   const supabase = await createClient();
-  const ownerId = await getCurrentUserId();
+  const profile = await getCurrentProfile();
+  const accessibleMemberIds = await getAccessibleMemberIds("GASTOS", "can_view");
+
+  if (accessibleMemberIds.length === 0) {
+    return [];
+  }
 
   const { data, error } = await supabase
     .from("expenses")
     .select(
       "id, owner_id, family_member_id, category_id, expense_date, description, purchase_location, amount, payment_method, bank_or_card, notes, created_at, family_members(id, name, monthly_limit), expense_categories(id, name)",
     )
-    .eq("owner_id", ownerId)
+    .eq("owner_id", profile.owner_id)
+    .in("family_member_id", accessibleMemberIds)
     .order("expense_date", { ascending: false })
     .order("created_at", { ascending: false });
 
@@ -235,11 +262,19 @@ export async function getExpenses() {
 }
 
 export async function getExpenseDashboardData() {
-  const [members, categories, expenses] = await Promise.all([
-    getActiveFamilyMembers(),
-    getExpenseCategories(),
+  await seedInitialFinanceData();
+
+  const profile = await getCurrentProfile();
+  const accessibleMemberIds = await getAccessibleMemberIds("GASTOS", "can_view");
+  const [allMembers, categories, expenses] = await Promise.all([
+    getFamilyMembersByOwner(profile.owner_id),
+    getExpenseCategoriesByOwner(profile.owner_id),
     getExpenses(),
   ]);
+
+  const members = allMembers
+    .filter((member) => member.is_active)
+    .filter((member) => accessibleMemberIds.includes(member.id));
 
   const memberSummaries = members.map((member) => {
     const spent = expenses
@@ -337,41 +372,3 @@ export async function getReceivableIncomes() {
   if (error) {
     throw new Error(error.message);
   }
-
-  return ((data ?? []) as RawReceivableIncome[]).map(normalizeReceivableIncome);
-}
-
-export async function getReceivableIncomesDashboardData() {
-  const [members, incomes] = await Promise.all([
-    getActiveFamilyMembers(),
-    getReceivableIncomes(),
-  ]);
-
-  const today = new Date().toISOString().slice(0, 10);
-  const enrichedIncomes = incomes.map((income) => ({
-    ...income,
-    computed_status:
-      income.status !== "recebido" && income.expected_date < today
-        ? "atrasado"
-        : income.status,
-  }));
-
-  const expectedIncomes = enrichedIncomes.filter((income) => income.computed_status === "previsto");
-  const overdueIncomes = enrichedIncomes.filter((income) => income.computed_status === "atrasado");
-  const receivedIncomes = enrichedIncomes.filter((income) => income.computed_status === "recebido");
-  const fixedIncomes = enrichedIncomes.filter((income) => income.income_type === "fixa");
-  const variableIncomes = enrichedIncomes.filter((income) => income.income_type === "variavel");
-
-  return {
-    members,
-    incomes: enrichedIncomes,
-    totalExpected: expectedIncomes.reduce((total, income) => total + Number(income.amount), 0),
-    totalOverdue: overdueIncomes.reduce((total, income) => total + Number(income.amount), 0),
-    totalReceived: receivedIncomes.reduce((total, income) => total + Number(income.amount), 0),
-    totalFixed: fixedIncomes.reduce((total, income) => total + Number(income.amount), 0),
-    totalVariable: variableIncomes.reduce((total, income) => total + Number(income.amount), 0),
-    expectedCount: expectedIncomes.length,
-    overdueCount: overdueIncomes.length,
-    receivedCount: receivedIncomes.length,
-  };
-}
