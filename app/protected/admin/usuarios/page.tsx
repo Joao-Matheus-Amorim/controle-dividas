@@ -1,6 +1,6 @@
-import { ShieldCheck, Trash2, UserRoundCheck, UsersRound } from "lucide-react";
+import { Link2, ShieldCheck, Trash2, UserRoundCheck, UsersRound } from "lucide-react";
 
-import { deleteFamilyUser, toggleFamilyUserStatus, updateFamilyUser } from "../actions";
+import { deleteFamilyUser, syncFamilyUserAuthLink, toggleFamilyUserStatus, updateFamilyUser } from "../actions";
 import { FamilyUserFormDialog } from "@/components/finance/family-user-form-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -110,6 +110,16 @@ export default async function AdminUsuariosPage() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2 md:justify-end">
+                  {!isCurrentAdmin && !profile.auth_user_id ? (
+                    <form action={syncFamilyUserAuthLink}>
+                      <input type="hidden" name="id" value={profile.id} />
+                      <Button type="submit" variant="outline" className="h-9 rounded-xl border-[#8b72f8]/30 bg-[#8b72f8]/10 text-[#b09cff] hover:bg-[#8b72f8]/20">
+                        <Link2 className="mr-2 h-4 w-4" />
+                        Sincronizar login
+                      </Button>
+                    </form>
+                  ) : null}
+
                   <form action={toggleFamilyUserStatus}>
                     <input type="hidden" name="id" value={profile.id} />
                     <input type="hidden" name="is_active" value={String(profile.is_active)} />
