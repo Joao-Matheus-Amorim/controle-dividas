@@ -21,33 +21,142 @@ function getAllowedMemberIds(formData: FormData, moduleKey: FinanceModuleKey) {
     .filter(Boolean);
 }
 
+function normalizeRole(value: string) {
+  if (["admin", "adult", "child", "custom", "user"].includes(value)) {
+    return value;
+  }
+
+  return "adult";
+}
+
+function getDefaultPermissionForRole(role: string, module: FinanceModuleKey) {
+  if (role === "admin") {
+    return {
+      can_view: true,
+      can_create: true,
+      can_edit: true,
+      can_delete: true,
+      scope: "family" as PermissionScope,
+    };
+  }
+
+  if (role === "child") {
+    const canUseExpenses = module === "DASHBOARD" || module === "GASTOS";
+
+    return {
+      can_view: canUseExpenses,
+      can_create: module === "GASTOS",
+      can_edit: false,
+      can_delete: false,
+      scope: "own" as PermissionScope,
+    };
+  }
+
+  if (role === "adult") {
+    const allowedModules: FinanceModuleKey[] = [
+      "DASHBOARD",
+      "GASTOS",
+      "CONTAS_A_PAGAR",
+      "CONTAS_A_RECEBER",
+      "BANCOS",
+    ];
+    const canUseModule = allowedModules.includes(module);
+
+    return {
+      can_view: canUseModule,
+      can_create: canUseModule && module !== "DASHBOARD",
+      can_edit: canUseModule && module !== "DASHBOARD",
+      can_delete: false,
+      scope: "own" as PermissionScope,
+    };
+  }
+
+  return {
+    can_view: module === "DASHBOARD",
+    can_create: false,
+    can_edit: false,
+    can_delete: false,
+    scope: "own" as PermissionScope,
+  };
+}
+
 export async function createFamilyUser(
   _prevState: ProfileFormState,
   formData: FormData,
 ): Promise<ProfileFormState> {
   const name = String(formData.get("name") ?? "").trim();
-  const email = String(formData.get("email") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const linkedFamilyMemberId = String(formData.get("linked_family_member_id") ?? "");
-  const roleInput = String(formData.get("role") ?? "user");
-  const role = ["admin", "adult", "child", "custom", "user"].includes(roleInput)
-    ? roleInput
-    : "user";
+  const role = normalizeRole(String(formData.get("role") ?? "adult"));
 
   if (!name) {
     return { error: "Informe o nome do usuario familiar." };
   }
 
+  if (!email) {
+    return { error: "Informe o email de acesso." };
+  }
+
+  if (!linkedFamilyMemberId) {
+    return { error: "Selecione o membro da familia vinculado a este acesso." };
+  }
+
   const supabase = await createClient();
   const adminProfile = await ensureAdminProfile();
+
+  const { data: emailProfile, error: emailError } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("owner_id", adminProfile.owner_id)
+    .ilike("email", email)
+    .maybeSingle();
+
+  if (emailError) {
+    return { error: emailError.message };
+  }
+
+  if (emailProfile) {
+    return { error: "Este email ja esta cadastrado para outro acesso familiar." };
+  }
+
+  const { data: memberProfile, error: memberError } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("owner_id", adminProfile.owner_id)
+    .eq("linked_family_member_id", linkedFamilyMemberId)
+    .maybeSingle();
+
+  if (memberError) {
+    return { error: memberError.message };
+  }
+
+  if (memberProfile) {
+    return { error: "Este membro da familia ja possui um acesso vinculado." };
+  }
+
+  const { data: member, error: memberLookupError } = await supabase
+    .from("family_members")
+    .select("id")
+    .eq("id", linkedFamilyMemberId)
+    .eq("owner_id", adminProfile.owner_id)
+    .maybeSingle();
+
+  if (memberLookupError) {
+    return { error: memberLookupError.message };
+  }
+
+  if (!member) {
+    return { error: "Membro da familia invalido para este Admin." };
+  }
 
   const { data: profile, error } = await supabase
     .from("profiles")
     .insert({
       owner_id: adminProfile.owner_id,
       auth_user_id: null,
-      linked_family_member_id: linkedFamilyMemberId || null,
+      linked_family_member_id: linkedFamilyMemberId,
       name,
-      email: email || null,
+      email,
       role,
       is_active: true,
     })
@@ -59,27 +168,37 @@ export async function createFamilyUser(
   }
 
   if (profile?.id) {
-    await supabase.from("user_module_permissions").insert(
-      FINANCE_MODULES.map((module) => ({
+    const permissionRows = FINANCE_MODULES.map((module) => {
+      const defaults = getDefaultPermissionForRole(role, module.key as FinanceModuleKey);
+
+      return {
         owner_id: adminProfile.owner_id,
         profile_id: profile.id,
         module: module.key,
-        can_view: role === "admin",
-        can_create: role === "admin",
-        can_edit: role === "admin",
-        can_delete: role === "admin",
-        scope: role === "admin" ? "family" : "own",
+        can_view: defaults.can_view,
+        can_create: defaults.can_create,
+        can_edit: defaults.can_edit,
+        can_delete: defaults.can_delete,
+        scope: defaults.scope,
         allowed_member_ids: [],
         granted_by: adminProfile.id,
-      })),
-    );
+      };
+    });
+
+    const { error: permissionsError } = await supabase
+      .from("user_module_permissions")
+      .insert(permissionRows);
+
+    if (permissionsError) {
+      return { error: permissionsError.message };
+    }
   }
 
   revalidatePath("/protected/admin");
   revalidatePath("/protected/admin/usuarios");
   revalidatePath("/protected/admin/permissoes");
 
-  return { success: "Usuario familiar cadastrado com sucesso." };
+  return { success: "Acesso familiar cadastrado com sucesso." };
 }
 
 export async function toggleFamilyUserStatus(formData: FormData) {
