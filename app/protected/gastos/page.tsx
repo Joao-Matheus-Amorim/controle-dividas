@@ -4,6 +4,7 @@ import { deleteExpense } from "./actions";
 import { ExpenseFormDialog } from "@/components/finance/expense-form-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { getCurrentProfile, getModulePermission } from "@/lib/finance/access-control";
 import { formatCurrency } from "@/lib/finance/calculations";
 import { getExpenseDashboardData } from "@/lib/finance/server";
 
@@ -21,8 +22,15 @@ function initials(name: string) {
 }
 
 export default async function GastosPage() {
-  const { members, categories, expenses, memberSummaries, totalExpenses } =
-    await getExpenseDashboardData();
+  const [profile, expenseData] = await Promise.all([
+    getCurrentProfile(),
+    getExpenseDashboardData(),
+  ]);
+  const permission = profile.role === "admin" ? null : await getModulePermission(profile.id, "GASTOS");
+  const canCreate = profile.role === "admin" || Boolean(permission?.can_create);
+  const canDelete = profile.role === "admin" || Boolean(permission?.can_delete);
+
+  const { members, categories, expenses, memberSummaries, totalExpenses } = expenseData;
 
   const totalLimit = memberSummaries.reduce(
     (total, member) => total + Number(member.monthly_limit),
@@ -53,9 +61,11 @@ export default async function GastosPage() {
           </h1>
           <p className="mt-1 text-sm text-white/40">Lançamentos da família</p>
         </div>
-        <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-[#b09cff]">
-          <Plus className="h-5 w-5" />
-        </div>
+        {canCreate ? (
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-[#b09cff]">
+            <Plus className="h-5 w-5" />
+          </div>
+        ) : null}
       </section>
 
       <section className="relative overflow-hidden rounded-[1.75rem] border border-[#f0506e]/20 bg-[linear-gradient(135deg,#2b0f22_0%,#140814_55%,#080810_100%)] p-5 shadow-2xl shadow-black/30">
@@ -91,52 +101,36 @@ export default async function GastosPage() {
       <section className="grid grid-cols-3 gap-2 md:grid-cols-4">
         <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3">
           <ReceiptText className="h-4 w-4 text-[#f0506e]" />
-          <p className="mt-3 text-[10px] font-bold uppercase tracking-widest text-white/25">
-            Gastos
-          </p>
-          <p className="mt-1 text-sm font-bold text-white">
-            {compactCurrency(totalExpenses)}
-          </p>
+          <p className="mt-3 text-[10px] font-bold uppercase tracking-widest text-white/25">Gastos</p>
+          <p className="mt-1 text-sm font-bold text-white">{compactCurrency(totalExpenses)}</p>
         </div>
         <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3">
           <Users className="h-4 w-4 text-[#b09cff]" />
-          <p className="mt-3 text-[10px] font-bold uppercase tracking-widest text-white/25">
-            Pessoas
-          </p>
-          <p className="mt-1 text-sm font-bold text-white">
-            {memberSummaries.length}
-          </p>
+          <p className="mt-3 text-[10px] font-bold uppercase tracking-widest text-white/25">Pessoas</p>
+          <p className="mt-1 text-sm font-bold text-white">{memberSummaries.length}</p>
         </div>
         <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3">
           <TrendingDown className="h-4 w-4 text-[#f7b84b]" />
-          <p className="mt-3 text-[10px] font-bold uppercase tracking-widest text-white/25">
-            Categorias
-          </p>
-          <p className="mt-1 text-sm font-bold text-white">
-            {categoryTotals.length}
-          </p>
+          <p className="mt-3 text-[10px] font-bold uppercase tracking-widest text-white/25">Categorias</p>
+          <p className="mt-1 text-sm font-bold text-white">{categoryTotals.length}</p>
         </div>
       </section>
 
-      <section className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/25">
-              Novo gasto
-            </p>
-            <p className="mt-1 text-sm text-white/40">
-              Registre um lançamento sem poluir a tela principal.
-            </p>
+      {canCreate ? (
+        <section className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/25">Novo gasto</p>
+              <p className="mt-1 text-sm text-white/40">Registre um lançamento sem poluir a tela principal.</p>
+            </div>
+            <ExpenseFormDialog members={members} categories={categories} />
           </div>
-          <ExpenseFormDialog members={members} categories={categories} />
-        </div>
-      </section>
+        </section>
+      ) : null}
 
       <section className="space-y-3">
         <div className="flex items-center justify-between">
-          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/25">
-            Impacto por pessoa
-          </p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/25">Impacto por pessoa</p>
           <p className="text-xs font-semibold text-[#8b72f8]">limites</p>
         </div>
         <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -145,28 +139,16 @@ export default async function GastosPage() {
             const exceeded = member.remaining < 0;
 
             return (
-              <div
-                key={member.id}
-                className="min-w-[92px] rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-center"
-              >
+              <div key={member.id} className="min-w-[92px] rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-center">
                 <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-full bg-[#8b72f8]/15 text-xs font-bold text-[#b09cff]">
                   {initials(member.name)}
                 </div>
-                <p className="mt-2 truncate text-[11px] font-semibold text-white/70">
-                  {member.name}
-                </p>
-                <p className="mt-1 text-[11px] font-bold text-white">
-                  {compactCurrency(member.spent)}
-                </p>
+                <p className="mt-2 truncate text-[11px] font-semibold text-white/70">{member.name}</p>
+                <p className="mt-1 text-[11px] font-bold text-white">{compactCurrency(member.spent)}</p>
                 <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/10">
-                  <div
-                    className={exceeded ? "h-full rounded-full bg-[#f0506e]" : "h-full rounded-full bg-[#8b72f8]"}
-                    style={{ width: `${usedPercent}%` }}
-                  />
+                  <div className={exceeded ? "h-full rounded-full bg-[#f0506e]" : "h-full rounded-full bg-[#8b72f8]"} style={{ width: `${usedPercent}%` }} />
                 </div>
-                <p className={exceeded ? "mt-2 text-[11px] font-bold text-[#f0506e]" : "mt-2 text-[11px] font-bold text-[#1de9b2]"}>
-                  {compactCurrency(member.remaining)}
-                </p>
+                <p className={exceeded ? "mt-2 text-[11px] font-bold text-[#f0506e]" : "mt-2 text-[11px] font-bold text-[#1de9b2]"}>{compactCurrency(member.remaining)}</p>
               </div>
             );
           })}
@@ -175,9 +157,7 @@ export default async function GastosPage() {
 
       <section className="space-y-3 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
         <div className="flex items-center justify-between">
-          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/25">
-            Categorias
-          </p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/25">Categorias</p>
           <TrendingDown className="h-4 w-4 text-white/30" />
         </div>
         {categoryTotals.length === 0 ? (
@@ -197,9 +177,7 @@ export default async function GastosPage() {
 
       <section className="space-y-3 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
         <div className="flex items-center justify-between">
-          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/25">
-            Gastos cadastrados
-          </p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/25">Gastos cadastrados</p>
           <p className="text-xs font-semibold text-[#8b72f8]">{expenses.length}</p>
         </div>
 
@@ -214,27 +192,21 @@ export default async function GastosPage() {
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="truncate text-sm font-semibold text-white">{expense.description}</p>
-                  <Badge variant="secondary" className="border-white/10 bg-white/10 text-white/60">
-                    {expense.expense_categories?.name || "Sem categoria"}
-                  </Badge>
+                  <Badge variant="secondary" className="border-white/10 bg-white/10 text-white/60">{expense.expense_categories?.name || "Sem categoria"}</Badge>
                 </div>
-                <p className="mt-0.5 truncate text-xs text-white/35">
-                  {expense.family_members?.name || "Pessoa não informada"} · {new Date(`${expense.expense_date}T00:00:00`).toLocaleDateString("pt-BR")}
-                </p>
-                <p className="mt-0.5 truncate text-xs text-white/25">
-                  {expense.purchase_location || "Local não informado"}
-                  {expense.payment_method ? ` · ${expense.payment_method}` : ""}
-                  {expense.bank_or_card ? ` · ${expense.bank_or_card}` : ""}
-                </p>
+                <p className="mt-0.5 truncate text-xs text-white/35">{expense.family_members?.name || "Pessoa não informada"} · {new Date(`${expense.expense_date}T00:00:00`).toLocaleDateString("pt-BR")}</p>
+                <p className="mt-0.5 truncate text-xs text-white/25">{expense.purchase_location || "Local não informado"}{expense.payment_method ? ` · ${expense.payment_method}` : ""}{expense.bank_or_card ? ` · ${expense.bank_or_card}` : ""}</p>
               </div>
               <div className="flex flex-col items-end gap-2">
                 <p className="text-sm font-bold text-white">{compactCurrency(Number(expense.amount))}</p>
-                <form action={deleteExpense}>
-                  <input type="hidden" name="id" value={expense.id} />
-                  <Button type="submit" variant="outline" size="icon" aria-label="Excluir gasto" className="h-8 w-8 rounded-xl border-white/10 bg-transparent text-white/35 hover:bg-white/10 hover:text-white">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </form>
+                {canDelete ? (
+                  <form action={deleteExpense}>
+                    <input type="hidden" name="id" value={expense.id} />
+                    <Button type="submit" variant="outline" size="icon" aria-label="Excluir gasto" className="h-8 w-8 rounded-xl border-white/10 bg-transparent text-white/35 hover:bg-white/10 hover:text-white">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </form>
+                ) : null}
               </div>
             </div>
           ))
