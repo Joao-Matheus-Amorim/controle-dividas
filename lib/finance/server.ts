@@ -307,14 +307,20 @@ export async function getPayableBills() {
   await seedInitialFinanceData();
 
   const supabase = await createClient();
-  const ownerId = await getCurrentUserId();
+  const profile = await getCurrentProfile();
+  const accessibleMemberIds = await getAccessibleMemberIds("CONTAS_A_PAGAR", "can_view");
+
+  if (accessibleMemberIds.length === 0) {
+    return [];
+  }
 
   const { data, error } = await supabase
     .from("payable_bills")
     .select(
       "id, owner_id, name, category, amount, due_date, responsible_member_id, status, bank_used, recurrence, notes, created_at, family_members(id, name)",
     )
-    .eq("owner_id", ownerId)
+    .eq("owner_id", profile.owner_id)
+    .in("responsible_member_id", accessibleMemberIds)
     .order("due_date", { ascending: true })
     .order("created_at", { ascending: false });
 
@@ -326,10 +332,17 @@ export async function getPayableBills() {
 }
 
 export async function getPayableBillsDashboardData() {
-  const [members, bills] = await Promise.all([
-    getActiveFamilyMembers(),
+  await seedInitialFinanceData();
+
+  const profile = await getCurrentProfile();
+  const accessibleMemberIds = await getAccessibleMemberIds("CONTAS_A_PAGAR", "can_view");
+  const [allMembers, bills] = await Promise.all([
+    getFamilyMembersByOwner(profile.owner_id),
     getPayableBills(),
   ]);
+  const members = allMembers
+    .filter((member) => member.is_active)
+    .filter((member) => accessibleMemberIds.includes(member.id));
 
   const today = new Date().toISOString().slice(0, 10);
   const enrichedBills = bills.map((bill) => ({
