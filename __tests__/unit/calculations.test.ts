@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   calculateRemainingLimit,
   calculateUsedPercent,
+  compactCurrency,
   formatCurrency,
   getCategoryName,
   getCategorySummaries,
@@ -18,9 +19,26 @@ import {
 } from "@/lib/finance/calculations";
 
 describe("finance calculations", () => {
-  it("formats currency in EUR", () => {
-    expect(formatCurrency(0)).toContain("0");
-    expect(formatCurrency(150)).toContain("150");
+  it("formats currency in EUR for European family", () => {
+    expect(formatCurrency(0)).toMatch(/0[,\.]00/);
+    expect(formatCurrency(0)).toContain("€");
+    expect(formatCurrency(150)).toMatch(/150[,\.]00/);
+    expect(formatCurrency(150)).toContain("€");
+    expect(formatCurrency(-20)).toContain("20");
+    expect(formatCurrency(1_000_000)).toContain("1");
+    expect(formatCurrency(1_000_000)).toContain("000");
+  });
+
+  it("compacts EUR currency without changing currency semantics", () => {
+    expect(compactCurrency(0)).toContain("€");
+    expect(compactCurrency(0)).toMatch(/0[,\.]00/);
+    expect(compactCurrency(150)).toContain("€");
+    expect(compactCurrency(150)).toMatch(/150[,\.]00/);
+    expect(compactCurrency(-20)).toContain("€");
+    expect(compactCurrency(-20)).toContain("20");
+    expect(compactCurrency(1_000_000)).toContain("€");
+    expect(compactCurrency(1_000_000)).toContain("1");
+    expect(compactCurrency(1_000_000)).toContain("000");
   });
 
   it("calculates remaining limit with zero, negative and large values", () => {
