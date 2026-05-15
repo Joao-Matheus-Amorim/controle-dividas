@@ -11,6 +11,7 @@ import {
 
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/finance/calculations";
+import { getCurrentPeriodContextLabel } from "@/lib/finance/period-context";
 import { getReportsDashboardData } from "@/lib/finance/reports-server";
 
 function formatDate(date: string) {
@@ -31,13 +32,16 @@ function initials(name: string) {
 }
 
 export default async function RelatoriosPage() {
-  const report = await getReportsDashboardData();
+  const [report, periodContextLabel] = await Promise.all([
+    getReportsDashboardData(),
+    getCurrentPeriodContextLabel(),
+  ]);
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-col gap-5 md:max-w-7xl">
       <section className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-white/25">Junho</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-white/25">{periodContextLabel}</p>
           <h1 className="mt-1 text-3xl font-bold tracking-tight text-white md:text-4xl">Relatórios</h1>
           <p className="mt-1 text-sm text-white/40">Resumo financeiro</p>
         </div>
