@@ -19,6 +19,39 @@ O projeto sera entregue como solucao personalizada para uma familia, com:
 - dashboard contextual por usuario;
 - experiencia visual mobile-first e com cara de app nativo.
 
+## Deploy automatico na Vercel
+
+O deploy automatico da Vercel deve permanecer desativado durante a fase atual de desenvolvimento.
+
+Motivo: o projeto esta em fase de mudancas frequentes de arquitetura, permissao, UI e banco. Se cada commit gerar um deploy automatico, o limite de builds/deploys da conta gratuita pode ser excedido rapidamente.
+
+Por isso, o projeto usa `vercel.json` com:
+
+```json
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "git": {
+    "deploymentEnabled": false
+  }
+}
+```
+
+Fluxo recomendado:
+
+1. desenvolver localmente;
+2. rodar `npm run lint`;
+3. rodar `npm run build`;
+4. testar no navegador/celular;
+5. somente quando uma fase estiver estavel, fazer deploy manual ou reativar temporariamente o deploy.
+
+Deploy manual, quando necessario:
+
+```bash
+npx vercel --prod
+```
+
+Nao remover essa configuracao sem decisao consciente, para evitar consumo desnecessario de builds na Vercel.
+
 ## Visao oficial de permissoes
 
 A regra principal do produto e:
@@ -233,6 +266,7 @@ Configure `.env.local`:
 NEXT_PUBLIC_SUPABASE_URL=URL_DO_SUPABASE
 NEXT_PUBLIC_SUPABASE_ANON_KEY=CHAVE_ANON_PUBLICA_DO_SUPABASE
 ADMIN_EMAIL=EMAIL_DO_DANYEL
+SUPABASE_SERVICE_ROLE_KEY=CHAVE_SERVICE_ROLE_DO_SUPABASE
 ```
 
 Tambem e aceito:
@@ -241,12 +275,19 @@ Tambem e aceito:
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=CHAVE_PUBLICA_DO_SUPABASE
 ```
 
+Veja todas as variaveis em:
+
+```txt
+.env.example
+```
+
 Execute as migrations no Supabase SQL Editor:
 
 ```txt
 supabase/migrations/001_family_finance_schema.sql
 supabase/migrations/002_dedupe_and_seed_constraints.sql
 supabase/migrations/003_admin_profiles_permissions.sql
+supabase/migrations/004_permission_scope_and_features.sql
 ```
 
 Rode o projeto:
