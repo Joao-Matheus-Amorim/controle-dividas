@@ -1,8 +1,16 @@
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
-import { FINANCE_MODULES, type FinanceModuleKey } from "./permissions";
+import {
+  FEATURE_PERMISSIONS,
+  FINANCE_MODULES,
+  type FeaturePermissionKey,
+  type FinanceModuleKey,
+  type PermissionScope,
+} from "./permissions";
 import { getFamilyMembers, type DbFamilyMember } from "./server";
+
+export type ProfileRole = "admin" | "adult" | "child" | "custom" | "user";
 
 export type DbProfile = {
   id: string;
@@ -11,7 +19,7 @@ export type DbProfile = {
   linked_family_member_id: string | null;
   name: string;
   email: string | null;
-  role: "admin" | "user";
+  role: ProfileRole;
   is_active: boolean;
   created_at: string;
   family_members?: Pick<DbFamilyMember, "id" | "name"> | null;
@@ -26,6 +34,18 @@ export type DbModulePermission = {
   can_create: boolean;
   can_edit: boolean;
   can_delete: boolean;
+  scope: PermissionScope;
+  allowed_member_ids: string[];
+  granted_by: string | null;
+  created_at: string;
+};
+
+export type DbFeaturePermission = {
+  id: string;
+  owner_id: string;
+  profile_id: string;
+  feature_key: FeaturePermissionKey;
+  is_enabled: boolean;
   granted_by: string | null;
   created_at: string;
 };
@@ -150,10 +170,11 @@ export async function requireAdminProfile() {
 
 export async function getAdminDashboardData() {
   const adminProfile = await requireAdminProfile();
-  const [profiles, members, permissions] = await Promise.all([
+  const [profiles, members, permissions, featurePermissions] = await Promise.all([
     getFamilyProfiles(adminProfile),
     getFamilyMembers(),
     getFamilyPermissions(adminProfile),
+    getFamilyFeaturePermissions(adminProfile),
   ]);
 
   return {
@@ -161,7 +182,9 @@ export async function getAdminDashboardData() {
     profiles,
     members,
     permissions,
+    featurePermissions,
     modules: FINANCE_MODULES,
+    features: FEATURE_PERMISSIONS,
   };
 }
 
@@ -189,14 +212,39 @@ export async function getFamilyPermissions(adminProfileParam?: DbProfile) {
 
   const { data, error } = await supabase
     .from("user_module_permissions")
-    .select("id, owner_id, profile_id, module, can_view, can_create, can_edit, can_delete, granted_by, created_at")
+    .select("id, owner_id, profile_id, module, can_view, can_create, can_edit, can_delete, scope, allowed_member_ids, granted_by, created_at")
     .eq("owner_id", adminProfile.owner_id);
 
   if (error) {
     throw new Error(error.message);
   }
 
-  return (data ?? []) as DbModulePermission[];
+  return (data ?? []).map((permission) => ({
+    ...permission,
+    scope: permission.scope ?? "own",
+    allowed_member_ids: permission.allowed_member_ids ?? [],
+  })) as DbModulePermission[];
+}
+
+export async function getFamilyFeaturePermissions(adminProfileParam?: DbProfile) {
+  const supabase = await createClient();
+  const adminProfile = adminProfileParam ?? (await requireAdminProfile());
+
+  const { data, error } = await supabase
+    .from("user_feature_permissions")
+    .select("id, owner_id, profile_id, feature_key, is_enabled, granted_by, created_at")
+    .eq("owner_id", adminProfile.owner_id);
+
+  if (error) {
+    // The table is created by migration 004. Returning an empty list keeps older local databases usable until migration is applied.
+    if (error.message.toLowerCase().includes("user_feature_permissions")) {
+      return [] as DbFeaturePermission[];
+    }
+
+    throw new Error(error.message);
+  }
+
+  return (data ?? []) as DbFeaturePermission[];
 }
 
 export async function getPermissionsByProfile(profileId: string) {
