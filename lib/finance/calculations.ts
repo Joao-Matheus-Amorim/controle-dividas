@@ -5,7 +5,7 @@ import {
   familyMembers,
   payableBills,
   receivableIncomes,
-} from "./mock-data";
+} from "@/__tests__/fixtures/mock-data";
 
 export const currencyFormatter = new Intl.NumberFormat("pt-PT", {
   style: "currency",
