@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
 
+import { expenseCategories, familyMembers } from "@/__tests__/fixtures/mock-data";
 import { getAccessibleMemberIds, getCurrentProfile } from "@/lib/finance/access-control";
 import { createClient } from "@/lib/supabase/server";
-import { expenseCategories, familyMembers } from "./mock-data";
 
 export type DbFamilyMember = {
   id: string;
