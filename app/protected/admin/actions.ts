@@ -2,9 +2,24 @@
 
 import { revalidatePath } from "next/cache";
 
-import { createClient } from "@/lib/supabase/server";
-import { FINANCE_MODULES, type FinanceModuleKey } from "@/lib/finance/permissions";
 import { ensureAdminProfile, type PermissionFormState, type ProfileFormState } from "@/lib/finance/admin-server";
+import { FINANCE_MODULES, type FinanceModuleKey, type PermissionScope } from "@/lib/finance/permissions";
+import { createClient } from "@/lib/supabase/server";
+
+function normalizeScope(value: FormDataEntryValue | null): PermissionScope {
+  if (value === "selected" || value === "family") {
+    return value;
+  }
+
+  return "own";
+}
+
+function getAllowedMemberIds(formData: FormData, moduleKey: FinanceModuleKey) {
+  return formData
+    .getAll(`${moduleKey}.allowed_member_ids`)
+    .map((value) => String(value))
+    .filter(Boolean);
+}
 
 export async function createFamilyUser(
   _prevState: ProfileFormState,
@@ -13,7 +28,10 @@ export async function createFamilyUser(
   const name = String(formData.get("name") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
   const linkedFamilyMemberId = String(formData.get("linked_family_member_id") ?? "");
-  const role = String(formData.get("role") ?? "user") === "admin" ? "admin" : "user";
+  const roleInput = String(formData.get("role") ?? "user");
+  const role = ["admin", "adult", "child", "custom", "user"].includes(roleInput)
+    ? roleInput
+    : "user";
 
   if (!name) {
     return { error: "Informe o nome do usuario familiar." };
@@ -50,6 +68,8 @@ export async function createFamilyUser(
         can_create: role === "admin",
         can_edit: role === "admin",
         can_delete: role === "admin",
+        scope: role === "admin" ? "family" : "own",
+        allowed_member_ids: [],
         granted_by: adminProfile.id,
       })),
     );
@@ -97,6 +117,7 @@ export async function saveProfilePermissions(
 
   const rows = FINANCE_MODULES.map((module) => {
     const key = module.key as FinanceModuleKey;
+    const scope = normalizeScope(formData.get(`${key}.scope`));
 
     return {
       owner_id: adminProfile.owner_id,
@@ -106,6 +127,8 @@ export async function saveProfilePermissions(
       can_create: formData.get(`${key}.can_create`) === "on",
       can_edit: formData.get(`${key}.can_edit`) === "on",
       can_delete: formData.get(`${key}.can_delete`) === "on",
+      scope,
+      allowed_member_ids: scope === "selected" ? getAllowedMemberIds(formData, key) : [],
       granted_by: adminProfile.id,
     };
   });
