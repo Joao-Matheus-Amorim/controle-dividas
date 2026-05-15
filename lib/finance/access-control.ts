@@ -155,9 +155,9 @@ export async function getCurrentProfile() {
 }
 
 async function getAllActiveMemberIds(ownerId: string) {
-  const supabase = await createClient();
+  const adminSupabase = createAdminClient();
 
-  const { data, error } = await supabase
+  const { data, error } = await adminSupabase
     .from("family_members")
     .select("id")
     .eq("owner_id", ownerId)
@@ -171,9 +171,9 @@ async function getAllActiveMemberIds(ownerId: string) {
 }
 
 export async function getModulePermission(profileId: string, module: FinanceModuleKey) {
-  const supabase = await createClient();
+  const adminSupabase = createAdminClient();
 
-  const { data, error } = await supabase
+  const { data, error } = await adminSupabase
     .from("user_module_permissions")
     .select("profile_id, module, can_view, can_create, can_edit, can_delete, scope, allowed_member_ids")
     .eq("profile_id", profileId)
@@ -213,8 +213,8 @@ export async function getVisibleModuleKeys(modules: FinanceModuleKey[]) {
     return modules;
   }
 
-  const supabase = await createClient();
-  const { data, error } = await supabase
+  const adminSupabase = createAdminClient();
+  const { data, error } = await adminSupabase
     .from("user_module_permissions")
     .select("module, can_view")
     .eq("profile_id", profile.id)
