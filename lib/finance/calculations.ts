@@ -7,9 +7,9 @@ import {
   receivableIncomes,
 } from "@/__tests__/fixtures/mock-data";
 
-export const currencyFormatter = new Intl.NumberFormat("pt-BR", {
+export const currencyFormatter = new Intl.NumberFormat("pt-PT", {
   style: "currency",
-  currency: "BRL",
+  currency: "EUR",
 });
 
 export function formatCurrency(value: number) {
@@ -65,7 +65,7 @@ export function getTotalReceivableIncomes() {
 }
 
 export function getTotalBankBalance() {
-  return bankAccounts.reduce((total, account) => account.currentBalance + total, 0);
+  return bankAccounts.reduce((total, account) => total + account.currentBalance, 0);
 }
 
 export function getMemberSummaries() {
