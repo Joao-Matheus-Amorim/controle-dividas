@@ -28,12 +28,12 @@ jobs:
 
     env:
       APP_ENV: ci
-      NEXT_PUBLIC_APP_URL: ${{ vars.NEXT_PUBLIC_APP_URL }}
-      NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
-      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-      ADMIN_EMAIL: ${{ vars.ADMIN_EMAIL }}
+      NEXT_PUBLIC_APP_URL: ${{ vars.NEXT_PUBLIC_APP_URL || secrets.NEXT_PUBLIC_APP_URL || 'http://localhost:3000' }}
+      NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL || secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY || secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || vars.SUPABASE_SERVICE_ROLE_KEY }}
+      ADMIN_EMAIL: ${{ vars.ADMIN_EMAIL || secrets.ADMIN_EMAIL }}
 
     steps:
       - name: Checkout repository
@@ -51,22 +51,22 @@ jobs:
           missing=0
 
           if [ -z "$NEXT_PUBLIC_SUPABASE_URL" ]; then
-            echo "Missing NEXT_PUBLIC_SUPABASE_URL repository variable."
+            echo "Missing NEXT_PUBLIC_SUPABASE_URL. Set it as a repository variable or secret in GitHub Actions."
             missing=1
           fi
 
           if [ -z "$NEXT_PUBLIC_SUPABASE_ANON_KEY" ] && [ -z "$NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY" ]; then
-            echo "Missing Supabase public key. Set NEXT_PUBLIC_SUPABASE_ANON_KEY or NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY as a repository secret."
+            echo "Missing Supabase public key. Set NEXT_PUBLIC_SUPABASE_ANON_KEY or NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY as a repository variable or secret in GitHub Actions."
             missing=1
           fi
 
           if [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
-            echo "Missing SUPABASE_SERVICE_ROLE_KEY repository secret."
+            echo "Missing SUPABASE_SERVICE_ROLE_KEY. Set it as a repository secret in GitHub Actions."
             missing=1
           fi
 
           if [ -z "$ADMIN_EMAIL" ]; then
-            echo "Missing ADMIN_EMAIL repository variable."
+            echo "Missing ADMIN_EMAIL. Set it as a repository variable or secret in GitHub Actions."
             missing=1
           fi
 
