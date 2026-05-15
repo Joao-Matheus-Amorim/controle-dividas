@@ -1,7 +1,6 @@
-import { redirect } from "next/navigation";
-
+import { getAccessibleMemberIds, getCurrentProfile } from "@/lib/finance/access-control";
 import { createClient } from "@/lib/supabase/server";
-import { getActiveFamilyMembers, seedInitialFinanceData, type DbFamilyMember } from "./server";
+import { seedInitialFinanceData, type DbFamilyMember } from "./server";
 
 export type DbBankAccount = {
   id: string;
@@ -25,17 +24,6 @@ export type BankAccountFormState = {
   success?: string;
 };
 
-async function getCurrentUserId() {
-  const supabase = await createClient();
-  const { data, error } = await supabase.auth.getClaims();
-
-  if (error || !data?.claims?.sub) {
-    redirect("/auth/login");
-  }
-
-  return String(data.claims.sub);
-}
-
 function normalizeBankAccount(account: RawBankAccount): DbBankAccount {
   const familyMember = Array.isArray(account.family_members)
     ? account.family_members[0] ?? null
@@ -47,18 +35,41 @@ function normalizeBankAccount(account: RawBankAccount): DbBankAccount {
   };
 }
 
+async function getActiveFamilyMembersByOwner(ownerId: string) {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("family_members")
+    .select("id, owner_id, name, role, monthly_limit, currency, is_active, created_at")
+    .eq("owner_id", ownerId)
+    .eq("is_active", true)
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data ?? []) as DbFamilyMember[];
+}
+
 export async function getBankAccounts() {
   await seedInitialFinanceData();
 
   const supabase = await createClient();
-  const ownerId = await getCurrentUserId();
+  const profile = await getCurrentProfile();
+  const accessibleMemberIds = await getAccessibleMemberIds("BANCOS", "can_view");
+
+  if (accessibleMemberIds.length === 0) {
+    return [];
+  }
 
   const { data, error } = await supabase
     .from("banks")
     .select(
       "id, owner_id, family_member_id, bank_name, account_type, current_balance, currency, notes, created_at, family_members(id, name)",
     )
-    .eq("owner_id", ownerId)
+    .eq("owner_id", profile.owner_id)
+    .in("family_member_id", accessibleMemberIds)
     .order("bank_name", { ascending: true })
     .order("created_at", { ascending: false });
 
@@ -70,17 +81,23 @@ export async function getBankAccounts() {
 }
 
 export async function getBanksDashboardData() {
+  await seedInitialFinanceData();
+
+  const profile = await getCurrentProfile();
+  const accessibleMemberIds = await getAccessibleMemberIds("BANCOS", "can_view");
   const [members, accounts] = await Promise.all([
-    getActiveFamilyMembers(),
+    getActiveFamilyMembersByOwner(profile.owner_id),
     getBankAccounts(),
   ]);
+
+  const visibleMembers = members.filter((member) => accessibleMemberIds.includes(member.id));
 
   const totalBalance = accounts.reduce(
     (total, account) => total + Number(account.current_balance),
     0,
   );
 
-  const accountsByMember = members.map((member) => {
+  const accountsByMember = visibleMembers.map((member) => {
     const memberAccounts = accounts.filter(
       (account) => account.family_member_id === member.id,
     );
@@ -96,7 +113,7 @@ export async function getBanksDashboardData() {
   });
 
   return {
-    members,
+    members: visibleMembers,
     accounts,
     accountsByMember,
     totalBalance,
