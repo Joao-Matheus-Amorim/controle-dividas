@@ -30,7 +30,7 @@ O FamilyFinance ja esta em fase de MVP Web/PWA funcional, com:
 - testes unitarios;
 - testes de integracao com MSW;
 - estrutura PWA com manifest;
-- documentacao de produto, escopo, mobile, acesso, custos, permissoes e roadmap.
+- documentacao de produto, escopo, arquitetura, testes, mobile, acesso, custos, permissoes e roadmap.
 
 ## Estado atual real do projeto
 
@@ -1124,6 +1124,12 @@ __tests__/fixtures/msw-finance-data.ts
 __tests__/fixtures/msw-handlers.ts
 ```
 
+A estrategia completa de testes esta em:
+
+```txt
+docs/TESTING_STRATEGY.md
+```
+
 ## PWA
 
 O projeto possui `app/manifest.ts`.
@@ -1239,6 +1245,8 @@ Somente reativar deploy automatico quando o app estiver estavel.
 
 ```txt
 docs/PRODUCT_VISION.md
+docs/ARCHITECTURE.md
+docs/TESTING_STRATEGY.md
 docs/PERMISSION_AND_DASHBOARD_STRATEGY.md
 docs/MOBILE_STRATEGY.md
 docs/MOBILE_FIRST_UX.md
