@@ -21,16 +21,16 @@ function getAllowedMemberIds(formData: FormData, moduleKey: FinanceModuleKey) {
     .filter(Boolean);
 }
 
-function normalizeRole(value: string) {
-  if (["admin", "adult", "child", "custom", "user"].includes(value)) {
+function normalizeAccessModel(value: string) {
+  if (["basic", "family", "admin", "custom"].includes(value)) {
     return value;
   }
 
-  return "adult";
+  return "basic";
 }
 
-function getDefaultPermissionForRole(role: string, module: FinanceModuleKey) {
-  if (role === "admin") {
+function getDefaultPermissionForAccessModel(accessModel: string, module: FinanceModuleKey) {
+  if (accessModel === "admin") {
     return {
       can_view: true,
       can_create: true,
@@ -40,19 +40,7 @@ function getDefaultPermissionForRole(role: string, module: FinanceModuleKey) {
     };
   }
 
-  if (role === "child") {
-    const canUseExpenses = module === "DASHBOARD" || module === "GASTOS";
-
-    return {
-      can_view: canUseExpenses,
-      can_create: module === "GASTOS",
-      can_edit: false,
-      can_delete: false,
-      scope: "own" as PermissionScope,
-    };
-  }
-
-  if (role === "adult") {
+  if (accessModel === "family") {
     const allowedModules: FinanceModuleKey[] = [
       "DASHBOARD",
       "GASTOS",
@@ -66,6 +54,18 @@ function getDefaultPermissionForRole(role: string, module: FinanceModuleKey) {
       can_view: canUseModule,
       can_create: canUseModule && module !== "DASHBOARD",
       can_edit: canUseModule && module !== "DASHBOARD",
+      can_delete: false,
+      scope: "own" as PermissionScope,
+    };
+  }
+
+  if (accessModel === "basic") {
+    const canUseModule = module === "DASHBOARD" || module === "GASTOS";
+
+    return {
+      can_view: canUseModule,
+      can_create: module === "GASTOS",
+      can_edit: false,
       can_delete: false,
       scope: "own" as PermissionScope,
     };
@@ -87,10 +87,11 @@ export async function createFamilyUser(
   const name = String(formData.get("name") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const linkedFamilyMemberId = String(formData.get("linked_family_member_id") ?? "");
-  const role = normalizeRole(String(formData.get("role") ?? "adult"));
+  const accessModel = normalizeAccessModel(String(formData.get("access_model") ?? "basic"));
+  const role = accessModel === "admin" ? "admin" : "user";
 
   if (!name) {
-    return { error: "Informe o nome do usuario familiar." };
+    return { error: "Informe o nome do acesso familiar." };
   }
 
   if (!email) {
@@ -169,7 +170,7 @@ export async function createFamilyUser(
 
   if (profile?.id) {
     const permissionRows = FINANCE_MODULES.map((module) => {
-      const defaults = getDefaultPermissionForRole(role, module.key as FinanceModuleKey);
+      const defaults = getDefaultPermissionForAccessModel(accessModel, module.key as FinanceModuleKey);
 
       return {
         owner_id: adminProfile.owner_id,
