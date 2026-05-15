@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useMemo, useState } from "react";
-import { Check, KeyRound, ShieldCheck, SlidersHorizontal, UserRound } from "lucide-react";
+import { Check, KeyRound, ShieldCheck, SlidersHorizontal, UserRound, UsersRound } from "lucide-react";
 
 import { saveProfilePermissions } from "@/app/protected/admin/actions";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,8 @@ import type {
   DbProfile,
   PermissionFormState,
 } from "@/lib/finance/admin-server";
-import { FINANCE_MODULES, PERMISSION_ACTIONS } from "@/lib/finance/permissions";
+import type { DbFamilyMember } from "@/lib/finance/server";
+import { FINANCE_MODULES, PERMISSION_ACTIONS, PERMISSION_SCOPES } from "@/lib/finance/permissions";
 import { cn } from "@/lib/utils";
 
 const initialState: PermissionFormState = {};
@@ -27,9 +28,11 @@ function initials(name: string) {
 export function PermissionsForm({
   profiles,
   permissions,
+  members,
 }: {
   profiles: DbProfile[];
   permissions: DbModulePermission[];
+  members: DbFamilyMember[];
 }) {
   const editableProfiles = profiles.filter((profile) => profile.role !== "admin");
   const [selectedProfileId, setSelectedProfileId] = useState(editableProfiles[0]?.id ?? "");
@@ -130,6 +133,8 @@ export function PermissionsForm({
               const enabledActions = PERMISSION_ACTIONS.filter((action) =>
                 Boolean(modulePermission?.[action.key]),
               ).length;
+              const scope = modulePermission?.scope ?? "own";
+              const allowedMemberIds = modulePermission?.allowed_member_ids ?? [];
 
               return (
                 <div
@@ -175,6 +180,74 @@ export function PermissionsForm({
                         </label>
                       );
                     })}
+                  </div>
+
+                  <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.03] p-3">
+                    <div className="mb-3 flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-white/25">
+                      <UsersRound className="h-4 w-4" />
+                      Escopo de dados
+                    </div>
+                    <div className="grid gap-2 md:grid-cols-3">
+                      {PERMISSION_SCOPES.map((scopeOption) => {
+                        const inputId = `${module.key}.scope.${scopeOption.key}`;
+
+                        return (
+                          <label
+                            key={scopeOption.key}
+                            htmlFor={inputId}
+                            className="group cursor-pointer rounded-2xl border border-white/10 bg-[#080810]/50 p-3 text-left transition hover:border-[#8b72f8]/35 hover:bg-[#8b72f8]/10"
+                          >
+                            <input
+                              id={inputId}
+                              type="radio"
+                              name={`${module.key}.scope`}
+                              value={scopeOption.key}
+                              defaultChecked={scope === scopeOption.key}
+                              className="peer sr-only"
+                            />
+                            <div className="flex items-center justify-between gap-2">
+                              <p className="text-sm font-semibold text-white/60 peer-checked:text-white">{scopeOption.label}</p>
+                              <span className="flex h-4 w-4 items-center justify-center rounded-full border border-white/15 text-transparent peer-checked:border-[#8b72f8] peer-checked:bg-[#8b72f8] peer-checked:text-white">
+                                <Check className="h-3 w-3" />
+                              </span>
+                            </div>
+                            <p className="mt-1 text-xs leading-4 text-white/30">{scopeOption.description}</p>
+                          </label>
+                        );
+                      })}
+                    </div>
+
+                    <div className="mt-3 rounded-2xl border border-white/10 bg-[#080810]/45 p-3">
+                      <p className="text-xs font-semibold text-white/40">
+                        Pessoas liberadas quando o escopo for selecionados
+                      </p>
+                      <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                        {members.map((member) => {
+                          const inputId = `${module.key}.member.${member.id}`;
+
+                          return (
+                            <label
+                              key={member.id}
+                              htmlFor={inputId}
+                              className="group flex cursor-pointer items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.035] p-3 text-sm text-white/55 transition hover:border-[#8b72f8]/35 hover:bg-[#8b72f8]/10"
+                            >
+                              <input
+                                id={inputId}
+                                type="checkbox"
+                                name={`${module.key}.allowed_member_ids`}
+                                value={member.id}
+                                defaultChecked={allowedMemberIds.includes(member.id)}
+                                className="peer sr-only"
+                              />
+                              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-lg border border-white/15 bg-[#080810] text-transparent transition peer-checked:border-[#8b72f8] peer-checked:bg-[#8b72f8] peer-checked:text-white group-hover:border-[#8b72f8]/50">
+                                <Check className="h-3.5 w-3.5" />
+                              </span>
+                              <span className="truncate font-medium peer-checked:text-white">{member.name}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </div>
                   </div>
                 </div>
               );
