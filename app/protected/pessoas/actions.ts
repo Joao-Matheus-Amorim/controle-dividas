@@ -1,21 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentProfile } from "@/lib/finance/access-control";
 import type { FamilyMemberFormState } from "@/lib/finance/server";
-
-async function getCurrentUserId() {
-  const supabase = await createClient();
-  const { data, error } = await supabase.auth.getClaims();
-
-  if (error || !data?.claims?.sub) {
-    redirect("/auth/login");
-  }
-
-  return String(data.claims.sub);
-}
+import { createClient } from "@/lib/supabase/server";
 
 export async function createFamilyMember(
   _prevState: FamilyMemberFormState,
@@ -34,10 +23,10 @@ export async function createFamilyMember(
   }
 
   const supabase = await createClient();
-  const ownerId = await getCurrentUserId();
+  const profile = await getCurrentProfile();
 
   const { error } = await supabase.from("family_members").insert({
-    owner_id: ownerId,
+    owner_id: profile.owner_id,
     name,
     role: role || null,
     monthly_limit: monthlyLimit,
@@ -55,6 +44,34 @@ export async function createFamilyMember(
   return { success: "Pessoa cadastrada com sucesso." };
 }
 
+export async function updateFamilyMember(formData: FormData) {
+  const id = String(formData.get("id") ?? "");
+  const name = String(formData.get("name") ?? "").trim();
+  const role = String(formData.get("role") ?? "").trim();
+  const monthlyLimit = Number(formData.get("monthly_limit") ?? 0);
+
+  if (!id || !name || Number.isNaN(monthlyLimit) || monthlyLimit < 0) {
+    return;
+  }
+
+  const supabase = await createClient();
+  const profile = await getCurrentProfile();
+
+  await supabase
+    .from("family_members")
+    .update({
+      name,
+      role: role || null,
+      monthly_limit: monthlyLimit,
+    })
+    .eq("id", id)
+    .eq("owner_id", profile.owner_id);
+
+  revalidatePath("/protected/pessoas");
+  revalidatePath("/protected/admin/usuarios");
+  revalidatePath("/protected");
+}
+
 export async function toggleFamilyMemberStatus(formData: FormData) {
   const id = String(formData.get("id") ?? "");
   const isActive = String(formData.get("is_active") ?? "true") === "true";
@@ -64,13 +81,13 @@ export async function toggleFamilyMemberStatus(formData: FormData) {
   }
 
   const supabase = await createClient();
-  const ownerId = await getCurrentUserId();
+  const profile = await getCurrentProfile();
 
   await supabase
     .from("family_members")
     .update({ is_active: !isActive })
     .eq("id", id)
-    .eq("owner_id", ownerId);
+    .eq("owner_id", profile.owner_id);
 
   revalidatePath("/protected/pessoas");
   revalidatePath("/protected");
