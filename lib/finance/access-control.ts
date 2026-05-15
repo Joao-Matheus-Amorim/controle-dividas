@@ -132,6 +132,47 @@ export async function getModulePermission(profileId: string, module: FinanceModu
   return data as ModulePermission | null;
 }
 
+export async function canViewModule(module: FinanceModuleKey) {
+  const profile = await getCurrentProfile();
+
+  if (!profile.is_active) {
+    return false;
+  }
+
+  if (profile.role === "admin") {
+    return true;
+  }
+
+  const permission = await getModulePermission(profile.id, module);
+  return Boolean(permission?.can_view);
+}
+
+export async function getVisibleModuleKeys(modules: FinanceModuleKey[]) {
+  const profile = await getCurrentProfile();
+
+  if (!profile.is_active) {
+    return [];
+  }
+
+  if (profile.role === "admin") {
+    return modules;
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("user_module_permissions")
+    .select("module, can_view")
+    .eq("profile_id", profile.id)
+    .eq("can_view", true);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const visible = new Set((data ?? []).map((permission) => String(permission.module)));
+  return modules.filter((module) => visible.has(module));
+}
+
 export async function getAccessibleMemberIds(module: FinanceModuleKey, action: PermissionAction = "can_view") {
   const profile = await getCurrentProfile();
 
