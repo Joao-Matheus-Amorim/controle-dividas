@@ -35,9 +35,9 @@ async function getProfile(profileId: string) {
   return rows[0];
 }
 
-async function getPermission(profileId: string, module: string) {
+async function getPermission(profileId: string, moduleName: string) {
   const response = await fetch(
-    `${mockSupabaseUrl}/rest/v1/user_module_permissions?profile_id=eq.${profileId}&module=eq.${module}`,
+    `${mockSupabaseUrl}/rest/v1/user_module_permissions?profile_id=eq.${profileId}&module=eq.${moduleName}`,
   );
   const rows = (await response.json()) as Permission[];
   return rows[0] ?? null;
@@ -47,7 +47,10 @@ async function getVisibleExpenses(profileId: string) {
   const profile = await getProfile(profileId);
 
   if (profile.role === "admin") {
-    const response = await fetch(`${mockSupabaseUrl}/rest/v1/expenses`);
+    const memberIds = ["member-admin", "member-own", "member-other"];
+    const response = await fetch(
+      `${mockSupabaseUrl}/rest/v1/expenses?family_member_id=in.(${memberIds.join(",")})`,
+    );
     return (await response.json()) as Expense[];
   }
 
