@@ -5,6 +5,7 @@ import { BankAccountFormDialog } from "@/components/finance/bank-account-form-di
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { getCurrentProfile, getModulePermission } from "@/lib/finance/access-control";
 import { formatCurrency } from "@/lib/finance/calculations";
 import { getBanksDashboardData } from "@/lib/finance/banks-server";
 
@@ -22,8 +23,15 @@ function initials(name: string) {
 }
 
 export default async function BancosPage() {
-  const { members, accounts, accountsByMember, totalBalance, totalAccounts } =
-    await getBanksDashboardData();
+  const [profile, bankData] = await Promise.all([
+    getCurrentProfile(),
+    getBanksDashboardData(),
+  ]);
+  const permission = profile.role === "admin" ? null : await getModulePermission(profile.id, "BANCOS");
+  const canCreate = profile.role === "admin" || Boolean(permission?.can_create);
+  const canEdit = profile.role === "admin" || Boolean(permission?.can_edit);
+  const canDelete = profile.role === "admin" || Boolean(permission?.can_delete);
+  const { members, accounts, accountsByMember, totalBalance, totalAccounts } = bankData;
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-col gap-5 md:max-w-7xl">
@@ -42,9 +50,7 @@ export default async function BancosPage() {
         <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-[#5caaff]/10 blur-2xl" />
         <div className="relative">
           <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/35">Saldo total em bancos</p>
-          <p className="mt-2 text-4xl font-semibold tracking-tight text-white md:text-5xl">
-            {compactCurrency(totalBalance)}
-          </p>
+          <p className="mt-2 text-4xl font-semibold tracking-tight text-white md:text-5xl">{compactCurrency(totalBalance)}</p>
           <div className="mt-5 grid grid-cols-2 divide-x divide-white/10">
             <div className="pr-4">
               <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30">Contas</p>
@@ -76,15 +82,17 @@ export default async function BancosPage() {
         </div>
       </section>
 
-      <section className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/25">Novo banco</p>
-            <p className="mt-1 text-sm text-white/40">Cadastre contas e saldos sem poluir a tela principal.</p>
+      {canCreate ? (
+        <section className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/25">Novo banco</p>
+              <p className="mt-1 text-sm text-white/40">Cadastre contas e saldos sem poluir a tela principal.</p>
+            </div>
+            <BankAccountFormDialog members={members} />
           </div>
-          <BankAccountFormDialog members={members} />
-        </div>
-      </section>
+        </section>
+      ) : null}
 
       <section className="space-y-3">
         <div className="flex items-center justify-between">
@@ -95,9 +103,7 @@ export default async function BancosPage() {
           {accountsByMember.map((member) => (
             <div key={member.id} className="min-w-[118px] rounded-2xl border border-white/10 bg-white/[0.04] p-3">
               <div className="flex items-center gap-2">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#5caaff]/15 text-xs font-bold text-[#5caaff]">
-                  {initials(member.name)}
-                </div>
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#5caaff]/15 text-xs font-bold text-[#5caaff]">{initials(member.name)}</div>
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold text-white">{member.name}</p>
                   <p className="text-xs text-white/35">{member.accounts.length} conta(s)</p>
@@ -121,40 +127,34 @@ export default async function BancosPage() {
           accounts.map((account) => (
             <div key={account.id} className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-[#080810]/50 p-3 md:flex-row md:items-center md:justify-between">
               <div className="flex min-w-0 flex-1 items-start gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#5caaff]/10 text-[#5caaff]">
-                  <Banknote className="h-5 w-5" />
-                </div>
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#5caaff]/10 text-[#5caaff]"><Banknote className="h-5 w-5" /></div>
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="truncate text-sm font-semibold text-white">{account.bank_name}</p>
                     <Badge variant="outline" className="border-white/10 text-white/50">{account.currency}</Badge>
                   </div>
-                  <p className="mt-1 truncate text-xs text-white/35">
-                    {account.family_members?.name || "Sem pessoa vinculada"} · {account.account_type || "Tipo não informado"}
-                  </p>
+                  <p className="mt-1 truncate text-xs text-white/35">{account.family_members?.name || "Sem pessoa vinculada"} · {account.account_type || "Tipo não informado"}</p>
                   {account.notes ? <p className="mt-0.5 truncate text-xs text-white/25">{account.notes}</p> : null}
                 </div>
               </div>
 
-              <div className="flex items-center justify-between gap-3 md:justify-end">
-                <form action={updateBankAccountBalance} className="flex gap-2">
-                  <input type="hidden" name="id" value={account.id} />
-                  <Input
-                    name="current_balance"
-                    type="number"
-                    step="0.01"
-                    defaultValue={Number(account.current_balance)}
-                    className="h-9 w-28 rounded-xl border-white/10 bg-[#080810] text-xs text-white"
-                  />
-                  <Button type="submit" variant="outline" className="h-9 rounded-xl border-white/10 bg-transparent text-white/60 hover:bg-white/10 hover:text-white">Salvar</Button>
-                </form>
-                <form action={deleteBankAccount}>
-                  <input type="hidden" name="id" value={account.id} />
-                  <Button type="submit" variant="outline" size="icon" aria-label="Excluir banco" className="h-9 w-9 rounded-xl border-white/10 bg-transparent text-white/35 hover:bg-white/10 hover:text-white">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </form>
-              </div>
+              {(canEdit || canDelete) ? (
+                <div className="flex items-center justify-between gap-3 md:justify-end">
+                  {canEdit ? (
+                    <form action={updateBankAccountBalance} className="flex gap-2">
+                      <input type="hidden" name="id" value={account.id} />
+                      <Input name="current_balance" type="number" step="0.01" defaultValue={Number(account.current_balance)} className="h-9 w-28 rounded-xl border-white/10 bg-[#080810] text-xs text-white" />
+                      <Button type="submit" variant="outline" className="h-9 rounded-xl border-white/10 bg-transparent text-white/60 hover:bg-white/10 hover:text-white">Salvar</Button>
+                    </form>
+                  ) : null}
+                  {canDelete ? (
+                    <form action={deleteBankAccount}>
+                      <input type="hidden" name="id" value={account.id} />
+                      <Button type="submit" variant="outline" size="icon" aria-label="Excluir banco" className="h-9 w-9 rounded-xl border-white/10 bg-transparent text-white/35 hover:bg-white/10 hover:text-white"><Trash2 className="h-4 w-4" /></Button>
+                    </form>
+                  ) : null}
+                </div>
+              ) : null}
             </div>
           ))
         )}
