@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { ensureAdminProfile, type PermissionFormState, type ProfileFormState } from "@/lib/finance/admin-server";
 import { FINANCE_MODULES, type FinanceModuleKey, type PermissionScope } from "@/lib/finance/permissions";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 function normalizeScope(value: FormDataEntryValue | null): PermissionScope {
@@ -150,6 +151,39 @@ async function ensureMemberBelongsToOwner(ownerId: string, memberId: string) {
   }
 }
 
+async function findAuthUserIdByEmail(email: string) {
+  const adminSupabase = createAdminClient();
+  const normalizedEmail = email.trim().toLowerCase();
+  let page = 1;
+
+  while (page <= 10) {
+    const { data, error } = await adminSupabase.auth.admin.listUsers({
+      page,
+      perPage: 100,
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    const user = data.users.find(
+      (item) => item.email?.trim().toLowerCase() === normalizedEmail,
+    );
+
+    if (user?.id) {
+      return user.id;
+    }
+
+    if (data.users.length < 100) {
+      break;
+    }
+
+    page += 1;
+  }
+
+  return null;
+}
+
 export async function createFamilyUser(
   _prevState: ProfileFormState,
   formData: FormData,
@@ -260,6 +294,45 @@ export async function updateFamilyUser(formData: FormData) {
   revalidatePath("/protected/admin");
   revalidatePath("/protected/admin/usuarios");
   revalidatePath("/protected/admin/permissoes");
+}
+
+export async function syncFamilyUserAuthLink(formData: FormData) {
+  const id = String(formData.get("id") ?? "");
+
+  if (!id) return;
+
+  const supabase = await createClient();
+  const adminProfile = await ensureAdminProfile();
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("id, owner_id, email, role")
+    .eq("id", id)
+    .eq("owner_id", adminProfile.owner_id)
+    .maybeSingle();
+
+  if (!profile?.email || profile.role === "admin") return;
+
+  const authUserId = await findAuthUserIdByEmail(profile.email);
+
+  if (!authUserId) return;
+
+  await supabase
+    .from("profiles")
+    .update({ auth_user_id: null })
+    .eq("owner_id", adminProfile.owner_id)
+    .eq("auth_user_id", authUserId);
+
+  await supabase
+    .from("profiles")
+    .update({ auth_user_id: authUserId })
+    .eq("id", profile.id)
+    .eq("owner_id", adminProfile.owner_id);
+
+  revalidatePath("/protected/admin");
+  revalidatePath("/protected/admin/usuarios");
+  revalidatePath("/protected/admin/permissoes");
+  revalidatePath("/protected");
 }
 
 export async function deleteFamilyUser(formData: FormData) {
