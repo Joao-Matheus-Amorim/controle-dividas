@@ -16,6 +16,22 @@ export function formatCurrency(value: number) {
   return currencyFormatter.format(value);
 }
 
+export function calculateRemainingLimit(monthlyLimit: number, spent: number) {
+  return monthlyLimit - spent;
+}
+
+export function calculateUsedPercent(spent: number, monthlyLimit: number) {
+  if (!Number.isFinite(spent) || !Number.isFinite(monthlyLimit)) {
+    return 0;
+  }
+
+  if (monthlyLimit <= 0 || spent <= 0) {
+    return 0;
+  }
+
+  return (spent / monthlyLimit) * 100;
+}
+
 export function getMemberName(memberId: string) {
   return familyMembers.find((member) => member.id === memberId)?.name ?? "Não informado";
 }
@@ -54,8 +70,8 @@ export function getMemberSummaries() {
       .filter((expense) => expense.familyMemberId === member.id)
       .reduce((total, expense) => total + expense.amount, 0);
 
-    const remaining = member.monthlyLimit - spent;
-    const usedPercent = member.monthlyLimit > 0 ? (spent / member.monthlyLimit) * 100 : 0;
+    const remaining = calculateRemainingLimit(member.monthlyLimit, spent);
+    const usedPercent = calculateUsedPercent(spent, member.monthlyLimit);
 
     return {
       ...member,
@@ -96,7 +112,7 @@ export function getDashboardSummary() {
   return {
     totalMonthlyLimit,
     totalExpenses,
-    remainingMonthlyLimit: totalMonthlyLimit - totalExpenses,
+    remainingMonthlyLimit: calculateRemainingLimit(totalMonthlyLimit, totalExpenses),
     totalPayableBills: getTotalPayableBills(),
     totalReceivableIncomes: getTotalReceivableIncomes(),
     totalBankBalance: getTotalBankBalance(),
