@@ -80,6 +80,76 @@ function getDefaultPermissionForAccessModel(accessModel: string, module: Finance
   };
 }
 
+async function ensureUniqueEmail({
+  ownerId,
+  email,
+  ignoreProfileId,
+}: {
+  ownerId: string;
+  email: string;
+  ignoreProfileId?: string;
+}) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("owner_id", ownerId)
+    .ilike("email", email)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (data?.id && data.id !== ignoreProfileId) {
+    throw new Error("Este email ja esta cadastrado para outro acesso familiar.");
+  }
+}
+
+async function ensureUniqueMemberAccess({
+  ownerId,
+  memberId,
+  ignoreProfileId,
+}: {
+  ownerId: string;
+  memberId: string;
+  ignoreProfileId?: string;
+}) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("owner_id", ownerId)
+    .eq("linked_family_member_id", memberId)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (data?.id && data.id !== ignoreProfileId) {
+    throw new Error("Este membro da familia ja possui um acesso vinculado.");
+  }
+}
+
+async function ensureMemberBelongsToOwner(ownerId: string, memberId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("family_members")
+    .select("id")
+    .eq("id", memberId)
+    .eq("owner_id", ownerId)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (!data) {
+    throw new Error("Membro da familia invalido para este Admin.");
+  }
+}
+
 export async function createFamilyUser(
   _prevState: ProfileFormState,
   formData: FormData,
@@ -90,64 +160,19 @@ export async function createFamilyUser(
   const accessModel = normalizeAccessModel(String(formData.get("access_model") ?? "basic"));
   const role = accessModel === "admin" ? "admin" : "user";
 
-  if (!name) {
-    return { error: "Informe o nome do acesso familiar." };
-  }
-
-  if (!email) {
-    return { error: "Informe o email de acesso." };
-  }
-
-  if (!linkedFamilyMemberId) {
-    return { error: "Selecione o membro da familia vinculado a este acesso." };
-  }
+  if (!name) return { error: "Informe o nome do acesso familiar." };
+  if (!email) return { error: "Informe o email de acesso." };
+  if (!linkedFamilyMemberId) return { error: "Selecione o membro da familia vinculado a este acesso." };
 
   const supabase = await createClient();
   const adminProfile = await ensureAdminProfile();
 
-  const { data: emailProfile, error: emailError } = await supabase
-    .from("profiles")
-    .select("id")
-    .eq("owner_id", adminProfile.owner_id)
-    .ilike("email", email)
-    .maybeSingle();
-
-  if (emailError) {
-    return { error: emailError.message };
-  }
-
-  if (emailProfile) {
-    return { error: "Este email ja esta cadastrado para outro acesso familiar." };
-  }
-
-  const { data: memberProfile, error: memberError } = await supabase
-    .from("profiles")
-    .select("id")
-    .eq("owner_id", adminProfile.owner_id)
-    .eq("linked_family_member_id", linkedFamilyMemberId)
-    .maybeSingle();
-
-  if (memberError) {
-    return { error: memberError.message };
-  }
-
-  if (memberProfile) {
-    return { error: "Este membro da familia ja possui um acesso vinculado." };
-  }
-
-  const { data: member, error: memberLookupError } = await supabase
-    .from("family_members")
-    .select("id")
-    .eq("id", linkedFamilyMemberId)
-    .eq("owner_id", adminProfile.owner_id)
-    .maybeSingle();
-
-  if (memberLookupError) {
-    return { error: memberLookupError.message };
-  }
-
-  if (!member) {
-    return { error: "Membro da familia invalido para este Admin." };
+  try {
+    await ensureUniqueEmail({ ownerId: adminProfile.owner_id, email });
+    await ensureUniqueMemberAccess({ ownerId: adminProfile.owner_id, memberId: linkedFamilyMemberId });
+    await ensureMemberBelongsToOwner(adminProfile.owner_id, linkedFamilyMemberId);
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Nao foi possivel validar o acesso." };
   }
 
   const { data: profile, error } = await supabase
@@ -164,9 +189,7 @@ export async function createFamilyUser(
     .select("id")
     .single();
 
-  if (error) {
-    return { error: error.message };
-  }
+  if (error) return { error: error.message };
 
   if (profile?.id) {
     const permissionRows = FINANCE_MODULES.map((module) => {
@@ -190,9 +213,7 @@ export async function createFamilyUser(
       .from("user_module_permissions")
       .insert(permissionRows);
 
-    if (permissionsError) {
-      return { error: permissionsError.message };
-    }
+    if (permissionsError) return { error: permissionsError.message };
   }
 
   revalidatePath("/protected/admin");
@@ -200,6 +221,68 @@ export async function createFamilyUser(
   revalidatePath("/protected/admin/permissoes");
 
   return { success: "Acesso familiar cadastrado com sucesso." };
+}
+
+export async function updateFamilyUser(formData: FormData) {
+  const id = String(formData.get("id") ?? "");
+  const name = String(formData.get("name") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const linkedFamilyMemberId = String(formData.get("linked_family_member_id") ?? "");
+
+  if (!id || !name || !email || !linkedFamilyMemberId) return;
+
+  const supabase = await createClient();
+  const adminProfile = await ensureAdminProfile();
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("id, role")
+    .eq("id", id)
+    .eq("owner_id", adminProfile.owner_id)
+    .maybeSingle();
+
+  if (!profile || profile.role === "admin") return;
+
+  try {
+    await ensureUniqueEmail({ ownerId: adminProfile.owner_id, email, ignoreProfileId: id });
+    await ensureUniqueMemberAccess({ ownerId: adminProfile.owner_id, memberId: linkedFamilyMemberId, ignoreProfileId: id });
+    await ensureMemberBelongsToOwner(adminProfile.owner_id, linkedFamilyMemberId);
+  } catch {
+    return;
+  }
+
+  await supabase
+    .from("profiles")
+    .update({ name, email, linked_family_member_id: linkedFamilyMemberId })
+    .eq("id", id)
+    .eq("owner_id", adminProfile.owner_id);
+
+  revalidatePath("/protected/admin");
+  revalidatePath("/protected/admin/usuarios");
+  revalidatePath("/protected/admin/permissoes");
+}
+
+export async function deleteFamilyUser(formData: FormData) {
+  const id = String(formData.get("id") ?? "");
+  if (!id) return;
+
+  const supabase = await createClient();
+  const adminProfile = await ensureAdminProfile();
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("id, role")
+    .eq("id", id)
+    .eq("owner_id", adminProfile.owner_id)
+    .maybeSingle();
+
+  if (!profile || profile.role === "admin") return;
+
+  await supabase.from("profiles").delete().eq("id", id).eq("owner_id", adminProfile.owner_id);
+
+  revalidatePath("/protected/admin");
+  revalidatePath("/protected/admin/usuarios");
+  revalidatePath("/protected/admin/permissoes");
 }
 
 export async function toggleFamilyUserStatus(formData: FormData) {
@@ -228,9 +311,7 @@ export async function saveProfilePermissions(
 ): Promise<PermissionFormState> {
   const profileId = String(formData.get("profile_id") ?? "");
 
-  if (!profileId) {
-    return { error: "Selecione um perfil para configurar permissoes." };
-  }
+  if (!profileId) return { error: "Selecione um perfil para configurar permissoes." };
 
   const supabase = await createClient();
   const adminProfile = await ensureAdminProfile();
@@ -257,9 +338,7 @@ export async function saveProfilePermissions(
     .from("user_module_permissions")
     .upsert(rows, { onConflict: "profile_id,module" });
 
-  if (error) {
-    return { error: error.message };
-  }
+  if (error) return { error: error.message };
 
   revalidatePath("/protected/admin");
   revalidatePath("/protected/admin/permissoes");
