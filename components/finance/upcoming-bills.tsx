@@ -3,7 +3,7 @@ import { AlertTriangle, CalendarDays } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency, getMemberName } from "@/lib/finance/calculations";
-import type { PayableBill } from "@/lib/finance/mock-data";
+import type { PayableBill } from "@/__tests__/fixtures/mock-data";
 
 export function UpcomingBills({ bills }: { bills: PayableBill[] }) {
   return (
