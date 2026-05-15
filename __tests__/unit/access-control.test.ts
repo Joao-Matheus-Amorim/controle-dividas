@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { FEATURE_PERMISSIONS, type FinanceModuleKey, type PermissionAction } from "@/lib/finance/permissions";
+import { FEATURE_PERMISSIONS, type PermissionAction } from "@/lib/finance/permissions";
 
 const mockState = vi.hoisted(() => ({
   userId: "auth-user-1",
