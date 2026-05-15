@@ -372,3 +372,41 @@ export async function getReceivableIncomes() {
   if (error) {
     throw new Error(error.message);
   }
+
+  return ((data ?? []) as RawReceivableIncome[]).map(normalizeReceivableIncome);
+}
+
+export async function getReceivableIncomesDashboardData() {
+  const [members, incomes] = await Promise.all([
+    getActiveFamilyMembers(),
+    getReceivableIncomes(),
+  ]);
+
+  const today = new Date().toISOString().slice(0, 10);
+  const enrichedIncomes = incomes.map((income) => ({
+    ...income,
+    computed_status:
+      income.status !== "recebido" && income.expected_date < today
+        ? "atrasado"
+        : income.status,
+  }));
+
+  const expectedIncomes = enrichedIncomes.filter((income) => income.computed_status === "previsto");
+  const overdueIncomes = enrichedIncomes.filter((income) => income.computed_status === "atrasado");
+  const receivedIncomes = enrichedIncomes.filter((income) => income.computed_status === "recebido");
+  const fixedIncomes = enrichedIncomes.filter((income) => income.income_type === "fixa");
+  const variableIncomes = enrichedIncomes.filter((income) => income.income_type === "variavel");
+
+  return {
+    members,
+    incomes: enrichedIncomes,
+    totalExpected: expectedIncomes.reduce((total, income) => total + Number(income.amount), 0),
+    totalOverdue: overdueIncomes.reduce((total, income) => total + Number(income.amount), 0),
+    totalReceived: receivedIncomes.reduce((total, income) => total + Number(income.amount), 0),
+    totalFixed: fixedIncomes.reduce((total, income) => total + Number(income.amount), 0),
+    totalVariable: variableIncomes.reduce((total, income) => total + Number(income.amount), 0),
+    expectedCount: expectedIncomes.length,
+    overdueCount: overdueIncomes.length,
+    receivedCount: receivedIncomes.length,
+  };
+}
