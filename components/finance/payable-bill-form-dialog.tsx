@@ -9,9 +9,9 @@ import type { DbFamilyMember } from "@/lib/finance/server";
 export function PayableBillFormDialog({ members }: { members: DbFamilyMember[] }) {
   return (
     <AppFormDialog
-      title="Nova conta"
-      description="Cadastre uma conta a pagar, vencimento, responsável e status."
-      triggerLabel="Nova conta"
+      title="Nova conta ou divida"
+      description="Cadastre uma conta avulsa ou uma conta fixa mensal."
+      triggerLabel="Nova conta/divida"
       icon={WalletCards}
     >
       <PayableBillForm members={members} />

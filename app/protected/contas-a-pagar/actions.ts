@@ -7,8 +7,10 @@ import {
   getCurrentProfile,
 } from "@/lib/finance/access-control";
 import type { PermissionAction } from "@/lib/finance/permissions";
-import type { PayableBillFormState } from "@/lib/finance/server";
+import type { PayableBillFormState, PayableBillType } from "@/lib/finance/server";
 import { createClient } from "@/lib/supabase/server";
+
+const payableBillTypes: PayableBillType[] = ["avulsa", "fixa"];
 
 async function assertCanManagePayableBill(
   billId: string,
@@ -50,8 +52,13 @@ export async function createPayableBill(
   const dueDate = String(formData.get("due_date") ?? "");
   const responsibleMemberId = String(formData.get("responsible_member_id") ?? "");
   const status = String(formData.get("status") ?? "pendente");
+  const rawBillType = String(formData.get("bill_type") ?? "avulsa");
+  const billType = payableBillTypes.includes(rawBillType as PayableBillType)
+    ? (rawBillType as PayableBillType)
+    : "avulsa";
   const bankUsed = String(formData.get("bank_used") ?? "").trim();
-  const recurrence = String(formData.get("recurrence") ?? "").trim();
+  const rawRecurrence = String(formData.get("recurrence") ?? "").trim();
+  const recurrence = billType === "fixa" ? rawRecurrence || "mensal" : "";
   const notes = String(formData.get("notes") ?? "").trim();
 
   if (!responsibleMemberId) {
@@ -96,6 +103,7 @@ export async function createPayableBill(
     due_date: dueDate,
     responsible_member_id: responsibleMemberId,
     status,
+    bill_type: billType,
     bank_used: bankUsed || null,
     recurrence: recurrence || null,
     notes: notes || null,
@@ -108,7 +116,12 @@ export async function createPayableBill(
   revalidatePath("/protected/contas-a-pagar");
   revalidatePath("/protected");
 
-  return { success: "Conta cadastrada com sucesso." };
+  return {
+    success:
+      billType === "fixa"
+        ? "Conta fixa cadastrada com sucesso."
+        : "Conta avulsa cadastrada com sucesso.",
+  };
 }
 
 export async function updatePayableBillStatus(formData: FormData) {
