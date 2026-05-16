@@ -192,8 +192,9 @@ export async function updateExpense(
 
 export async function deleteExpense(formData: FormData) {
   const id = String(formData.get("id") ?? "");
+  const confirmation = String(formData.get("confirm_delete") ?? "");
 
-  if (!id) {
+  if (!id || confirmation !== "confirmado") {
     return;
   }
 
