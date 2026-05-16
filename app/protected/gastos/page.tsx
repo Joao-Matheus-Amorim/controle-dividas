@@ -1,8 +1,7 @@
 import { Plus, ReceiptText, TrendingDown, Users } from "lucide-react";
 
 import { ExpenseFormDialog } from "@/components/finance/expense-form-dialog";
-import { ExpenseListActions } from "@/components/finance/expense-list-actions";
-import { Badge } from "@/components/ui/badge";
+import { ExpenseListClient } from "@/components/finance/expense-list-client";
 import { getCurrentProfile, getModulePermission } from "@/lib/finance/access-control";
 import { formatCurrency } from "@/lib/finance/calculations";
 import { getExpenseDashboardData } from "@/lib/finance/server";
@@ -164,25 +163,13 @@ export default async function GastosPage() {
         {expenses.length === 0 ? (
           <p className="text-sm text-white/35">Nenhum gasto cadastrado ainda.</p>
         ) : (
-          expenses.map((expense) => (
-            <div key={expense.id} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-[#080810]/50 p-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#f0506e]/10 text-[#f0506e]">
-                <ReceiptText className="h-5 w-5" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <p className="truncate text-sm font-semibold text-white">{expense.description}</p>
-                  <Badge variant="secondary" className="border-white/10 bg-white/10 text-white/60">{expense.expense_categories?.name || "Sem categoria"}</Badge>
-                </div>
-                <p className="mt-0.5 truncate text-xs text-white/35">{expense.family_members?.name || "Pessoa não informada"} · {new Date(`${expense.expense_date}T00:00:00`).toLocaleDateString("pt-BR")}</p>
-                <p className="mt-0.5 truncate text-xs text-white/25">{expense.purchase_location || "Local não informado"}{expense.payment_method ? ` · ${expense.payment_method}` : ""}{expense.bank_or_card ? ` · ${expense.bank_or_card}` : ""}</p>
-              </div>
-              <div className="flex flex-col items-end gap-2">
-                <p className="text-sm font-bold text-white">{compactCurrency(Number(expense.amount))}</p>
-                <ExpenseListActions expense={expense} members={members} categories={categories} canEdit={canEdit} canDelete={canDelete} />
-              </div>
-            </div>
-          ))
+          <ExpenseListClient
+            expenses={expenses}
+            members={members}
+            categories={categories}
+            canEdit={canEdit}
+            canDelete={canDelete}
+          />
         )}
       </section>
     </div>
