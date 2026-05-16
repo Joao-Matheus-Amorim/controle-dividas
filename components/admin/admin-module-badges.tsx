@@ -1,12 +1,12 @@
 import { Badge } from "@/components/ui/badge";
 
 type AdminModule = {
-  key: string;
-  label: string;
+  readonly key: string;
+  readonly label: string;
 };
 
 interface AdminModuleBadgesProps {
-  modules: AdminModule[];
+  modules: readonly AdminModule[];
 }
 
 export function AdminModuleBadges({ modules }: AdminModuleBadgesProps) {
