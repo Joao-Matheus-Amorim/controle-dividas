@@ -13,6 +13,8 @@ Amadurecer o modulo de Gastos com edicao completa e exclusao mais segura.
 - Formulario de gasto reaproveitado para criacao e edicao.
 - Dialog de edicao na listagem de gastos.
 - Dialog de confirmacao antes da exclusao.
+- Otimizacao posterior da listagem para evitar passar dados compartilhados por linha.
+- Reset do estado de confirmacao ao fechar ou submeter a exclusao.
 
 ## Campos editaveis
 
@@ -40,6 +42,19 @@ Depois de editar ou excluir, o app revalida:
 /protected/gastos
 /protected
 ```
+
+## UX de exclusao
+
+A exclusao exige confirmacao explicita antes do envio.
+
+No componente client otimizado, o dialog compartilhado limpa:
+
+```txt
+deletingExpense
+isDeleteConfirmed
+```
+
+quando fecha ou apos submeter a exclusao. Isso evita manter dados antigos ou confirmacao marcada em uma nova tentativa de exclusao.
 
 ## Fora do escopo
 
