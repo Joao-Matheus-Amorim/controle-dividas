@@ -9,6 +9,8 @@ Melhorar a seguranca e a experiencia do modulo `Contas a pagar / Dividas`, evita
 - Alteracao de status agora retorna `success` ou `error`.
 - Exclusao agora retorna `success` ou `error`.
 - Exclusao exige confirmacao explicita antes do envio.
+- A confirmacao de exclusao e resetada quando o dialog fecha.
+- Ao reabrir o dialog, o usuario precisa confirmar novamente antes de excluir.
 - A listagem usa componentes client para mostrar feedback ao usuario.
 
 ## Arquivos principais
@@ -51,6 +53,18 @@ A exclusao so segue quando o formulario envia:
 ```txt
 confirm_delete=confirmado
 ```
+
+## Regra de UX do dialog
+
+O dialog de exclusao controla seu estado de abertura.
+
+Ao fechar o dialog:
+
+```txt
+isConfirmed = false
+```
+
+Isso evita que uma confirmacao anterior deixe o botao destrutivo habilitado quando o usuario reabre a mesma conta/divida.
 
 ## Fora do escopo
 
