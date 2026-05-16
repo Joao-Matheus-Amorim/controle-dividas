@@ -10,6 +10,9 @@ import type { PermissionAction } from "@/lib/finance/permissions";
 import type { ReceivableIncomeFormState } from "@/lib/finance/server";
 import { createClient } from "@/lib/supabase/server";
 
+const receivableIncomeTypes = ["fixa", "variavel"] as const;
+const receivableIncomeStatuses = ["previsto", "recebido", "atrasado"] as const;
+
 async function assertCanManageReceivableIncome(
   incomeId: string,
   action: Extract<PermissionAction, "can_edit" | "can_delete">,
@@ -40,10 +43,7 @@ async function assertCanManageReceivableIncome(
   };
 }
 
-export async function createReceivableIncome(
-  _prevState: ReceivableIncomeFormState,
-  formData: FormData,
-): Promise<ReceivableIncomeFormState> {
+function parseReceivableIncomeForm(formData: FormData) {
   const receiverMemberId = String(formData.get("receiver_member_id") ?? "");
   const source = String(formData.get("source") ?? "").trim();
   const incomeType = String(formData.get("income_type") ?? "fixa");
@@ -53,35 +53,64 @@ export async function createReceivableIncome(
   const receivingBank = String(formData.get("receiving_bank") ?? "").trim();
   const notes = String(formData.get("notes") ?? "").trim();
 
-  if (!receiverMemberId) {
+  return {
+    receiverMemberId,
+    source,
+    incomeType,
+    amount,
+    expectedDate,
+    status,
+    receivingBank,
+    notes,
+  };
+}
+
+function validateReceivableIncomeInput(
+  input: ReturnType<typeof parseReceivableIncomeForm>,
+): ReceivableIncomeFormState | null {
+  if (!input.receiverMemberId) {
     return { error: "Selecione a pessoa que ira receber." };
   }
 
-  if (!source) {
+  if (!input.source) {
     return { error: "Informe a origem do dinheiro." };
   }
 
-  if (!["fixa", "variavel"].includes(incomeType)) {
+  if (!receivableIncomeTypes.includes(input.incomeType as (typeof receivableIncomeTypes)[number])) {
     return { error: "Tipo de renda invalido." };
   }
 
-  if (Number.isNaN(amount) || amount <= 0) {
+  if (Number.isNaN(input.amount) || input.amount <= 0) {
     return { error: "Informe um valor valido." };
   }
 
-  if (!expectedDate) {
+  if (!input.expectedDate) {
     return { error: "Informe a data prevista." };
   }
 
-  if (!["previsto", "recebido", "atrasado"].includes(status)) {
+  if (!receivableIncomeStatuses.includes(input.status as (typeof receivableIncomeStatuses)[number])) {
     return { error: "Status invalido." };
+  }
+
+  return null;
+}
+
+export async function createReceivableIncome(
+  _prevState: ReceivableIncomeFormState,
+  formData: FormData,
+): Promise<ReceivableIncomeFormState> {
+  const input = parseReceivableIncomeForm(formData);
+  const validationError = validateReceivableIncomeInput(input);
+
+  if (validationError) {
+    return validationError;
   }
 
   const supabase = await createClient();
   const profile = await getCurrentProfile();
 
   try {
-    await assertCanAccessMember("CONTAS_A_RECEBER", "can_create", receiverMemberId);
+    await assertCanAccessMember("CONTAS_A_RECEBER", "can_create", input.receiverMemberId);
   } catch (error) {
     return {
       error:
@@ -93,14 +122,14 @@ export async function createReceivableIncome(
 
   const { error } = await supabase.from("receivable_incomes").insert({
     owner_id: profile.owner_id,
-    receiver_member_id: receiverMemberId,
-    source,
-    income_type: incomeType,
-    amount,
-    expected_date: expectedDate,
-    status,
-    receiving_bank: receivingBank || null,
-    notes: notes || null,
+    receiver_member_id: input.receiverMemberId,
+    source: input.source,
+    income_type: input.incomeType,
+    amount: input.amount,
+    expected_date: input.expectedDate,
+    status: input.status,
+    receiving_bank: input.receivingBank || null,
+    notes: input.notes || null,
   });
 
   if (error) {
@@ -113,11 +142,68 @@ export async function createReceivableIncome(
   return { success: "Conta a receber cadastrada com sucesso." };
 }
 
+export async function updateReceivableIncome(
+  _prevState: ReceivableIncomeFormState,
+  formData: FormData,
+): Promise<ReceivableIncomeFormState> {
+  const id = String(formData.get("id") ?? "");
+  const input = parseReceivableIncomeForm(formData);
+  const validationError = validateReceivableIncomeInput(input);
+
+  if (!id) {
+    return { error: "Recebimento nao encontrado." };
+  }
+
+  if (validationError) {
+    return validationError;
+  }
+
+  try {
+    const { profile, income } = await assertCanManageReceivableIncome(id, "can_edit");
+
+    if (String(income.receiver_member_id) !== input.receiverMemberId) {
+      await assertCanAccessMember("CONTAS_A_RECEBER", "can_edit", input.receiverMemberId);
+    }
+
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from("receivable_incomes")
+      .update({
+        receiver_member_id: input.receiverMemberId,
+        source: input.source,
+        income_type: input.incomeType,
+        amount: input.amount,
+        expected_date: input.expectedDate,
+        status: input.status,
+        receiving_bank: input.receivingBank || null,
+        notes: input.notes || null,
+      })
+      .eq("id", id)
+      .eq("owner_id", profile.owner_id);
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    revalidatePath("/protected/contas-a-receber");
+    revalidatePath("/protected");
+
+    return { success: "Recebimento atualizado com sucesso." };
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "Nao foi possivel atualizar este recebimento.",
+    };
+  }
+}
+
 export async function updateReceivableIncomeStatus(formData: FormData) {
   const id = String(formData.get("id") ?? "");
   const status = String(formData.get("status") ?? "previsto");
 
-  if (!id || !["previsto", "recebido", "atrasado"].includes(status)) {
+  if (!id || !receivableIncomeStatuses.includes(status as (typeof receivableIncomeStatuses)[number])) {
     return;
   }
 
