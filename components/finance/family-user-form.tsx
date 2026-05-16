@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 
 import { createFamilyUser } from "@/app/protected/admin/actions";
+import { AppActionFeedback } from "@/components/app/app-action-feedback";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -64,8 +65,7 @@ export function FamilyUserForm({ members }: { members: DbFamilyMember[] }) {
         O modelo de acesso só define as permissões iniciais. Depois o Admin pode liberar ou bloquear qualquer módulo em Admin &gt; Permissões.
       </div>
 
-      {state.error ? <p className="text-sm text-destructive">{state.error}</p> : null}
-      {state.success ? <p className="text-sm text-emerald-600">{state.success}</p> : null}
+      <AppActionFeedback error={state.error} success={state.success} />
 
       <Button type="submit" disabled={isPending}>
         {isPending ? "Salvando..." : "Cadastrar acesso familiar"}
