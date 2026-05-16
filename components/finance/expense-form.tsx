@@ -2,11 +2,12 @@
 
 import { useActionState } from "react";
 
-import { createExpense } from "@/app/protected/gastos/actions";
+import { createExpense, updateExpense } from "@/app/protected/gastos/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type {
+  DbExpense,
   DbExpenseCategory,
   DbFamilyMember,
   ExpenseFormState,
@@ -14,25 +15,35 @@ import type {
 
 const initialState: ExpenseFormState = {};
 
+type ExpenseFormProps = {
+  members: DbFamilyMember[];
+  categories: DbExpenseCategory[];
+  expense?: DbExpense;
+  mode?: "create" | "edit";
+};
+
 export function ExpenseForm({
   members,
   categories,
-}: {
-  members: DbFamilyMember[];
-  categories: DbExpenseCategory[];
-}) {
-  const [state, formAction, isPending] = useActionState(createExpense, initialState);
-
+  expense,
+  mode = "create",
+}: ExpenseFormProps) {
+  const action = mode === "edit" ? updateExpense : createExpense;
+  const [state, formAction, isPending] = useActionState(action, initialState);
   const today = new Date().toISOString().slice(0, 10);
+  const isEditing = mode === "edit" && Boolean(expense);
 
   return (
     <form action={formAction} className="space-y-5">
+      {expense ? <input type="hidden" name="id" value={expense.id} /> : null}
+
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <div className="space-y-2">
-          <Label htmlFor="family_member_id">Pessoa responsavel</Label>
+          <Label htmlFor={isEditing ? `family_member_id-${expense?.id}` : "family_member_id"}>Pessoa responsavel</Label>
           <select
-            id="family_member_id"
+            id={isEditing ? `family_member_id-${expense?.id}` : "family_member_id"}
             name="family_member_id"
+            defaultValue={expense?.family_member_id ?? ""}
             required
             className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
@@ -46,10 +57,11 @@ export function ExpenseForm({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="category_id">Categoria</Label>
+          <Label htmlFor={isEditing ? `category_id-${expense?.id}` : "category_id"}>Categoria</Label>
           <select
-            id="category_id"
+            id={isEditing ? `category_id-${expense?.id}` : "category_id"}
             name="category_id"
+            defaultValue={expense?.category_id ?? ""}
             className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
             <option value="">Sem categoria</option>
@@ -62,42 +74,83 @@ export function ExpenseForm({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="expense_date">Data</Label>
-          <Input id="expense_date" name="expense_date" type="date" defaultValue={today} required />
+          <Label htmlFor={isEditing ? `expense_date-${expense?.id}` : "expense_date"}>Data</Label>
+          <Input
+            id={isEditing ? `expense_date-${expense?.id}` : "expense_date"}
+            name="expense_date"
+            type="date"
+            defaultValue={expense?.expense_date ?? today}
+            required
+          />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="amount">Valor em euro</Label>
-          <Input id="amount" name="amount" type="number" min="0.01" step="0.01" placeholder="3.50" required />
+          <Label htmlFor={isEditing ? `amount-${expense?.id}` : "amount"}>Valor em euro</Label>
+          <Input
+            id={isEditing ? `amount-${expense?.id}` : "amount"}
+            name="amount"
+            type="number"
+            min="0.01"
+            step="0.01"
+            placeholder="3.50"
+            defaultValue={expense ? String(expense.amount) : ""}
+            required
+          />
         </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="description">Descricao</Label>
-          <Input id="description" name="description" placeholder="Ex: Cafe, mercado, passagem" required />
+          <Label htmlFor={isEditing ? `description-${expense?.id}` : "description"}>Descricao</Label>
+          <Input
+            id={isEditing ? `description-${expense?.id}` : "description"}
+            name="description"
+            placeholder="Ex: Cafe, mercado, passagem"
+            defaultValue={expense?.description ?? ""}
+            required
+          />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="purchase_location">Local da compra</Label>
-          <Input id="purchase_location" name="purchase_location" placeholder="Ex: Cafeteria X" />
+          <Label htmlFor={isEditing ? `purchase_location-${expense?.id}` : "purchase_location"}>Local da compra</Label>
+          <Input
+            id={isEditing ? `purchase_location-${expense?.id}` : "purchase_location"}
+            name="purchase_location"
+            placeholder="Ex: Cafeteria X"
+            defaultValue={expense?.purchase_location ?? ""}
+          />
         </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
         <div className="space-y-2">
-          <Label htmlFor="payment_method">Forma de pagamento</Label>
-          <Input id="payment_method" name="payment_method" placeholder="Cartao, dinheiro, transferencia" />
+          <Label htmlFor={isEditing ? `payment_method-${expense?.id}` : "payment_method"}>Forma de pagamento</Label>
+          <Input
+            id={isEditing ? `payment_method-${expense?.id}` : "payment_method"}
+            name="payment_method"
+            placeholder="Cartao, dinheiro, transferencia"
+            defaultValue={expense?.payment_method ?? ""}
+          />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="bank_or_card">Banco ou cartao</Label>
-          <Input id="bank_or_card" name="bank_or_card" placeholder="Ex: Revolut, Wise" />
+          <Label htmlFor={isEditing ? `bank_or_card-${expense?.id}` : "bank_or_card"}>Banco ou cartao</Label>
+          <Input
+            id={isEditing ? `bank_or_card-${expense?.id}` : "bank_or_card"}
+            name="bank_or_card"
+            placeholder="Ex: Revolut, Wise"
+            defaultValue={expense?.bank_or_card ?? ""}
+          />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="notes">Observacao</Label>
-          <Input id="notes" name="notes" placeholder="Opcional" />
+          <Label htmlFor={isEditing ? `notes-${expense?.id}` : "notes"}>Observacao</Label>
+          <Input
+            id={isEditing ? `notes-${expense?.id}` : "notes"}
+            name="notes"
+            placeholder="Opcional"
+            defaultValue={expense?.notes ?? ""}
+          />
         </div>
       </div>
 
@@ -105,7 +158,7 @@ export function ExpenseForm({
       {state.success ? <p className="text-sm text-emerald-600">{state.success}</p> : null}
 
       <Button type="submit" disabled={isPending}>
-        {isPending ? "Salvando..." : "Cadastrar gasto"}
+        {isPending ? "Salvando..." : isEditing ? "Salvar alteracoes" : "Cadastrar gasto"}
       </Button>
     </form>
   );
