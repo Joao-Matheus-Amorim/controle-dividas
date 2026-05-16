@@ -40,6 +40,7 @@ export default async function BancosPage() {
 
       <BankList
         accounts={accounts}
+        members={members}
         canEdit={canEdit}
         canDelete={canDelete}
       />

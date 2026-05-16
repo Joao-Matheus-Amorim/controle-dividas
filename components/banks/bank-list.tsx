@@ -1,13 +1,15 @@
 import type { DbBankAccount } from "@/lib/finance/banks-server";
+import type { DbFamilyMember } from "@/lib/finance/server";
 import { BankListItem } from "./bank-list-item";
 
 interface BankListProps {
   accounts: DbBankAccount[];
+  members: DbFamilyMember[];
   canEdit: boolean;
   canDelete: boolean;
 }
 
-export function BankList({ accounts, canEdit, canDelete }: BankListProps) {
+export function BankList({ accounts, members, canEdit, canDelete }: BankListProps) {
   return (
     <section className="space-y-3 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
       <div className="flex items-center justify-between">
@@ -22,6 +24,7 @@ export function BankList({ accounts, canEdit, canDelete }: BankListProps) {
           <BankListItem
             key={account.id}
             account={account}
+            members={members}
             canEdit={canEdit}
             canDelete={canDelete}
           />
