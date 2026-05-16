@@ -41,6 +41,8 @@ export type DbExpense = {
   expense_categories: Pick<DbExpenseCategory, "id" | "name"> | null;
 };
 
+export type PayableBillType = "avulsa" | "fixa";
+
 export type DbPayableBill = {
   id: string;
   owner_id: string;
@@ -50,6 +52,7 @@ export type DbPayableBill = {
   due_date: string;
   responsible_member_id: string | null;
   status: "pago" | "pendente" | "atrasado";
+  bill_type: PayableBillType;
   bank_used: string | null;
   recurrence: string | null;
   notes: string | null;
@@ -133,6 +136,7 @@ function normalizeExpense(expense: RawExpense): DbExpense {
 function normalizePayableBill(bill: RawPayableBill): DbPayableBill {
   return {
     ...bill,
+    bill_type: bill.bill_type ?? "avulsa",
     family_members: firstRelation(bill.family_members),
   };
 }
@@ -317,7 +321,7 @@ export async function getPayableBills() {
   const { data, error } = await supabase
     .from("payable_bills")
     .select(
-      "id, owner_id, name, category, amount, due_date, responsible_member_id, status, bank_used, recurrence, notes, created_at, family_members(id, name)",
+      "id, owner_id, name, category, amount, due_date, responsible_member_id, status, bill_type, bank_used, recurrence, notes, created_at, family_members(id, name)",
     )
     .eq("owner_id", profile.owner_id)
     .in("responsible_member_id", accessibleMemberIds)
@@ -354,6 +358,8 @@ export async function getPayableBillsDashboardData() {
   const pendingBills = enrichedBills.filter((bill) => bill.computed_status === "pendente");
   const overdueBills = enrichedBills.filter((bill) => bill.computed_status === "atrasado");
   const paidBills = enrichedBills.filter((bill) => bill.computed_status === "pago");
+  const oneOffBills = enrichedBills.filter((bill) => bill.bill_type === "avulsa");
+  const fixedBills = enrichedBills.filter((bill) => bill.bill_type === "fixa");
 
   return {
     members,
@@ -361,9 +367,13 @@ export async function getPayableBillsDashboardData() {
     totalPending: pendingBills.reduce((total, bill) => total + Number(bill.amount), 0),
     totalOverdue: overdueBills.reduce((total, bill) => total + Number(bill.amount), 0),
     totalPaid: paidBills.reduce((total, bill) => total + Number(bill.amount), 0),
+    totalOneOff: oneOffBills.reduce((total, bill) => total + Number(bill.amount), 0),
+    totalFixed: fixedBills.reduce((total, bill) => total + Number(bill.amount), 0),
     pendingCount: pendingBills.length,
     overdueCount: overdueBills.length,
     paidCount: paidBills.length,
+    oneOffCount: oneOffBills.length,
+    fixedCount: fixedBills.length,
   };
 }
 
