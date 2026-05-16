@@ -1,4 +1,4 @@
-import { formatCurrency } from "@/lib/finance/calculations";
+import { compactCurrency, initials } from "@/lib/finance/formatting";
 
 export type AccessProfileSummary = {
   id: string;
@@ -10,15 +10,4 @@ export type AccessProfileSummary = {
   linked_family_member_id: string | null;
 };
 
-export function compactCurrency(value: number) {
-  return formatCurrency(value).replace("€", "€ ");
-}
-
-export function initials(name: string) {
-  return name
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-}
+export { compactCurrency, initials };
