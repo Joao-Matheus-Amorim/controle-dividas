@@ -56,10 +56,13 @@ export default async function GastosPage({ searchParams }: GastosPageProps) {
   });
 
   const totalExpenses = filteredExpenses.reduce((total, expense) => total + Number(expense.amount), 0);
-  const totalLimit = memberSummaries.reduce((total, member) => total + Number(member.monthly_limit), 0);
+  const scopedMemberSummaries = filters.memberId
+    ? memberSummaries.filter((member) => member.id === filters.memberId)
+    : memberSummaries;
+  const totalLimit = scopedMemberSummaries.reduce((total, member) => total + Number(member.monthly_limit), 0);
   const totalRemaining = totalLimit - totalExpenses;
 
-  const filteredMemberSummaries = memberSummaries.map((member) => {
+  const filteredMemberSummaries = scopedMemberSummaries.map((member) => {
     const spent = filteredExpenses
       .filter((expense) => expense.family_member_id === member.id)
       .reduce((total, expense) => total + Number(expense.amount), 0);
