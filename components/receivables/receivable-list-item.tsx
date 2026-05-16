@@ -1,7 +1,8 @@
 import { deleteReceivableIncome, updateReceivableIncomeStatus } from "@/app/protected/contas-a-receber/actions";
+import { ReceivableIncomeEditDialog } from "@/components/finance/receivable-income-edit-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import type { DbReceivableIncome } from "@/lib/finance/server";
+import type { DbFamilyMember, DbReceivableIncome } from "@/lib/finance/server";
 import { Trash2 } from "lucide-react";
 import { compactCurrency, statusVariant } from "./receivable-utils";
 
@@ -9,11 +10,12 @@ type ReceivableListIncome = DbReceivableIncome & { computed_status: string };
 
 interface ReceivableListItemProps {
   income: ReceivableListIncome;
+  members: DbFamilyMember[];
   canEdit: boolean;
   canDelete: boolean;
 }
 
-export function ReceivableListItem({ income, canEdit, canDelete }: ReceivableListItemProps) {
+export function ReceivableListItem({ income, members, canEdit, canDelete }: ReceivableListItemProps) {
   return (
     <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-[#080810]/50 p-3 md:flex-row md:items-center md:justify-between">
       <div className="min-w-0 flex-1">
@@ -29,15 +31,18 @@ export function ReceivableListItem({ income, canEdit, canDelete }: ReceivableLis
       <div className="flex items-center justify-between gap-3 md:justify-end">
         <p className="text-sm font-bold text-[#1de9b2]">{compactCurrency(Number(income.amount))}</p>
         {canEdit ? (
-          <form action={updateReceivableIncomeStatus} className="flex gap-2">
-            <input type="hidden" name="id" value={income.id} />
-            <select name="status" defaultValue={income.status} className="h-9 rounded-xl border border-white/10 bg-[#080810] px-2 text-xs text-white/70">
-              <option value="previsto">Previsto</option>
-              <option value="recebido">Recebido</option>
-              <option value="atrasado">Atrasado</option>
-            </select>
-            <Button type="submit" variant="outline" className="h-9 rounded-xl border-white/10 bg-transparent text-white/60 hover:bg-white/10 hover:text-white">Salvar</Button>
-          </form>
+          <>
+            <ReceivableIncomeEditDialog income={income} members={members} />
+            <form action={updateReceivableIncomeStatus} className="flex gap-2">
+              <input type="hidden" name="id" value={income.id} />
+              <select name="status" defaultValue={income.status} className="h-9 rounded-xl border border-white/10 bg-[#080810] px-2 text-xs text-white/70">
+                <option value="previsto">Previsto</option>
+                <option value="recebido">Recebido</option>
+                <option value="atrasado">Atrasado</option>
+              </select>
+              <Button type="submit" variant="outline" className="h-9 rounded-xl border-white/10 bg-transparent text-white/60 hover:bg-white/10 hover:text-white">Salvar</Button>
+            </form>
+          </>
         ) : null}
         {canDelete ? (
           <form action={deleteReceivableIncome}>

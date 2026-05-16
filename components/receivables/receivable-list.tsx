@@ -1,15 +1,16 @@
-import type { DbReceivableIncome } from "@/lib/finance/server";
+import type { DbFamilyMember, DbReceivableIncome } from "@/lib/finance/server";
 import { ReceivableListItem } from "./receivable-list-item";
 
 type ReceivableListIncome = DbReceivableIncome & { computed_status: string };
 
 interface ReceivableListProps {
   incomes: ReceivableListIncome[];
+  members: DbFamilyMember[];
   canEdit: boolean;
   canDelete: boolean;
 }
 
-export function ReceivableList({ incomes, canEdit, canDelete }: ReceivableListProps) {
+export function ReceivableList({ incomes, members, canEdit, canDelete }: ReceivableListProps) {
   return (
     <section className="space-y-3 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
       <div className="flex items-center justify-between">
@@ -24,6 +25,7 @@ export function ReceivableList({ incomes, canEdit, canDelete }: ReceivableListPr
           <ReceivableListItem
             key={income.id}
             income={income}
+            members={members}
             canEdit={canEdit}
             canDelete={canDelete}
           />

@@ -54,6 +54,7 @@ export default async function ContasAReceberPage() {
 
       <ReceivableList
         incomes={incomes}
+        members={members}
         canEdit={canEdit}
         canDelete={canDelete}
       />
