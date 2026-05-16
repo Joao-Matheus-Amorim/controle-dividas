@@ -2,11 +2,12 @@
 
 import { useActionState } from "react";
 
+import { createFamilyMember } from "@/app/protected/pessoas/actions";
+import { AppActionFeedback } from "@/components/app/app-action-feedback";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { FamilyMemberFormState } from "@/lib/finance/server";
-import { createFamilyMember } from "@/app/protected/pessoas/actions";
 
 const initialState: FamilyMemberFormState = {};
 
@@ -41,8 +42,7 @@ export function FamilyMemberForm() {
         </div>
       </div>
 
-      {state.error ? <p className="text-sm text-destructive">{state.error}</p> : null}
-      {state.success ? <p className="text-sm text-emerald-600">{state.success}</p> : null}
+      <AppActionFeedback error={state.error} success={state.success} />
 
       <Button type="submit" disabled={isPending}>
         {isPending ? "Salvando..." : "Cadastrar pessoa"}
