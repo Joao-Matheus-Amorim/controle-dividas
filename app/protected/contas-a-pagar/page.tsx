@@ -9,6 +9,7 @@ import {
   normalizeTypeFilter,
 } from "@/components/payables/payable-utils";
 import { getCurrentProfile, getModulePermission } from "@/lib/finance/access-control";
+import { getCurrentMonthLabel } from "@/lib/finance/period-context";
 import { getPayableBillsDashboardData } from "@/lib/finance/server";
 
 type PageSearchParams = Promise<Record<string, string | string[] | undefined>>;
@@ -30,6 +31,7 @@ export default async function ContasAPagarPage({ searchParams }: ContasAPagarPag
   const canCreate = profile.role === "admin" || Boolean(permission?.can_create);
   const canEdit = profile.role === "admin" || Boolean(permission?.can_edit);
   const canDelete = profile.role === "admin" || Boolean(permission?.can_delete);
+  const periodLabel = getCurrentMonthLabel();
 
   const {
     members,
@@ -55,7 +57,7 @@ export default async function ContasAPagarPage({ searchParams }: ContasAPagarPag
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-col gap-5 md:max-w-7xl">
-      <PayablePageHeader />
+      <PayablePageHeader periodLabel={periodLabel} />
 
       <PayableHeroSummary
         totalPending={totalPending}
