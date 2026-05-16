@@ -6,10 +6,10 @@ import { Button } from "@/components/ui/button";
 
 export default function ProtectedError({
   error,
-  reset,
+  unstable_retry,
 }: {
   error: Error & { digest?: string };
-  reset: () => void;
+  unstable_retry: () => void;
 }) {
   return (
     <div className="app-container flex min-h-[60vh] items-center justify-center">
@@ -36,7 +36,7 @@ export default function ProtectedError({
 
         <Button
           type="button"
-          onClick={reset}
+          onClick={unstable_retry}
           className="mt-5 rounded-2xl bg-[#8b72f8] px-5 font-bold text-white hover:bg-[#7d66e4]"
         >
           <RotateCcw className="h-4 w-4" />
