@@ -2,11 +2,11 @@
 
 import { useActionState } from "react";
 
-import { createReceivableIncome } from "@/app/protected/contas-a-receber/actions";
+import { createReceivableIncome, updateReceivableIncome } from "@/app/protected/contas-a-receber/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { DbFamilyMember, ReceivableIncomeFormState } from "@/lib/finance/server";
+import type { DbFamilyMember, DbReceivableIncome, ReceivableIncomeFormState } from "@/lib/finance/server";
 
 const initialState: ReceivableIncomeFormState = {};
 
@@ -20,18 +20,29 @@ const incomeSources = [
   "Outros",
 ];
 
-export function ReceivableIncomeForm({ members }: { members: DbFamilyMember[] }) {
-  const [state, formAction, isPending] = useActionState(createReceivableIncome, initialState);
+type ReceivableIncomeFormProps = {
+  members: DbFamilyMember[];
+  income?: DbReceivableIncome;
+  mode?: "create" | "edit";
+};
+
+export function ReceivableIncomeForm({ members, income, mode = "create" }: ReceivableIncomeFormProps) {
+  const action = mode === "edit" ? updateReceivableIncome : createReceivableIncome;
+  const [state, formAction, isPending] = useActionState(action, initialState);
   const today = new Date().toISOString().slice(0, 10);
+  const isEditing = mode === "edit" && Boolean(income);
 
   return (
     <form action={formAction} className="space-y-5">
+      {income ? <input type="hidden" name="id" value={income.id} /> : null}
+
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <div className="space-y-2">
-          <Label htmlFor="receiver_member_id">Pessoa que vai receber</Label>
+          <Label htmlFor={isEditing ? `receiver_member_id-${income?.id}` : "receiver_member_id"}>Pessoa que vai receber</Label>
           <select
-            id="receiver_member_id"
+            id={isEditing ? `receiver_member_id-${income?.id}` : "receiver_member_id"}
             name="receiver_member_id"
+            defaultValue={income?.receiver_member_id ?? ""}
             className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
             <option value="">Sem pessoa vinculada</option>
@@ -44,10 +55,11 @@ export function ReceivableIncomeForm({ members }: { members: DbFamilyMember[] })
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="source">Origem do dinheiro</Label>
+          <Label htmlFor={isEditing ? `source-${income?.id}` : "source"}>Origem do dinheiro</Label>
           <select
-            id="source"
+            id={isEditing ? `source-${income?.id}` : "source"}
             name="source"
+            defaultValue={income?.source ?? ""}
             required
             className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
@@ -61,11 +73,11 @@ export function ReceivableIncomeForm({ members }: { members: DbFamilyMember[] })
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="income_type">Tipo de renda</Label>
+          <Label htmlFor={isEditing ? `income_type-${income?.id}` : "income_type"}>Tipo de renda</Label>
           <select
-            id="income_type"
+            id={isEditing ? `income_type-${income?.id}` : "income_type"}
             name="income_type"
-            defaultValue="fixa"
+            defaultValue={income?.income_type ?? "fixa"}
             className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
             <option value="fixa">Fixa</option>
@@ -74,23 +86,38 @@ export function ReceivableIncomeForm({ members }: { members: DbFamilyMember[] })
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="amount">Valor em euro</Label>
-          <Input id="amount" name="amount" type="number" min="0.01" step="0.01" placeholder="1450.00" required />
+          <Label htmlFor={isEditing ? `amount-${income?.id}` : "amount"}>Valor em euro</Label>
+          <Input
+            id={isEditing ? `amount-${income?.id}` : "amount"}
+            name="amount"
+            type="number"
+            min="0.01"
+            step="0.01"
+            placeholder="1450.00"
+            defaultValue={income ? String(income.amount) : ""}
+            required
+          />
         </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
         <div className="space-y-2">
-          <Label htmlFor="expected_date">Data prevista</Label>
-          <Input id="expected_date" name="expected_date" type="date" defaultValue={today} required />
+          <Label htmlFor={isEditing ? `expected_date-${income?.id}` : "expected_date"}>Data prevista</Label>
+          <Input
+            id={isEditing ? `expected_date-${income?.id}` : "expected_date"}
+            name="expected_date"
+            type="date"
+            defaultValue={income?.expected_date ?? today}
+            required
+          />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="status">Status</Label>
+          <Label htmlFor={isEditing ? `status-${income?.id}` : "status"}>Status</Label>
           <select
-            id="status"
+            id={isEditing ? `status-${income?.id}` : "status"}
             name="status"
-            defaultValue="previsto"
+            defaultValue={income?.status ?? "previsto"}
             className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
             <option value="previsto">Previsto</option>
@@ -100,21 +127,31 @@ export function ReceivableIncomeForm({ members }: { members: DbFamilyMember[] })
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="receiving_bank">Banco de recebimento</Label>
-          <Input id="receiving_bank" name="receiving_bank" placeholder="Ex: Revolut, Wise" />
+          <Label htmlFor={isEditing ? `receiving_bank-${income?.id}` : "receiving_bank"}>Banco de recebimento</Label>
+          <Input
+            id={isEditing ? `receiving_bank-${income?.id}` : "receiving_bank"}
+            name="receiving_bank"
+            placeholder="Ex: Revolut, Wise"
+            defaultValue={income?.receiving_bank ?? ""}
+          />
         </div>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="notes">Observacao</Label>
-        <Input id="notes" name="notes" placeholder="Opcional" />
+        <Label htmlFor={isEditing ? `notes-${income?.id}` : "notes"}>Observacao</Label>
+        <Input
+          id={isEditing ? `notes-${income?.id}` : "notes"}
+          name="notes"
+          placeholder="Opcional"
+          defaultValue={income?.notes ?? ""}
+        />
       </div>
 
       {state.error ? <p className="text-sm text-destructive">{state.error}</p> : null}
       {state.success ? <p className="text-sm text-emerald-600">{state.success}</p> : null}
 
       <Button type="submit" disabled={isPending}>
-        {isPending ? "Salvando..." : "Cadastrar recebimento"}
+        {isPending ? "Salvando..." : isEditing ? "Salvar alteracoes" : "Cadastrar recebimento"}
       </Button>
     </form>
   );
