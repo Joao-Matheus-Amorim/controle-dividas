@@ -1,17 +1,20 @@
 import { deleteBankAccount, updateBankAccountBalance } from "@/app/protected/bancos/actions";
+import { BankAccountEditDialog } from "@/components/finance/bank-account-edit-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { DbBankAccount } from "@/lib/finance/banks-server";
+import type { DbFamilyMember } from "@/lib/finance/server";
 import { Banknote, Trash2 } from "lucide-react";
 
 interface BankListItemProps {
   account: DbBankAccount;
+  members: DbFamilyMember[];
   canEdit: boolean;
   canDelete: boolean;
 }
 
-export function BankListItem({ account, canEdit, canDelete }: BankListItemProps) {
+export function BankListItem({ account, members, canEdit, canDelete }: BankListItemProps) {
   return (
     <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-[#080810]/50 p-3 md:flex-row md:items-center md:justify-between">
       <div className="flex min-w-0 flex-1 items-start gap-3">
@@ -29,11 +32,14 @@ export function BankListItem({ account, canEdit, canDelete }: BankListItemProps)
       {(canEdit || canDelete) ? (
         <div className="flex items-center justify-between gap-3 md:justify-end">
           {canEdit ? (
-            <form action={updateBankAccountBalance} className="flex gap-2">
-              <input type="hidden" name="id" value={account.id} />
-              <Input name="current_balance" type="number" step="0.01" defaultValue={Number(account.current_balance)} className="h-9 w-28 rounded-xl border-white/10 bg-[#080810] text-xs text-white" />
-              <Button type="submit" variant="outline" className="h-9 rounded-xl border-white/10 bg-transparent text-white/60 hover:bg-white/10 hover:text-white">Salvar</Button>
-            </form>
+            <>
+              <BankAccountEditDialog account={account} members={members} />
+              <form action={updateBankAccountBalance} className="flex gap-2">
+                <input type="hidden" name="id" value={account.id} />
+                <Input name="current_balance" type="number" step="0.01" defaultValue={Number(account.current_balance)} className="h-9 w-28 rounded-xl border-white/10 bg-[#080810] text-xs text-white" />
+                <Button type="submit" variant="outline" className="h-9 rounded-xl border-white/10 bg-transparent text-white/60 hover:bg-white/10 hover:text-white">Salvar</Button>
+              </form>
+            </>
           ) : null}
           {canDelete ? (
             <form action={deleteBankAccount}>
