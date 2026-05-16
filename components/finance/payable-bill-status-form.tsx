@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 
 import { updatePayableBillStatus, type PayableBillActionState } from "@/app/protected/contas-a-pagar/actions";
+import { AppActionFeedback } from "@/components/app/app-action-feedback";
 import { Button } from "@/components/ui/button";
 import type { DbPayableBill } from "@/lib/finance/server";
 
@@ -25,8 +26,7 @@ export function PayableBillStatusForm({ bill }: { bill: DbPayableBill }) {
         </Button>
       </div>
 
-      {state.error ? <p className="max-w-[220px] text-xs text-[#ff8da0]">{state.error}</p> : null}
-      {state.success ? <p className="max-w-[220px] text-xs text-[#1de9b2]">{state.success}</p> : null}
+      <AppActionFeedback error={state.error} success={state.success} className="max-w-[220px] text-xs" />
     </form>
   );
 }
