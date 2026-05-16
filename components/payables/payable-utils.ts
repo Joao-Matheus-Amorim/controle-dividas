@@ -1,5 +1,7 @@
 import { type BadgeProps } from "@/components/ui/badge";
-import { formatCurrency } from "@/lib/finance/calculations";
+import { compactCurrency } from "@/lib/finance/formatting";
+
+export { compactCurrency };
 
 export type StatusFilter = "todos" | "pendente" | "atrasado" | "pago";
 export type TypeFilter = "todas" | "avulsa" | "fixa";
@@ -21,10 +23,6 @@ export function statusVariant(status: string): BadgeProps["variant"] {
   if (status === "pago") return "secondary";
   if (status === "atrasado") return "destructive";
   return "outline";
-}
-
-export function compactCurrency(value: number) {
-  return formatCurrency(value).replace("€", "€ ");
 }
 
 export function getSearchValue(
