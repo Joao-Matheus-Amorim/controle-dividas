@@ -1,7 +1,10 @@
 import { redirect } from "next/navigation";
 
-import { expenseCategories, familyMembers } from "@/__tests__/fixtures/mock-data";
 import { getAccessibleMemberIds, getCurrentProfile } from "@/lib/finance/access-control";
+import {
+  defaultExpenseCategories,
+  defaultFamilyMembers,
+} from "@/lib/finance/default-seed-data";
 import { createClient } from "@/lib/supabase/server";
 
 export type DbFamilyMember = {
@@ -153,7 +156,7 @@ export async function seedInitialFinanceData() {
   const ownerId = await getCurrentUserId();
 
   await supabase.from("family_members").upsert(
-    familyMembers.map((member) => ({
+    defaultFamilyMembers.map((member) => ({
       owner_id: ownerId,
       name: member.name,
       role: member.role,
@@ -165,7 +168,7 @@ export async function seedInitialFinanceData() {
   );
 
   await supabase.from("expense_categories").upsert(
-    expenseCategories.map((category) => ({
+    defaultExpenseCategories.map((category) => ({
       owner_id: ownerId,
       name: category.name,
       is_default: true,
