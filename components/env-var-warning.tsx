@@ -1,20 +1,12 @@
-import { Badge } from "./ui/badge";
-import { Button } from "./ui/button";
+import { AlertTriangle } from "lucide-react";
 
 export function EnvVarWarning() {
   return (
-    <div className="flex gap-4 items-center">
-      <Badge variant={"outline"} className="font-normal">
-        Supabase environment variables required
-      </Badge>
-      <div className="flex gap-2">
-        <Button size="sm" variant={"outline"} disabled>
-          Sign in
-        </Button>
-        <Button size="sm" variant={"default"} disabled>
-          Sign up
-        </Button>
-      </div>
+    <div className="flex min-w-0 items-center gap-2 rounded-2xl border border-[#f7b84b]/20 bg-[#f7b84b]/10 px-3 py-2 text-[#f7b84b]">
+      <AlertTriangle className="h-4 w-4 shrink-0" />
+      <span className="truncate text-xs font-semibold">
+        Configure as variaveis do Supabase para ativar o acesso.
+      </span>
     </div>
   );
 }
