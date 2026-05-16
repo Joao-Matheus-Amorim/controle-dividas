@@ -1,4 +1,4 @@
-import { AlertTriangle, CalendarDays, CheckCircle2, Trash2, WalletCards } from "lucide-react";
+import { AlertTriangle, CalendarDays, CheckCircle2, Repeat2, Trash2, WalletCards } from "lucide-react";
 
 import { deletePayableBill, updatePayableBillStatus } from "./actions";
 import { PayableBillFormDialog } from "@/components/finance/payable-bill-form-dialog";
@@ -34,8 +34,12 @@ export default async function ContasAPagarPage() {
     totalPending,
     totalOverdue,
     totalPaid,
+    totalOneOff,
+    totalFixed,
     pendingCount,
     overdueCount,
+    oneOffCount,
+    fixedCount,
   } = payableData;
 
   return (
@@ -43,8 +47,8 @@ export default async function ContasAPagarPage() {
       <section className="flex items-start justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-white/25">Junho</p>
-          <h1 className="mt-1 text-3xl font-bold tracking-tight text-white md:text-4xl">Contas</h1>
-          <p className="mt-1 text-sm text-white/40">Pagamentos e vencimentos</p>
+          <h1 className="mt-1 text-3xl font-bold tracking-tight text-white md:text-4xl">Contas e dividas</h1>
+          <p className="mt-1 text-sm text-white/40">Contas fixas, avulsas, pagamentos e vencimentos</p>
         </div>
         <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-[#f7b84b]">
           <WalletCards className="h-5 w-5" />
@@ -71,7 +75,7 @@ export default async function ContasAPagarPage() {
         </div>
       </section>
 
-      <section className="grid grid-cols-3 gap-2">
+      <section className="grid grid-cols-2 gap-2 md:grid-cols-5">
         <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3">
           <CalendarDays className="h-4 w-4 text-[#f7b84b]" />
           <p className="mt-3 text-[10px] font-bold uppercase tracking-widest text-white/25">Pendentes</p>
@@ -87,14 +91,24 @@ export default async function ContasAPagarPage() {
           <p className="mt-3 text-[10px] font-bold uppercase tracking-widest text-white/25">Pagas</p>
           <p className="mt-1 text-sm font-bold text-white">{compactCurrency(totalPaid)}</p>
         </div>
+        <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3">
+          <WalletCards className="h-4 w-4 text-[#8b72f8]" />
+          <p className="mt-3 text-[10px] font-bold uppercase tracking-widest text-white/25">Avulsas</p>
+          <p className="mt-1 text-sm font-bold text-white">{oneOffCount} · {compactCurrency(totalOneOff)}</p>
+        </div>
+        <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3">
+          <Repeat2 className="h-4 w-4 text-[#b09cff]" />
+          <p className="mt-3 text-[10px] font-bold uppercase tracking-widest text-white/25">Fixas</p>
+          <p className="mt-1 text-sm font-bold text-white">{fixedCount} · {compactCurrency(totalFixed)}</p>
+        </div>
       </section>
 
       {canCreate ? (
         <section className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/25">Nova conta</p>
-              <p className="mt-1 text-sm text-white/40">Cadastre pagamentos e vencimentos sem poluir a tela principal.</p>
+              <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/25">Nova conta/divida</p>
+              <p className="mt-1 text-sm text-white/40">Cadastre uma conta avulsa ou uma conta fixa mensal.</p>
             </div>
             <PayableBillFormDialog members={members} />
           </div>
@@ -103,18 +117,21 @@ export default async function ContasAPagarPage() {
 
       <section className="space-y-3 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
         <div className="flex items-center justify-between">
-          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/25">Contas cadastradas</p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/25">Contas e dividas cadastradas</p>
           <p className="text-xs font-semibold text-[#8b72f8]">{bills.length}</p>
         </div>
 
         {bills.length === 0 ? (
-          <p className="text-sm text-white/35">Nenhuma conta cadastrada ainda.</p>
+          <p className="text-sm text-white/35">Nenhuma conta ou divida cadastrada ainda.</p>
         ) : (
           bills.map((bill) => (
             <div key={bill.id} className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-[#080810]/50 p-3 md:flex-row md:items-center md:justify-between">
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="truncate text-sm font-semibold text-white">{bill.name}</p>
+                  <Badge variant={bill.bill_type === "fixa" ? "secondary" : "outline"}>
+                    {bill.bill_type === "fixa" ? "fixa" : "avulsa"}
+                  </Badge>
                   <Badge variant={statusVariant(bill.computed_status)}>{bill.computed_status}</Badge>
                   {bill.recurrence ? <Badge variant="outline" className="border-white/10 text-white/50">{bill.recurrence}</Badge> : null}
                 </div>
