@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 
 import { createPayableBill, updatePayableBill } from "@/app/protected/contas-a-pagar/actions";
+import { AppActionFeedback } from "@/components/app/app-action-feedback";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -193,8 +194,7 @@ export function PayableBillForm({ members, bill, mode = "create" }: PayableBillF
         />
       </div>
 
-      {state.error ? <p className="text-sm text-destructive">{state.error}</p> : null}
-      {state.success ? <p className="text-sm text-emerald-600">{state.success}</p> : null}
+      <AppActionFeedback error={state.error} success={state.success} />
 
       <Button type="submit" disabled={isPending}>
         {isPending
