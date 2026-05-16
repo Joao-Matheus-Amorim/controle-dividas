@@ -13,6 +13,11 @@ import { createClient } from "@/lib/supabase/server";
 const payableBillTypes: PayableBillType[] = ["avulsa", "fixa"];
 const payableBillStatuses = ["pago", "pendente", "atrasado"] as const;
 
+export type PayableBillActionState = {
+  error?: string;
+  success?: string;
+};
+
 async function assertCanManagePayableBill(
   billId: string,
   action: Extract<PermissionAction, "can_edit" | "can_delete">,
@@ -210,51 +215,88 @@ export async function updatePayableBill(
   }
 }
 
-export async function updatePayableBillStatus(formData: FormData) {
+export async function updatePayableBillStatus(
+  _prevState: PayableBillActionState,
+  formData: FormData,
+): Promise<PayableBillActionState> {
   const id = String(formData.get("id") ?? "");
   const status = String(formData.get("status") ?? "pendente");
 
-  if (!id || !payableBillStatuses.includes(status as (typeof payableBillStatuses)[number])) {
-    return;
+  if (!id) {
+    return { error: "Conta nao encontrada." };
+  }
+
+  if (!payableBillStatuses.includes(status as (typeof payableBillStatuses)[number])) {
+    return { error: "Status invalido." };
   }
 
   try {
     const { profile } = await assertCanManagePayableBill(id, "can_edit");
     const supabase = await createClient();
 
-    await supabase
+    const { error } = await supabase
       .from("payable_bills")
       .update({ status })
       .eq("id", id)
       .eq("owner_id", profile.owner_id);
 
+    if (error) {
+      return { error: error.message };
+    }
+
     revalidatePath("/protected/contas-a-pagar");
     revalidatePath("/protected");
-  } catch {
-    return;
+
+    return { success: "Status atualizado com sucesso." };
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "Nao foi possivel atualizar o status desta conta.",
+    };
   }
 }
 
-export async function deletePayableBill(formData: FormData) {
+export async function deletePayableBill(
+  _prevState: PayableBillActionState,
+  formData: FormData,
+): Promise<PayableBillActionState> {
   const id = String(formData.get("id") ?? "");
+  const confirmation = String(formData.get("confirm_delete") ?? "");
 
   if (!id) {
-    return;
+    return { error: "Conta nao encontrada." };
+  }
+
+  if (confirmation !== "confirmado") {
+    return { error: "Confirme a exclusao antes de continuar." };
   }
 
   try {
     const { profile } = await assertCanManagePayableBill(id, "can_delete");
     const supabase = await createClient();
 
-    await supabase
+    const { error } = await supabase
       .from("payable_bills")
       .delete()
       .eq("id", id)
       .eq("owner_id", profile.owner_id);
 
+    if (error) {
+      return { error: error.message };
+    }
+
     revalidatePath("/protected/contas-a-pagar");
     revalidatePath("/protected");
-  } catch {
-    return;
+
+    return { success: "Conta excluida com sucesso." };
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "Nao foi possivel excluir esta conta.",
+    };
   }
 }

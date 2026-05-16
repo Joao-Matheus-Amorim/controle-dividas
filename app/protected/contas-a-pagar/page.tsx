@@ -3,16 +3,15 @@ import {
   CalendarDays,
   CheckCircle2,
   Repeat2,
-  Trash2,
   WalletCards,
 } from "lucide-react";
 import Link from "next/link";
 
-import { deletePayableBill, updatePayableBillStatus } from "./actions";
+import { PayableBillDeleteDialog } from "@/components/finance/payable-bill-delete-dialog";
 import { PayableBillEditDialog } from "@/components/finance/payable-bill-edit-dialog";
 import { PayableBillFormDialog } from "@/components/finance/payable-bill-form-dialog";
+import { PayableBillStatusForm } from "@/components/finance/payable-bill-status-form";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { getCurrentProfile, getModulePermission } from "@/lib/finance/access-control";
 import { formatCurrency } from "@/lib/finance/calculations";
 import { getPayableBillsDashboardData } from "@/lib/finance/server";
@@ -283,25 +282,10 @@ export default async function ContasAPagarPage({ searchParams }: ContasAPagarPag
                 {canEdit ? (
                   <>
                     <PayableBillEditDialog bill={bill} members={members} />
-                    <form action={updatePayableBillStatus} className="flex gap-2">
-                      <input type="hidden" name="id" value={bill.id} />
-                      <select name="status" defaultValue={bill.status} className="h-9 rounded-xl border border-white/10 bg-[#080810] px-2 text-xs text-white/70">
-                        <option value="pendente">Pendente</option>
-                        <option value="pago">Pago</option>
-                        <option value="atrasado">Atrasado</option>
-                      </select>
-                      <Button type="submit" variant="outline" className="h-9 rounded-xl border-white/10 bg-transparent text-white/60 hover:bg-white/10 hover:text-white">Salvar</Button>
-                    </form>
+                    <PayableBillStatusForm bill={bill} />
                   </>
                 ) : null}
-                {canDelete ? (
-                  <form action={deletePayableBill}>
-                    <input type="hidden" name="id" value={bill.id} />
-                    <Button type="submit" variant="outline" size="icon" aria-label="Excluir conta" className="h-9 w-9 rounded-xl border-white/10 bg-transparent text-white/35 hover:bg-white/10 hover:text-white">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </form>
-                ) : null}
+                {canDelete ? <PayableBillDeleteDialog bill={bill} /> : null}
               </div>
             </div>
           ))
