@@ -4,6 +4,7 @@ import { useActionState, useMemo, useState } from "react";
 import { Check, KeyRound, ShieldCheck, SlidersHorizontal, UserRound, UsersRound } from "lucide-react";
 
 import { saveProfilePermissions } from "@/app/protected/admin/actions";
+import { AppActionFeedback } from "@/components/app/app-action-feedback";
 import { Button } from "@/components/ui/button";
 import type {
   DbModulePermission,
@@ -258,16 +259,7 @@ export function PermissionsForm({
         </section>
       </section>
 
-      {state.error ? (
-        <p className="rounded-2xl border border-[#f0506e]/20 bg-[#f0506e]/10 p-3 text-sm text-[#f0506e]">
-          {state.error}
-        </p>
-      ) : null}
-      {state.success ? (
-        <p className="rounded-2xl border border-[#1de9b2]/20 bg-[#1de9b2]/10 p-3 text-sm text-[#1de9b2]">
-          {state.success}
-        </p>
-      ) : null}
+      <AppActionFeedback error={state.error} success={state.success} />
 
       <div className="sticky bottom-24 z-20 flex justify-end md:bottom-6">
         <Button
