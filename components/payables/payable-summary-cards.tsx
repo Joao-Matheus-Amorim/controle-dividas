@@ -6,6 +6,7 @@ import {
   WalletCards,
 } from "lucide-react";
 
+import { AppStatCard } from "@/components/app/app-stat-card";
 import { compactCurrency } from "./payable-utils";
 
 interface PayableSummaryCardsProps {
@@ -29,31 +30,11 @@ export function PayableSummaryCards({
 }: PayableSummaryCardsProps) {
   return (
     <section className="grid grid-cols-2 gap-2 md:grid-cols-5">
-      <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3">
-        <CalendarDays className="h-4 w-4 text-[#f7b84b]" />
-        <p className="mt-3 text-[10px] font-bold uppercase tracking-widest text-white/25">Pendentes</p>
-        <p className="mt-1 text-sm font-bold text-white">{compactCurrency(totalPending)}</p>
-      </div>
-      <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3">
-        <AlertTriangle className="h-4 w-4 text-[#f0506e]" />
-        <p className="mt-3 text-[10px] font-bold uppercase tracking-widest text-white/25">Atraso</p>
-        <p className="mt-1 text-sm font-bold text-white">{compactCurrency(totalOverdue)}</p>
-      </div>
-      <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3">
-        <CheckCircle2 className="h-4 w-4 text-[#1de9b2]" />
-        <p className="mt-3 text-[10px] font-bold uppercase tracking-widest text-white/25">Pagas</p>
-        <p className="mt-1 text-sm font-bold text-white">{compactCurrency(totalPaid)}</p>
-      </div>
-      <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3">
-        <WalletCards className="h-4 w-4 text-[#8b72f8]" />
-        <p className="mt-3 text-[10px] font-bold uppercase tracking-widest text-white/25">Avulsas</p>
-        <p className="mt-1 text-sm font-bold text-white">{oneOffCount} · {compactCurrency(totalOneOff)}</p>
-      </div>
-      <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3">
-        <Repeat2 className="h-4 w-4 text-[#b09cff]" />
-        <p className="mt-3 text-[10px] font-bold uppercase tracking-widest text-white/25">Fixas</p>
-        <p className="mt-1 text-sm font-bold text-white">{fixedCount} · {compactCurrency(totalFixed)}</p>
-      </div>
+      <AppStatCard title="Pendentes" value={compactCurrency(totalPending)} icon={CalendarDays} tone="warning" />
+      <AppStatCard title="Atraso" value={compactCurrency(totalOverdue)} icon={AlertTriangle} tone="danger" />
+      <AppStatCard title="Pagas" value={compactCurrency(totalPaid)} icon={CheckCircle2} tone="success" />
+      <AppStatCard title="Avulsas" value={`${oneOffCount} · ${compactCurrency(totalOneOff)}`} icon={WalletCards} tone="primary" />
+      <AppStatCard title="Fixas" value={`${fixedCount} · ${compactCurrency(totalFixed)}`} icon={Repeat2} tone="primary" />
     </section>
   );
 }
