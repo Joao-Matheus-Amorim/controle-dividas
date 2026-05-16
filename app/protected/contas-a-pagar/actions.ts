@@ -60,8 +60,7 @@ function parsePayableBillForm(formData: FormData) {
     ? (rawBillType as PayableBillType)
     : "avulsa";
   const bankUsed = String(formData.get("bank_used") ?? "").trim();
-  const rawRecurrence = String(formData.get("recurrence") ?? "").trim();
-  const recurrence = billType === "fixa" ? rawRecurrence || "mensal" : "";
+  const recurrence = billType === "fixa" ? "mensal" : "";
   const notes = String(formData.get("notes") ?? "").trim();
 
   return {
