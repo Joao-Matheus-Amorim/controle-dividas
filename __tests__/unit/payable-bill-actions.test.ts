@@ -28,6 +28,10 @@ function createFormData(values: Record<string, string>) {
   return formData;
 }
 
+function lastUpdatePayload() {
+  return mockState.updatedPayloads.at(-1);
+}
+
 function makeSupabaseClient() {
   return {
     from(table: string) {
@@ -204,5 +208,130 @@ describe("payable bill actions", () => {
 
     expect(result).toEqual({ error: "Voce nao tem permissao para cadastrar conta para esta pessoa." });
     expect(mockState.insertedPayloads).toHaveLength(0);
+  });
+
+  it("updates payable bill fields and preserves one-off recurrence as null", async () => {
+    const { updatePayableBill } = await import("@/app/protected/contas-a-pagar/actions");
+
+    const result = await updatePayableBill({}, createFormData({
+      id: "bill-1",
+      name: "Boleto atualizado",
+      category: "Outros",
+      amount: "99.90",
+      due_date: "2026-05-22",
+      responsible_member_id: "member-1",
+      status: "pendente",
+      bill_type: "avulsa",
+      bank_used: "Wise",
+      recurrence: "mensal",
+      notes: "Observacao nova",
+    }));
+
+    expect(result).toEqual({ success: "Conta atualizada com sucesso." });
+    expect(lastUpdatePayload()).toEqual(expect.objectContaining({
+      name: "Boleto atualizado",
+      category: "Outros",
+      amount: 99.9,
+      due_date: "2026-05-22",
+      responsible_member_id: "member-1",
+      status: "pendente",
+      bill_type: "avulsa",
+      bank_used: "Wise",
+      recurrence: null,
+      notes: "Observacao nova",
+      filters: { id: "bill-1", owner_id: "owner-1" },
+    }));
+  });
+
+  it("updates fixed payable bill with monthly recurrence", async () => {
+    const { updatePayableBill } = await import("@/app/protected/contas-a-pagar/actions");
+
+    const result = await updatePayableBill({}, createFormData({
+      id: "bill-1",
+      name: "Aluguel atualizado",
+      amount: "900",
+      due_date: "2026-05-05",
+      responsible_member_id: "member-1",
+      status: "pendente",
+      bill_type: "fixa",
+    }));
+
+    expect(result).toEqual({ success: "Conta atualizada com sucesso." });
+    expect(lastUpdatePayload()).toEqual(expect.objectContaining({
+      name: "Aluguel atualizado",
+      amount: 900,
+      bill_type: "fixa",
+      recurrence: "mensal",
+      filters: { id: "bill-1", owner_id: "owner-1" },
+    }));
+  });
+
+  it("returns permission error when updating to an inaccessible member", async () => {
+    const { updatePayableBill } = await import("@/app/protected/contas-a-pagar/actions");
+    mockState.accessError = new Error("Voce nao tem permissao para editar conta para esta pessoa.");
+
+    const result = await updatePayableBill({}, createFormData({
+      id: "bill-1",
+      name: "Escola",
+      amount: "300",
+      due_date: "2026-05-10",
+      responsible_member_id: "member-2",
+      status: "pendente",
+      bill_type: "fixa",
+    }));
+
+    expect(result).toEqual({ error: "Voce nao tem permissao para editar conta para esta pessoa." });
+    expect(mockState.updatedPayloads).toHaveLength(0);
+  });
+
+  it("blocks status update with invalid status", async () => {
+    const { updatePayableBillStatus } = await import("@/app/protected/contas-a-pagar/actions");
+
+    const result = await updatePayableBillStatus({}, createFormData({
+      id: "bill-1",
+      status: "cancelado",
+    }));
+
+    expect(result).toEqual({ error: "Status invalido." });
+    expect(mockState.updatedPayloads).toHaveLength(0);
+  });
+
+  it("updates payable bill status", async () => {
+    const { updatePayableBillStatus } = await import("@/app/protected/contas-a-pagar/actions");
+
+    const result = await updatePayableBillStatus({}, createFormData({
+      id: "bill-1",
+      status: "pago",
+    }));
+
+    expect(result).toEqual({ success: "Status atualizado com sucesso." });
+    expect(lastUpdatePayload()).toEqual(expect.objectContaining({
+      status: "pago",
+      filters: { id: "bill-1", owner_id: "owner-1" },
+    }));
+  });
+
+  it("blocks delete without explicit confirmation", async () => {
+    const { deletePayableBill } = await import("@/app/protected/contas-a-pagar/actions");
+
+    const result = await deletePayableBill({}, createFormData({
+      id: "bill-1",
+      confirm_delete: "",
+    }));
+
+    expect(result).toEqual({ error: "Confirme a exclusao antes de continuar." });
+    expect(mockState.deletedIds).toHaveLength(0);
+  });
+
+  it("deletes payable bill after explicit confirmation", async () => {
+    const { deletePayableBill } = await import("@/app/protected/contas-a-pagar/actions");
+
+    const result = await deletePayableBill({}, createFormData({
+      id: "bill-1",
+      confirm_delete: "confirmado",
+    }));
+
+    expect(result).toEqual({ success: "Conta excluida com sucesso." });
+    expect(mockState.deletedIds).toEqual(["bill-1"]);
   });
 });
