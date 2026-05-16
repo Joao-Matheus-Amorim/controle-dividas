@@ -1,10 +1,14 @@
 import { WalletCards } from "lucide-react";
 
-export function PayablePageHeader() {
+interface PayablePageHeaderProps {
+  periodLabel: string;
+}
+
+export function PayablePageHeader({ periodLabel }: PayablePageHeaderProps) {
   return (
     <section className="flex items-start justify-between gap-4">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-white/25">Junho</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-white/25">{periodLabel}</p>
         <h1 className="mt-1 text-3xl font-bold tracking-tight text-white md:text-4xl">Contas e dividas</h1>
         <p className="mt-1 text-sm text-white/40">Contas fixas, avulsas, pagamentos e vencimentos</p>
       </div>
