@@ -1,4 +1,5 @@
 import { deleteExpenseCategory } from "@/app/protected/configuracoes/actions";
+import { ExpenseCategoryEditDialog } from "@/components/finance/expense-category-edit-dialog";
 import { ExpenseCategoryForm } from "@/components/finance/expense-category-form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -36,12 +37,15 @@ export function SettingsCategories({ categories }: SettingsCategoriesProps) {
             </div>
 
             {!category.is_default ? (
-              <form action={deleteExpenseCategory}>
-                <input type="hidden" name="id" value={category.id} />
-                <Button type="submit" variant="outline" size="icon" aria-label="Excluir categoria" className="h-9 w-9 rounded-xl border-white/10 bg-transparent text-white/35 hover:bg-white/10 hover:text-white">
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </form>
+              <div className="flex items-center gap-2">
+                <ExpenseCategoryEditDialog category={category} />
+                <form action={deleteExpenseCategory}>
+                  <input type="hidden" name="id" value={category.id} />
+                  <Button type="submit" variant="outline" size="icon" aria-label="Excluir categoria" className="h-9 w-9 rounded-xl border-white/10 bg-transparent text-white/35 hover:bg-white/10 hover:text-white">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </form>
+              </div>
             ) : null}
           </div>
         ))}
