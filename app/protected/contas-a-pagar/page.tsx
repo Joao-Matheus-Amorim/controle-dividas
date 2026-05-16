@@ -1,4 +1,12 @@
-import { AlertTriangle, CalendarDays, CheckCircle2, Repeat2, Trash2, WalletCards } from "lucide-react";
+import {
+  AlertTriangle,
+  CalendarDays,
+  CheckCircle2,
+  Repeat2,
+  Trash2,
+  WalletCards,
+} from "lucide-react";
+import Link from "next/link";
 
 import { deletePayableBill, updatePayableBillStatus } from "./actions";
 import { PayableBillFormDialog } from "@/components/finance/payable-bill-form-dialog";
@@ -7,6 +15,27 @@ import { Button } from "@/components/ui/button";
 import { getCurrentProfile, getModulePermission } from "@/lib/finance/access-control";
 import { formatCurrency } from "@/lib/finance/calculations";
 import { getPayableBillsDashboardData } from "@/lib/finance/server";
+
+type StatusFilter = "todos" | "pendente" | "atrasado" | "pago";
+type TypeFilter = "todas" | "avulsa" | "fixa";
+type PageSearchParams = Promise<Record<string, string | string[] | undefined>>;
+
+type ContasAPagarPageProps = {
+  searchParams?: PageSearchParams;
+};
+
+const statusFilters: Array<{ value: StatusFilter; label: string }> = [
+  { value: "todos", label: "Todos" },
+  { value: "pendente", label: "Pendentes" },
+  { value: "atrasado", label: "Atrasadas" },
+  { value: "pago", label: "Pagas" },
+];
+
+const typeFilters: Array<{ value: TypeFilter; label: string }> = [
+  { value: "todas", label: "Todas" },
+  { value: "avulsa", label: "Avulsas" },
+  { value: "fixa", label: "Fixas" },
+];
 
 function statusVariant(status: string): BadgeProps["variant"] {
   if (status === "pago") return "secondary";
@@ -18,7 +47,35 @@ function compactCurrency(value: number) {
   return formatCurrency(value).replace("€", "€ ");
 }
 
-export default async function ContasAPagarPage() {
+function getSearchValue(
+  params: Record<string, string | string[] | undefined> | undefined,
+  key: string,
+) {
+  const value = params?.[key];
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function normalizeStatusFilter(value: string | undefined): StatusFilter {
+  if (value === "pendente" || value === "atrasado" || value === "pago") {
+    return value;
+  }
+
+  return "todos";
+}
+
+function normalizeTypeFilter(value: string | undefined): TypeFilter {
+  if (value === "avulsa" || value === "fixa") {
+    return value;
+  }
+
+  return "todas";
+}
+
+export default async function ContasAPagarPage({ searchParams }: ContasAPagarPageProps) {
+  const params = await searchParams;
+  const statusFilter = normalizeStatusFilter(getSearchValue(params, "status"));
+  const typeFilter = normalizeTypeFilter(getSearchValue(params, "tipo"));
+
   const [profile, payableData] = await Promise.all([
     getCurrentProfile(),
     getPayableBillsDashboardData(),
@@ -41,6 +98,32 @@ export default async function ContasAPagarPage() {
     oneOffCount,
     fixedCount,
   } = payableData;
+
+  const filteredBills = bills.filter((bill) => {
+    const statusMatches = statusFilter === "todos" || bill.computed_status === statusFilter;
+    const typeMatches = typeFilter === "todas" || bill.bill_type === typeFilter;
+
+    return statusMatches && typeMatches;
+  });
+
+  function filterHref(nextFilters: Partial<{ status: StatusFilter; tipo: TypeFilter }>) {
+    const nextStatus = nextFilters.status ?? statusFilter;
+    const nextType = nextFilters.tipo ?? typeFilter;
+    const nextParams = new URLSearchParams();
+
+    if (nextStatus !== "todos") {
+      nextParams.set("status", nextStatus);
+    }
+
+    if (nextType !== "todas") {
+      nextParams.set("tipo", nextType);
+    }
+
+    const query = nextParams.toString();
+    return query ? `/protected/contas-a-pagar?${query}` : "/protected/contas-a-pagar";
+  }
+
+  const hasActiveFilters = statusFilter !== "todos" || typeFilter !== "todas";
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-col gap-5 md:max-w-7xl">
@@ -115,16 +198,71 @@ export default async function ContasAPagarPage() {
         </section>
       ) : null}
 
-      <section className="space-y-3 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
-        <div className="flex items-center justify-between">
-          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/25">Contas e dividas cadastradas</p>
-          <p className="text-xs font-semibold text-[#8b72f8]">{bills.length}</p>
+      <section className="space-y-4 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
+        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/25">Contas e dividas cadastradas</p>
+            <p className="mt-1 text-sm text-white/35">
+              {filteredBills.length} de {bills.length} itens visiveis no seu escopo.
+            </p>
+          </div>
+          {hasActiveFilters ? (
+            <Link href="/protected/contas-a-pagar" className="text-xs font-semibold text-[#8b72f8] underline-offset-4 hover:underline">
+              Limpar filtros
+            </Link>
+          ) : null}
+        </div>
+
+        <div className="space-y-3 rounded-2xl border border-white/10 bg-[#080810]/40 p-3">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/25">Status</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {statusFilters.map((filter) => (
+                <Link
+                  key={filter.value}
+                  href={filterHref({ status: filter.value })}
+                  className={
+                    statusFilter === filter.value
+                      ? "rounded-full border border-[#8b72f8]/50 bg-[#8b72f8]/15 px-3 py-1.5 text-xs font-semibold text-[#b09cff]"
+                      : "rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs font-semibold text-white/45 transition hover:bg-white/[0.07] hover:text-white"
+                  }
+                >
+                  {filter.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/25">Tipo</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {typeFilters.map((filter) => (
+                <Link
+                  key={filter.value}
+                  href={filterHref({ tipo: filter.value })}
+                  className={
+                    typeFilter === filter.value
+                      ? "rounded-full border border-[#8b72f8]/50 bg-[#8b72f8]/15 px-3 py-1.5 text-xs font-semibold text-[#b09cff]"
+                      : "rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-xs font-semibold text-white/45 transition hover:bg-white/[0.07] hover:text-white"
+                  }
+                >
+                  {filter.label}
+                </Link>
+              ))}
+            </div>
+          </div>
         </div>
 
         {bills.length === 0 ? (
-          <p className="text-sm text-white/35">Nenhuma conta ou divida cadastrada ainda.</p>
+          <div className="rounded-2xl border border-white/10 bg-[#080810]/45 p-4 text-sm text-white/35">
+            Nenhuma conta ou divida cadastrada ainda. Crie uma conta avulsa ou fixa para acompanhar vencimentos.
+          </div>
+        ) : filteredBills.length === 0 ? (
+          <div className="rounded-2xl border border-white/10 bg-[#080810]/45 p-4 text-sm text-white/35">
+            Nenhuma conta encontrada com os filtros selecionados.
+          </div>
         ) : (
-          bills.map((bill) => (
+          filteredBills.map((bill) => (
             <div key={bill.id} className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-[#080810]/50 p-3 md:flex-row md:items-center md:justify-between">
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
