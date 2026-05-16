@@ -1,7 +1,7 @@
 "use client";
 
 import { ReceiptText, Pencil, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 
 import { ExpenseForm } from "@/components/finance/expense-form";
 import { Button } from "@/components/ui/button";
@@ -37,6 +37,19 @@ export function ExpenseListClient({
   const [editingExpense, setEditingExpense] = useState<DbExpense | null>(null);
   const [deletingExpense, setDeletingExpense] = useState<DbExpense | null>(null);
   const [isDeleteConfirmed, setIsDeleteConfirmed] = useState(false);
+  const [isDeleting, startDeleteTransition] = useTransition();
+
+  function resetDeleteDialog() {
+    setDeletingExpense(null);
+    setIsDeleteConfirmed(false);
+  }
+
+  function handleDeleteExpense(formData: FormData) {
+    startDeleteTransition(async () => {
+      await deleteExpense(formData);
+      resetDeleteDialog();
+    });
+  }
 
   return (
     <>
@@ -108,8 +121,7 @@ export function ExpenseListClient({
 
       <Dialog open={Boolean(deletingExpense)} onOpenChange={(open) => {
         if (!open) {
-          setDeletingExpense(null);
-          setIsDeleteConfirmed(false);
+          resetDeleteDialog();
         }
       }}>
         <DialogContent>
@@ -121,7 +133,7 @@ export function ExpenseListClient({
           </DialogHeader>
 
           {deletingExpense ? (
-            <form action={deleteExpense} className="space-y-4 pt-2">
+            <form action={handleDeleteExpense} className="space-y-4 pt-2">
               <input type="hidden" name="id" value={deletingExpense.id} />
               <input type="hidden" name="confirm_delete" value={isDeleteConfirmed ? "confirmado" : ""} />
 
@@ -141,10 +153,10 @@ export function ExpenseListClient({
 
               <Button
                 type="submit"
-                disabled={!isDeleteConfirmed}
+                disabled={!isDeleteConfirmed || isDeleting}
                 className="w-full rounded-2xl bg-[#f0506e] font-bold text-white hover:bg-[#df405f]"
               >
-                Excluir gasto
+                {isDeleting ? "Excluindo..." : "Excluir gasto"}
               </Button>
             </form>
           ) : null}
