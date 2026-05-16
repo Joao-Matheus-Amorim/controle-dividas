@@ -2,11 +2,11 @@
 
 import { useActionState } from "react";
 
-import { createBankAccount } from "@/app/protected/bancos/actions";
+import { createBankAccount, updateBankAccount } from "@/app/protected/bancos/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { BankAccountFormState } from "@/lib/finance/banks-server";
+import type { BankAccountFormState, DbBankAccount } from "@/lib/finance/banks-server";
 import type { DbFamilyMember } from "@/lib/finance/server";
 
 const initialState: BankAccountFormState = {};
@@ -21,17 +21,28 @@ const accountTypes = [
   "Outros",
 ];
 
-export function BankAccountForm({ members }: { members: DbFamilyMember[] }) {
-  const [state, formAction, isPending] = useActionState(createBankAccount, initialState);
+type BankAccountFormProps = {
+  members: DbFamilyMember[];
+  account?: DbBankAccount;
+  mode?: "create" | "edit";
+};
+
+export function BankAccountForm({ members, account, mode = "create" }: BankAccountFormProps) {
+  const action = mode === "edit" ? updateBankAccount : createBankAccount;
+  const [state, formAction, isPending] = useActionState(action, initialState);
+  const isEditing = mode === "edit" && Boolean(account);
 
   return (
     <form action={formAction} className="space-y-5">
+      {account ? <input type="hidden" name="id" value={account.id} /> : null}
+
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <div className="space-y-2">
-          <Label htmlFor="family_member_id">Pessoa vinculada</Label>
+          <Label htmlFor={isEditing ? `family_member_id-${account?.id}` : "family_member_id"}>Pessoa vinculada</Label>
           <select
-            id="family_member_id"
+            id={isEditing ? `family_member_id-${account?.id}` : "family_member_id"}
             name="family_member_id"
+            defaultValue={account?.family_member_id ?? ""}
             className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
             <option value="">Sem pessoa vinculada</option>
@@ -44,15 +55,22 @@ export function BankAccountForm({ members }: { members: DbFamilyMember[] }) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="bank_name">Nome do banco</Label>
-          <Input id="bank_name" name="bank_name" placeholder="Ex: Revolut, Wise" required />
+          <Label htmlFor={isEditing ? `bank_name-${account?.id}` : "bank_name"}>Nome do banco</Label>
+          <Input
+            id={isEditing ? `bank_name-${account?.id}` : "bank_name"}
+            name="bank_name"
+            placeholder="Ex: Revolut, Wise"
+            defaultValue={account?.bank_name ?? ""}
+            required
+          />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="account_type">Tipo de conta</Label>
+          <Label htmlFor={isEditing ? `account_type-${account?.id}` : "account_type"}>Tipo de conta</Label>
           <select
-            id="account_type"
+            id={isEditing ? `account_type-${account?.id}` : "account_type"}
             name="account_type"
+            defaultValue={account?.account_type ?? ""}
             className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
             <option value="">Selecione</option>
@@ -65,13 +83,14 @@ export function BankAccountForm({ members }: { members: DbFamilyMember[] }) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="current_balance">Saldo atual</Label>
+          <Label htmlFor={isEditing ? `current_balance-${account?.id}` : "current_balance"}>Saldo atual</Label>
           <Input
-            id="current_balance"
+            id={isEditing ? `current_balance-${account?.id}` : "current_balance"}
             name="current_balance"
             type="number"
             step="0.01"
             placeholder="500.00"
+            defaultValue={account ? String(account.current_balance) : ""}
             required
           />
         </div>
@@ -79,13 +98,22 @@ export function BankAccountForm({ members }: { members: DbFamilyMember[] }) {
 
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="currency">Moeda</Label>
-          <Input id="currency" name="currency" defaultValue="EUR" />
+          <Label htmlFor={isEditing ? `currency-${account?.id}` : "currency"}>Moeda</Label>
+          <Input
+            id={isEditing ? `currency-${account?.id}` : "currency"}
+            name="currency"
+            defaultValue={account?.currency ?? "EUR"}
+          />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="notes">Observacao</Label>
-          <Input id="notes" name="notes" placeholder="Opcional" />
+          <Label htmlFor={isEditing ? `notes-${account?.id}` : "notes"}>Observacao</Label>
+          <Input
+            id={isEditing ? `notes-${account?.id}` : "notes"}
+            name="notes"
+            placeholder="Opcional"
+            defaultValue={account?.notes ?? ""}
+          />
         </div>
       </div>
 
@@ -93,7 +121,7 @@ export function BankAccountForm({ members }: { members: DbFamilyMember[] }) {
       {state.success ? <p className="text-sm text-emerald-600">{state.success}</p> : null}
 
       <Button type="submit" disabled={isPending}>
-        {isPending ? "Salvando..." : "Cadastrar banco"}
+        {isPending ? "Salvando..." : isEditing ? "Salvar alteracoes" : "Cadastrar banco"}
       </Button>
     </form>
   );
