@@ -40,10 +40,7 @@ async function assertCanManageBankAccount(
   };
 }
 
-export async function createBankAccount(
-  _prevState: BankAccountFormState,
-  formData: FormData,
-): Promise<BankAccountFormState> {
+function parseBankAccountForm(formData: FormData) {
   const familyMemberId = String(formData.get("family_member_id") ?? "");
   const bankName = String(formData.get("bank_name") ?? "").trim();
   const accountType = String(formData.get("account_type") ?? "").trim();
@@ -51,23 +48,48 @@ export async function createBankAccount(
   const currency = String(formData.get("currency") ?? "EUR").trim() || "EUR";
   const notes = String(formData.get("notes") ?? "").trim();
 
-  if (!familyMemberId) {
+  return {
+    familyMemberId,
+    bankName,
+    accountType,
+    currentBalance,
+    currency,
+    notes,
+  };
+}
+
+function validateBankAccountInput(input: ReturnType<typeof parseBankAccountForm>): BankAccountFormState | null {
+  if (!input.familyMemberId) {
     return { error: "Selecione a pessoa vinculada ao banco." };
   }
 
-  if (!bankName) {
+  if (!input.bankName) {
     return { error: "Informe o nome do banco." };
   }
 
-  if (Number.isNaN(currentBalance)) {
+  if (Number.isNaN(input.currentBalance)) {
     return { error: "Informe um saldo valido." };
+  }
+
+  return null;
+}
+
+export async function createBankAccount(
+  _prevState: BankAccountFormState,
+  formData: FormData,
+): Promise<BankAccountFormState> {
+  const input = parseBankAccountForm(formData);
+  const validationError = validateBankAccountInput(input);
+
+  if (validationError) {
+    return validationError;
   }
 
   const supabase = await createClient();
   const profile = await getCurrentProfile();
 
   try {
-    await assertCanAccessMember("BANCOS", "can_create", familyMemberId);
+    await assertCanAccessMember("BANCOS", "can_create", input.familyMemberId);
   } catch (error) {
     return {
       error:
@@ -79,12 +101,12 @@ export async function createBankAccount(
 
   const { error } = await supabase.from("banks").insert({
     owner_id: profile.owner_id,
-    family_member_id: familyMemberId,
-    bank_name: bankName,
-    account_type: accountType || null,
-    current_balance: currentBalance,
-    currency,
-    notes: notes || null,
+    family_member_id: input.familyMemberId,
+    bank_name: input.bankName,
+    account_type: input.accountType || null,
+    current_balance: input.currentBalance,
+    currency: input.currency,
+    notes: input.notes || null,
   });
 
   if (error) {
@@ -95,6 +117,61 @@ export async function createBankAccount(
   revalidatePath("/protected");
 
   return { success: "Banco cadastrado com sucesso." };
+}
+
+export async function updateBankAccount(
+  _prevState: BankAccountFormState,
+  formData: FormData,
+): Promise<BankAccountFormState> {
+  const id = String(formData.get("id") ?? "");
+  const input = parseBankAccountForm(formData);
+  const validationError = validateBankAccountInput(input);
+
+  if (!id) {
+    return { error: "Banco nao encontrado." };
+  }
+
+  if (validationError) {
+    return validationError;
+  }
+
+  try {
+    const { profile, account } = await assertCanManageBankAccount(id, "can_edit");
+
+    if (String(account.family_member_id) !== input.familyMemberId) {
+      await assertCanAccessMember("BANCOS", "can_edit", input.familyMemberId);
+    }
+
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from("banks")
+      .update({
+        family_member_id: input.familyMemberId,
+        bank_name: input.bankName,
+        account_type: input.accountType || null,
+        current_balance: input.currentBalance,
+        currency: input.currency,
+        notes: input.notes || null,
+      })
+      .eq("id", id)
+      .eq("owner_id", profile.owner_id);
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    revalidatePath("/protected/bancos");
+    revalidatePath("/protected");
+
+    return { success: "Banco atualizado com sucesso." };
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "Nao foi possivel atualizar este banco.",
+    };
+  }
 }
 
 export async function updateBankAccountBalance(formData: FormData) {
