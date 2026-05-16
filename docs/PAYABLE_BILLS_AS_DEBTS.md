@@ -50,14 +50,49 @@ A tela de `Contas a pagar` passa a comunicar melhor o objetivo do modulo:
 - Conta fixa;
 - Total de avulsas;
 - Total de fixas;
-- Badges na listagem indicando o tipo.
+- Badges na listagem indicando o tipo;
+- filtros por status;
+- filtros por tipo;
+- estado vazio quando nao ha contas cadastradas;
+- estado vazio quando filtros nao encontram resultados.
+
+## Status
+
+Os status atuais continuam sendo:
+
+| Status | Significado |
+| --- | --- |
+| `pendente` | Conta ainda em aberto |
+| `pago` | Conta quitada |
+| `atrasado` | Conta vencida ou marcada como atrasada |
+
+O app tambem calcula atraso quando a conta nao esta paga e a data de vencimento ja passou.
+
+## Filtros da listagem
+
+A listagem permite combinar filtros por status e tipo usando query params:
+
+```txt
+/protected/contas-a-pagar?status=pendente
+/protected/contas-a-pagar?status=atrasado
+/protected/contas-a-pagar?status=pago
+/protected/contas-a-pagar?tipo=avulsa
+/protected/contas-a-pagar?tipo=fixa
+/protected/contas-a-pagar?status=pendente&tipo=fixa
+```
+
+Valores invalidos voltam para os filtros padrao:
+
+```txt
+status=todos
+tipo=todas
+```
 
 ## Fora do escopo desta fase
 
 - Modulo separado `/protected/dividas`;
 - recorrencia personalizada completa;
 - geracao automatica de proximas parcelas;
-- edicao completa de conta fixa/avulsa;
-- filtros avancados por tipo e status.
+- edicao completa de conta fixa/avulsa.
 
 Esses pontos podem evoluir em Issues futuras.
