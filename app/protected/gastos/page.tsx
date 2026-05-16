@@ -1,9 +1,8 @@
-import { Plus, ReceiptText, Trash2, TrendingDown, Users } from "lucide-react";
+import { Plus, ReceiptText, TrendingDown, Users } from "lucide-react";
 
-import { deleteExpense } from "./actions";
 import { ExpenseFormDialog } from "@/components/finance/expense-form-dialog";
+import { ExpenseListActions } from "@/components/finance/expense-list-actions";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { getCurrentProfile, getModulePermission } from "@/lib/finance/access-control";
 import { formatCurrency } from "@/lib/finance/calculations";
 import { getExpenseDashboardData } from "@/lib/finance/server";
@@ -28,14 +27,11 @@ export default async function GastosPage() {
   ]);
   const permission = profile.role === "admin" ? null : await getModulePermission(profile.id, "GASTOS");
   const canCreate = profile.role === "admin" || Boolean(permission?.can_create);
+  const canEdit = profile.role === "admin" || Boolean(permission?.can_edit);
   const canDelete = profile.role === "admin" || Boolean(permission?.can_delete);
 
   const { members, categories, expenses, memberSummaries, totalExpenses } = expenseData;
-
-  const totalLimit = memberSummaries.reduce(
-    (total, member) => total + Number(member.monthly_limit),
-    0,
-  );
+  const totalLimit = memberSummaries.reduce((total, member) => total + Number(member.monthly_limit), 0);
   const totalRemaining = totalLimit - totalExpenses;
 
   const categoryTotals = categories
@@ -53,12 +49,8 @@ export default async function GastosPage() {
     <div className="mx-auto flex w-full max-w-md flex-col gap-5 md:max-w-7xl">
       <section className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-white/25">
-            Junho
-          </p>
-          <h1 className="mt-1 text-3xl font-bold tracking-tight text-white md:text-4xl">
-            Gastos
-          </h1>
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-white/25">Junho</p>
+          <h1 className="mt-1 text-3xl font-bold tracking-tight text-white md:text-4xl">Gastos</h1>
           <p className="mt-1 text-sm text-white/40">Lançamentos da família</p>
         </div>
         {canCreate ? (
@@ -71,28 +63,18 @@ export default async function GastosPage() {
       <section className="relative overflow-hidden rounded-[1.75rem] border border-[#f0506e]/20 bg-[linear-gradient(135deg,#2b0f22_0%,#140814_55%,#080810_100%)] p-5 shadow-2xl shadow-black/30">
         <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-[#f0506e]/10 blur-2xl" />
         <div className="relative">
-          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/35">
-            Total gasto no mês
-          </p>
-          <p className="mt-2 text-4xl font-semibold tracking-tight text-white md:text-5xl">
-            {compactCurrency(totalExpenses)}
-          </p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/35">Total gasto no mês</p>
+          <p className="mt-2 text-4xl font-semibold tracking-tight text-white md:text-5xl">{compactCurrency(totalExpenses)}</p>
           <div className="mt-5 grid grid-cols-2 divide-x divide-white/10">
             <div className="pr-4">
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30">
-                Saldo restante
-              </p>
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30">Saldo restante</p>
               <p className={totalRemaining < 0 ? "mt-1 text-sm font-semibold text-[#f0506e]" : "mt-1 text-sm font-semibold text-[#1de9b2]"}>
                 {compactCurrency(totalRemaining)}
               </p>
             </div>
             <div className="pl-4">
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30">
-                Lançamentos
-              </p>
-              <p className="mt-1 text-sm font-semibold text-white/85">
-                {expenses.length}
-              </p>
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30">Lançamentos</p>
+              <p className="mt-1 text-sm font-semibold text-white/85">{expenses.length}</p>
             </div>
           </div>
         </div>
@@ -140,9 +122,7 @@ export default async function GastosPage() {
 
             return (
               <div key={member.id} className="min-w-[92px] rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-center">
-                <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-full bg-[#8b72f8]/15 text-xs font-bold text-[#b09cff]">
-                  {initials(member.name)}
-                </div>
+                <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-full bg-[#8b72f8]/15 text-xs font-bold text-[#b09cff]">{initials(member.name)}</div>
                 <p className="mt-2 truncate text-[11px] font-semibold text-white/70">{member.name}</p>
                 <p className="mt-1 text-[11px] font-bold text-white">{compactCurrency(member.spent)}</p>
                 <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/10">
@@ -199,14 +179,7 @@ export default async function GastosPage() {
               </div>
               <div className="flex flex-col items-end gap-2">
                 <p className="text-sm font-bold text-white">{compactCurrency(Number(expense.amount))}</p>
-                {canDelete ? (
-                  <form action={deleteExpense}>
-                    <input type="hidden" name="id" value={expense.id} />
-                    <Button type="submit" variant="outline" size="icon" aria-label="Excluir gasto" className="h-8 w-8 rounded-xl border-white/10 bg-transparent text-white/35 hover:bg-white/10 hover:text-white">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </form>
-                ) : null}
+                <ExpenseListActions expense={expense} members={members} categories={categories} canEdit={canEdit} canDelete={canDelete} />
               </div>
             </div>
           ))
