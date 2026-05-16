@@ -4,6 +4,7 @@ import { Trash2 } from "lucide-react";
 import { useActionState, useState } from "react";
 
 import { deletePayableBill, type PayableBillActionState } from "@/app/protected/contas-a-pagar/actions";
+import { AppActionFeedback } from "@/components/app/app-action-feedback";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -69,8 +70,7 @@ export function PayableBillDeleteDialog({ bill }: { bill: DbPayableBill }) {
             <span>Confirmo que quero excluir esta conta/divida.</span>
           </label>
 
-          {state.error ? <p className="text-sm text-[#ff8da0]">{state.error}</p> : null}
-          {state.success ? <p className="text-sm text-[#1de9b2]">{state.success}</p> : null}
+          <AppActionFeedback error={state.error} success={state.success} />
 
           <Button
             type="submit"
