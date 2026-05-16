@@ -11,6 +11,7 @@ import type { PayableBillFormState, PayableBillType } from "@/lib/finance/server
 import { createClient } from "@/lib/supabase/server";
 
 const payableBillTypes: PayableBillType[] = ["avulsa", "fixa"];
+const payableBillStatuses = ["pago", "pendente", "atrasado"] as const;
 
 async function assertCanManagePayableBill(
   billId: string,
@@ -42,10 +43,7 @@ async function assertCanManagePayableBill(
   };
 }
 
-export async function createPayableBill(
-  _prevState: PayableBillFormState,
-  formData: FormData,
-): Promise<PayableBillFormState> {
+function parsePayableBillForm(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   const category = String(formData.get("category") ?? "").trim();
   const amount = Number(formData.get("amount") ?? 0);
@@ -61,31 +59,60 @@ export async function createPayableBill(
   const recurrence = billType === "fixa" ? rawRecurrence || "mensal" : "";
   const notes = String(formData.get("notes") ?? "").trim();
 
-  if (!responsibleMemberId) {
+  return {
+    name,
+    category,
+    amount,
+    dueDate,
+    responsibleMemberId,
+    status,
+    billType,
+    bankUsed,
+    recurrence,
+    notes,
+  };
+}
+
+function validatePayableBillInput(input: ReturnType<typeof parsePayableBillForm>): PayableBillFormState | null {
+  if (!input.responsibleMemberId) {
     return { error: "Selecione o responsavel pela conta." };
   }
 
-  if (!name) {
+  if (!input.name) {
     return { error: "Informe o nome da conta." };
   }
 
-  if (Number.isNaN(amount) || amount <= 0) {
+  if (Number.isNaN(input.amount) || input.amount <= 0) {
     return { error: "Informe um valor valido." };
   }
 
-  if (!dueDate) {
+  if (!input.dueDate) {
     return { error: "Informe a data de vencimento." };
   }
 
-  if (!["pago", "pendente", "atrasado"].includes(status)) {
+  if (!payableBillStatuses.includes(input.status as (typeof payableBillStatuses)[number])) {
     return { error: "Status invalido." };
+  }
+
+  return null;
+}
+
+export async function createPayableBill(
+  _prevState: PayableBillFormState,
+  formData: FormData,
+): Promise<PayableBillFormState> {
+  const input = parsePayableBillForm(formData);
+  const validationError = validatePayableBillInput(input);
+
+  if (validationError) {
+    return validationError;
   }
 
   const supabase = await createClient();
   const profile = await getCurrentProfile();
 
   try {
-    await assertCanAccessMember("CONTAS_A_PAGAR", "can_create", responsibleMemberId);
+    await assertCanAccessMember("CONTAS_A_PAGAR", "can_create", input.responsibleMemberId);
   } catch (error) {
     return {
       error:
@@ -97,16 +124,16 @@ export async function createPayableBill(
 
   const { error } = await supabase.from("payable_bills").insert({
     owner_id: profile.owner_id,
-    name,
-    category: category || null,
-    amount,
-    due_date: dueDate,
-    responsible_member_id: responsibleMemberId,
-    status,
-    bill_type: billType,
-    bank_used: bankUsed || null,
-    recurrence: recurrence || null,
-    notes: notes || null,
+    name: input.name,
+    category: input.category || null,
+    amount: input.amount,
+    due_date: input.dueDate,
+    responsible_member_id: input.responsibleMemberId,
+    status: input.status,
+    bill_type: input.billType,
+    bank_used: input.bankUsed || null,
+    recurrence: input.recurrence || null,
+    notes: input.notes || null,
   });
 
   if (error) {
@@ -118,17 +145,76 @@ export async function createPayableBill(
 
   return {
     success:
-      billType === "fixa"
+      input.billType === "fixa"
         ? "Conta fixa cadastrada com sucesso."
         : "Conta avulsa cadastrada com sucesso.",
   };
+}
+
+export async function updatePayableBill(
+  _prevState: PayableBillFormState,
+  formData: FormData,
+): Promise<PayableBillFormState> {
+  const id = String(formData.get("id") ?? "");
+  const input = parsePayableBillForm(formData);
+  const validationError = validatePayableBillInput(input);
+
+  if (!id) {
+    return { error: "Conta nao encontrada." };
+  }
+
+  if (validationError) {
+    return validationError;
+  }
+
+  try {
+    const { profile, bill } = await assertCanManagePayableBill(id, "can_edit");
+
+    if (String(bill.responsible_member_id) !== input.responsibleMemberId) {
+      await assertCanAccessMember("CONTAS_A_PAGAR", "can_edit", input.responsibleMemberId);
+    }
+
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from("payable_bills")
+      .update({
+        name: input.name,
+        category: input.category || null,
+        amount: input.amount,
+        due_date: input.dueDate,
+        responsible_member_id: input.responsibleMemberId,
+        status: input.status,
+        bill_type: input.billType,
+        bank_used: input.bankUsed || null,
+        recurrence: input.recurrence || null,
+        notes: input.notes || null,
+      })
+      .eq("id", id)
+      .eq("owner_id", profile.owner_id);
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    revalidatePath("/protected/contas-a-pagar");
+    revalidatePath("/protected");
+
+    return { success: "Conta atualizada com sucesso." };
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "Nao foi possivel atualizar esta conta.",
+    };
+  }
 }
 
 export async function updatePayableBillStatus(formData: FormData) {
   const id = String(formData.get("id") ?? "");
   const status = String(formData.get("status") ?? "pendente");
 
-  if (!id || !["pago", "pendente", "atrasado"].includes(status)) {
+  if (!id || !payableBillStatuses.includes(status as (typeof payableBillStatuses)[number])) {
     return;
   }
 
