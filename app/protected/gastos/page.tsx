@@ -4,6 +4,7 @@ import { ExpenseFormDialog } from "@/components/finance/expense-form-dialog";
 import { ExpenseListClient } from "@/components/finance/expense-list-client";
 import { getCurrentProfile, getModulePermission } from "@/lib/finance/access-control";
 import { formatCurrency } from "@/lib/finance/calculations";
+import { getCurrentMonthLabel } from "@/lib/finance/period-context";
 import { getExpenseDashboardData } from "@/lib/finance/server";
 
 function compactCurrency(value: number) {
@@ -28,6 +29,7 @@ export default async function GastosPage() {
   const canCreate = profile.role === "admin" || Boolean(permission?.can_create);
   const canEdit = profile.role === "admin" || Boolean(permission?.can_edit);
   const canDelete = profile.role === "admin" || Boolean(permission?.can_delete);
+  const periodLabel = getCurrentMonthLabel();
 
   const { members, categories, expenses, memberSummaries, totalExpenses } = expenseData;
   const totalLimit = memberSummaries.reduce((total, member) => total + Number(member.monthly_limit), 0);
@@ -48,7 +50,7 @@ export default async function GastosPage() {
     <div className="mx-auto flex w-full max-w-md flex-col gap-5 md:max-w-7xl">
       <section className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-white/25">Junho</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-white/25">{periodLabel}</p>
           <h1 className="mt-1 text-3xl font-bold tracking-tight text-white md:text-4xl">Gastos</h1>
           <p className="mt-1 text-sm text-white/40">Lançamentos da família</p>
         </div>

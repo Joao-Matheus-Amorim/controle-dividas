@@ -6,6 +6,7 @@ import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getCurrentProfile, getModulePermission } from "@/lib/finance/access-control";
 import { formatCurrency } from "@/lib/finance/calculations";
+import { getCurrentMonthLabel } from "@/lib/finance/period-context";
 import { getReceivableIncomesDashboardData } from "@/lib/finance/server";
 
 function statusVariant(status: string): BadgeProps["variant"] {
@@ -27,6 +28,7 @@ export default async function ContasAReceberPage() {
   const canCreate = profile.role === "admin" || Boolean(permission?.can_create);
   const canEdit = profile.role === "admin" || Boolean(permission?.can_edit);
   const canDelete = profile.role === "admin" || Boolean(permission?.can_delete);
+  const periodLabel = getCurrentMonthLabel();
 
   const {
     members,
@@ -44,7 +46,7 @@ export default async function ContasAReceberPage() {
     <div className="mx-auto flex w-full max-w-md flex-col gap-5 md:max-w-7xl">
       <section className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-white/25">Junho</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-white/25">{periodLabel}</p>
           <h1 className="mt-1 text-3xl font-bold tracking-tight text-white md:text-4xl">Receber</h1>
           <p className="mt-1 text-sm text-white/40">Entradas e rendas</p>
         </div>
