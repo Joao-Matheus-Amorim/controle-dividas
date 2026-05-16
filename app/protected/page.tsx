@@ -1,13 +1,16 @@
 import {
+  AlertTriangle,
   Banknote,
   CalendarClock,
   CreditCard,
   Plus,
   ReceiptText,
+  Repeat2,
   ShieldCheck,
   TrendingDown,
   TrendingUp,
   Users,
+  WalletCards,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -70,7 +73,7 @@ export default async function ProtectedPage() {
     ? expenseData.memberSummaries.reduce((total, member) => total + Number(member.monthly_limit), 0)
     : 0;
   const remainingMonthlyLimit = totalMonthlyLimit - (canExpenses ? expenseData.totalExpenses : 0);
-  const totalPayableBills = canPayables ? payableData.totalPending + payableData.totalOverdue : 0;
+  const totalOpenDebts = canPayables ? payableData.totalPending + payableData.totalOverdue : 0;
   const totalReceivableIncomes = canReceivables ? receivableData.totalExpected + receivableData.totalOverdue : 0;
   const usedPercent = totalMonthlyLimit > 0
     ? Math.min((expenseData.totalExpenses / totalMonthlyLimit) * 100, 100)
@@ -108,9 +111,9 @@ export default async function ProtectedPage() {
     canPayables
       ? {
           href: "/protected/contas-a-pagar",
-          title: "Nova conta",
-          subtitle: "Vencimentos",
-          icon: CalendarClock,
+          title: "Nova conta/divida",
+          subtitle: "Fixa ou avulsa",
+          icon: WalletCards,
           color: "#f7b84b",
           bg: "bg-[#f7b84b]/10",
         }
@@ -157,10 +160,10 @@ export default async function ProtectedPage() {
       : null,
     canPayables
       ? {
-          label: "Contas em aberto",
+          label: "Contas e dividas em aberto",
           detail: "Pendentes e atrasadas",
-          value: compactCurrency(totalPayableBills),
-          icon: CalendarClock,
+          value: compactCurrency(totalOpenDebts),
+          icon: WalletCards,
           color: "#f7b84b",
           bg: "bg-[#f7b84b]/10",
         }
@@ -205,7 +208,7 @@ export default async function ProtectedPage() {
           <p className="mt-2 max-w-sm text-sm leading-6 text-white/40">
             {isLimitedDashboard
               ? "Você está vendo apenas os módulos liberados para o seu perfil."
-              : "Limites, contas e entradas organizados em uma leitura rápida."}
+              : "Gastos, contas, dividas, entradas e bancos organizados em uma leitura rápida."}
           </p>
         </div>
         {canAdmin ? (
@@ -253,7 +256,7 @@ export default async function ProtectedPage() {
             </div>
           ) : null}
 
-          <div className="mt-5 grid grid-cols-3 gap-2">
+          <div className="mt-5 grid grid-cols-2 gap-2 md:grid-cols-4">
             {canExpenses ? (
               <>
                 <div className="min-w-0 rounded-2xl border border-white/10 bg-white/[0.055] p-3">
@@ -265,6 +268,12 @@ export default async function ProtectedPage() {
                   <p className="mt-1 truncate text-sm font-bold text-white">{compactCurrency(totalMonthlyLimit)}</p>
                 </div>
               </>
+            ) : null}
+            {canPayables ? (
+              <div className="min-w-0 rounded-2xl border border-white/10 bg-white/[0.055] p-3">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-white/25">Dividas</p>
+                <p className="mt-1 truncate text-sm font-bold text-[#f7b84b]">{compactCurrency(totalOpenDebts)}</p>
+              </div>
             ) : null}
             {canReceivables ? (
               <div className="min-w-0 rounded-2xl border border-white/10 bg-white/[0.055] p-3">
@@ -337,7 +346,40 @@ export default async function ProtectedPage() {
             </div>
           </AppCard>
 
-          {canExpenses ? (
+          {canPayables ? (
+            <AppCard className="space-y-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <AppSectionTitle>Contas e dividas</AppSectionTitle>
+                  <p className="mt-1 text-sm text-white/35">Fixas, avulsas e atrasadas</p>
+                </div>
+                <WalletCards className="h-4 w-4 text-white/25" />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div className="rounded-2xl border border-white/10 bg-[#080810]/45 p-3">
+                  <CalendarClock className="h-4 w-4 text-[#f7b84b]" />
+                  <p className="mt-3 text-[10px] font-bold uppercase tracking-widest text-white/25">Pendentes</p>
+                  <p className="mt-1 text-sm font-bold text-white">{payableData.pendingCount} · {compactCurrency(payableData.totalPending)}</p>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-[#080810]/45 p-3">
+                  <AlertTriangle className="h-4 w-4 text-[#f0506e]" />
+                  <p className="mt-3 text-[10px] font-bold uppercase tracking-widest text-white/25">Atrasadas</p>
+                  <p className="mt-1 text-sm font-bold text-white">{payableData.overdueCount} · {compactCurrency(payableData.totalOverdue)}</p>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-[#080810]/45 p-3">
+                  <WalletCards className="h-4 w-4 text-[#8b72f8]" />
+                  <p className="mt-3 text-[10px] font-bold uppercase tracking-widest text-white/25">Avulsas</p>
+                  <p className="mt-1 text-sm font-bold text-white">{payableData.oneOffCount} · {compactCurrency(payableData.totalOneOff)}</p>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-[#080810]/45 p-3">
+                  <Repeat2 className="h-4 w-4 text-[#b09cff]" />
+                  <p className="mt-3 text-[10px] font-bold uppercase tracking-widest text-white/25">Fixas</p>
+                  <p className="mt-1 text-sm font-bold text-white">{payableData.fixedCount} · {compactCurrency(payableData.totalFixed)}</p>
+                </div>
+              </div>
+            </AppCard>
+          ) : canExpenses ? (
             <AppCard className="space-y-4">
               <div className="flex items-center justify-between gap-3">
                 <div>
@@ -350,12 +392,6 @@ export default async function ProtectedPage() {
               <div className="rounded-[1.35rem] border border-white/10 bg-[#080810]/45 p-4">
                 <p className="text-3xl font-black tracking-[-0.05em] text-white">{usedPercent.toFixed(0)}%</p>
                 <p className="mt-1 text-xs text-white/35">do limite permitido foi usado</p>
-                <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/10">
-                  <div
-                    className={healthyMonth ? "h-full rounded-full bg-[#8b72f8]" : "h-full rounded-full bg-[#f0506e]"}
-                    style={{ width: `${usedPercent}%` }}
-                  />
-                </div>
               </div>
             </AppCard>
           ) : null}
@@ -414,21 +450,26 @@ export default async function ProtectedPage() {
             <div className="flex items-center justify-between">
               <div>
                 <AppSectionTitle>Próximos vencimentos</AppSectionTitle>
-                <p className="mt-1 text-sm text-white/35">Contas dentro do seu escopo</p>
+                <p className="mt-1 text-sm text-white/35">Contas e dividas dentro do seu escopo</p>
               </div>
               <CalendarClock className="h-4 w-4 text-white/30" />
             </div>
             {upcomingBills.length === 0 ? (
-              <div className="rounded-2xl border border-white/10 bg-[#080810]/45 p-4 text-sm text-white/35">Nenhuma conta pendente.</div>
+              <div className="rounded-2xl border border-white/10 bg-[#080810]/45 p-4 text-sm text-white/35">Nenhuma conta ou divida pendente.</div>
             ) : (
               <div className="space-y-2">
                 {upcomingBills.map((bill) => (
                   <div key={bill.id} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-[#080810]/45 p-3">
                     <div className={bill.computed_status === "atrasado" ? "flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#f0506e]/10 text-[#f0506e]" : "flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#f7b84b]/10 text-[#f7b84b]"}>
-                      <CalendarClock className="h-5 w-5" />
+                      {bill.computed_status === "atrasado" ? <AlertTriangle className="h-5 w-5" /> : <CalendarClock className="h-5 w-5" />}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-white">{bill.name}</p>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="truncate text-sm font-semibold text-white">{bill.name}</p>
+                        <span className="rounded-full border border-white/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white/45">
+                          {bill.bill_type === "fixa" ? "fixa" : "avulsa"}
+                        </span>
+                      </div>
                       <p className="mt-0.5 truncate text-xs text-white/35">
                         {bill.category || "Sem categoria"} · {bill.family_members?.name || "Sem responsável"}
                       </p>
