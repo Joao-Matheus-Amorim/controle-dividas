@@ -38,12 +38,26 @@ deletingExpense
 isDeleteConfirmed
 ```
 
+## Ajuste posterior de estado
+
+Depois da otimizacao, foi identificado que o dialog compartilhado de exclusao precisava limpar o estado apos submissao/fechamento.
+
+O fluxo agora reseta:
+
+```txt
+deletingExpense = null
+isDeleteConfirmed = false
+```
+
+quando o dialog fecha ou apos a action de exclusao ser enviada. Isso evita modal preso aberto com dados antigos e garante nova confirmacao em cada tentativa de exclusao.
+
 ## Beneficios
 
 - Reduz duplicacao de dados enviados para o client.
 - Evita instanciar dialogs completos dentro de cada linha.
 - Mantem edicao e exclusao funcionando.
 - Mantem confirmacao antes de exclusao.
+- Evita estado antigo no dialog compartilhado.
 - Mantem a pagina server mais limpa.
 
 ## Fora do escopo
