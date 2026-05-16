@@ -7,18 +7,11 @@ import {
   receivableIncomes,
 } from "@/__tests__/fixtures/mock-data";
 
-export const currencyFormatter = new Intl.NumberFormat("pt-PT", {
-  style: "currency",
-  currency: "EUR",
-});
-
-export function formatCurrency(value: number) {
-  return currencyFormatter.format(value);
-}
-
-export function compactCurrency(value: number) {
-  return formatCurrency(value).replace(/\s+/g, " ").trim();
-}
+export {
+  compactCurrency,
+  currencyFormatter,
+  formatCurrency,
+} from "@/lib/finance/formatting";
 
 export function calculateRemainingLimit(monthlyLimit: number, spent: number) {
   return monthlyLimit - spent;
