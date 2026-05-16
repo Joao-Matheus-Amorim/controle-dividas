@@ -1,12 +1,12 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 
 import { createPayableBill } from "@/app/protected/contas-a-pagar/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { DbFamilyMember, PayableBillFormState } from "@/lib/finance/server";
+import type { DbFamilyMember, PayableBillFormState, PayableBillType } from "@/lib/finance/server";
 
 const initialState: PayableBillFormState = {};
 
@@ -25,14 +25,46 @@ const categories = [
 
 export function PayableBillForm({ members }: { members: DbFamilyMember[] }) {
   const [state, formAction, isPending] = useActionState(createPayableBill, initialState);
+  const [billType, setBillType] = useState<PayableBillType>("avulsa");
   const today = new Date().toISOString().slice(0, 10);
 
   return (
     <form action={formAction} className="space-y-5">
+      <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-3">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/35">Tipo de conta</p>
+        <div className="mt-3 grid gap-2 md:grid-cols-2">
+          <label className="cursor-pointer rounded-2xl border border-white/10 bg-[#080810]/60 p-3 transition has-[:checked]:border-[#8b72f8]/60 has-[:checked]:bg-[#8b72f8]/10">
+            <input
+              type="radio"
+              name="bill_type"
+              value="avulsa"
+              checked={billType === "avulsa"}
+              onChange={() => setBillType("avulsa")}
+              className="sr-only"
+            />
+            <span className="text-sm font-semibold text-white">Conta avulsa</span>
+            <span className="mt-1 block text-xs leading-5 text-white/35">Pagamento pontual, boleto eventual ou divida sem repeticao.</span>
+          </label>
+
+          <label className="cursor-pointer rounded-2xl border border-white/10 bg-[#080810]/60 p-3 transition has-[:checked]:border-[#8b72f8]/60 has-[:checked]:bg-[#8b72f8]/10">
+            <input
+              type="radio"
+              name="bill_type"
+              value="fixa"
+              checked={billType === "fixa"}
+              onChange={() => setBillType("fixa")}
+              className="sr-only"
+            />
+            <span className="text-sm font-semibold text-white">Conta fixa</span>
+            <span className="mt-1 block text-xs leading-5 text-white/35">Conta recorrente, inicialmente mensal e futuramente personalizavel.</span>
+          </label>
+        </div>
+      </div>
+
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <div className="space-y-2">
-          <Label htmlFor="name">Nome da conta</Label>
-          <Input id="name" name="name" placeholder="Ex: Aluguel" required />
+          <Label htmlFor="name">Nome da conta/divida</Label>
+          <Input id="name" name="name" placeholder={billType === "fixa" ? "Ex: Aluguel" : "Ex: Boleto eventual"} required />
         </div>
 
         <div className="space-y-2">
@@ -100,7 +132,16 @@ export function PayableBillForm({ members }: { members: DbFamilyMember[] }) {
 
         <div className="space-y-2">
           <Label htmlFor="recurrence">Recorrencia</Label>
-          <Input id="recurrence" name="recurrence" placeholder="Ex: mensal" />
+          <Input
+            id="recurrence"
+            name="recurrence"
+            defaultValue={billType === "fixa" ? "mensal" : ""}
+            placeholder={billType === "fixa" ? "mensal" : "Sem recorrencia"}
+            disabled={billType === "avulsa"}
+          />
+          {billType === "fixa" ? (
+            <p className="text-xs text-white/35">Nesta fase, conta fixa nasce como mensal. Depois evoluiremos para recorrencia personalizada.</p>
+          ) : null}
         </div>
       </div>
 
@@ -113,7 +154,7 @@ export function PayableBillForm({ members }: { members: DbFamilyMember[] }) {
       {state.success ? <p className="text-sm text-emerald-600">{state.success}</p> : null}
 
       <Button type="submit" disabled={isPending}>
-        {isPending ? "Salvando..." : "Cadastrar conta"}
+        {isPending ? "Salvando..." : billType === "fixa" ? "Cadastrar conta fixa" : "Cadastrar conta avulsa"}
       </Button>
     </form>
   );
