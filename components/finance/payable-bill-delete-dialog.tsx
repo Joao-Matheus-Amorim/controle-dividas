@@ -20,9 +20,18 @@ const initialState: PayableBillActionState = {};
 export function PayableBillDeleteDialog({ bill }: { bill: DbPayableBill }) {
   const [state, formAction, isPending] = useActionState(deletePayableBill, initialState);
   const [isConfirmed, setIsConfirmed] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+
+  function handleOpenChange(open: boolean) {
+    setIsOpen(open);
+
+    if (!open) {
+      setIsConfirmed(false);
+    }
+  }
 
   return (
-    <Dialog>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button
           type="button"
