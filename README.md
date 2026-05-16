@@ -11,12 +11,14 @@ Este projeto esta em fase de **MVP Web/PWA funcional**. Ele nao deve ser tratado
 | Produto | MVP Web/PWA funcional |
 | Stack | Next.js, React, TypeScript, Tailwind CSS e Supabase |
 | Autenticacao | Implementada com Supabase Auth |
-| Rotas privadas | Protegidas por `proxy.ts` |
+| Rotas privadas | Protegidas por `proxy.ts` e error boundary com retry |
 | Permissoes | Implementadas por modulo, acao e escopo |
 | Dashboard | Implementado e refinado para contas/dividas |
-| Contas a pagar / Dividas | Implementado com conta avulsa e conta fixa |
+| Gastos | Implementado com criacao, edicao, exclusao confirmada e listagem otimizada |
+| Contas a pagar / Dividas | Implementado com conta avulsa, conta fixa mensal, edicao, status e exclusao confirmada |
 | Testes | Unitarios e integracao com Vitest/MSW |
-| CI | GitHub Actions com Quality Gate obrigatorio |
+| CI | GitHub Actions com Quality Gate obrigatorio em Node 24 |
+| Revisoes Copilot/Codex | Comentarios relevantes tratados e documentados |
 | `main` | Protegida por ruleset |
 | Deploy automatico | Desativado durante desenvolvimento |
 
@@ -31,6 +33,18 @@ Atacar apenas lacunas reais.
 Manter README e docs sincronizados com o estado atual.
 ```
 
+## Atualizacao recente
+
+O ciclo mais recente consolidou ajustes apontados em reviews do Copilot/Codex e sincronizou a documentacao do projeto. As principais decisoes foram:
+
+- conta fixa em Contas a pagar / Dividas sempre grava recorrencia `mensal` nesta fase do MVP;
+- conta avulsa continua sem recorrencia;
+- exclusoes em Contas a pagar / Dividas e Gastos exigem confirmacao explicita;
+- confirmacoes de exclusao sao resetadas ao fechar/reabrir dialogs;
+- a lista de Gastos usa um componente client unico para evitar hidratacao repetida de `members` e `categories` por linha;
+- o error boundary de rotas protegidas usa `unstable_retry` no botao `Tentar novamente`;
+- as decisoes foram registradas em `docs/COPILOT_REVIEW_RESOLUTION.md` e documentos relacionados.
+
 ## Resumo executivo
 
 O FamilyFinance ja esta em fase de MVP Web/PWA funcional, com:
@@ -41,9 +55,12 @@ O FamilyFinance ja esta em fase de MVP Web/PWA funcional, com:
 - vinculo entre `auth.users` e `profiles` familiares;
 - Dashboard financeiro contextual;
 - modulo de Pessoas;
-- modulo de Gastos;
+- modulo de Gastos com criacao, edicao, exclusao confirmada e listagem otimizada;
 - modulo de Contas a pagar, usado tambem como Dividas no MVP;
 - contas avulsas e contas fixas mensais;
+- edicao completa de contas/dividas;
+- alteracao de status de contas/dividas com feedback;
+- exclusao confirmada em contas/dividas;
 - modulo de Contas a receber;
 - modulo de Bancos;
 - modulo de Relatorios;
@@ -58,8 +75,9 @@ O FamilyFinance ja esta em fase de MVP Web/PWA funcional, com:
 - testes unitarios;
 - testes de integracao com MSW;
 - estados padronizados de loading e erro em rotas protegidas;
+- error boundary de rotas protegidas com retry;
 - estrutura PWA com manifest;
-- documentacao de produto, escopo, arquitetura, testes, mobile, acesso, custos, permissoes, UX e roadmap.
+- documentacao de produto, escopo, arquitetura, testes, mobile, acesso, custos, permissoes, UX, reviews e roadmap.
 
 ## Decisoes atuais de produto
 
@@ -95,10 +113,10 @@ O modulo trabalha com dois tipos:
 
 | Tipo | Uso | Recorrencia |
 | --- | --- | --- |
-| `avulsa` | Conta/divida pontual, boleto eventual, compra especifica ou pagamento sem repeticao | Sem recorrencia obrigatoria |
-| `fixa` | Conta recorrente como aluguel, internet, escola, assinatura ou financiamento | Inicialmente mensal |
+| `avulsa` | Conta/divida pontual, boleto eventual, compra especifica ou pagamento sem repeticao | Sem recorrencia |
+| `fixa` | Conta recorrente como aluguel, internet, escola, assinatura ou financiamento | Mensal obrigatoria nesta fase |
 
-A recorrencia personalizada fica preparada para uma fase futura.
+Nesta fase do MVP, qualquer conta fixa grava `recurrence = 'mensal'`. Recorrencia personalizada fica preparada para uma fase futura, mas ainda nao esta ativa.
 
 ## Estado atual real do projeto
 
@@ -125,8 +143,8 @@ A recorrencia personalizada fica preparada para uma fase futura.
 - Gerenciamento de usuarios familiares.
 - Gerenciamento de permissoes por modulo, acao, escopo e pessoas liberadas.
 - Pessoas financeiras da familia.
-- Gastos.
-- Contas a pagar / Dividas.
+- Gastos com criacao, edicao, exclusao confirmada e listagem otimizada.
+- Contas a pagar / Dividas com criacao, edicao, status, filtros, tipo fixa/avulsa e exclusao confirmada.
 - Contas a receber.
 - Bancos.
 - Relatorios consolidados.
@@ -142,28 +160,29 @@ A recorrencia personalizada fica preparada para uma fase futura.
 - Testes de integracao de fluxo de permissoes.
 - Testes de actions de contas/dividas.
 - Loading padronizado para rotas protegidas.
-- Error boundary amigavel para rotas protegidas.
+- Error boundary amigavel para rotas protegidas com `unstable_retry`.
 - PWA manifest.
 - Vercel configurada com deploy automatico desativado.
-- CI com Quality Gate obrigatorio.
+- CI com Quality Gate obrigatorio em Node 24.
 - Branch `main` protegida.
+- Resolucao documentada dos comentarios relevantes do Copilot/Codex.
 
 ### Parcialmente implementado
 
-- Edicao completa de Gastos: existe criacao e exclusao, mas a edicao completa ainda deve ser finalizada.
-- Edicao completa de Contas a pagar / Dividas: existe criacao, tipo fixa/avulsa, alteracao de status, filtros e exclusao, mas a edicao completa ainda deve ser finalizada.
 - Edicao completa de Contas a receber: existe criacao, alteracao de status e exclusao, mas a edicao completa ainda deve ser finalizada.
 - Edicao completa de Bancos: existe criacao, alteracao de saldo e exclusao, mas a edicao completa ainda deve ser finalizada.
 - Categorias: existe criacao e exclusao, mas edicao completa ainda deve ser finalizada.
 - `user_feature_permissions`: a tabela, tipos e testes existem, mas a UI completa para gerenciar funcionalidades finas ainda precisa evoluir.
 - Relatorios: ja existem consultas e tela consolidada, mas exportacao, filtros avancados e graficos ainda precisam evoluir.
 - Dashboard: ja respeita permissoes e escopos, mas o periodo exibido ainda deve virar dinamico.
-- Actions de update/delete: algumas ainda falham silenciosamente e devem ganhar feedback visual futuro.
+- Feedback global compartilhado entre modulos ainda pode evoluir para toast/padroes centralizados.
 
 ### Planejado
 
 - Recorrencia personalizada de contas fixas.
-- Edicao completa de contas/dividas.
+- Edicao completa de contas a receber.
+- Edicao completa de bancos.
+- Edicao completa de categorias.
 - Metas.
 - Investimentos.
 - Acoes.
@@ -431,6 +450,11 @@ Preserva dados antigos:
 - contas com `recurrence` preenchida passam a ser tratadas como `fixa`;
 - contas sem `recurrence` continuam como `avulsa`.
 
+Regra atual de aplicacao:
+
+- `fixa` sempre grava `recurrence = 'mensal'` nesta fase;
+- `avulsa` sempre grava `recurrence = null`.
+
 ## Modelo de dados principal
 
 ### `family_members`
@@ -482,6 +506,13 @@ Tipos validos:
 ```txt
 avulsa
 fixa
+```
+
+Regra atual:
+
+```txt
+fixa  -> recurrence = mensal
+avulsa -> recurrence = null
 ```
 
 ### `receivable_incomes`
@@ -601,6 +632,18 @@ O `updateSession`:
 - sincroniza cookies;
 - chama `supabase.auth.getClaims()`;
 - redireciona usuario sem sessao para `/auth/login`.
+
+## Error boundary das rotas protegidas
+
+As rotas protegidas possuem `app/protected/error.tsx` para exibir falhas de carregamento de forma amigavel.
+
+O botao `Tentar novamente` usa `unstable_retry`, permitindo nova tentativa de carregamento quando a falha estiver relacionada a dados server-side, Supabase, cookies, rede ou permissoes temporarias.
+
+A decisao esta documentada em:
+
+```txt
+docs/ERROR_BOUNDARY_RETRY.md
+```
 
 ## Regra oficial de permissoes
 
@@ -788,19 +831,26 @@ app/protected/gastos/page.tsx
 app/protected/gastos/actions.ts
 components/finance/expense-form.tsx
 components/finance/expense-form-dialog.tsx
+components/finance/expense-list-client.tsx
 components/finance/category-summary.tsx
 ```
 
 Acoes:
 
 - criar gasto;
-- excluir gasto;
+- editar gasto;
+- excluir gasto com confirmacao;
+- resetar estado de confirmacao ao fechar/submeter exclusao;
 - validar permissao de criacao por membro;
-- validar permissao de exclusao por membro.
+- validar permissao de edicao por membro atual e novo membro quando houver troca;
+- validar permissao de exclusao por membro;
+- otimizar a listagem usando um componente client unico para evitar duplicacao de `members` e `categories` por linha.
 
 Pendente:
 
-- edicao completa de gasto.
+- filtros avancados de gastos;
+- anexos/comprovantes;
+- historico de alteracoes.
 
 ### Contas a pagar / Dividas
 
@@ -811,6 +861,9 @@ app/protected/contas-a-pagar/page.tsx
 app/protected/contas-a-pagar/actions.ts
 components/finance/payable-bill-form.tsx
 components/finance/payable-bill-form-dialog.tsx
+components/finance/payable-bill-edit-dialog.tsx
+components/finance/payable-bill-status-form.tsx
+components/finance/payable-bill-delete-dialog.tsx
 components/finance/upcoming-bills.tsx
 ```
 
@@ -818,9 +871,12 @@ Acoes:
 
 - criar conta/divida;
 - escolher tipo `avulsa` ou `fixa`;
-- criar conta fixa com recorrencia mensal inicial;
-- alterar status;
-- excluir conta;
+- criar conta fixa com recorrencia mensal obrigatoria nesta fase;
+- manter conta avulsa sem recorrencia;
+- editar conta/divida;
+- alterar status com feedback;
+- excluir conta/divida com confirmacao;
+- resetar confirmacao ao fechar/reabrir dialog de exclusao;
 - validar permissao por responsavel;
 - filtrar por status;
 - filtrar por tipo;
@@ -829,9 +885,9 @@ Acoes:
 
 Pendente:
 
-- edicao completa de conta/divida;
 - recorrencia personalizada completa;
-- feedback visual mais forte em update/delete.
+- historico de alteracoes;
+- restauracao de item excluido.
 
 ### Contas a receber
 
@@ -853,7 +909,9 @@ Acoes:
 
 Pendente:
 
-- edicao completa de recebimento.
+- edicao completa de recebimento;
+- confirmacao de exclusao;
+- feedback visual mais forte em actions de update/delete.
 
 ### Bancos
 
@@ -1064,11 +1122,15 @@ components/finance/bank-account-form.tsx
 components/finance/category-summary.tsx
 components/finance/expense-category-form.tsx
 components/finance/expense-form.tsx
+components/finance/expense-list-client.tsx
 components/finance/family-member-form.tsx
 components/finance/family-user-form.tsx
 components/finance/module-placeholder.tsx
+components/finance/payable-bill-delete-dialog.tsx
+components/finance/payable-bill-edit-dialog.tsx
 components/finance/payable-bill-form.tsx
 components/finance/payable-bill-form-dialog.tsx
+components/finance/payable-bill-status-form.tsx
 components/finance/permissions-form.tsx
 components/finance/person-balance-card.tsx
 components/finance/receivable-income-form.tsx
@@ -1200,6 +1262,7 @@ app/protected/error.tsx
 components/app/app-skeleton.tsx
 components/app/app-empty-state.tsx
 docs/UI_STATES.md
+docs/ERROR_BOUNDARY_RETRY.md
 ```
 
 ## PWA e mobile
@@ -1260,7 +1323,9 @@ Diretrizes atuais:
 - navegacao inferior no mobile;
 - navegacao superior no desktop;
 - formularios em dialog/modal quando fizer sentido;
-- feedback visual claro para saldo, alerta, sucesso, perigo, loading e erro.
+- feedback visual claro para saldo, alerta, sucesso, perigo, loading e erro;
+- confirmacao explicita para exclusoes financeiras sensiveis;
+- reset de confirmacao ao fechar/reabrir dialogs destrutivos.
 
 Cores principais definidas em `app/globals.css`:
 
@@ -1345,7 +1410,13 @@ Test ...
 docs/LIVE_MVP_AUDIT.md
 docs/AUTH_FLOW_AUDIT.md
 docs/PAYABLE_BILLS_AS_DEBTS.md
+docs/PAYABLE_BILL_EDIT_FLOW.md
+docs/PAYABLE_BILL_ACTION_FEEDBACK.md
 docs/DASHBOARD_DEBT_SUMMARY.md
+docs/EXPENSE_EDIT_FEEDBACK.md
+docs/EXPENSE_LIST_OPTIMIZATION.md
+docs/ERROR_BOUNDARY_RETRY.md
+docs/COPILOT_REVIEW_RESOLUTION.md
 docs/UI_STATES.md
 docs/LIVE_FLOW_TESTS.md
 docs/PRODUCT_VISION.md
@@ -1372,23 +1443,23 @@ docs/pm/06_ACEITE_ROADMAP.md
 
 ### Curto prazo
 
-- Atualizar CI para Node 24 quando apropriado.
-- Padronizar UX de recuperacao/atualizacao de senha.
-- Melhorar feedback de actions silenciosas.
-- Finalizar edicao completa de contas a pagar/dividas.
-- Finalizar edicao completa de gastos, bancos e contas a receber.
+- Finalizar edicao completa de contas a receber.
+- Finalizar edicao completa de bancos.
+- Finalizar edicao completa de categorias.
+- Evoluir feedback global compartilhado entre modulos, possivelmente com toast.
 - Separar funcoes puras de `lib/finance/calculations.ts` das funcoes baseadas em fixtures.
 - Mover calculos mockados para area de testes ou arquivo claramente marcado como mock.
 
 ### Medio prazo
 
+- Recorrencia personalizada de contas fixas.
 - Periodo dinamico no Dashboard.
 - Periodo dinamico em Relatorios.
 - Filtros avancados por pessoa, categoria, status e periodo.
 - Exportacao de relatorios.
 - Graficos financeiros.
 - UI completa para `user_feature_permissions`.
-- Confirmacoes visuais para exclusao.
+- Confirmacoes visuais padronizadas para exclusao em todos os modulos financeiros.
 
 ### Futuro
 
@@ -1413,6 +1484,7 @@ Regras obrigatorias:
 - Usuario inativo nao deve acessar dados.
 - Email nao autorizado nao deve criar acesso familiar.
 - Profile ja vinculado nao deve ser reassociado a outro Auth user sem decisao administrativa.
+- Exclusoes financeiras devem exigir confirmacao explicita quando houver risco de perda de dados.
 
 ## Regra de ouro
 
