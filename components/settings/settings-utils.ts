@@ -1,8 +1,6 @@
-import { formatCurrency } from "@/lib/finance/calculations";
+import { compactCurrency } from "@/lib/finance/formatting";
 
-export function compactCurrency(value: number) {
-  return formatCurrency(value).replace("€", "€ ");
-}
+export { compactCurrency };
 
 export const automaticRules = [
   "Gastos reduzem automaticamente o saldo mensal da pessoa.",
