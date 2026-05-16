@@ -9,6 +9,7 @@ import {
 import Link from "next/link";
 
 import { deletePayableBill, updatePayableBillStatus } from "./actions";
+import { PayableBillEditDialog } from "@/components/finance/payable-bill-edit-dialog";
 import { PayableBillFormDialog } from "@/components/finance/payable-bill-form-dialog";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -280,15 +281,18 @@ export default async function ContasAPagarPage({ searchParams }: ContasAPagarPag
               <div className="flex items-center justify-between gap-3 md:justify-end">
                 <p className="text-sm font-bold text-white">{compactCurrency(Number(bill.amount))}</p>
                 {canEdit ? (
-                  <form action={updatePayableBillStatus} className="flex gap-2">
-                    <input type="hidden" name="id" value={bill.id} />
-                    <select name="status" defaultValue={bill.status} className="h-9 rounded-xl border border-white/10 bg-[#080810] px-2 text-xs text-white/70">
-                      <option value="pendente">Pendente</option>
-                      <option value="pago">Pago</option>
-                      <option value="atrasado">Atrasado</option>
-                    </select>
-                    <Button type="submit" variant="outline" className="h-9 rounded-xl border-white/10 bg-transparent text-white/60 hover:bg-white/10 hover:text-white">Salvar</Button>
-                  </form>
+                  <>
+                    <PayableBillEditDialog bill={bill} members={members} />
+                    <form action={updatePayableBillStatus} className="flex gap-2">
+                      <input type="hidden" name="id" value={bill.id} />
+                      <select name="status" defaultValue={bill.status} className="h-9 rounded-xl border border-white/10 bg-[#080810] px-2 text-xs text-white/70">
+                        <option value="pendente">Pendente</option>
+                        <option value="pago">Pago</option>
+                        <option value="atrasado">Atrasado</option>
+                      </select>
+                      <Button type="submit" variant="outline" className="h-9 rounded-xl border-white/10 bg-transparent text-white/60 hover:bg-white/10 hover:text-white">Salvar</Button>
+                    </form>
+                  </>
                 ) : null}
                 {canDelete ? (
                   <form action={deletePayableBill}>

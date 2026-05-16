@@ -2,11 +2,11 @@
 
 import { useActionState, useState } from "react";
 
-import { createPayableBill } from "@/app/protected/contas-a-pagar/actions";
+import { createPayableBill, updatePayableBill } from "@/app/protected/contas-a-pagar/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { DbFamilyMember, PayableBillFormState, PayableBillType } from "@/lib/finance/server";
+import type { DbFamilyMember, DbPayableBill, PayableBillFormState, PayableBillType } from "@/lib/finance/server";
 
 const initialState: PayableBillFormState = {};
 
@@ -23,13 +23,23 @@ const categories = [
   "Outros",
 ];
 
-export function PayableBillForm({ members }: { members: DbFamilyMember[] }) {
-  const [state, formAction, isPending] = useActionState(createPayableBill, initialState);
-  const [billType, setBillType] = useState<PayableBillType>("avulsa");
+type PayableBillFormProps = {
+  members: DbFamilyMember[];
+  bill?: DbPayableBill;
+  mode?: "create" | "edit";
+};
+
+export function PayableBillForm({ members, bill, mode = "create" }: PayableBillFormProps) {
+  const action = mode === "edit" ? updatePayableBill : createPayableBill;
+  const [state, formAction, isPending] = useActionState(action, initialState);
+  const [billType, setBillType] = useState<PayableBillType>(bill?.bill_type ?? "avulsa");
   const today = new Date().toISOString().slice(0, 10);
+  const isEditing = mode === "edit" && Boolean(bill);
 
   return (
     <form action={formAction} className="space-y-5">
+      {bill ? <input type="hidden" name="id" value={bill.id} /> : null}
+
       <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-3">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/35">Tipo de conta</p>
         <div className="mt-3 grid gap-2 md:grid-cols-2">
@@ -63,15 +73,22 @@ export function PayableBillForm({ members }: { members: DbFamilyMember[] }) {
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <div className="space-y-2">
-          <Label htmlFor="name">Nome da conta/divida</Label>
-          <Input id="name" name="name" placeholder={billType === "fixa" ? "Ex: Aluguel" : "Ex: Boleto eventual"} required />
+          <Label htmlFor={isEditing ? `name-${bill?.id}` : "name"}>Nome da conta/divida</Label>
+          <Input
+            id={isEditing ? `name-${bill?.id}` : "name"}
+            name="name"
+            placeholder={billType === "fixa" ? "Ex: Aluguel" : "Ex: Boleto eventual"}
+            defaultValue={bill?.name ?? ""}
+            required
+          />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="category">Categoria</Label>
+          <Label htmlFor={isEditing ? `category-${bill?.id}` : "category"}>Categoria</Label>
           <select
-            id="category"
+            id={isEditing ? `category-${bill?.id}` : "category"}
             name="category"
+            defaultValue={bill?.category ?? ""}
             className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
             <option value="">Selecione</option>
@@ -84,22 +101,38 @@ export function PayableBillForm({ members }: { members: DbFamilyMember[] }) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="amount">Valor em euro</Label>
-          <Input id="amount" name="amount" type="number" min="0.01" step="0.01" placeholder="120.00" required />
+          <Label htmlFor={isEditing ? `amount-${bill?.id}` : "amount"}>Valor em euro</Label>
+          <Input
+            id={isEditing ? `amount-${bill?.id}` : "amount"}
+            name="amount"
+            type="number"
+            min="0.01"
+            step="0.01"
+            placeholder="120.00"
+            defaultValue={bill ? String(bill.amount) : ""}
+            required
+          />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="due_date">Vencimento</Label>
-          <Input id="due_date" name="due_date" type="date" defaultValue={today} required />
+          <Label htmlFor={isEditing ? `due_date-${bill?.id}` : "due_date"}>Vencimento</Label>
+          <Input
+            id={isEditing ? `due_date-${bill?.id}` : "due_date"}
+            name="due_date"
+            type="date"
+            defaultValue={bill?.due_date ?? today}
+            required
+          />
         </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <div className="space-y-2">
-          <Label htmlFor="responsible_member_id">Responsavel</Label>
+          <Label htmlFor={isEditing ? `responsible_member_id-${bill?.id}` : "responsible_member_id"}>Responsavel</Label>
           <select
-            id="responsible_member_id"
+            id={isEditing ? `responsible_member_id-${bill?.id}` : "responsible_member_id"}
             name="responsible_member_id"
+            defaultValue={bill?.responsible_member_id ?? ""}
             className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
             <option value="">Sem responsavel</option>
@@ -112,11 +145,11 @@ export function PayableBillForm({ members }: { members: DbFamilyMember[] }) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="status">Status</Label>
+          <Label htmlFor={isEditing ? `status-${bill?.id}` : "status"}>Status</Label>
           <select
-            id="status"
+            id={isEditing ? `status-${bill?.id}` : "status"}
             name="status"
-            defaultValue="pendente"
+            defaultValue={bill?.status ?? "pendente"}
             className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
             <option value="pendente">Pendente</option>
@@ -126,16 +159,21 @@ export function PayableBillForm({ members }: { members: DbFamilyMember[] }) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="bank_used">Banco utilizado</Label>
-          <Input id="bank_used" name="bank_used" placeholder="Ex: Revolut, Wise" />
+          <Label htmlFor={isEditing ? `bank_used-${bill?.id}` : "bank_used"}>Banco utilizado</Label>
+          <Input
+            id={isEditing ? `bank_used-${bill?.id}` : "bank_used"}
+            name="bank_used"
+            placeholder="Ex: Revolut, Wise"
+            defaultValue={bill?.bank_used ?? ""}
+          />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="recurrence">Recorrencia</Label>
+          <Label htmlFor={isEditing ? `recurrence-${bill?.id}` : "recurrence"}>Recorrencia</Label>
           <Input
-            id="recurrence"
+            id={isEditing ? `recurrence-${bill?.id}` : "recurrence"}
             name="recurrence"
-            defaultValue={billType === "fixa" ? "mensal" : ""}
+            defaultValue={billType === "fixa" ? bill?.recurrence ?? "mensal" : ""}
             placeholder={billType === "fixa" ? "mensal" : "Sem recorrencia"}
             disabled={billType === "avulsa"}
           />
@@ -146,15 +184,26 @@ export function PayableBillForm({ members }: { members: DbFamilyMember[] }) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="notes">Observacao</Label>
-        <Input id="notes" name="notes" placeholder="Opcional" />
+        <Label htmlFor={isEditing ? `notes-${bill?.id}` : "notes"}>Observacao</Label>
+        <Input
+          id={isEditing ? `notes-${bill?.id}` : "notes"}
+          name="notes"
+          placeholder="Opcional"
+          defaultValue={bill?.notes ?? ""}
+        />
       </div>
 
       {state.error ? <p className="text-sm text-destructive">{state.error}</p> : null}
       {state.success ? <p className="text-sm text-emerald-600">{state.success}</p> : null}
 
       <Button type="submit" disabled={isPending}>
-        {isPending ? "Salvando..." : billType === "fixa" ? "Cadastrar conta fixa" : "Cadastrar conta avulsa"}
+        {isPending
+          ? "Salvando..."
+          : isEditing
+            ? "Salvar alteracoes"
+            : billType === "fixa"
+              ? "Cadastrar conta fixa"
+              : "Cadastrar conta avulsa"}
       </Button>
     </form>
   );

@@ -1,0 +1,141 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const mockState = vi.hoisted(() => ({
+  currentProfile: {
+    id: "profile-1",
+    owner_id: "owner-1",
+    role: "admin",
+  },
+  updatedPayloads: [] as Array<Record<string, unknown>>,
+  billLookup: {
+    id: "bill-1",
+    owner_id: "owner-1",
+    responsible_member_id: "member-1",
+  } as Record<string, unknown> | null,
+  accessError: null as Error | null,
+}));
+
+function createFormData(values: Record<string, string>) {
+  const formData = new FormData();
+
+  Object.entries(values).forEach(([key, value]) => {
+    formData.set(key, value);
+  });
+
+  return formData;
+}
+
+function makeSupabaseClient() {
+  return {
+    from(table: string) {
+      if (table !== "payable_bills") {
+        throw new Error(`Unexpected table: ${table}`);
+      }
+
+      const filters: Record<string, unknown> = {};
+      let updatePayload: Record<string, unknown> | null = null;
+
+      const query = {
+        select() {
+          return query;
+        },
+        eq(key: string, value: unknown) {
+          filters[key] = value;
+
+          if (updatePayload && key === "owner_id") {
+            mockState.updatedPayloads.push({ ...updatePayload, filters: { ...filters } });
+          }
+
+          return query;
+        },
+        maybeSingle() {
+          return Promise.resolve({ data: mockState.billLookup, error: null });
+        },
+        update(payload: Record<string, unknown>) {
+          updatePayload = payload;
+          return query;
+        },
+      };
+
+      return query;
+    },
+  };
+}
+
+vi.mock("next/cache", () => ({
+  revalidatePath: vi.fn(),
+}));
+
+vi.mock("@/lib/supabase/server", () => ({
+  createClient: vi.fn(async () => makeSupabaseClient()),
+}));
+
+vi.mock("@/lib/finance/access-control", () => ({
+  getCurrentProfile: vi.fn(async () => mockState.currentProfile),
+  assertCanAccessMember: vi.fn(async () => {
+    if (mockState.accessError) {
+      throw mockState.accessError;
+    }
+  }),
+}));
+
+describe("payable bill edit action", () => {
+  beforeEach(() => {
+    mockState.updatedPayloads = [];
+    mockState.billLookup = {
+      id: "bill-1",
+      owner_id: "owner-1",
+      responsible_member_id: "member-1",
+    };
+    mockState.accessError = null;
+  });
+
+  it("updates a payable bill with full editable fields", async () => {
+    const { updatePayableBill } = await import("@/app/protected/contas-a-pagar/actions");
+
+    const result = await updatePayableBill({}, createFormData({
+      id: "bill-1",
+      name: "Aluguel atualizado",
+      category: "Casa",
+      amount: "900",
+      due_date: "2026-06-05",
+      responsible_member_id: "member-1",
+      status: "pago",
+      bill_type: "fixa",
+      recurrence: "mensal",
+      bank_used: "Wise",
+      notes: "Pago antecipado",
+    }));
+
+    expect(result).toEqual({ success: "Conta atualizada com sucesso." });
+    expect(mockState.updatedPayloads).toEqual([
+      expect.objectContaining({
+        name: "Aluguel atualizado",
+        category: "Casa",
+        amount: 900,
+        due_date: "2026-06-05",
+        responsible_member_id: "member-1",
+        status: "pago",
+        bill_type: "fixa",
+        recurrence: "mensal",
+        bank_used: "Wise",
+        notes: "Pago antecipado",
+        filters: { id: "bill-1", owner_id: "owner-1" },
+      }),
+    ]);
+  });
+
+  it("blocks update without id", async () => {
+    const { updatePayableBill } = await import("@/app/protected/contas-a-pagar/actions");
+
+    const result = await updatePayableBill({}, createFormData({
+      name: "Internet",
+      amount: "120",
+      due_date: "2026-05-20",
+      responsible_member_id: "member-1",
+    }));
+
+    expect(result).toEqual({ error: "Conta nao encontrada." });
+    expect(mockState.updatedPayloads).toHaveLength(0);
+  });
+});
