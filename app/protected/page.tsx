@@ -2,7 +2,6 @@ import {
   AlertTriangle,
   Banknote,
   CalendarClock,
-  CheckCircle2,
   CreditCard,
   Plus,
   ReceiptText,
