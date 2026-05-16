@@ -40,10 +40,7 @@ async function assertCanManageExpense(
   };
 }
 
-export async function createExpense(
-  _prevState: ExpenseFormState,
-  formData: FormData,
-): Promise<ExpenseFormState> {
+function parseExpenseForm(formData: FormData) {
   const familyMemberId = String(formData.get("family_member_id") ?? "");
   const categoryId = String(formData.get("category_id") ?? "");
   const expenseDate = String(formData.get("expense_date") ?? "");
@@ -54,27 +51,55 @@ export async function createExpense(
   const bankOrCard = String(formData.get("bank_or_card") ?? "").trim();
   const notes = String(formData.get("notes") ?? "").trim();
 
-  if (!familyMemberId) {
+  return {
+    familyMemberId,
+    categoryId,
+    expenseDate,
+    description,
+    purchaseLocation,
+    amount,
+    paymentMethod,
+    bankOrCard,
+    notes,
+  };
+}
+
+function validateExpenseInput(input: ReturnType<typeof parseExpenseForm>): ExpenseFormState | null {
+  if (!input.familyMemberId) {
     return { error: "Selecione a pessoa responsavel pelo gasto." };
   }
 
-  if (!expenseDate) {
+  if (!input.expenseDate) {
     return { error: "Informe a data do gasto." };
   }
 
-  if (!description) {
+  if (!input.description) {
     return { error: "Informe a descricao do gasto." };
   }
 
-  if (Number.isNaN(amount) || amount <= 0) {
+  if (Number.isNaN(input.amount) || input.amount <= 0) {
     return { error: "Informe um valor valido para o gasto." };
+  }
+
+  return null;
+}
+
+export async function createExpense(
+  _prevState: ExpenseFormState,
+  formData: FormData,
+): Promise<ExpenseFormState> {
+  const input = parseExpenseForm(formData);
+  const validationError = validateExpenseInput(input);
+
+  if (validationError) {
+    return validationError;
   }
 
   const supabase = await createClient();
   const profile = await getCurrentProfile();
 
   try {
-    await assertCanAccessMember("GASTOS", "can_create", familyMemberId);
+    await assertCanAccessMember("GASTOS", "can_create", input.familyMemberId);
   } catch (error) {
     return {
       error:
@@ -86,15 +111,15 @@ export async function createExpense(
 
   const { error } = await supabase.from("expenses").insert({
     owner_id: profile.owner_id,
-    family_member_id: familyMemberId,
-    category_id: categoryId || null,
-    expense_date: expenseDate,
-    description,
-    purchase_location: purchaseLocation || null,
-    amount,
-    payment_method: paymentMethod || null,
-    bank_or_card: bankOrCard || null,
-    notes: notes || null,
+    family_member_id: input.familyMemberId,
+    category_id: input.categoryId || null,
+    expense_date: input.expenseDate,
+    description: input.description,
+    purchase_location: input.purchaseLocation || null,
+    amount: input.amount,
+    payment_method: input.paymentMethod || null,
+    bank_or_card: input.bankOrCard || null,
+    notes: input.notes || null,
   });
 
   if (error) {
@@ -105,6 +130,64 @@ export async function createExpense(
   revalidatePath("/protected");
 
   return { success: "Gasto cadastrado com sucesso." };
+}
+
+export async function updateExpense(
+  _prevState: ExpenseFormState,
+  formData: FormData,
+): Promise<ExpenseFormState> {
+  const id = String(formData.get("id") ?? "");
+  const input = parseExpenseForm(formData);
+  const validationError = validateExpenseInput(input);
+
+  if (!id) {
+    return { error: "Gasto nao encontrado." };
+  }
+
+  if (validationError) {
+    return validationError;
+  }
+
+  try {
+    const { profile, expense } = await assertCanManageExpense(id, "can_edit");
+
+    if (String(expense.family_member_id) !== input.familyMemberId) {
+      await assertCanAccessMember("GASTOS", "can_edit", input.familyMemberId);
+    }
+
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from("expenses")
+      .update({
+        family_member_id: input.familyMemberId,
+        category_id: input.categoryId || null,
+        expense_date: input.expenseDate,
+        description: input.description,
+        purchase_location: input.purchaseLocation || null,
+        amount: input.amount,
+        payment_method: input.paymentMethod || null,
+        bank_or_card: input.bankOrCard || null,
+        notes: input.notes || null,
+      })
+      .eq("id", id)
+      .eq("owner_id", profile.owner_id);
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    revalidatePath("/protected/gastos");
+    revalidatePath("/protected");
+
+    return { success: "Gasto atualizado com sucesso." };
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "Nao foi possivel atualizar este gasto.",
+    };
+  }
 }
 
 export async function deleteExpense(formData: FormData) {
