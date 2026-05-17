@@ -1,0 +1,146 @@
+import "server-only";
+
+import { redirect } from "next/navigation";
+
+import { createClient } from "@/lib/supabase/server";
+import type { Organization, OrganizationContext, OrganizationMembership } from "./types";
+
+type CurrentUser = {
+  id: string;
+  email: string | null;
+};
+
+type OrganizationRow = Organization & {
+  stripe_customer_id?: string | null;
+};
+
+async function getCurrentUser(): Promise<CurrentUser> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.getClaims();
+
+  if (error || !data?.claims?.sub) {
+    redirect("/auth/login");
+  }
+
+  return {
+    id: String(data.claims.sub),
+    email: typeof data.claims.email === "string" ? data.claims.email : null,
+  };
+}
+
+function normalizeOrganization(row: OrganizationRow): Organization {
+  return {
+    id: row.id,
+    slug: row.slug,
+    name: row.name,
+    owner_auth_user_id: row.owner_auth_user_id,
+    plan: row.plan,
+    status: row.status,
+    trial_ends_at: row.trial_ends_at,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+  };
+}
+
+export async function getUserOrganizations(): Promise<OrganizationContext[]> {
+  const supabase = await createClient();
+  const user = await getCurrentUser();
+
+  const { data: memberships, error: membershipsError } = await supabase
+    .from("organization_memberships")
+    .select("id, organization_id, auth_user_id, role, is_active, created_at, updated_at")
+    .eq("auth_user_id", user.id)
+    .eq("is_active", true);
+
+  if (membershipsError) {
+    throw new Error(membershipsError.message);
+  }
+
+  const activeMemberships = (memberships ?? []) as OrganizationMembership[];
+
+  if (activeMemberships.length === 0) {
+    return [];
+  }
+
+  const organizationIds = activeMemberships.map((membership) => membership.organization_id);
+
+  const { data: organizations, error: organizationsError } = await supabase
+    .from("organizations")
+    .select("id, slug, name, owner_auth_user_id, plan, status, trial_ends_at, created_at, updated_at")
+    .in("id", organizationIds);
+
+  if (organizationsError) {
+    throw new Error(organizationsError.message);
+  }
+
+  const organizationById = new Map(
+    ((organizations ?? []) as OrganizationRow[]).map((organization) => [
+      organization.id,
+      normalizeOrganization(organization),
+    ]),
+  );
+
+  return activeMemberships
+    .map((membership) => {
+      const organization = organizationById.get(membership.organization_id);
+
+      if (!organization) {
+        return null;
+      }
+
+      return { organization, membership };
+    })
+    .filter((context): context is OrganizationContext => Boolean(context));
+}
+
+export async function getCurrentOrganization(orgSlug?: string) {
+  const contexts = await getUserOrganizations();
+
+  if (contexts.length === 0) {
+    return null;
+  }
+
+  if (orgSlug) {
+    return contexts.find((context) => context.organization.slug === orgSlug)?.organization ?? null;
+  }
+
+  return contexts[0]?.organization ?? null;
+}
+
+export async function getCurrentMembership(organizationId?: string) {
+  const contexts = await getUserOrganizations();
+
+  if (contexts.length === 0) {
+    return null;
+  }
+
+  if (organizationId) {
+    return contexts.find((context) => context.membership.organization_id === organizationId)?.membership ?? null;
+  }
+
+  return contexts[0]?.membership ?? null;
+}
+
+export async function requireOrganizationAccess(orgSlug?: string) {
+  const contexts = await getUserOrganizations();
+
+  const context = orgSlug
+    ? contexts.find((item) => item.organization.slug === orgSlug)
+    : contexts[0];
+
+  if (!context) {
+    throw new Error("Voce nao tem acesso a esta organizacao.");
+  }
+
+  return context;
+}
+
+export async function requireOrganizationAdmin(orgSlug?: string) {
+  const context = await requireOrganizationAccess(orgSlug);
+
+  if (!context.membership.is_active || !["owner", "admin"].includes(context.membership.role)) {
+    throw new Error("Voce nao tem permissao administrativa nesta organizacao.");
+  }
+
+  return context;
+}
