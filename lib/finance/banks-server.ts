@@ -1,5 +1,5 @@
 import { getAccessibleMemberIds, getCurrentProfile } from "@/lib/finance/access-control";
-import type { BankAccountFormState, DbBankAccount, DbFamilyMember } from "@/lib/finance/types";
+import type { DbBankAccount, DbFamilyMember } from "@/lib/finance/types";
 import { createClient } from "@/lib/supabase/server";
 import { seedInitialFinanceData } from "./server";
 
