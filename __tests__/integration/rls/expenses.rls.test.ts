@@ -12,10 +12,14 @@ const runRlsTests = shouldRunRlsTests();
 const rlsIt = runRlsTests ? it : it.skip;
 
 describe("expenses RLS gated integration", () => {
-  it("is gated by the dedicated RLS environment", () => {
-    expect(runRlsTests ? config.missingVariables : []).toEqual([]);
-  });
+ it("is disabled unless RUN_RLS_TESTS=true and all RLS_TEST variables are set", () => {
+  if (config.enabled) {
+    expect(config.missingVariables).toEqual([]);
+    return;
+  }
 
+  expect(runRlsTests).toBe(false);
+});
   rlsIt("hides expenses from another organization when owner_id is the same", async () => {
     const fixture = createExpenseCategoryFixtureSet();
 
