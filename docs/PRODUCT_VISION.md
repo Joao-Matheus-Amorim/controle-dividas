@@ -2,19 +2,65 @@
 
 ## Definicao
 
-FamilyFinance e uma solucao financeira familiar personalizada para uma familia especifica.
+FamilyFinance nasceu como uma solucao financeira familiar personalizada para uma familia especifica, com Web/PWA funcional, painel Admin familiar, permissoes por usuario, modulos financeiros e app nativo planejado para fase futura.
 
-O projeto nao sera tratado, nesta fase, como SaaS, produto publico, sistema para multiplas familias ou aplicacao comercial por assinatura.
+A partir da solicitacao formal de mudanca registrada em `docs/pm/07_SOLICITACAO_MUDANCA_SAAS_MULTI_TENANT.md` e da estrategia tecnica registrada em `docs/SAAS_MULTI_TENANT_STRATEGY.md`, o produto passa a ter como nova direcao estrategica a evolucao para um SaaS multi-tenant de gestao financeira familiar.
 
-## Produto final
+Essa evolucao nao invalida a origem familiar privada do projeto. Ela transforma a base ja implementada em uma plataforma capaz de atender varias familias, grupos financeiros ou organizacoes independentes, cada uma com dados isolados, membros proprios, permissoes proprias, dashboard proprio e possibilidade futura de planos comerciais.
 
-O produto final desejado e um aplicativo nativo Android e iOS, com painel web administrativo de apoio.
+## Decisao de fase
 
-A web atual tambem funciona como PWA/mobile-first para validar a experiencia de app, fluxos, permissoes, dashboard e regras financeiras antes de uma versao nativa.
+### Fase anterior
+
+```txt
+FamilyFinance como solucao familiar privada, single-tenant e personalizada.
+```
+
+Essa fase permitiu validar:
+
+- autenticacao;
+- dashboard financeiro;
+- membros financeiros;
+- gastos;
+- contas a pagar;
+- contas a receber;
+- bancos;
+- relatorios;
+- configuracoes;
+- Admin familiar;
+- usuarios familiares;
+- permissoes por modulo;
+- permissoes por acao;
+- escopos de dados;
+- PWA/mobile-first;
+- testes e documentacao.
+
+### Nova fase proposta/aprovada documentalmente
+
+```txt
+FamilyFinance como SaaS multi-tenant de gestao financeira familiar.
+```
+
+A nova fase deve ser implementada de forma incremental, sem SQL destrutivo, sem reescrita da stack, sem billing prematuro e sem misturar rotas, RLS, visual e cobranca em uma unica mudanca.
+
+## Produto alvo
+
+O produto alvo passa a ser uma plataforma SaaS/PWA mobile-first com:
+
+- multiplas organizacoes/familias;
+- isolamento de dados por organizacao;
+- usuarios vinculados a uma ou mais organizacoes;
+- permissoes por organizacao;
+- dashboard contextual por organizacao e por usuario;
+- modulos financeiros familiares;
+- painel Admin por organizacao;
+- possibilidade futura de app nativo Android/iOS;
+- possibilidade futura de assinatura e planos comerciais;
+- seguranca baseada em RLS, memberships e validacao server-side.
 
 ## Visao central
 
-O FamilyFinance nao e apenas um controle de gastos. Ele deve evoluir para uma central financeira familiar com:
+O FamilyFinance nao e apenas um controle de gastos. Ele deve evoluir para uma central financeira familiar multi-tenant com:
 
 - dashboard contextual;
 - contas fixas;
@@ -24,95 +70,145 @@ O FamilyFinance nao e apenas um controle de gastos. Ele deve evoluir para uma ce
 - rendas fixas e variaveis;
 - gastos por pessoa;
 - categorias;
-- investimentos;
-- acoes;
+- permissoes dinamicas;
+- relatorios;
 - graficos;
 - alertas;
-- permissoes dinamicas.
+- notificacoes;
+- investimentos futuros;
+- acoes/cotacoes futuras;
+- billing futuro;
+- isolamento completo por organizacao.
 
-Cada usuario deve ver apenas o que o Admin liberar.
+Cada usuario deve ver apenas o que sua organizacao e suas permissoes liberarem.
 
 ## Regra de permissao do produto
 
-A regra oficial e:
+A regra oficial permanece valida, mas agora precisa ser aplicada dentro de uma organizacao:
 
 ```txt
 Role define o padrao inicial.
 Admin define a permissao real.
 Permissao sempre vence o role.
+Tudo isso acontece dentro de uma organizacao.
 ```
 
-Isso significa que usuarios comuns veem apenas seus proprios dados por padrao, mas o Admin pode liberar modulos, funcionalidades, acoes e dados de outras pessoas.
+Isso significa que usuarios comuns veem apenas seus proprios dados por padrao, mas o Admin da organizacao pode liberar modulos, funcionalidades, acoes e dados de outras pessoas dentro daquela organizacao.
 
-Perfis infantis, como Caleb, sao apenas presets iniciais restritos. O Admin pode liberar qualquer modulo para eles se quiser.
+No modelo SaaS, um mesmo usuario podera futuramente participar de mais de uma organizacao com papeis diferentes. Exemplo: admin em uma organizacao e membro comum em outra.
 
-## Papel do painel web atual
+## Organizacao como unidade de negocio
+
+A unidade principal do SaaS sera a organizacao.
+
+A organizacao representa:
+
+- uma familia;
+- um casal;
+- um grupo financeiro;
+- uma conta contratante;
+- um workspace de controle financeiro familiar.
+
+A nomenclatura recomendada para o banco e documentacao tecnica e:
+
+```txt
+organizations
+organization_memberships
+organization_id
+organization_slug
+```
+
+A palavra tenant continua sendo o conceito tecnico, mas a linguagem de produto deve favorecer `organization` para manter flexibilidade comercial.
+
+## Papel do painel web/PWA
 
 O painel web em Next.js continua importante e sera usado como:
 
-- backoffice administrativo;
+- PWA principal no curto prazo;
+- backoffice administrativo da organizacao;
 - ambiente de validacao das regras financeiras;
-- painel do Admin familiar;
-- referencia funcional para o app mobile;
-- PWA temporario para uso no celular;
+- painel do Admin da organizacao;
+- referencia funcional para app mobile futuro;
 - ferramenta de suporte e configuracao;
-- laboratorio do Dashboard completo.
+- laboratorio do Dashboard completo;
+- base para evolucao SaaS.
+
+A web/PWA nao deve ser abandonada. Ela sera a primeira versao funcional do SaaS.
 
 ## Papel do app nativo
 
-O app nativo sera o principal canal de uso diario da familia.
+O app nativo Android/iOS continua sendo uma fase futura.
 
 Ele deve priorizar:
 
 - experiencia de app;
+- login persistente;
+- selecao ou resolucao de organizacao ativa;
 - dashboard conforme permissao;
 - lancamento rapido de gastos;
 - consulta de saldo individual;
 - notificacoes de vencimento;
 - visualizacao de contas autorizadas;
 - visualizacao de bancos autorizados;
-- visualizacao de investimentos autorizados;
-- login persistente;
 - navegacao simples por permissoes.
 
-## Admin familiar
+Antes do app nativo, a base SaaS Web/PWA precisa estar consolidada.
 
-O Admin familiar permanece como pilar central do sistema.
+## Admin da organizacao
 
-Ele podera:
+O Admin da organizacao permanece como pilar central do sistema.
 
-- ver tudo;
-- criar usuarios familiares;
+Ele podera, dentro da propria organizacao:
+
+- ver tudo da organizacao;
+- criar usuarios/membros;
 - vincular usuarios a membros financeiros;
 - definir limites;
 - gerenciar categorias;
 - gerenciar bancos;
 - definir permissoes por modulo;
 - definir permissoes de ver, criar, editar e excluir;
-- definir escopo de dados: proprio, selecionados ou familia;
+- definir escopo de dados: proprio, selecionados ou familia/organizacao;
 - liberar funcionalidades especificas;
 - visualizar dashboard consolidado;
 - acompanhar relatorios;
-- liberar ou bloquear investimentos, graficos e modulos futuros.
+- liberar ou bloquear modulos futuros.
 
-## Usuarios familiares
+## Platform admin
 
-Usuarios familiares terao acesso limitado conforme configuracao do Admin.
+Na fase SaaS, deve existir a diferenca conceitual entre:
+
+```txt
+Platform admin
+Organization admin
+Member
+```
+
+O Platform admin e o operador/dono do SaaS. Ele pode precisar gerenciar suporte, planos, incidentes e configuracoes globais, mas nao deve ter acesso livre a dados financeiros sensiveis sem regra clara, necessidade operacional e auditoria.
+
+Essa separacao deve ser planejada antes de billing e operacao comercial.
+
+## Usuarios familiares/membros
+
+Usuarios familiares terao acesso limitado conforme configuracao do Admin da organizacao.
 
 Exemplos:
 
 - Pai: ver e criar gastos proprios.
 - Mae: ver dados proprios e dados liberados dos filhos.
-- Gabryel: ver saldo proprio e lancar gastos.
-- Caleb: pode ter experiencia minima apenas para registrar gastos e ver limite, mas pode receber mais modulos se o Admin liberar.
+- Filho: ver saldo proprio e lancar gastos.
+- Perfil infantil: experiencia minima para registrar gastos e ver limite, podendo receber mais modulos se o Admin liberar.
+
+No SaaS, esses usuarios pertencem a uma organizacao especifica e suas permissoes nao devem vazar para outra organizacao.
 
 ## Dashboard
 
 O Dashboard deve ser contextual:
 
-- usuario comum: dashboard pessoal;
-- usuario com pessoas liberadas: dashboard das pessoas autorizadas;
-- admin: dashboard familiar consolidado.
+- usuario comum: dashboard pessoal dentro da organizacao ativa;
+- usuario com pessoas liberadas: dashboard das pessoas autorizadas dentro da organizacao;
+- admin da organizacao: dashboard consolidado da organizacao;
+- platform admin: visao operacional da plataforma, sem misturar dados financeiros sensiveis de clientes sem regra clara.
 
 O Dashboard final deve incluir:
 
@@ -124,11 +220,39 @@ O Dashboard final deve incluir:
 - rendas;
 - gastos por pessoa;
 - gastos por categoria;
-- investimentos;
-- acoes;
+- investimentos futuros;
+- acoes futuras;
 - graficos;
 - alertas;
 - projecoes.
+
+## Billing futuro
+
+Billing e parte da visao SaaS, mas nao deve ser implementado antes do isolamento multi-tenant.
+
+A ordem correta e:
+
+```txt
+organizations -> memberships -> organization_id -> queries/actions -> RLS -> rotas -> PWA/UX -> billing
+```
+
+Possiveis planos futuros:
+
+- free;
+- family_basic;
+- family_plus;
+- family_pro.
+
+Possiveis limites por plano:
+
+- quantidade de membros;
+- historico disponivel;
+- exportacoes;
+- relatorios avancados;
+- notificacoes;
+- anexos;
+- numero de bancos;
+- numero de usuarios com login.
 
 ## Documentacao estrategica
 
@@ -136,6 +260,18 @@ A estrategia detalhada de permissoes, escopo de dados, funcionalidades liberavei
 
 - `docs/PERMISSION_AND_DASHBOARD_STRATEGY.md`
 
+A estrategia SaaS multi-tenant esta em:
+
+- `docs/SAAS_MULTI_TENANT_STRATEGY.md`
+
+A solicitacao formal de mudanca PMBOK esta em:
+
+- `docs/pm/07_SOLICITACAO_MUDANCA_SAAS_MULTI_TENANT.md`
+
 ## Principio de produto
 
-O sistema deve ser simples para uso familiar, mas estruturado o suficiente para controle real de permissoes, seguranca, dashboard avancado e evolucao futura.
+O sistema deve ser simples para uso familiar, mas estruturado o suficiente para controle real de permissoes, seguranca, dashboard avancado, isolamento por organizacao, evolucao mobile e futuro modelo SaaS.
+
+O maior risco do produto nao e evoluir para SaaS. O maior risco e evoluir rapido demais, misturando banco, RLS, rotas, visual e billing sem fases claras.
+
+A visao do produto passa a ser: construir uma central financeira familiar SaaS, com base mobile-first, segura, incremental e comercialmente valiosa.
