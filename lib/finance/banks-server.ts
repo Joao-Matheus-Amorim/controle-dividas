@@ -1,27 +1,12 @@
 import { getAccessibleMemberIds, getCurrentProfile } from "@/lib/finance/access-control";
+import type { DbBankAccount, DbFamilyMember } from "@/lib/finance/types";
 import { createClient } from "@/lib/supabase/server";
-import { seedInitialFinanceData, type DbFamilyMember } from "./server";
+import { seedInitialFinanceData } from "./server";
 
-export type DbBankAccount = {
-  id: string;
-  owner_id: string;
-  family_member_id: string | null;
-  bank_name: string;
-  account_type: string | null;
-  current_balance: number;
-  currency: string;
-  notes: string | null;
-  created_at: string;
-  family_members: Pick<DbFamilyMember, "id" | "name"> | null;
-};
+export type { BankAccountFormState, DbBankAccount } from "@/lib/finance/types";
 
 type RawBankAccount = Omit<DbBankAccount, "family_members"> & {
   family_members: Pick<DbFamilyMember, "id" | "name"> | Pick<DbFamilyMember, "id" | "name">[] | null;
-};
-
-export type BankAccountFormState = {
-  error?: string;
-  success?: string;
 };
 
 function normalizeBankAccount(account: RawBankAccount): DbBankAccount {
