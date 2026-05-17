@@ -2,9 +2,37 @@
 
 ## Declaracao de escopo
 
-O FamilyFinance e uma solucao financeira familiar personalizada para uma unica familia, com Web/PWA funcional em validacao, painel Admin familiar implementado e app nativo Android/iOS planejado para fase futura.
+O FamilyFinance nasceu como uma solucao financeira familiar personalizada para uma unica familia, com Web/PWA funcional em validacao, painel Admin familiar implementado e app nativo Android/iOS planejado para fase futura.
 
-O sistema nao sera tratado, nesta fase, como SaaS publico, multi-tenant comercial, produto por assinatura ou plataforma para multiplas familias.
+Apos a solicitacao formal registrada em `docs/pm/07_SOLICITACAO_MUDANCA_SAAS_MULTI_TENANT.md` e a estrategia tecnica registrada em `docs/SAAS_MULTI_TENANT_STRATEGY.md`, o escopo passa a reconhecer uma nova fase estrategica: evoluir o FamilyFinance para um SaaS multi-tenant de gestao financeira familiar.
+
+Essa mudanca de escopo nao significa implementar tudo de uma vez. A transicao para SaaS deve ser incremental, documentada, validada por testes, sem SQL destrutivo e sem misturar banco, rotas, RLS, billing e visual em uma unica mudanca.
+
+## Escopo por fase
+
+### Fase anterior - MVP familiar privado
+
+```txt
+Solucao familiar privada, single-tenant, com multi-user familiar.
+```
+
+Essa fase criou e validou a base atual do produto.
+
+### Fase atual - Preparacao SaaS multi-tenant
+
+```txt
+Documentar, planejar e implementar a base multi-tenant de forma incremental.
+```
+
+O objetivo da fase atual e transformar a arquitetura para suportar varias organizacoes/familias isoladas, preservando o MVP atual sempre que possivel.
+
+### Fase futura - SaaS comercial
+
+```txt
+Planos, billing, landing comercial, onboarding publico e crescimento.
+```
+
+Essa fase so deve iniciar depois de multi-tenancy, RLS, queries/actions e rotas por organizacao estarem validadas.
 
 ## Produto atual
 
@@ -28,16 +56,22 @@ O produto atual e um MVP Web/PWA mobile-first com:
 - Migrations Supabase;
 - Testes unitarios e de integracao.
 
-## Produto alvo
+## Produto alvo atualizado
 
-O produto alvo continua sendo uma experiencia familiar mobile-first, com:
+O produto alvo passa a ser uma plataforma SaaS/PWA mobile-first de gestao financeira familiar, com:
 
-- Web/PWA como validacao e painel Admin;
+- Web/PWA como primeira interface funcional;
 - app nativo Android/iOS em fase futura;
 - backend Supabase;
-- permissoes centralizadas;
-- dados financeiros protegidos;
-- dashboard contextual por usuario.
+- banco PostgreSQL com RLS;
+- organizacoes/familias isoladas;
+- usuarios associados a organizacoes por memberships;
+- permissoes centralizadas por organizacao;
+- dados financeiros protegidos por organization;
+- dashboard contextual por usuario e organizacao;
+- possibilidade futura de planos comerciais;
+- possibilidade futura de billing;
+- possibilidade futura de shortcuts PWA e app nativo.
 
 ## Dentro do escopo atual implementado
 
@@ -55,6 +89,7 @@ O produto alvo continua sendo uma experiencia familiar mobile-first, com:
 - Migrations.
 - Proxy global de sessao.
 - PWA manifest.
+- CI com lint, build, audit e testes.
 
 ### Autenticacao
 
@@ -100,6 +135,24 @@ O produto alvo continua sendo uma experiencia familiar mobile-first, com:
 - Testes de integracao de Dashboard.
 - Testes de integracao de permissoes.
 - MSW para simular Supabase REST.
+- Quality Gate no GitHub Actions.
+
+## Dentro do escopo atual de transicao SaaS
+
+A fase atual de transicao SaaS inclui:
+
+- documentacao estrategica SaaS;
+- solicitacao formal de mudanca PMBOK;
+- plano SQL detalhado antes de migration real;
+- definicao da entidade `organizations`;
+- definicao de `organization_memberships`;
+- estrategia para `organization_id` nas tabelas financeiras;
+- estrategia de backfill dos dados atuais;
+- plano de helpers server-side para organizacao ativa;
+- plano de RLS por membership;
+- plano de rotas futuras com `[orgSlug]`;
+- criterios de aceite para isolamento multi-tenant;
+- definicao de riscos da transicao.
 
 ## Dentro do escopo atual parcial
 
@@ -113,11 +166,14 @@ O produto alvo continua sendo uma experiencia familiar mobile-first, com:
 - Exportacao de relatorios.
 - Periodo dinamico no Dashboard e Relatorios.
 - Separacao completa entre codigo mockado e codigo de producao.
+- Aplicacao real de multi-tenancy no banco e no servidor.
+- Rotas por `orgSlug`.
+- RLS baseada em organization membership.
 
 ## Dentro do escopo futuro
 
-- Contas fixas.
-- Dividas.
+- Contas fixas avancadas.
+- Dividas avancadas.
 - Metas financeiras.
 - Alertas financeiros.
 - Investimentos.
@@ -129,21 +185,30 @@ O produto alvo continua sendo uma experiencia familiar mobile-first, com:
 - Notificacoes.
 - App React Native/Expo.
 - Builds Android/iOS.
+- Billing com Stripe ou provedor equivalente.
+- Planos comerciais.
+- Landing page comercial.
+- Activity log/auditoria operacional.
+- PWA shortcuts por organizacao.
 
-## Fora do escopo inicial
+## Fora do escopo imediato
 
-- SaaS publico.
-- Multiplas familias.
-- Assinatura comercial.
+Os itens abaixo fazem parte da visao de SaaS, mas nao devem ser implementados antes da base multi-tenant estar segura:
+
+- Assinatura paga em producao.
+- Stripe em producao.
+- Area comercial completa.
 - Marketplace.
-- Area comercial.
 - Integracao bancaria automatica.
 - Open Finance.
 - IA financeira.
 - Publicidade.
-- Multi-empresa.
+- Multi-empresa contabil.
 - Controle contabil empresarial.
 - Uso como produto financeiro regulado.
+- App nativo completo.
+- Reescrita de stack.
+- Redesign completo.
 
 ## Limites de arquitetura
 
@@ -151,20 +216,38 @@ O produto alvo continua sendo uma experiencia familiar mobile-first, com:
 - A permissao deve ser validada em Server Components, Server Actions e helpers server-side.
 - O frontend pode esconder elementos, mas nao pode ser a unica camada de seguranca.
 - RLS deve permanecer ativa no Supabase.
-- Admin pode tudo apenas dentro da familia configurada.
-- Usuario comum acessa apenas o que foi liberado.
+- Na fase atual, dados ainda dependem de `owner_id`.
+- Na fase SaaS, dados devem passar a depender de `organization_id`.
+- `owner_id` pode permanecer temporariamente por compatibilidade, mas nao deve ser o eixo final do SaaS.
+- O acesso entre organizacoes deve ser impossivel por RLS e por validacao server-side.
+- Billing nao deve ser implementado antes de isolamento multi-tenant validado.
 
 ## Criterio de mudanca de escopo
 
-Qualquer decisao que mova o projeto para:
+A decisao de evoluir para SaaS multi-tenant ja foi registrada como mudanca grande de escopo em:
 
-- SaaS;
-- multiplas familias;
-- assinatura;
-- produto publico;
-- integracao bancaria automatica;
+- `docs/pm/07_SOLICITACAO_MUDANCA_SAAS_MULTI_TENANT.md`
+
+A estrategia tecnica foi registrada em:
+
+- `docs/SAAS_MULTI_TENANT_STRATEGY.md`
+
+Novas decisoes que ampliem ainda mais o escopo continuam exigindo nova analise, especialmente itens como:
+
 - processamento financeiro regulado;
+- Open Finance;
+- integracao bancaria automatica;
 - app nativo completo;
 - modulo de investimentos com cotacoes reais;
+- billing em producao;
+- plataforma publica para multiplos segmentos alem do financeiro familiar.
 
-precisa ser tratada como nova fase, com nova estimativa, novos riscos, novo aceite e atualizacao da documentacao.
+## Regra de implementacao
+
+A transicao SaaS deve seguir a ordem:
+
+```txt
+Documentacao -> Plano SQL -> organizations -> memberships -> organization_id -> backfill -> helpers server-side -> queries/actions -> RLS -> rotas -> PWA/UX -> billing
+```
+
+Qualquer PR que pule etapas, misture responsabilidades demais ou altere banco sem plano de rollback deve ser considerada fora do processo aprovado.
