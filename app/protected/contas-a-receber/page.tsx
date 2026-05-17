@@ -5,12 +5,12 @@ import { ReceivablePageHeader } from "@/components/receivables/receivable-page-h
 import { ReceivableSummaryCards } from "@/components/receivables/receivable-summary-cards";
 import { getCurrentProfile, getModulePermission } from "@/lib/finance/access-control";
 import { getCurrentMonthLabel } from "@/lib/finance/period-context";
-import { getReceivableIncomesDashboardData } from "@/lib/finance/server";
+import { getOrganizationReceivableIncomesDashboardData } from "@/lib/organizations/receivables";
 
 export default async function ContasAReceberPage() {
   const [profile, receivableData] = await Promise.all([
     getCurrentProfile(),
-    getReceivableIncomesDashboardData(),
+    getOrganizationReceivableIncomesDashboardData(),
   ]);
   const permission = profile.role === "admin" ? null : await getModulePermission(profile.id, "CONTAS_A_RECEBER");
   const canCreate = profile.role === "admin" || Boolean(permission?.can_create);
