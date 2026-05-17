@@ -1,0 +1,78 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
+import { describe, expect, it } from "vitest";
+
+const rootDir = process.cwd();
+
+function readSource(path: string) {
+  return readFileSync(join(rootDir, path), "utf8");
+}
+
+const migratedPages = [
+  "app/protected/page.tsx",
+  "app/protected/pessoas/page.tsx",
+  "app/protected/configuracoes/page.tsx",
+  "app/protected/contas-a-pagar/page.tsx",
+  "app/protected/contas-a-receber/page.tsx",
+  "app/protected/gastos/page.tsx",
+  "app/protected/bancos/page.tsx",
+  "app/protected/relatorios/page.tsx",
+];
+
+const organizationHelpers = [
+  "lib/organizations/people.ts",
+  "lib/organizations/categories.ts",
+  "lib/organizations/payables.ts",
+  "lib/organizations/receivables.ts",
+  "lib/organizations/expenses.ts",
+  "lib/organizations/banks.ts",
+];
+
+describe("organization-aware query guards", () => {
+  it("keeps migrated protected pages away from owner-only finance helpers", () => {
+    const forbiddenImports = [
+      "@/lib/finance/server",
+      "@/lib/finance/banks-server",
+    ];
+
+    for (const path of migratedPages) {
+      const source = readSource(path);
+
+      for (const forbiddenImport of forbiddenImports) {
+        expect(source, `${path} must not import ${forbiddenImport}`).not.toContain(forbiddenImport);
+      }
+    }
+  });
+
+  it("keeps dashboard wired to organization-aware data helpers", () => {
+    const source = readSource("app/protected/page.tsx");
+
+    expect(source).toContain("@/lib/organizations/dashboard");
+    expect(source).toContain("getOrganizationDashboardData");
+    expect(source).not.toContain("getExpenseDashboardData");
+    expect(source).not.toContain("getPayableBillsDashboardData");
+    expect(source).not.toContain("getReceivableIncomesDashboardData");
+    expect(source).not.toContain("getBanksDashboardData");
+  });
+
+  it("keeps reports away from legacy owner-only finance aggregators", () => {
+    const source = readSource("lib/organizations/reports.ts");
+
+    expect(source).toContain("@/lib/organizations/expenses");
+    expect(source).toContain("@/lib/organizations/payables");
+    expect(source).toContain("@/lib/organizations/receivables");
+    expect(source).toContain("@/lib/organizations/banks");
+    expect(source).not.toContain("@/lib/finance/server");
+    expect(source).not.toContain("@/lib/finance/banks-server");
+  });
+
+  it("preserves transitional organization-or-legacy filters in organization helpers", () => {
+    for (const path of organizationHelpers) {
+      const source = readSource(path);
+
+      expect(source, `${path} must keep organization filter`).toContain("organization_id.eq.${organizationId}");
+      expect(source, `${path} must keep legacy compatibility").toContain("organization_id.is.null");
+    }
+  });
+});
