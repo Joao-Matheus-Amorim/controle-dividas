@@ -45,11 +45,17 @@ describe("organization-aware query guards", () => {
     }
   });
 
-  it("keeps dashboard wired to organization-aware data helpers", () => {
+  it("keeps dashboard wired to organization-aware module data helpers", () => {
     const source = readSource("app/protected/page.tsx");
 
-    expect(source).toContain("@/lib/organizations/dashboard");
-    expect(source).toContain("getOrganizationDashboardData");
+    expect(source).toContain("@/lib/organizations/banks");
+    expect(source).toContain("@/lib/organizations/expenses");
+    expect(source).toContain("@/lib/organizations/payables");
+    expect(source).toContain("@/lib/organizations/receivables");
+    expect(source).toContain("getOrganizationBanksDashboardData");
+    expect(source).toContain("getOrganizationExpenseDashboardData");
+    expect(source).toContain("getOrganizationPayableBillsDashboardData");
+    expect(source).toContain("getOrganizationReceivableIncomesDashboardData");
     expect(source).not.toContain("getExpenseDashboardData");
     expect(source).not.toContain("getPayableBillsDashboardData");
     expect(source).not.toContain("getReceivableIncomesDashboardData");
