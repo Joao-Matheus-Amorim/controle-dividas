@@ -5,6 +5,10 @@ import type { DbFamilyMember } from "@/lib/finance/server";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { createClient } from "@/lib/supabase/server";
 
+function organizationOrLegacyFilter(organizationId: string) {
+  return `organization_id.eq.${organizationId},organization_id.is.null`;
+}
+
 export async function getOrganizationFamilyMembers() {
   const supabase = await createClient();
   const profile = await getCurrentProfile();
@@ -14,7 +18,7 @@ export async function getOrganizationFamilyMembers() {
     .from("family_members")
     .select("id, owner_id, name, role, monthly_limit, currency, is_active, created_at")
     .eq("owner_id", profile.owner_id)
-    .eq("organization_id", organization.id)
+    .or(organizationOrLegacyFilter(organization.id))
     .order("created_at", { ascending: true });
 
   if (error) {
