@@ -23,6 +23,32 @@ function organizationOrLegacyFilter(organizationId: string) {
   return `organization_id.eq.${organizationId},organization_id.is.null`;
 }
 
+async function assertResponsibleMemberBelongsToOrganization(
+  ownerId: string,
+  organizationId: string,
+  responsibleMemberId: string,
+) {
+  const supabase = await createClient();
+
+  const { data: member, error } = await supabase
+    .from("family_members")
+    .select("id, organization_id")
+    .eq("id", responsibleMemberId)
+    .eq("owner_id", ownerId)
+    .or(organizationOrLegacyFilter(organizationId))
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (!member) {
+    throw new Error("Responsavel nao pertence a esta organizacao.");
+  }
+
+  return member;
+}
+
 async function assertCanManagePayableBill(
   billId: string,
   action: Extract<PermissionAction, "can_edit" | "can_delete">,
@@ -46,6 +72,12 @@ async function assertCanManagePayableBill(
   if (!bill?.responsible_member_id) {
     throw new Error("Conta nao encontrada ou sem responsavel vinculado.");
   }
+
+  await assertResponsibleMemberBelongsToOrganization(
+    profile.owner_id,
+    organization.id,
+    String(bill.responsible_member_id),
+  );
 
   await assertCanAccessMember("CONTAS_A_PAGAR", action, String(bill.responsible_member_id));
 
@@ -125,6 +157,11 @@ export async function createPayableBill(
   const { organization } = await requireOrganizationAccess();
 
   try {
+    await assertResponsibleMemberBelongsToOrganization(
+      profile.owner_id,
+      organization.id,
+      input.responsibleMemberId,
+    );
     await assertCanAccessMember("CONTAS_A_PAGAR", "can_create", input.responsibleMemberId);
   } catch (error) {
     return {
@@ -185,6 +222,11 @@ export async function updatePayableBill(
     const { profile, organization, bill } = await assertCanManagePayableBill(id, "can_edit");
 
     if (String(bill.responsible_member_id) !== input.responsibleMemberId) {
+      await assertResponsibleMemberBelongsToOrganization(
+        profile.owner_id,
+        organization.id,
+        input.responsibleMemberId,
+      );
       await assertCanAccessMember("CONTAS_A_PAGAR", "can_edit", input.responsibleMemberId);
     }
 
