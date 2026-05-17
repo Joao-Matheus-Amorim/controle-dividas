@@ -1,10 +1,20 @@
-# FamilyFinance SaaS - Status da Implementacao e Proximos Gates de Seguranca
+# FamilyFinance SaaS - Status da Implementacao e Gates de Seguranca
 
 ## 1. Objetivo
 
-Este documento registra o estado real da transicao SaaS multi-tenant do FamilyFinance apos a implementacao das migrations base, bootstrap da organization inicial, backfill inicial e migracao dos principais modulos financeiros para `organization_id`.
+Este documento registra o estado real da transicao SaaS multi-tenant do FamilyFinance.
 
-A finalidade e dar norte ao produto e ao desenvolvimento antes de avancar para auditoria, endurecimento de RLS, rotas por `orgSlug`, billing e fases comerciais.
+Ele consolida:
+
+- migrations base ja implementadas;
+- bootstrap inicial da primeira organization;
+- backfill inicial validado;
+- modulos financeiros ja migrados para organization-aware;
+- auditorias e testes de seguranca ja concluidos;
+- riscos ainda pendentes;
+- proximos gates antes de RLS financeira, rotas por `orgSlug`, billing e endurecimento definitivo de schema.
+
+Este documento nao substitui os planos anteriores. Ele registra o estado atual da `main` apos os gates recentes.
 
 ## 2. Estado estrategico atual
 
@@ -25,7 +35,9 @@ O FamilyFinance nasceu como uma aplicacao financeira familiar privada. Essa fase
 - PWA/mobile-first;
 - testes e CI.
 
-A nova direcao aprovada e evoluir para um SaaS multi-tenant de gestao financeira familiar, onde cada organization representa uma familia, grupo financeiro, workspace ou conta contratante.
+A direcao aprovada e evoluir para um SaaS multi-tenant de gestao financeira familiar, onde cada organization representa uma familia, grupo financeiro, workspace ou conta contratante.
+
+A fase atual continua sendo transicional. O projeto ainda nao deve ser tratado como SaaS final.
 
 ## 3. Documentos de referencia
 
@@ -34,12 +46,11 @@ A transicao SaaS esta documentada em:
 - `docs/SAAS_MULTI_TENANT_STRATEGY.md`
 - `docs/SAAS_DATABASE_MIGRATION_PLAN.md`
 - `docs/INITIAL_ORGANIZATION_BACKFILL_PLAN.md`
+- `docs/audits/OWNER_ID_FINANCE_QUERIES_AUDIT.md`
 - `docs/pm/07_SOLICITACAO_MUDANCA_SAAS_MULTI_TENANT.md`
 - `docs/pm/02_ESCOPO.md`
 - `docs/pm/03_WBS_EAP.md`
 - `docs/pm/05_RISCOS_QUALIDADE_MUDANCAS.md`
-
-Este documento complementa os anteriores com o status real apos as primeiras implementacoes.
 
 ## 4. Migrations e banco
 
@@ -108,9 +119,7 @@ user_feature_permissions: 0/0
 
 ## 5. Padrao transicional atual
 
-O projeto ainda esta em uma fase transicional.
-
-O padrao aplicado nos modulos migrados e:
+O projeto ainda opera em modo transicional:
 
 ```txt
 owner_id + (organization_id atual OR organization_id IS NULL)
@@ -119,10 +128,13 @@ owner_id + (organization_id atual OR organization_id IS NULL)
 Esse padrao existe para evitar quebra em ambientes onde:
 
 - a migration `007` ja foi aplicada;
-- mas o backfill ainda nao foi executado;
-- ou existem registros legados ainda sem `organization_id`.
+- o backfill ainda nao foi executado em todos os ambientes;
+- existem registros legados ainda sem `organization_id`;
+- RLS financeira ainda nao foi convertida para membership/organization.
 
-## 6. Decisoes tecnicas atuais
+Este padrao nao e o modelo final de isolamento SaaS. Ele e uma ponte segura ate o hardening completo.
+
+## 6. Decisoes tecnicas que continuam validas
 
 ### 6.1 `owner_id` continua existindo
 
@@ -132,21 +144,20 @@ Ele continua sendo usado como camada de compatibilidade enquanto:
 
 - `organization_id` ainda e nullable;
 - RLS das tabelas financeiras ainda nao foi substituida por RLS multi-tenant;
-- queries antigas ainda podem existir;
-- testes e auditorias cross-tenant ainda nao foram finalizados.
+- existem helpers legados ainda presentes;
+- testes e auditorias precisam continuar antes de mudancas destrutivas.
 
 ### 6.2 `organization_id` ainda e nullable
 
 `organization_id` nao deve ser tornado `NOT NULL` ainda.
 
-Antes disso, precisamos garantir:
+Antes disso, ainda precisamos garantir:
 
-- auditoria completa de queries;
-- auditoria completa de actions;
 - backfill validado em todos os ambientes;
-- testes automatizados cross-tenant;
-- RLS multi-tenant planejado e testado;
-- nenhum fluxo criando registro sem `organization_id`.
+- RLS multi-tenant planejada, testada e com rollback;
+- nenhum fluxo restante criando registro sem `organization_id`;
+- estrategia para registros legados `organization_id IS NULL`;
+- CI e testes cobrindo cenarios cross-tenant suficientes.
 
 ### 6.3 Rotas continuam `/protected`
 
@@ -156,9 +167,10 @@ Isso e intencional. As rotas por organization devem vir depois de:
 
 - helpers server-side consolidados;
 - queries/actions auditadas;
-- decisao de UX para organization ativa;
+- UX para organization ativa;
 - fallback para usuario com multiplas organizations;
-- testes de acesso por slug.
+- testes de acesso por slug;
+- plano de migracao de links/rotas.
 
 ### 6.4 Billing ainda esta fora da implementacao
 
@@ -168,9 +180,9 @@ Antes de billing, precisamos concluir:
 
 - isolamento de dados;
 - RLS multi-tenant;
-- rotas por organization;
-- onboarding/organization switcher;
+- rotas/UX de organization;
 - limites por plano;
+- modelo de assinatura;
 - auditoria operacional.
 
 ## 7. Modulos ja migrados para organization-aware
@@ -189,29 +201,33 @@ Relatorios
 Dashboard
 ```
 
-## 8. Modulos e ajustes realizados
+## 8. Regras por modulo ja implementadas
 
 ### 8.1 Pessoas
 
-Foi criado suporte para listar e alterar membros financeiros considerando:
+Pessoas usam o padrao:
 
 ```txt
 owner_id + (organization_id atual OR organization_id IS NULL)
 ```
 
-Criacao de novo membro grava `organization_id`.
+Regras atuais:
 
-Edicao e ativacao/desativacao de membro legado passam a preencher `organization_id`.
+- criacao de novo membro grava `organization_id`;
+- edicao de membro legado preenche `organization_id`;
+- ativacao/desativacao de membro legado preenche `organization_id`;
+- queries respeitam organization ativa ou legado.
 
 ### 8.2 Configuracoes / categorias
 
-Categorias passaram a ser lidas por organization ativa ou legado.
+Categorias usam organization ativa ou legado.
 
-Criacao grava `organization_id`.
+Regras atuais:
 
-Edicao de categoria legada preenche `organization_id`.
-
-Exclusao respeita owner e organization/legado.
+- criacao grava `organization_id`;
+- edicao de categoria legada preenche `organization_id`;
+- exclusao respeita owner e organization/legado;
+- categorias padrao continuam protegidas contra edicao indevida.
 
 ### 8.3 Configuracoes / limites
 
@@ -223,28 +239,33 @@ Ao atualizar membro legado, a action tambem preenche `organization_id`.
 
 Contas a pagar foram migradas para organization-aware.
 
-Regras importantes:
+Regras atuais:
 
 - criacao grava `organization_id`;
 - edicao/status preenchem `organization_id` em registros legados;
 - delete respeita owner e organization/legado;
 - `responsible_member_id` precisa pertencer a organization ativa ou ser legado.
 
-Essa ultima regra evita criar conta em uma organization vinculada a membro de outra organization.
+Essa regra evita criar conta em uma organization vinculada a membro de outra organization.
 
 ### 8.5 Bancos
 
 Bancos foram migrados para organization-aware.
 
-Apos revisao, foi corrigido um ponto importante: os IDs de membros usados para listar bancos agora sao derivados de membros ja filtrados por organization ativa ou legado, nao apenas de permissoes owner-wide.
+Regras atuais:
 
-Tambem foi removido o filtro rigido `is_active = true` na derivacao de membros para bancos, pois bancos sao registros historicos e nao devem sumir quando um membro e desativado.
+- criacao grava `organization_id`;
+- edicao/saldo preenchem `organization_id` em registros legados;
+- delete respeita owner e organization/legado;
+- `family_member_id` precisa pertencer a organization ativa ou ser legado;
+- IDs de membros usados para listar bancos sao derivados de membros filtrados por organization ativa ou legado;
+- listagem de bancos nao deve depender de `is_active = true`, pois bancos sao registros historicos e nao devem sumir quando um membro e desativado.
 
 ### 8.6 Contas a receber
 
 Contas a receber foram migradas para organization-aware.
 
-Regras importantes:
+Regras atuais:
 
 - criacao grava `organization_id`;
 - edicao/status preenchem `organization_id` em registros legados;
@@ -255,7 +276,7 @@ Regras importantes:
 
 Gastos foram migrados para organization-aware.
 
-Regras importantes:
+Regras atuais:
 
 - criacao grava `organization_id`;
 - edicao preenche `organization_id` em registros legados;
@@ -265,7 +286,7 @@ Regras importantes:
 
 ### 8.8 Relatorios
 
-Relatorios foram migrados para reutilizar os helpers organization-aware dos modulos ja migrados:
+Relatorios reutilizam helpers organization-aware dos modulos ja migrados:
 
 - Gastos;
 - Contas a pagar;
@@ -276,73 +297,112 @@ Isso reduz duplicacao e evita reabrir queries antigas por `owner_id` diretamente
 
 ### 8.9 Dashboard
 
-O Dashboard global `/protected` passou a usar dados organization-aware dos modulos migrados.
+O Dashboard global `/protected` usa dados organization-aware dos modulos migrados.
 
-Ele ainda usa as rotas atuais e a UI atual, mas os dados agregados ja seguem a organization ativa via helpers.
+Ele ainda usa as rotas atuais e a UI atual, mas os dados agregados seguem a organization ativa via helpers por dominio:
 
-## 9. Riscos ainda existentes
+- `@/lib/organizations/expenses`;
+- `@/lib/organizations/payables`;
+- `@/lib/organizations/receivables`;
+- `@/lib/organizations/banks`.
 
-Mesmo com os modulos principais migrados, a fase SaaS ainda nao esta completa.
+## 9. Gates de seguranca concluidos
+
+### Gate 1 - Auditoria de queries/actions `owner_id` only
+
+Status: **concluido**.
+
+Referencias:
+
+- Issue #133: `Audit remaining owner_id-only finance queries`;
+- PR #134: `Audit remaining owner_id-only finance queries`;
+- Documento: `docs/audits/OWNER_ID_FINANCE_QUERIES_AUDIT.md`.
+
+O que foi entregue:
+
+- busca e classificacao de ocorrencias `.eq("owner_id"`;
+- separacao entre uso protegido por helper organization-aware, uso temporario aceitavel e helpers antigos ainda presentes;
+- testes de guarda para impedir que paginas migradas voltem a importar helpers owner-only antigos;
+- testes de guarda para manter filtros organization/legado em helpers `lib/organizations/*`.
+
+Achados importantes:
+
+- `lib/organizations/*` usa `owner_id` com organization ativa ou legado, como esperado na fase transicional;
+- helpers antigos em `lib/finance/server.ts` e `lib/finance/banks-server.ts` ainda existem e nao devem voltar a ser usados por telas migradas;
+- `lib/finance/admin-server.ts` e `lib/finance/access-control.ts` ainda precisam de hardening futuro para multi-org pleno.
+
+### Gate 2 - Testes cross-tenant dos vinculos financeiros criticos
+
+Status: **concluido para os vinculos principais dos modulos migrados**.
+
+Cobertura entregue:
+
+- Gastos:
+  - `family_member_id` precisa pertencer a organization ativa ou ser legado;
+  - `category_id` precisa pertencer a organization ativa ou ser legado;
+  - testes foram endurecidos para afirmar os filtros reais `.eq("owner_id", ...)` e `.or("organization_id.eq.<org>,organization_id.is.null")`.
+- Contas a pagar:
+  - `responsible_member_id` precisa pertencer a organization ativa ou ser legado;
+  - testes afirmam filtros reais de owner e organization/legado.
+- Contas a receber:
+  - `receiver_member_id` precisa pertencer a organization ativa ou ser legado;
+  - testes afirmam filtros reais de owner e organization/legado.
+- Bancos:
+  - `family_member_id` precisa pertencer a organization ativa ou ser legado;
+  - testes afirmam filtros reais de owner e organization/legado;
+  - listagem de bancos preserva contas historicas vinculadas a membros inativos;
+  - testes garantem que a query de membros para bancos nao volte a depender de `.eq("is_active", true)`.
+
+PRs relacionadas:
+
+- #136: testes iniciais de gastos;
+- #138: endurecimento dos testes de gastos para validar filtros reais;
+- #140: testes de contas a pagar;
+- #142: testes de contas a receber;
+- #144: testes de criacao/validacao de bancos;
+- #145: testes de listagem historica de bancos com membros inativos.
+
+### Gate 3 - Garantia de `organization_id` em novos registros
+
+Status: **concluido para os principais fluxos de criacao migrados**.
+
+Referencias:
+
+- Issue #146: `Ensure new finance records receive organization_id`;
+- PR #147: `Guard organization_id on finance inserts`.
+
+Cobertura entregue:
+
+Os testes de guarda validam que os fluxos de criacao abaixo continuam gravando `organization_id` dentro da propria funcao de criacao:
+
+- `family_members`;
+- `expense_categories`;
+- `expenses`;
+- `payable_bills`;
+- `receivable_incomes`;
+- `banks`.
+
+Observacao importante: o teste foi ajustado para procurar `organization_id: organization.id` dentro do corpo da funcao `create*` correspondente, evitando falso positivo causado por `organization_id` presente em updates posteriores no mesmo arquivo.
+
+## 10. Riscos ainda existentes
+
+Mesmo com os gates 1, 2 e 3 concluidos, a fase SaaS ainda nao esta completa.
 
 Riscos pendentes:
 
-- ainda podem existir queries antigas usando apenas `owner_id`;
-- ainda podem existir actions antigas sem validacao por organization;
-- `organization_id` ainda e nullable;
 - RLS das tabelas financeiras ainda nao foi convertida para membership/organization;
+- `organization_id` ainda e nullable;
+- `owner_id` segue ativo por compatibilidade;
 - rotas ainda nao usam `orgSlug`;
 - usuario com multiplas organizations ainda precisa de UX explicita para selecao de organization;
 - billing ainda nao esta implementado;
-- testes cross-tenant ainda precisam ser ampliados.
+- admin e permissions ainda precisam de hardening multi-org pleno;
+- backfill precisa ser validado em todos os ambientes antes de qualquer `NOT NULL`;
+- helpers antigos owner-only ainda existem e precisam continuar isolados de telas migradas ate serem migrados/removidos com seguranca.
 
-## 10. Proximos gates de seguranca
+## 11. Proximos gates recomendados
 
-A proxima fase deve ser auditoria, nao uma nova feature grande.
-
-### Gate 1 - Auditoria de queries e actions
-
-Objetivo:
-
-```txt
-Mapear tudo que ainda usa apenas owner_id sem organization_id.
-```
-
-Itens:
-
-- buscar `.eq("owner_id"` em todo o projeto;
-- classificar por modulo;
-- identificar se ainda precisa migrar;
-- identificar se ja esta protegido por helper organization-aware;
-- abrir issues especificas.
-
-### Gate 2 - Testes cross-tenant
-
-Objetivo:
-
-```txt
-Garantir que dados de uma organization nao aparecem em outra.
-```
-
-Cenarios minimos:
-
-- usuario owner da organization A;
-- usuario owner da organization B;
-- usuario membro de duas organizations;
-- registros legados `organization_id IS NULL`;
-- registros ja com `organization_id`;
-- tentativas de vincular member/category de outra organization.
-
-### Gate 3 - Hardening de criacao de dados
-
-Objetivo:
-
-```txt
-Garantir que todo novo registro financeiro recebe organization_id.
-```
-
-Antes de tornar `organization_id` obrigatorio, toda action precisa estar auditada.
-
-### Gate 4 - RLS multi-tenant das tabelas financeiras
+### Gate 4 - Planejamento de RLS multi-tenant financeira
 
 Objetivo:
 
@@ -350,15 +410,33 @@ Objetivo:
 Substituir gradualmente RLS baseada apenas em owner_id por RLS baseada em organization membership.
 ```
 
-Pre-condicoes:
+Pre-condicoes antes de implementar:
 
-- todos os fluxos criando `organization_id`;
-- backfill validado;
-- testes cross-tenant;
-- plano de rollback;
-- ambiente de staging/teste validado.
+- confirmar que todos os fluxos novos gravam `organization_id`;
+- revisar backfill nos ambientes reais;
+- criar plano de rollback;
+- planejar policies por tabela;
+- evitar policies recursivas em `organization_memberships`;
+- manter compatibilidade temporaria com registros `organization_id IS NULL`, se necessario;
+- criar testes focados antes/depois das policies.
 
-### Gate 5 - Rotas por orgSlug
+### Gate 5 - UX de organization ativa e multiplas organizations
+
+Objetivo:
+
+```txt
+Definir como o usuario seleciona, troca e entende a organization ativa.
+```
+
+Antes de rotas por `orgSlug`, precisamos decidir:
+
+- comportamento para usuario em uma organization;
+- comportamento para usuario em multiplas organizations;
+- fallback deterministico;
+- tela/selector de organization;
+- autorizacao visual e server-side alinhadas.
+
+### Gate 6 - Rotas por `orgSlug`
 
 Objetivo:
 
@@ -366,7 +444,7 @@ Objetivo:
 Migrar de /protected para rotas com organization explicita.
 ```
 
-Exemplo futuro:
+Exemplos futuros:
 
 ```txt
 /[orgSlug]/dashboard
@@ -374,9 +452,9 @@ Exemplo futuro:
 /[orgSlug]/contas-a-pagar
 ```
 
-Nao fazer antes de RLS e helpers estarem auditados.
+Nao fazer antes de RLS, helpers, UX de organization ativa e testes de acesso por slug estarem planejados.
 
-### Gate 6 - Billing
+### Gate 7 - Billing
 
 Billing so entra depois de:
 
@@ -384,9 +462,23 @@ Billing so entra depois de:
 - RLS segura;
 - rotas/UX de organization;
 - limites por plano definidos;
-- modelo de assinatura definido.
+- modelo de assinatura definido;
+- auditoria operacional.
 
-## 11. Padrao para proximas PRs
+### Gate 8 - `organization_id NOT NULL` e possivel remocao futura de `owner_id`
+
+Nao fazer agora.
+
+Esse gate so deve ser considerado depois de:
+
+- backfill validado em todos os ambientes;
+- nenhuma action criando registro sem `organization_id`;
+- RLS multi-tenant validada;
+- rotas/UX estabilizadas;
+- plano de rollback;
+- confirmacao de que registros legados foram tratados.
+
+## 12. Padrao para proximas PRs
 
 Toda PR da fase SaaS deve declarar explicitamente:
 
@@ -397,26 +489,16 @@ Toda PR da fase SaaS deve declarar explicitamente:
 - se altera queries;
 - se altera billing;
 - como preserva compatibilidade com `organization_id IS NULL`;
-- como evita cross-tenant access.
-
-## 12. Proxima PR recomendada
-
-A proxima PR recomendada e:
-
-```txt
-Audit remaining owner_id-only finance queries
-```
-
-Ela deve ser uma PR de auditoria/documentacao ou uma issue tecnica antes de qualquer novo hardening.
-
-Nao devemos tornar `organization_id` obrigatorio nem alterar RLS financeira antes dessa auditoria.
+- como evita cross-tenant access;
+- quais testes cobrem a mudanca;
+- quais riscos continuam fora do escopo.
 
 ## 13. Status final desta fase
 
 A fase atual pode ser descrita como:
 
 ```txt
-SaaS multi-tenant em transicao funcional, com modulos principais organization-aware, mas ainda em modo compatibilidade.
+SaaS multi-tenant em transicao endurecida, com modulos principais organization-aware e gates iniciais de auditoria/testes concluidos.
 ```
 
 Ainda nao e o SaaS final porque:
@@ -424,7 +506,8 @@ Ainda nao e o SaaS final porque:
 - `owner_id` segue ativo;
 - `organization_id` segue nullable;
 - RLS financeira ainda nao foi endurecida;
-- rotas por orgSlug ainda nao existem;
+- rotas por `orgSlug` ainda nao existem;
+- UX de multiplas organizations ainda nao existe;
 - billing ainda nao existe.
 
-Mas a base funcional ja esta preparada para a proxima fase de auditoria e hardening.
+Mas a base funcional e os principais testes de seguranca ja estao melhor preparados para a proxima fase: planejamento cuidadoso de RLS multi-tenant financeira.
