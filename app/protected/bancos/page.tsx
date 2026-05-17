@@ -5,12 +5,12 @@ import { BankMemberBalances } from "@/components/banks/bank-member-balances";
 import { BankPageHeader } from "@/components/banks/bank-page-header";
 import { BankSummaryCards } from "@/components/banks/bank-summary-cards";
 import { getCurrentProfile, getModulePermission } from "@/lib/finance/access-control";
-import { getBanksDashboardData } from "@/lib/finance/banks-server";
+import { getOrganizationBanksDashboardData } from "@/lib/organizations/banks";
 
 export default async function BancosPage() {
   const [profile, bankData] = await Promise.all([
     getCurrentProfile(),
-    getBanksDashboardData(),
+    getOrganizationBanksDashboardData(),
   ]);
   const permission = profile.role === "admin" ? null : await getModulePermission(profile.id, "BANCOS");
   const canCreate = profile.role === "admin" || Boolean(permission?.can_create);
