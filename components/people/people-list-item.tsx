@@ -2,7 +2,7 @@ import { toggleFamilyMemberStatus, updateFamilyMember } from "@/app/protected/pe
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { DbFamilyMember } from "@/lib/finance/server";
+import type { DbFamilyMember } from "@/lib/finance/types";
 import { compactCurrency, initials, type AccessProfileSummary } from "./people-utils";
 
 interface PeopleListItemProps {
