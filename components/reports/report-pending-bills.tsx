@@ -1,7 +1,7 @@
 import { AlertTriangle } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
-import type { DbPayableBill } from "@/lib/finance/server";
+import type { DbPayableBill } from "@/lib/finance/types";
 import { compactCurrency, formatDate } from "./report-utils";
 
 type PendingBill = DbPayableBill & { computed_status: string };
