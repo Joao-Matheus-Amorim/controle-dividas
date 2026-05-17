@@ -29,14 +29,12 @@ import {
 } from "@/components/dashboard/dashboard-detail-sections";
 import { compactCurrency } from "@/components/dashboard/dashboard-utils";
 import { getVisibleModuleKeys } from "@/lib/finance/access-control";
-import { getBanksDashboardData } from "@/lib/finance/banks-server";
 import type { FinanceModuleKey } from "@/lib/finance/permissions";
 import { getCurrentPeriodContextLabel } from "@/lib/finance/period-context";
-import {
-  getExpenseDashboardData,
-  getPayableBillsDashboardData,
-  getReceivableIncomesDashboardData,
-} from "@/lib/finance/server";
+import { getOrganizationBanksDashboardData } from "@/lib/organizations/banks";
+import { getOrganizationExpenseDashboardData } from "@/lib/organizations/expenses";
+import { getOrganizationPayableBillsDashboardData } from "@/lib/organizations/payables";
+import { getOrganizationReceivableIncomesDashboardData } from "@/lib/organizations/receivables";
 
 const dashboardModules: FinanceModuleKey[] = [
   "DASHBOARD",
@@ -52,10 +50,10 @@ const dashboardModules: FinanceModuleKey[] = [
 export default async function ProtectedPage() {
   const [visibleModuleKeys, expenseData, payableData, receivableData, bankData, periodContextLabel] = await Promise.all([
     getVisibleModuleKeys(dashboardModules),
-    getExpenseDashboardData(),
-    getPayableBillsDashboardData(),
-    getReceivableIncomesDashboardData(),
-    getBanksDashboardData(),
+    getOrganizationExpenseDashboardData(),
+    getOrganizationPayableBillsDashboardData(),
+    getOrganizationReceivableIncomesDashboardData(),
+    getOrganizationBanksDashboardData(),
     getCurrentPeriodContextLabel(),
   ]);
 
