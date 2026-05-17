@@ -95,16 +95,16 @@ export function createRlsSlugPrefix(prefix: string) {
     .replace(/^-+|-+$/g, "");
 }
 
-function createFixtureUuid(label: string) {
+function createFixtureUuid() {
   return crypto.randomUUID();
 }
 
 export function createExpenseCategoryFixtureSet(prefix = createRlsTestPrefix()): RlsExpenseCategoryFixtureSet {
   const slugPrefix = createRlsSlugPrefix(prefix);
-  const organizationAId = createFixtureUuid("organization-a");
-  const organizationBId = createFixtureUuid("organization-b");
-  const userAId = createFixtureUuid("user-a");
-  const userBId = createFixtureUuid("user-b");
+  const organizationAId = createFixtureUuid();
+  const organizationBId = createFixtureUuid();
+  const userAId = createFixtureUuid();
+  const userBId = createFixtureUuid();
 
   return {
     prefix,
@@ -135,7 +135,7 @@ export function createExpenseCategoryFixtureSet(prefix = createRlsTestPrefix()):
     },
     categories: {
       categoryA: {
-        id: createFixtureUuid("category-a"),
+        id: createFixtureUuid(),
         ownerId: userAId,
         organizationId: organizationAId,
         name: `${prefix} Category A`,
@@ -143,7 +143,7 @@ export function createExpenseCategoryFixtureSet(prefix = createRlsTestPrefix()):
         isDefault: false,
       },
       categoryB: {
-        id: createFixtureUuid("category-b"),
+        id: createFixtureUuid(),
         ownerId: userBId,
         organizationId: organizationBId,
         name: `${prefix} Category B`,
@@ -151,7 +151,7 @@ export function createExpenseCategoryFixtureSet(prefix = createRlsTestPrefix()):
         isDefault: false,
       },
       legacyCategoryA: {
-        id: createFixtureUuid("legacy-category-a"),
+        id: createFixtureUuid(),
         ownerId: userAId,
         organizationId: null,
         name: `${prefix} Legacy Category A`,
