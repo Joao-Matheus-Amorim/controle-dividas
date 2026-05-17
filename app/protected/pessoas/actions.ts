@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { getCurrentProfile } from "@/lib/finance/access-control";
 import type { FamilyMemberFormState } from "@/lib/finance/server";
+import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { createClient } from "@/lib/supabase/server";
 
 export async function createFamilyMember(
@@ -24,9 +25,11 @@ export async function createFamilyMember(
 
   const supabase = await createClient();
   const profile = await getCurrentProfile();
+  const { organization } = await requireOrganizationAccess();
 
   const { error } = await supabase.from("family_members").insert({
     owner_id: profile.owner_id,
+    organization_id: organization.id,
     name,
     role: role || null,
     monthly_limit: monthlyLimit,
@@ -56,6 +59,7 @@ export async function updateFamilyMember(formData: FormData) {
 
   const supabase = await createClient();
   const profile = await getCurrentProfile();
+  const { organization } = await requireOrganizationAccess();
 
   await supabase
     .from("family_members")
@@ -65,7 +69,8 @@ export async function updateFamilyMember(formData: FormData) {
       monthly_limit: monthlyLimit,
     })
     .eq("id", id)
-    .eq("owner_id", profile.owner_id);
+    .eq("owner_id", profile.owner_id)
+    .eq("organization_id", organization.id);
 
   revalidatePath("/protected/pessoas");
   revalidatePath("/protected/admin/usuarios");
@@ -82,12 +87,14 @@ export async function toggleFamilyMemberStatus(formData: FormData) {
 
   const supabase = await createClient();
   const profile = await getCurrentProfile();
+  const { organization } = await requireOrganizationAccess();
 
   await supabase
     .from("family_members")
     .update({ is_active: !isActive })
     .eq("id", id)
-    .eq("owner_id", profile.owner_id);
+    .eq("owner_id", profile.owner_id)
+    .eq("organization_id", organization.id);
 
   revalidatePath("/protected/pessoas");
   revalidatePath("/protected");
