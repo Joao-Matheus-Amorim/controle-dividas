@@ -1,7 +1,7 @@
 import { CheckCircle2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
-import type { DbReceivableIncome } from "@/lib/finance/server";
+import type { DbReceivableIncome } from "@/lib/finance/types";
 import { compactCurrency, formatDate } from "./report-utils";
 
 type ReceivedIncome = DbReceivableIncome & { computed_status: string };
