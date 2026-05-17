@@ -1,4 +1,4 @@
-import type { DbFamilyMember } from "@/lib/finance/server";
+import type { DbFamilyMember } from "@/lib/finance/types";
 import { PeopleListItem } from "./people-list-item";
 import type { AccessProfileSummary } from "./people-utils";
 
