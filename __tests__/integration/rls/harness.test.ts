@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { createRlsTestPrefix, getRlsTestConfig, shouldRunRlsTests } from "./helpers";
+import {
+  createExpenseCategoryFixtureSet,
+  createRlsTestPrefix,
+  getRlsTestConfig,
+  shouldRunRlsTests,
+} from "./helpers";
 
 describe("RLS test harness", () => {
   it("stays disabled by default so regular CI does not touch external Supabase state", () => {
@@ -45,5 +50,24 @@ describe("RLS test harness", () => {
 
   it("creates a unique cleanup-safe fixture prefix", () => {
     expect(createRlsTestPrefix()).toMatch(/^rls_test_\d+_[a-z0-9]+$/);
+  });
+
+  it("creates an expense category fixture set for organizations A and B", () => {
+    const fixture = createExpenseCategoryFixtureSet("rls_test_static");
+
+    expect(fixture.organizations.organizationA.id).not.toBe(fixture.organizations.organizationB.id);
+    expect(fixture.users.userA.organizationId).toBe(fixture.organizations.organizationA.id);
+    expect(fixture.users.userB.organizationId).toBe(fixture.organizations.organizationB.id);
+    expect(fixture.categories.categoryA.organizationId).toBe(fixture.organizations.organizationA.id);
+    expect(fixture.categories.categoryB.organizationId).toBe(fixture.organizations.organizationB.id);
+    expect(fixture.categories.legacyCategoryA.organizationId).toBeNull();
+    expect(fixture.categories.legacyCategoryA.ownerId).toBe(fixture.users.userA.id);
+    expect(fixture.cleanupKeys).toEqual([
+      "rls_test_static",
+      "rls_test_static_org_a",
+      "rls_test_static_org_b",
+      "rls_test_static_user_a",
+      "rls_test_static_user_b",
+    ]);
   });
 });
