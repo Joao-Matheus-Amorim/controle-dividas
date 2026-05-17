@@ -7,7 +7,7 @@ import { AppActionFeedback } from "@/components/app/app-action-feedback";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { DbFamilyMember, DbPayableBill, PayableBillFormState, PayableBillType } from "@/lib/finance/server";
+import type { DbFamilyMember, DbPayableBill, PayableBillFormState, PayableBillType } from "@/lib/finance/types";
 
 const initialState: PayableBillFormState = {};
 
