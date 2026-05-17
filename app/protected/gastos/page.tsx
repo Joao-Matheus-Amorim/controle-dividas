@@ -8,7 +8,7 @@ import { ExpensePageHeader } from "@/components/expenses/expense-page-header";
 import { ExpenseSummaryCards } from "@/components/expenses/expense-summary-cards";
 import { getCurrentProfile, getModulePermission } from "@/lib/finance/access-control";
 import { getCurrentMonthLabel } from "@/lib/finance/period-context";
-import { getExpenseDashboardData } from "@/lib/finance/server";
+import { getOrganizationExpenseDashboardData } from "@/lib/organizations/expenses";
 
 type PageSearchParams = Promise<Record<string, string | string[] | undefined>>;
 
@@ -36,7 +36,7 @@ export default async function GastosPage({ searchParams }: GastosPageProps) {
 
   const [profile, expenseData] = await Promise.all([
     getCurrentProfile(),
-    getExpenseDashboardData(),
+    getOrganizationExpenseDashboardData(),
   ]);
   const permission = profile.role === "admin" ? null : await getModulePermission(profile.id, "GASTOS");
   const canCreate = profile.role === "admin" || Boolean(permission?.can_create);
