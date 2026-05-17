@@ -5,7 +5,7 @@ import { useActionState } from "react";
 import { updatePayableBillStatus, type PayableBillActionState } from "@/app/protected/contas-a-pagar/actions";
 import { AppActionFeedback } from "@/components/app/app-action-feedback";
 import { Button } from "@/components/ui/button";
-import type { DbPayableBill } from "@/lib/finance/server";
+import type { DbPayableBill } from "@/lib/finance/types";
 
 const initialState: PayableBillActionState = {};
 
