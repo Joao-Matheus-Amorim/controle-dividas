@@ -7,6 +7,13 @@ import { AppActionFeedback } from "@/components/app/app-action-feedback";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { DbFamilyMember, DbReceivableIncome, ReceivableIncomeFormState } from "@/lib/finance/server";
 
 const initialState: ReceivableIncomeFormState = {};
@@ -75,15 +82,15 @@ export function ReceivableIncomeForm({ members, income, mode = "create" }: Recei
 
         <div className="space-y-2">
           <Label htmlFor={isEditing ? `income_type-${income?.id}` : "income_type"}>Tipo de renda</Label>
-          <select
-            id={isEditing ? `income_type-${income?.id}` : "income_type"}
-            name="income_type"
-            defaultValue={income?.income_type ?? "fixa"}
-            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-          >
-            <option value="fixa">Fixa</option>
-            <option value="variavel">Variavel</option>
-          </select>
+          <Select name="income_type" defaultValue={income?.income_type ?? "fixa"}>
+            <SelectTrigger id={isEditing ? `income_type-${income?.id}` : "income_type"}>
+              <SelectValue placeholder="Tipo de renda" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="fixa">Fixa</SelectItem>
+              <SelectItem value="variavel">Variavel</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-2">
@@ -115,16 +122,16 @@ export function ReceivableIncomeForm({ members, income, mode = "create" }: Recei
 
         <div className="space-y-2">
           <Label htmlFor={isEditing ? `status-${income?.id}` : "status"}>Status</Label>
-          <select
-            id={isEditing ? `status-${income?.id}` : "status"}
-            name="status"
-            defaultValue={income?.status ?? "previsto"}
-            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-          >
-            <option value="previsto">Previsto</option>
-            <option value="recebido">Recebido</option>
-            <option value="atrasado">Atrasado</option>
-          </select>
+          <Select name="status" defaultValue={income?.status ?? "previsto"}>
+            <SelectTrigger id={isEditing ? `status-${income?.id}` : "status"}>
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="previsto">Previsto</SelectItem>
+              <SelectItem value="recebido">Recebido</SelectItem>
+              <SelectItem value="atrasado">Atrasado</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-2">
