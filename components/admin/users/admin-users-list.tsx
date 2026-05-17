@@ -1,4 +1,4 @@
-import type { DbProfile } from "@/lib/finance/admin-server";
+import type { DbProfile } from "@/lib/finance/admin-types";
 import type { DbFamilyMember } from "@/lib/finance/types";
 import { AdminUsersListItem } from "./admin-users-list-item";
 
