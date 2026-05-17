@@ -3,7 +3,7 @@ import { ExpenseCategoryEditDialog } from "@/components/finance/expense-category
 import { ExpenseCategoryForm } from "@/components/finance/expense-category-form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import type { DbExpenseCategory } from "@/lib/finance/server";
+import type { DbExpenseCategory } from "@/lib/finance/types";
 import { Trash2 } from "lucide-react";
 
 interface SettingsCategoriesProps {
