@@ -1,4 +1,4 @@
-import type { DbFamilyMember, DbReceivableIncome } from "@/lib/finance/server";
+import type { DbFamilyMember, DbReceivableIncome } from "@/lib/finance/types";
 import { ReceivableListItem } from "./receivable-list-item";
 
 type ReceivableListIncome = DbReceivableIncome & { computed_status: string };
