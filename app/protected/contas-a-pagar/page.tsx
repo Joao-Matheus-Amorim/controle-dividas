@@ -10,7 +10,7 @@ import {
 } from "@/components/payables/payable-utils";
 import { getCurrentProfile, getModulePermission } from "@/lib/finance/access-control";
 import { getCurrentMonthLabel } from "@/lib/finance/period-context";
-import { getPayableBillsDashboardData } from "@/lib/finance/server";
+import { getOrganizationPayableBillsDashboardData } from "@/lib/organizations/payables";
 
 type PageSearchParams = Promise<Record<string, string | string[] | undefined>>;
 
@@ -25,7 +25,7 @@ export default async function ContasAPagarPage({ searchParams }: ContasAPagarPag
 
   const [profile, payableData] = await Promise.all([
     getCurrentProfile(),
-    getPayableBillsDashboardData(),
+    getOrganizationPayableBillsDashboardData(),
   ]);
   const permission = profile.role === "admin" ? null : await getModulePermission(profile.id, "CONTAS_A_PAGAR");
   const canCreate = profile.role === "admin" || Boolean(permission?.can_create);

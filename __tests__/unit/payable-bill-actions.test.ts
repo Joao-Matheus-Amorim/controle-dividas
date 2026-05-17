@@ -6,6 +6,10 @@ const mockState = vi.hoisted(() => ({
     owner_id: "owner-1",
     role: "admin",
   },
+  currentOrganization: {
+    id: "org-1",
+    slug: "amorim",
+  },
   insertedPayloads: [] as Array<Record<string, unknown>>,
   updatedPayloads: [] as Array<Record<string, unknown>>,
   deletedIds: [] as string[],
@@ -13,6 +17,10 @@ const mockState = vi.hoisted(() => ({
     id: "bill-1",
     owner_id: "owner-1",
     responsible_member_id: "member-1",
+  } as Record<string, unknown> | null,
+  memberLookup: {
+    id: "member-1",
+    organization_id: "org-1",
   } as Record<string, unknown> | null,
   insertError: null as { message: string } | null,
   accessError: null as Error | null,
@@ -32,54 +40,73 @@ function lastUpdatePayload() {
   return mockState.updatedPayloads.at(-1);
 }
 
+function makeQuery(table: string) {
+  const filters: Record<string, unknown> = {};
+  let updatePayload: Record<string, unknown> | null = null;
+  let deleteMode = false;
+
+  const query = {
+    select() {
+      return query;
+    },
+    eq(key: string, value: unknown) {
+      filters[key] = value;
+
+      if (updatePayload) {
+        mockState.updatedPayloads.push({ ...updatePayload, filters: { ...filters } });
+      }
+
+      if (deleteMode && key === "id") {
+        mockState.deletedIds.push(String(value));
+      }
+
+      return query;
+    },
+    or(expression: string) {
+      filters.or = expression;
+
+      if (updatePayload) {
+        mockState.updatedPayloads.push({ ...updatePayload, filters: { ...filters } });
+      }
+
+      return query;
+    },
+    maybeSingle() {
+      if (table === "payable_bills") {
+        return Promise.resolve({ data: mockState.billLookup, error: null });
+      }
+
+      if (table === "family_members") {
+        return Promise.resolve({ data: mockState.memberLookup, error: null });
+      }
+
+      return Promise.resolve({ data: null, error: null });
+    },
+    insert(payload: Record<string, unknown>) {
+      mockState.insertedPayloads.push(payload);
+      return Promise.resolve({ error: mockState.insertError });
+    },
+    update(payload: Record<string, unknown>) {
+      updatePayload = payload;
+      return query;
+    },
+    delete() {
+      deleteMode = true;
+      return query;
+    },
+  };
+
+  return query;
+}
+
 function makeSupabaseClient() {
   return {
     from(table: string) {
-      if (table !== "payable_bills") {
+      if (!["payable_bills", "family_members"].includes(table)) {
         throw new Error(`Unexpected table: ${table}`);
       }
 
-      const filters: Record<string, unknown> = {};
-      let updatePayload: Record<string, unknown> | null = null;
-
-      const query = {
-        select() {
-          return query;
-        },
-        eq(key: string, value: unknown) {
-          filters[key] = value;
-
-          if (updatePayload) {
-            mockState.updatedPayloads.push({ ...updatePayload, filters: { ...filters } });
-          }
-
-          return query;
-        },
-        maybeSingle() {
-          return Promise.resolve({ data: mockState.billLookup, error: null });
-        },
-        insert(payload: Record<string, unknown>) {
-          mockState.insertedPayloads.push(payload);
-          return Promise.resolve({ error: mockState.insertError });
-        },
-        update(payload: Record<string, unknown>) {
-          updatePayload = payload;
-          return query;
-        },
-        delete() {
-          return {
-            eq(key: string, value: unknown) {
-              if (key === "id") {
-                mockState.deletedIds.push(String(value));
-              }
-              filters[key] = value;
-              return this;
-            },
-          };
-        },
-      };
-
-      return query;
+      return makeQuery(table);
     },
   };
 }
@@ -90,6 +117,16 @@ vi.mock("next/cache", () => ({
 
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(async () => makeSupabaseClient()),
+}));
+
+vi.mock("@/lib/organizations/server", () => ({
+  requireOrganizationAccess: vi.fn(async () => ({
+    organization: mockState.currentOrganization,
+    membership: {
+      role: "owner",
+      is_active: true,
+    },
+  })),
 }));
 
 vi.mock("@/lib/finance/access-control", () => ({
@@ -110,6 +147,10 @@ describe("payable bill actions", () => {
       id: "bill-1",
       owner_id: "owner-1",
       responsible_member_id: "member-1",
+    };
+    mockState.memberLookup = {
+      id: "member-1",
+      organization_id: "org-1",
     };
     mockState.insertError = null;
     mockState.accessError = null;
@@ -160,6 +201,7 @@ describe("payable bill actions", () => {
     expect(mockState.insertedPayloads).toEqual([
       expect.objectContaining({
         owner_id: "owner-1",
+        organization_id: "org-1",
         name: "Boleto eventual",
         amount: 90.5,
         status: "pendente",
@@ -189,6 +231,7 @@ describe("payable bill actions", () => {
         amount: 850,
         bill_type: "fixa",
         recurrence: "mensal",
+        organization_id: "org-1",
       }),
     ]);
   });
@@ -239,7 +282,8 @@ describe("payable bill actions", () => {
       bank_used: "Wise",
       recurrence: null,
       notes: "Observacao nova",
-      filters: { id: "bill-1", owner_id: "owner-1" },
+      organization_id: "org-1",
+      filters: expect.objectContaining({ id: "bill-1", owner_id: "owner-1" }),
     }));
   });
 
@@ -262,7 +306,8 @@ describe("payable bill actions", () => {
       amount: 900,
       bill_type: "fixa",
       recurrence: "mensal",
-      filters: { id: "bill-1", owner_id: "owner-1" },
+      organization_id: "org-1",
+      filters: expect.objectContaining({ id: "bill-1", owner_id: "owner-1" }),
     }));
   });
 
@@ -307,7 +352,8 @@ describe("payable bill actions", () => {
     expect(result).toEqual({ success: "Status atualizado com sucesso." });
     expect(lastUpdatePayload()).toEqual(expect.objectContaining({
       status: "pago",
-      filters: { id: "bill-1", owner_id: "owner-1" },
+      organization_id: "org-1",
+      filters: expect.objectContaining({ id: "bill-1", owner_id: "owner-1" }),
     }));
   });
 

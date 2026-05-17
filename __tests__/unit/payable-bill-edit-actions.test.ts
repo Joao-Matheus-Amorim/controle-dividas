@@ -6,11 +6,19 @@ const mockState = vi.hoisted(() => ({
     owner_id: "owner-1",
     role: "admin",
   },
+  currentOrganization: {
+    id: "org-1",
+    slug: "amorim",
+  },
   updatedPayloads: [] as Array<Record<string, unknown>>,
   billLookup: {
     id: "bill-1",
     owner_id: "owner-1",
     responsible_member_id: "member-1",
+  } as Record<string, unknown> | null,
+  memberLookup: {
+    id: "member-1",
+    organization_id: "org-1",
   } as Record<string, unknown> | null,
   accessError: null as Error | null,
 }));
@@ -25,39 +33,60 @@ function createFormData(values: Record<string, string>) {
   return formData;
 }
 
+function makeQuery(table: string) {
+  const filters: Record<string, unknown> = {};
+  let updatePayload: Record<string, unknown> | null = null;
+
+  const query = {
+    select() {
+      return query;
+    },
+    eq(key: string, value: unknown) {
+      filters[key] = value;
+
+      if (updatePayload) {
+        mockState.updatedPayloads.push({ ...updatePayload, filters: { ...filters } });
+      }
+
+      return query;
+    },
+    or(expression: string) {
+      filters.or = expression;
+
+      if (updatePayload) {
+        mockState.updatedPayloads.push({ ...updatePayload, filters: { ...filters } });
+      }
+
+      return query;
+    },
+    maybeSingle() {
+      if (table === "payable_bills") {
+        return Promise.resolve({ data: mockState.billLookup, error: null });
+      }
+
+      if (table === "family_members") {
+        return Promise.resolve({ data: mockState.memberLookup, error: null });
+      }
+
+      return Promise.resolve({ data: null, error: null });
+    },
+    update(payload: Record<string, unknown>) {
+      updatePayload = payload;
+      return query;
+    },
+  };
+
+  return query;
+}
+
 function makeSupabaseClient() {
   return {
     from(table: string) {
-      if (table !== "payable_bills") {
+      if (!["payable_bills", "family_members"].includes(table)) {
         throw new Error(`Unexpected table: ${table}`);
       }
 
-      const filters: Record<string, unknown> = {};
-      let updatePayload: Record<string, unknown> | null = null;
-
-      const query = {
-        select() {
-          return query;
-        },
-        eq(key: string, value: unknown) {
-          filters[key] = value;
-
-          if (updatePayload && key === "owner_id") {
-            mockState.updatedPayloads.push({ ...updatePayload, filters: { ...filters } });
-          }
-
-          return query;
-        },
-        maybeSingle() {
-          return Promise.resolve({ data: mockState.billLookup, error: null });
-        },
-        update(payload: Record<string, unknown>) {
-          updatePayload = payload;
-          return query;
-        },
-      };
-
-      return query;
+      return makeQuery(table);
     },
   };
 }
@@ -68,6 +97,16 @@ vi.mock("next/cache", () => ({
 
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(async () => makeSupabaseClient()),
+}));
+
+vi.mock("@/lib/organizations/server", () => ({
+  requireOrganizationAccess: vi.fn(async () => ({
+    organization: mockState.currentOrganization,
+    membership: {
+      role: "owner",
+      is_active: true,
+    },
+  })),
 }));
 
 vi.mock("@/lib/finance/access-control", () => ({
@@ -86,6 +125,10 @@ describe("payable bill edit action", () => {
       id: "bill-1",
       owner_id: "owner-1",
       responsible_member_id: "member-1",
+    };
+    mockState.memberLookup = {
+      id: "member-1",
+      organization_id: "org-1",
     };
     mockState.accessError = null;
   });
@@ -108,21 +151,20 @@ describe("payable bill edit action", () => {
     }));
 
     expect(result).toEqual({ success: "Conta atualizada com sucesso." });
-    expect(mockState.updatedPayloads).toEqual([
-      expect.objectContaining({
-        name: "Aluguel atualizado",
-        category: "Casa",
-        amount: 900,
-        due_date: "2026-06-05",
-        responsible_member_id: "member-1",
-        status: "pago",
-        bill_type: "fixa",
-        recurrence: "mensal",
-        bank_used: "Wise",
-        notes: "Pago antecipado",
-        filters: { id: "bill-1", owner_id: "owner-1" },
-      }),
-    ]);
+    expect(mockState.updatedPayloads.at(-1)).toEqual(expect.objectContaining({
+      name: "Aluguel atualizado",
+      category: "Casa",
+      amount: 900,
+      due_date: "2026-06-05",
+      responsible_member_id: "member-1",
+      status: "pago",
+      bill_type: "fixa",
+      recurrence: "mensal",
+      bank_used: "Wise",
+      notes: "Pago antecipado",
+      organization_id: "org-1",
+      filters: expect.objectContaining({ id: "bill-1", owner_id: "owner-1" }),
+    }));
   });
 
   it("blocks update without id", async () => {

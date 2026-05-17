@@ -1,5 +1,3 @@
-import "server-only";
-
 import { getCurrentProfile } from "@/lib/finance/access-control";
 import type { DbFamilyMember } from "@/lib/finance/server";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
