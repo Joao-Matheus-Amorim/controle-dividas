@@ -8,6 +8,7 @@ import {
 } from "@/lib/finance/access-control";
 import type { PermissionAction } from "@/lib/finance/permissions";
 import type { PayableBillFormState, PayableBillType } from "@/lib/finance/server";
+import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { createClient } from "@/lib/supabase/server";
 
 const payableBillTypes: PayableBillType[] = ["avulsa", "fixa"];
@@ -18,18 +19,24 @@ export type PayableBillActionState = {
   success?: string;
 };
 
+function organizationOrLegacyFilter(organizationId: string) {
+  return `organization_id.eq.${organizationId},organization_id.is.null`;
+}
+
 async function assertCanManagePayableBill(
   billId: string,
   action: Extract<PermissionAction, "can_edit" | "can_delete">,
 ) {
   const supabase = await createClient();
   const profile = await getCurrentProfile();
+  const { organization } = await requireOrganizationAccess();
 
   const { data: bill, error } = await supabase
     .from("payable_bills")
     .select("id, owner_id, responsible_member_id")
     .eq("id", billId)
     .eq("owner_id", profile.owner_id)
+    .or(organizationOrLegacyFilter(organization.id))
     .maybeSingle();
 
   if (error) {
@@ -44,6 +51,7 @@ async function assertCanManagePayableBill(
 
   return {
     profile,
+    organization,
     bill,
   };
 }
@@ -114,6 +122,7 @@ export async function createPayableBill(
 
   const supabase = await createClient();
   const profile = await getCurrentProfile();
+  const { organization } = await requireOrganizationAccess();
 
   try {
     await assertCanAccessMember("CONTAS_A_PAGAR", "can_create", input.responsibleMemberId);
@@ -128,6 +137,7 @@ export async function createPayableBill(
 
   const { error } = await supabase.from("payable_bills").insert({
     owner_id: profile.owner_id,
+    organization_id: organization.id,
     name: input.name,
     category: input.category || null,
     amount: input.amount,
@@ -172,7 +182,7 @@ export async function updatePayableBill(
   }
 
   try {
-    const { profile, bill } = await assertCanManagePayableBill(id, "can_edit");
+    const { profile, organization, bill } = await assertCanManagePayableBill(id, "can_edit");
 
     if (String(bill.responsible_member_id) !== input.responsibleMemberId) {
       await assertCanAccessMember("CONTAS_A_PAGAR", "can_edit", input.responsibleMemberId);
@@ -192,9 +202,11 @@ export async function updatePayableBill(
         bank_used: input.bankUsed || null,
         recurrence: input.recurrence || null,
         notes: input.notes || null,
+        organization_id: organization.id,
       })
       .eq("id", id)
-      .eq("owner_id", profile.owner_id);
+      .eq("owner_id", profile.owner_id)
+      .or(organizationOrLegacyFilter(organization.id));
 
     if (error) {
       return { error: error.message };
@@ -230,14 +242,18 @@ export async function updatePayableBillStatus(
   }
 
   try {
-    const { profile } = await assertCanManagePayableBill(id, "can_edit");
+    const { profile, organization } = await assertCanManagePayableBill(id, "can_edit");
     const supabase = await createClient();
 
     const { error } = await supabase
       .from("payable_bills")
-      .update({ status })
+      .update({
+        status,
+        organization_id: organization.id,
+      })
       .eq("id", id)
-      .eq("owner_id", profile.owner_id);
+      .eq("owner_id", profile.owner_id)
+      .or(organizationOrLegacyFilter(organization.id));
 
     if (error) {
       return { error: error.message };
@@ -273,14 +289,15 @@ export async function deletePayableBill(
   }
 
   try {
-    const { profile } = await assertCanManagePayableBill(id, "can_delete");
+    const { profile, organization } = await assertCanManagePayableBill(id, "can_delete");
     const supabase = await createClient();
 
     const { error } = await supabase
       .from("payable_bills")
       .delete()
       .eq("id", id)
-      .eq("owner_id", profile.owner_id);
+      .eq("owner_id", profile.owner_id)
+      .or(organizationOrLegacyFilter(organization.id));
 
     if (error) {
       return { error: error.message };
