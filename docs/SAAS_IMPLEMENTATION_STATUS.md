@@ -75,16 +75,20 @@ A migration `007` adicionou `organization_id` nullable em:
 
 ### 4.2 Bootstrap executado
 
-Foi criada a organization inicial:
+Foi criada uma organization inicial de bootstrap no ambiente operacional.
+
+Exemplo anonimizado do formato esperado:
 
 ```txt
-slug: amorim
-name: Familia Amorim
-owner_auth_user_id: 108ea2ec-8615-4740-a923-34e6f92484cc
-owner email: joaomatheus.lab@gmail.com
+slug: <initial-family-slug>
+name: <Initial Family Name>
+owner_auth_user_id: <auth-user-uuid>
+owner email: <owner-email@example.com>
 ```
 
-Tambem foi criado o membership owner inicial.
+O membership owner inicial tambem foi criado.
+
+Observacao de seguranca: identificadores reais de contas internas, UUIDs de usuarios de autenticacao e e-mails pessoais/operacionais nao devem ser versionados em documentacao publica ou compartilhavel. Quando necessario, registrar apenas placeholders ou exemplos anonimizados.
 
 ### 4.3 Backfill inicial validado
 
