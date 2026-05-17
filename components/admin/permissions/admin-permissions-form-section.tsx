@@ -1,6 +1,6 @@
 import { PermissionsForm } from "@/components/finance/permissions-form";
-import type { DbModulePermission, DbProfile } from "@/lib/finance/admin-server";
-import type { DbFamilyMember } from "@/lib/finance/server";
+import type { DbModulePermission, DbProfile } from "@/lib/finance/admin-types";
+import type { DbFamilyMember } from "@/lib/finance/types";
 
 interface AdminPermissionsFormSectionProps {
   profiles: DbProfile[];
