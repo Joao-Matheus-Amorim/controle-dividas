@@ -81,9 +81,8 @@ Ja existem testes RLS gated versionados no repositorio para:
 - `family_members`;
 - `expenses`;
 - `payable_bills`;
-- `receivable_incomes`.
-
-`banks` possui guard unitario versionado para as policies em `__tests__/unit/banks-rls-policy-guards.test.ts` e a migration `014` foi validada manualmente no Supabase de teste, mas ainda nao ha arquivo versionado `__tests__/integration/rls/*banks*.test.ts` na `main`.
+- `receivable_incomes`;
+- `banks`.
 
 Os testes RLS gated versionados rodam somente quando o ambiente dedicado esta configurado:
 
@@ -108,23 +107,19 @@ O bloco RLS financeiro foi validado com:
 - `npm run build`;
 - `npm run test`;
 - testes RLS gated versionados no Supabase de teste;
-- validacao manual da RLS de `banks` no Supabase de teste;
 - migrations aplicadas manualmente no ambiente de teste antes dos merges.
 
-Ultima validacao informada:
+Validacao recente informada:
 
 ```txt
 29 arquivos de teste passaram
 121 testes passaram
 ```
 
-Observacao: esse total inclui a validacao local executada pelo operador no ambiente de teste. O documento nao deve ser interpretado como garantia de que todas as suites gated reais estao versionadas para todas as tabelas; `banks` ainda precisa de suite gated versionada se quisermos paridade completa com as demais tabelas.
-
 ## 7. O que ainda nao esta pronto
 
 Ainda nao foi feito:
 
-- suite RLS gated versionada para `banks`;
 - RLS multi-tenant para `profiles`;
 - RLS multi-tenant para `user_module_permissions`;
 - RLS multi-tenant para `user_feature_permissions`;
@@ -139,14 +134,13 @@ Ainda nao foi feito:
 
 Ordem segura:
 
-1. adicionar suite RLS gated versionada para `banks`, se quisermos paridade completa dos testes reais;
-2. auditar e endurecer admin/permissoes para multi-org;
-3. criar testes reais gated para `profiles` e permissoes;
-4. planejar RLS para `profiles` e permissoes;
-5. planejar UX de organization ativa;
-6. so depois pensar em rotas por `orgSlug`;
-7. billing apenas depois de isolamento/UX estarem maduros;
-8. `organization_id NOT NULL` e remocao de `owner_id` apenas em gate futuro.
+1. auditar e endurecer admin/permissoes para multi-org;
+2. criar testes reais gated para `profiles` e permissoes;
+3. planejar RLS para `profiles` e permissoes;
+4. planejar UX de organization ativa;
+5. so depois pensar em rotas por `orgSlug`;
+6. billing apenas depois de isolamento/UX estarem maduros;
+7. `organization_id NOT NULL` e remocao de `owner_id` apenas em gate futuro.
 
 ## 9. Regra de manutencao
 
