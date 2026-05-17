@@ -1,5 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+type QueryRecord = {
+  table: string;
+  eq: Record<string, unknown>;
+  or?: string;
+};
+
 const mockState = vi.hoisted(() => ({
   currentProfile: {
     id: "profile-1",
@@ -11,6 +17,7 @@ const mockState = vi.hoisted(() => ({
     slug: "familia-a",
   },
   insertedPayloads: [] as Array<Record<string, unknown>>,
+  queryRecords: [] as QueryRecord[],
   memberLookup: {
     id: "member-1",
     organization_id: "org-1",
@@ -47,18 +54,49 @@ function validExpenseForm(overrides: Record<string, string> = {}) {
   });
 }
 
+function getLastQueryRecord(table: string) {
+  return mockState.queryRecords.filter((record) => record.table === table).at(-1);
+}
+
+function expectOrganizationLookupFilters(
+  table: "family_members" | "expense_categories",
+  id: string,
+) {
+  expect(getLastQueryRecord(table)).toEqual({
+    table,
+    eq: {
+      id,
+      owner_id: "owner-1",
+    },
+    or: "organization_id.eq.org-1,organization_id.is.null",
+  });
+}
+
 function makeQuery(table: string) {
+  const record: QueryRecord = {
+    table,
+    eq: {},
+  };
+
   const query = {
     select() {
       return query;
     },
-    eq() {
+    eq(key: string, value: unknown) {
+      record.eq[key] = value;
       return query;
     },
-    or() {
+    or(expression: string) {
+      record.or = expression;
       return query;
     },
     maybeSingle() {
+      mockState.queryRecords.push({
+        table: record.table,
+        eq: { ...record.eq },
+        or: record.or,
+      });
+
       if (table === "family_members") {
         return Promise.resolve({ data: mockState.memberLookup, error: null });
       }
@@ -120,6 +158,7 @@ vi.mock("@/lib/finance/access-control", () => ({
 describe("expense organization access actions", () => {
   beforeEach(() => {
     mockState.insertedPayloads = [];
+    mockState.queryRecords = [];
     mockState.memberLookup = {
       id: "member-1",
       organization_id: "org-1",
@@ -138,6 +177,7 @@ describe("expense organization access actions", () => {
     const result = await createExpense({}, validExpenseForm({ family_member_id: "member-org-2" }));
 
     expect(result).toEqual({ error: "Pessoa responsavel nao pertence a esta organizacao." });
+    expectOrganizationLookupFilters("family_members", "member-org-2");
     expect(mockState.insertedPayloads).toHaveLength(0);
   });
 
@@ -148,6 +188,8 @@ describe("expense organization access actions", () => {
     const result = await createExpense({}, validExpenseForm({ category_id: "category-org-2" }));
 
     expect(result).toEqual({ error: "Categoria nao pertence a esta organizacao." });
+    expectOrganizationLookupFilters("family_members", "member-1");
+    expectOrganizationLookupFilters("expense_categories", "category-org-2");
     expect(mockState.insertedPayloads).toHaveLength(0);
   });
 
@@ -168,6 +210,8 @@ describe("expense organization access actions", () => {
     }));
 
     expect(result).toEqual({ success: "Gasto cadastrado com sucesso." });
+    expectOrganizationLookupFilters("family_members", "legacy-member");
+    expectOrganizationLookupFilters("expense_categories", "legacy-category");
     expect(mockState.insertedPayloads).toEqual([
       expect.objectContaining({
         owner_id: "owner-1",
