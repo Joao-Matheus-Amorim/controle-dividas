@@ -14,8 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { BankAccountFormState, DbBankAccount } from "@/lib/finance/banks-server";
-import type { DbFamilyMember } from "@/lib/finance/server";
+import type { BankAccountFormState, DbBankAccount, DbFamilyMember } from "@/lib/finance/types";
 
 const initialState: BankAccountFormState = {};
 const emptyAccountTypeValue = "__none";
@@ -79,14 +78,12 @@ export function BankAccountForm({ members, account, mode = "create" }: BankAccou
           <Label htmlFor={isEditing ? `account_type-${account?.id}` : "account_type"}>Tipo de conta</Label>
           <Select name="account_type_select" defaultValue={accountTypeValue}>
             <SelectTrigger id={isEditing ? `account_type-${account?.id}` : "account_type"}>
-              <SelectValue placeholder="Tipo de conta" />
+              <SelectValue placeholder="Selecione" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={emptyAccountTypeValue}>Sem tipo informado</SelectItem>
+              <SelectItem value={emptyAccountTypeValue}>Sem tipo</SelectItem>
               {accountTypes.map((type) => (
-                <SelectItem key={type} value={type}>
-                  {type}
-                </SelectItem>
+                <SelectItem key={type} value={type}>{type}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -100,14 +97,10 @@ export function BankAccountForm({ members, account, mode = "create" }: BankAccou
             name="current_balance"
             type="number"
             step="0.01"
-            placeholder="500.00"
-            defaultValue={account ? String(account.current_balance) : ""}
-            required
+            defaultValue={Number(account?.current_balance ?? 0)}
           />
         </div>
-      </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor={isEditing ? `currency-${account?.id}` : "currency"}>Moeda</Label>
           <Input
@@ -117,21 +110,20 @@ export function BankAccountForm({ members, account, mode = "create" }: BankAccou
           />
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor={isEditing ? `notes-${account?.id}` : "notes"}>Observacao</Label>
+        <div className="space-y-2 md:col-span-2 xl:col-span-3">
+          <Label htmlFor={isEditing ? `notes-${account?.id}` : "notes"}>Observacoes</Label>
           <Input
             id={isEditing ? `notes-${account?.id}` : "notes"}
             name="notes"
-            placeholder="Opcional"
             defaultValue={account?.notes ?? ""}
           />
         </div>
       </div>
 
-      <AppActionFeedback error={state.error} success={state.success} />
+      <AppActionFeedback state={state} />
 
       <Button type="submit" disabled={isPending}>
-        {isPending ? "Salvando..." : isEditing ? "Salvar alteracoes" : "Cadastrar banco"}
+        {isEditing ? "Salvar banco" : "Cadastrar banco"}
       </Button>
     </form>
   );
