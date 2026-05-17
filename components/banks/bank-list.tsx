@@ -1,5 +1,4 @@
-import type { DbBankAccount } from "@/lib/finance/banks-server";
-import type { DbFamilyMember } from "@/lib/finance/server";
+import type { DbBankAccount, DbFamilyMember } from "@/lib/finance/types";
 import { BankListItem } from "./bank-list-item";
 
 interface BankListProps {
