@@ -39,7 +39,6 @@ async function getOrganizationAccessibleMembers() {
     .from("family_members")
     .select("id, owner_id, name, role, monthly_limit, currency, is_active, created_at")
     .eq("owner_id", profile.owner_id)
-    .eq("is_active", true)
     .or(organizationOrLegacyFilter(organization.id))
     .in("id", accessibleMemberIds)
     .order("created_at", { ascending: true });
