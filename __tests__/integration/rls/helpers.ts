@@ -146,7 +146,7 @@ export function createExpenseCategoryFixtureSet(prefix = createRlsTestPrefix()):
         id: createFixtureUuid(),
         ownerId: userBId,
         organizationId: organizationBId,
-        name: `${prefix} Category B`,
+        name: `${prefix} Category B",
         description: "Category owned by organization B",
         isDefault: false,
       },
@@ -167,5 +167,37 @@ export function createExpenseCategoryFixtureSet(prefix = createRlsTestPrefix()):
       userAId,
       userBId,
     ],
+  };
+}
+
+export function createSameUserExpenseCategoryFixtureSet(prefix = createRlsTestPrefix()) {
+  const fixture = createExpenseCategoryFixtureSet(prefix);
+  const userAId = fixture.users.userA.id;
+
+  return {
+    ...fixture,
+    organizations: {
+      organizationA: fixture.organizations.organizationA,
+      organizationB: {
+        ...fixture.organizations.organizationB,
+      },
+    },
+    users: {
+      userA: fixture.users.userA,
+      userB: {
+        ...fixture.users.userB,
+        id: userAId,
+        email: fixture.users.userA.email,
+        organizationId: fixture.organizations.organizationB.id,
+      },
+    },
+    categories: {
+      categoryA: fixture.categories.categoryA,
+      categoryB: {
+        ...fixture.categories.categoryB,
+        ownerId: userAId,
+      },
+      legacyCategoryA: fixture.categories.legacyCategoryA,
+    },
   };
 }
