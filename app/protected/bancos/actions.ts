@@ -8,7 +8,38 @@ import {
 } from "@/lib/finance/access-control";
 import type { PermissionAction } from "@/lib/finance/permissions";
 import type { BankAccountFormState } from "@/lib/finance/banks-server";
+import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { createClient } from "@/lib/supabase/server";
+
+function organizationOrLegacyFilter(organizationId: string) {
+  return `organization_id.eq.${organizationId},organization_id.is.null`;
+}
+
+async function assertMemberBelongsToOrganization(
+  ownerId: string,
+  organizationId: string,
+  familyMemberId: string,
+) {
+  const supabase = await createClient();
+
+  const { data: member, error } = await supabase
+    .from("family_members")
+    .select("id, organization_id")
+    .eq("id", familyMemberId)
+    .eq("owner_id", ownerId)
+    .or(organizationOrLegacyFilter(organizationId))
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (!member) {
+    throw new Error("Pessoa vinculada nao pertence a esta organizacao.");
+  }
+
+  return member;
+}
 
 async function assertCanManageBankAccount(
   accountId: string,
@@ -16,12 +47,14 @@ async function assertCanManageBankAccount(
 ) {
   const supabase = await createClient();
   const profile = await getCurrentProfile();
+  const { organization } = await requireOrganizationAccess();
 
   const { data: account, error } = await supabase
     .from("banks")
     .select("id, owner_id, family_member_id")
     .eq("id", accountId)
     .eq("owner_id", profile.owner_id)
+    .or(organizationOrLegacyFilter(organization.id))
     .maybeSingle();
 
   if (error) {
@@ -32,10 +65,17 @@ async function assertCanManageBankAccount(
     throw new Error("Banco nao encontrado ou sem pessoa vinculada.");
   }
 
+  await assertMemberBelongsToOrganization(
+    profile.owner_id,
+    organization.id,
+    String(account.family_member_id),
+  );
+
   await assertCanAccessMember("BANCOS", action, String(account.family_member_id));
 
   return {
     profile,
+    organization,
     account,
   };
 }
@@ -87,8 +127,14 @@ export async function createBankAccount(
 
   const supabase = await createClient();
   const profile = await getCurrentProfile();
+  const { organization } = await requireOrganizationAccess();
 
   try {
+    await assertMemberBelongsToOrganization(
+      profile.owner_id,
+      organization.id,
+      input.familyMemberId,
+    );
     await assertCanAccessMember("BANCOS", "can_create", input.familyMemberId);
   } catch (error) {
     return {
@@ -101,6 +147,7 @@ export async function createBankAccount(
 
   const { error } = await supabase.from("banks").insert({
     owner_id: profile.owner_id,
+    organization_id: organization.id,
     family_member_id: input.familyMemberId,
     bank_name: input.bankName,
     account_type: input.accountType || null,
@@ -136,9 +183,14 @@ export async function updateBankAccount(
   }
 
   try {
-    const { profile, account } = await assertCanManageBankAccount(id, "can_edit");
+    const { profile, organization, account } = await assertCanManageBankAccount(id, "can_edit");
 
     if (String(account.family_member_id) !== input.familyMemberId) {
+      await assertMemberBelongsToOrganization(
+        profile.owner_id,
+        organization.id,
+        input.familyMemberId,
+      );
       await assertCanAccessMember("BANCOS", "can_edit", input.familyMemberId);
     }
 
@@ -152,9 +204,11 @@ export async function updateBankAccount(
         current_balance: input.currentBalance,
         currency: input.currency,
         notes: input.notes || null,
+        organization_id: organization.id,
       })
       .eq("id", id)
-      .eq("owner_id", profile.owner_id);
+      .eq("owner_id", profile.owner_id)
+      .or(organizationOrLegacyFilter(organization.id));
 
     if (error) {
       return { error: error.message };
@@ -183,14 +237,18 @@ export async function updateBankAccountBalance(formData: FormData) {
   }
 
   try {
-    const { profile } = await assertCanManageBankAccount(id, "can_edit");
+    const { profile, organization } = await assertCanManageBankAccount(id, "can_edit");
     const supabase = await createClient();
 
     await supabase
       .from("banks")
-      .update({ current_balance: currentBalance })
+      .update({
+        current_balance: currentBalance,
+        organization_id: organization.id,
+      })
       .eq("id", id)
-      .eq("owner_id", profile.owner_id);
+      .eq("owner_id", profile.owner_id)
+      .or(organizationOrLegacyFilter(organization.id));
 
     revalidatePath("/protected/bancos");
     revalidatePath("/protected");
@@ -207,10 +265,15 @@ export async function deleteBankAccount(formData: FormData) {
   }
 
   try {
-    const { profile } = await assertCanManageBankAccount(id, "can_delete");
+    const { profile, organization } = await assertCanManageBankAccount(id, "can_delete");
     const supabase = await createClient();
 
-    await supabase.from("banks").delete().eq("id", id).eq("owner_id", profile.owner_id);
+    await supabase
+      .from("banks")
+      .delete()
+      .eq("id", id)
+      .eq("owner_id", profile.owner_id)
+      .or(organizationOrLegacyFilter(organization.id));
 
     revalidatePath("/protected/bancos");
     revalidatePath("/protected");
