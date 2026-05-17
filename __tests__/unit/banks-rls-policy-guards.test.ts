@@ -7,6 +7,10 @@ const migration = readFileSync(
   join(process.cwd(), "supabase/migrations/014_banks_organization_rls.sql"),
   "utf8",
 );
+const migrationSql = migration
+  .split("\n")
+  .filter((line) => !line.trimStart().startsWith("--"))
+  .join("\n");
 
 function policyBlock(startMarker: string, endMarker?: string) {
   const start = migration.indexOf(startMarker);
@@ -57,7 +61,7 @@ describe("banks RLS policies", () => {
     expect(deletePolicy.toLowerCase()).not.toContain("with check");
   });
 
-  it("does not depend on member active status", () => {
-    expect(migration).not.toContain("is_active");
+  it("does not depend on member active status in executable SQL", () => {
+    expect(migrationSql).not.toContain("is_active");
   });
 });
