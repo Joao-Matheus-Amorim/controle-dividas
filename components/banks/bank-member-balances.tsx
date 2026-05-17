@@ -1,5 +1,4 @@
-import type { DbFamilyMember } from "@/lib/finance/server";
-import type { DbBankAccount } from "@/lib/finance/banks-server";
+import type { DbBankAccount, DbFamilyMember } from "@/lib/finance/types";
 import { compactCurrency, initials } from "./bank-utils";
 
 type AccountByMember = DbFamilyMember & {

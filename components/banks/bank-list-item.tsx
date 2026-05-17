@@ -3,8 +3,7 @@ import { BankAccountEditDialog } from "@/components/finance/bank-account-edit-di
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { DbBankAccount } from "@/lib/finance/banks-server";
-import type { DbFamilyMember } from "@/lib/finance/server";
+import type { DbBankAccount, DbFamilyMember } from "@/lib/finance/types";
 import { Banknote, Trash2 } from "lucide-react";
 
 interface BankListItemProps {

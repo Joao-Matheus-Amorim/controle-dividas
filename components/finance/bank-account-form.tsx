@@ -14,8 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { BankAccountFormState, DbBankAccount } from "@/lib/finance/banks-server";
-import type { DbFamilyMember } from "@/lib/finance/server";
+import type { BankAccountFormState, DbBankAccount, DbFamilyMember } from "@/lib/finance/types";
 
 const initialState: BankAccountFormState = {};
 const emptyAccountTypeValue = "__none";
