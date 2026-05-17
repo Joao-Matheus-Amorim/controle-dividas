@@ -7,10 +7,18 @@ import { AppActionFeedback } from "@/components/app/app-action-feedback";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { BankAccountFormState, DbBankAccount } from "@/lib/finance/banks-server";
 import type { DbFamilyMember } from "@/lib/finance/server";
 
 const initialState: BankAccountFormState = {};
+const emptyAccountTypeValue = "__none";
 
 const accountTypes = [
   "Conta corrente",
@@ -32,6 +40,7 @@ export function BankAccountForm({ members, account, mode = "create" }: BankAccou
   const action = mode === "edit" ? updateBankAccount : createBankAccount;
   const [state, formAction, isPending] = useActionState(action, initialState);
   const isEditing = mode === "edit" && Boolean(account);
+  const accountTypeValue = account?.account_type ?? emptyAccountTypeValue;
 
   return (
     <form action={formAction} className="space-y-5">
@@ -68,19 +77,20 @@ export function BankAccountForm({ members, account, mode = "create" }: BankAccou
 
         <div className="space-y-2">
           <Label htmlFor={isEditing ? `account_type-${account?.id}` : "account_type"}>Tipo de conta</Label>
-          <select
-            id={isEditing ? `account_type-${account?.id}` : "account_type"}
-            name="account_type"
-            defaultValue={account?.account_type ?? ""}
-            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-          >
-            <option value="">Selecione</option>
-            {accountTypes.map((type) => (
-              <option key={type} value={type}>
-                {type}
-              </option>
-            ))}
-          </select>
+          <Select name="account_type_select" defaultValue={accountTypeValue}>
+            <SelectTrigger id={isEditing ? `account_type-${account?.id}` : "account_type"}>
+              <SelectValue placeholder="Tipo de conta" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={emptyAccountTypeValue}>Sem tipo informado</SelectItem>
+              {accountTypes.map((type) => (
+                <SelectItem key={type} value={type}>
+                  {type}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <input type="hidden" name="account_type" value={accountTypeValue === emptyAccountTypeValue ? "" : accountTypeValue} />
         </div>
 
         <div className="space-y-2">
