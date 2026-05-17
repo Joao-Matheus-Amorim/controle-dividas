@@ -1,6 +1,5 @@
 import { getAccessibleMemberIds, getCurrentProfile } from "@/lib/finance/access-control";
-import type { DbBankAccount } from "@/lib/finance/banks-server";
-import type { DbFamilyMember } from "@/lib/finance/server";
+import type { DbBankAccount, DbFamilyMember } from "@/lib/finance/types";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { createClient } from "@/lib/supabase/server";
 
