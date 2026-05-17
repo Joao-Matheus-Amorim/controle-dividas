@@ -9,6 +9,10 @@ import { getOrganizationFamilyMembers } from "@/lib/organizations/people";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { createClient } from "@/lib/supabase/server";
 
+function organizationOrLegacyFilter(organizationId: string) {
+  return `organization_id.eq.${organizationId},organization_id.is.null`;
+}
+
 async function getAccessProfilesByMember(ownerId: string, organizationId: string) {
   const supabase = await createClient();
 
@@ -16,7 +20,7 @@ async function getAccessProfilesByMember(ownerId: string, organizationId: string
     .from("profiles")
     .select("id, name, email, role, is_active, auth_user_id, linked_family_member_id")
     .eq("owner_id", ownerId)
-    .eq("organization_id", organizationId);
+    .or(organizationOrLegacyFilter(organizationId));
 
   if (error) {
     throw new Error(error.message);
