@@ -1,69 +1,31 @@
 import { redirect } from "next/navigation";
 
+import type {
+  DbFeaturePermission,
+  DbModulePermission,
+  DbProfile,
+} from "@/lib/finance/admin-types";
+import type { DbFamilyMember } from "@/lib/finance/types";
 import { createClient } from "@/lib/supabase/server";
 import {
   FEATURE_PERMISSIONS,
   FINANCE_MODULES,
-  type FeaturePermissionKey,
-  type FinanceModuleKey,
-  type PermissionScope,
 } from "./permissions";
-import { getFamilyMembers, type DbFamilyMember } from "./server";
+import { getFamilyMembers } from "./server";
 
-export type ProfileRole = "admin" | "adult" | "child" | "custom" | "user";
-
-export type DbProfile = {
-  id: string;
-  owner_id: string;
-  auth_user_id: string | null;
-  linked_family_member_id: string | null;
-  name: string;
-  email: string | null;
-  role: ProfileRole;
-  is_active: boolean;
-  created_at: string;
-  family_members?: Pick<DbFamilyMember, "id" | "name"> | null;
-};
-
-export type DbModulePermission = {
-  id: string;
-  owner_id: string;
-  profile_id: string;
-  module: FinanceModuleKey;
-  can_view: boolean;
-  can_create: boolean;
-  can_edit: boolean;
-  can_delete: boolean;
-  scope: PermissionScope;
-  allowed_member_ids: string[];
-  granted_by: string | null;
-  created_at: string;
-};
-
-export type DbFeaturePermission = {
-  id: string;
-  owner_id: string;
-  profile_id: string;
-  feature_key: FeaturePermissionKey;
-  is_enabled: boolean;
-  granted_by: string | null;
-  created_at: string;
-};
+export type {
+  DbFeaturePermission,
+  DbModulePermission,
+  DbProfile,
+  PermissionFormState,
+  ProfileFormState,
+  ProfileRole,
+} from "@/lib/finance/admin-types";
 
 type MaybeArray<T> = T | T[] | null;
 
 type RawProfile = Omit<DbProfile, "family_members"> & {
   family_members: MaybeArray<Pick<DbFamilyMember, "id" | "name">>;
-};
-
-export type ProfileFormState = {
-  error?: string;
-  success?: string;
-};
-
-export type PermissionFormState = {
-  error?: string;
-  success?: string;
 };
 
 async function getCurrentUser() {
