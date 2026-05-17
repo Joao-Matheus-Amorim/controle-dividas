@@ -8,11 +8,25 @@ const migration = readFileSync(
   "utf8",
 );
 
+function policyBlock(startMarker: string, endMarker?: string) {
+  const start = migration.indexOf(startMarker);
+  expect(start, `Missing policy marker: ${startMarker}`).toBeGreaterThanOrEqual(0);
+
+  if (!endMarker) {
+    return migration.slice(start);
+  }
+
+  const end = migration.indexOf(endMarker, start + startMarker.length);
+  expect(end, `Missing policy marker: ${endMarker}`).toBeGreaterThan(start);
+
+  return migration.slice(start, end);
+}
+
 describe("expenses RLS policies", () => {
   it("uses organization membership for reads", () => {
-    const selectPolicy = migration.slice(
-      migration.indexOf("create policy \"expenses_select_organization_or_legacy\""),
-      migration.indexOf("create policy \"expenses_insert_owner_organization_or_legacy\""),
+    const selectPolicy = policyBlock(
+      "create policy \"expenses_select_organization_or_legacy\"",
+      "create policy \"expenses_insert_owner_organization_or_legacy\"",
     );
 
     expect(selectPolicy).toContain("for select");
@@ -22,9 +36,9 @@ describe("expenses RLS policies", () => {
   });
 
   it("requires row ownership for updates", () => {
-    const updatePolicy = migration.slice(
-      migration.indexOf("create policy \"expenses_update_owner_organization_or_legacy\""),
-      migration.indexOf("create policy \"expenses_delete_owner_organization_or_legacy\""),
+    const updatePolicy = policyBlock(
+      "create policy \"expenses_update_owner_organization_or_legacy\"",
+      "create policy \"expenses_delete_owner_organization_or_legacy\"",
     );
 
     expect(updatePolicy).toContain("for update");
@@ -33,8 +47,8 @@ describe("expenses RLS policies", () => {
   });
 
   it("requires row ownership for deletes without WITH CHECK", () => {
-    const deletePolicy = migration.slice(
-      migration.indexOf("create policy \"expenses_delete_owner_organization_or_legacy\""),
+    const deletePolicy = policyBlock(
+      "create policy \"expenses_delete_owner_organization_or_legacy\"",
     );
 
     expect(deletePolicy).toContain("for delete");
