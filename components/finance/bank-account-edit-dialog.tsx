@@ -12,8 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import type { DbBankAccount } from "@/lib/finance/banks-server";
-import type { DbFamilyMember } from "@/lib/finance/server";
+import type { DbBankAccount, DbFamilyMember } from "@/lib/finance/types";
 
 export function BankAccountEditDialog({
   account,
