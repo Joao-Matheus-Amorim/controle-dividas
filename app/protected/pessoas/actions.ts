@@ -7,6 +7,10 @@ import type { FamilyMemberFormState } from "@/lib/finance/server";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { createClient } from "@/lib/supabase/server";
 
+function organizationOrLegacyFilter(organizationId: string) {
+  return `organization_id.eq.${organizationId},organization_id.is.null`;
+}
+
 export async function createFamilyMember(
   _prevState: FamilyMemberFormState,
   formData: FormData,
@@ -67,10 +71,11 @@ export async function updateFamilyMember(formData: FormData) {
       name,
       role: role || null,
       monthly_limit: monthlyLimit,
+      organization_id: organization.id,
     })
     .eq("id", id)
     .eq("owner_id", profile.owner_id)
-    .eq("organization_id", organization.id);
+    .or(organizationOrLegacyFilter(organization.id));
 
   revalidatePath("/protected/pessoas");
   revalidatePath("/protected/admin/usuarios");
@@ -91,10 +96,13 @@ export async function toggleFamilyMemberStatus(formData: FormData) {
 
   await supabase
     .from("family_members")
-    .update({ is_active: !isActive })
+    .update({
+      is_active: !isActive,
+      organization_id: organization.id,
+    })
     .eq("id", id)
     .eq("owner_id", profile.owner_id)
-    .eq("organization_id", organization.id);
+    .or(organizationOrLegacyFilter(organization.id));
 
   revalidatePath("/protected/pessoas");
   revalidatePath("/protected");
