@@ -25,7 +25,7 @@ function organizationOrLegacyFilter(organizationId: string) {
   return `organization_id.eq.${organizationId},organization_id.is.null`;
 }
 
-export async function getOrganizationBankAccounts() {
+async function getOrganizationAccessibleMembers() {
   const supabase = await createClient();
   const profile = await getCurrentProfile();
   const { organization } = await requireOrganizationAccess();
@@ -36,13 +36,39 @@ export async function getOrganizationBankAccounts() {
   }
 
   const { data, error } = await supabase
+    .from("family_members")
+    .select("id, owner_id, name, role, monthly_limit, currency, is_active, created_at")
+    .eq("owner_id", profile.owner_id)
+    .or(organizationOrLegacyFilter(organization.id))
+    .in("id", accessibleMemberIds)
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data ?? []) as DbFamilyMember[];
+}
+
+export async function getOrganizationBankAccounts() {
+  const supabase = await createClient();
+  const profile = await getCurrentProfile();
+  const { organization } = await requireOrganizationAccess();
+  const members = await getOrganizationAccessibleMembers();
+  const scopedMemberIds = members.map((member) => member.id);
+
+  if (scopedMemberIds.length === 0) {
+    return [];
+  }
+
+  const { data, error } = await supabase
     .from("banks")
     .select(
       "id, owner_id, family_member_id, bank_name, account_type, current_balance, currency, notes, created_at, family_members(id, name)",
     )
     .eq("owner_id", profile.owner_id)
     .or(organizationOrLegacyFilter(organization.id))
-    .in("family_member_id", accessibleMemberIds)
+    .in("family_member_id", scopedMemberIds)
     .order("bank_name", { ascending: true })
     .order("created_at", { ascending: false });
 
@@ -54,26 +80,10 @@ export async function getOrganizationBankAccounts() {
 }
 
 export async function getOrganizationBanksDashboardData() {
-  const supabase = await createClient();
-  const profile = await getCurrentProfile();
-  const { organization } = await requireOrganizationAccess();
-  const accessibleMemberIds = await getAccessibleMemberIds("BANCOS", "can_view");
-
-  const { data: membersData, error: membersError } = await supabase
-    .from("family_members")
-    .select("id, owner_id, name, role, monthly_limit, currency, is_active, created_at")
-    .eq("owner_id", profile.owner_id)
-    .eq("is_active", true)
-    .or(organizationOrLegacyFilter(organization.id))
-    .order("created_at", { ascending: true });
-
-  if (membersError) {
-    throw new Error(membersError.message);
-  }
-
-  const allMembers = (membersData ?? []) as DbFamilyMember[];
-  const accounts = await getOrganizationBankAccounts();
-  const members = allMembers.filter((member) => accessibleMemberIds.includes(member.id));
+  const [members, accounts] = await Promise.all([
+    getOrganizationAccessibleMembers(),
+    getOrganizationBankAccounts(),
+  ]);
 
   const totalBalance = accounts.reduce(
     (total, account) => total + Number(account.current_balance),
