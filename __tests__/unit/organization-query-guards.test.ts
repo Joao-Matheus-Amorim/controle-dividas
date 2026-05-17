@@ -72,7 +72,7 @@ describe("organization-aware query guards", () => {
       const source = readSource(path);
 
       expect(source, `${path} must keep organization filter`).toContain("organization_id.eq.${organizationId}");
-      expect(source, `${path} must keep legacy compatibility").toContain("organization_id.is.null");
+      expect(source, `${path} must keep legacy compatibility`).toContain("organization_id.is.null");
     }
   });
 });
