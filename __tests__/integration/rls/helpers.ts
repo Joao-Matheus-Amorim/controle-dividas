@@ -33,6 +33,7 @@ export type RlsExpenseCategoryFixture = {
 
 export type RlsExpenseCategoryFixtureSet = {
   prefix: string;
+  slugPrefix: string;
   organizations: {
     organizationA: RlsTestOrganizationFixture;
     organizationB: RlsTestOrganizationFixture;
@@ -87,41 +88,54 @@ export function createRlsTestPrefix() {
   return `rls_test_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
 }
 
+export function createRlsSlugPrefix(prefix: string) {
+  return prefix
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function createFixtureUuid(label: string) {
+  return crypto.randomUUID();
+}
+
 export function createExpenseCategoryFixtureSet(prefix = createRlsTestPrefix()): RlsExpenseCategoryFixtureSet {
-  const organizationAId = `${prefix}_org_a`;
-  const organizationBId = `${prefix}_org_b`;
-  const userAId = `${prefix}_user_a`;
-  const userBId = `${prefix}_user_b`;
+  const slugPrefix = createRlsSlugPrefix(prefix);
+  const organizationAId = createFixtureUuid("organization-a");
+  const organizationBId = createFixtureUuid("organization-b");
+  const userAId = createFixtureUuid("user-a");
+  const userBId = createFixtureUuid("user-b");
 
   return {
     prefix,
+    slugPrefix,
     organizations: {
       organizationA: {
         id: organizationAId,
-        slug: `${prefix}-org-a`,
+        slug: `${slugPrefix}-org-a`,
         name: `${prefix} Organization A`,
       },
       organizationB: {
         id: organizationBId,
-        slug: `${prefix}-org-b`,
+        slug: `${slugPrefix}-org-b`,
         name: `${prefix} Organization B`,
       },
     },
     users: {
       userA: {
         id: userAId,
-        email: `${prefix}+user-a@example.com`,
+        email: `${slugPrefix}+user-a@example.com`,
         organizationId: organizationAId,
       },
       userB: {
         id: userBId,
-        email: `${prefix}+user-b@example.com`,
+        email: `${slugPrefix}+user-b@example.com`,
         organizationId: organizationBId,
       },
     },
     categories: {
       categoryA: {
-        id: `${prefix}_category_a`,
+        id: createFixtureUuid("category-a"),
         ownerId: userAId,
         organizationId: organizationAId,
         name: `${prefix} Category A`,
@@ -129,7 +143,7 @@ export function createExpenseCategoryFixtureSet(prefix = createRlsTestPrefix()):
         isDefault: false,
       },
       categoryB: {
-        id: `${prefix}_category_b`,
+        id: createFixtureUuid("category-b"),
         ownerId: userBId,
         organizationId: organizationBId,
         name: `${prefix} Category B`,
@@ -137,7 +151,7 @@ export function createExpenseCategoryFixtureSet(prefix = createRlsTestPrefix()):
         isDefault: false,
       },
       legacyCategoryA: {
-        id: `${prefix}_legacy_category_a`,
+        id: createFixtureUuid("legacy-category-a"),
         ownerId: userAId,
         organizationId: null,
         name: `${prefix} Legacy Category A`,
@@ -147,6 +161,7 @@ export function createExpenseCategoryFixtureSet(prefix = createRlsTestPrefix()):
     },
     cleanupKeys: [
       prefix,
+      slugPrefix,
       organizationAId,
       organizationBId,
       userAId,
