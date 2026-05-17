@@ -96,6 +96,7 @@ A migration deve seguir estes principios:
 6. **Rollback planejado**: toda migration deve ter caminho de reversao ou mitigacao.
 7. **Sem billing nesta fase**: Stripe e planos ficam para depois do isolamento.
 8. **Sem rotas por slug nesta fase**: rotas vem depois de helpers server-side e filtros por organization.
+9. **Sem policy RLS recursiva**: policies sobre `organization_memberships` nao devem consultar diretamente `organization_memberships` dentro do proprio `USING`, pois isso pode causar recursao RLS/infinite recursion `42P17`.
 
 ## 6. Nomenclatura aprovada/recomendada
 
@@ -156,7 +157,7 @@ Arquivo sugerido:
 supabase/migrations/006_organizations_memberships.sql
 ```
 
-### SQL proposto
+### SQL proposto - tabelas
 
 ```sql
 create extension if not exists "pgcrypto";
@@ -204,23 +205,85 @@ alter table public.organizations enable row level security;
 alter table public.organization_memberships enable row level security;
 ```
 
-### RLS inicial proposto
+### SQL proposto - helpers RLS nao recursivos
 
-Nesta fase, a RLS deve ser conservadora.
+Policies de `organization_memberships` nao devem consultar diretamente `organization_memberships` dentro da propria clausula `USING`, porque o PostgreSQL reaplica RLS sobre a tabela consultada e pode gerar recursao infinita `42P17`.
+
+Para evitar isso, a migration deve usar funcoes auxiliares `SECURITY DEFINER`, sem SQL dinamico e com `search_path` fixo.
+
+```sql
+create or replace function public.current_user_organization_ids()
+returns setof uuid
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select m.organization_id
+  from public.organization_memberships m
+  where m.auth_user_id = auth.uid()
+    and m.is_active = true;
+$$;
+
+create or replace function public.is_organization_member(target_organization_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1
+    from public.organization_memberships m
+    where m.organization_id = target_organization_id
+      and m.auth_user_id = auth.uid()
+      and m.is_active = true
+  );
+$$;
+
+create or replace function public.is_organization_admin(target_organization_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1
+    from public.organization_memberships m
+    where m.organization_id = target_organization_id
+      and m.auth_user_id = auth.uid()
+      and m.is_active = true
+      and m.role in ('owner', 'admin')
+  );
+$$;
+
+revoke all on function public.current_user_organization_ids() from public;
+revoke all on function public.is_organization_member(uuid) from public;
+revoke all on function public.is_organization_admin(uuid) from public;
+
+grant execute on function public.current_user_organization_ids() to authenticated;
+grant execute on function public.is_organization_member(uuid) to authenticated;
+grant execute on function public.is_organization_admin(uuid) to authenticated;
+```
+
+### Observacoes de seguranca dos helpers
+
+- As funcoes devem ser criadas por role confiavel do banco.
+- O `search_path` deve ser fixo para reduzir risco de hijacking.
+- Nao usar SQL dinamico.
+- Filtrar `is_active = true`.
+- Nao expor mais informacao do que o necessario.
+- Testar explicitamente que usuario sem membership nao recebe organizacoes.
+- Testar que membership inativa nao concede acesso.
+
+### RLS inicial proposto - sem recursao
 
 ```sql
 create policy "organizations_select_member"
 on public.organizations
 for select
-using (
-  exists (
-    select 1
-    from public.organization_memberships m
-    where m.organization_id = organizations.id
-      and m.auth_user_id = auth.uid()
-      and m.is_active = true
-  )
-);
+using (public.is_organization_member(id));
 
 create policy "organizations_insert_owner"
 on public.organizations
@@ -230,44 +293,34 @@ with check (owner_auth_user_id = auth.uid());
 create policy "organizations_update_owner_or_admin"
 on public.organizations
 for update
-using (
-  exists (
-    select 1
-    from public.organization_memberships m
-    where m.organization_id = organizations.id
-      and m.auth_user_id = auth.uid()
-      and m.is_active = true
-      and m.role in ('owner', 'admin')
-  )
-)
-with check (
-  exists (
-    select 1
-    from public.organization_memberships m
-    where m.organization_id = organizations.id
-      and m.auth_user_id = auth.uid()
-      and m.is_active = true
-      and m.role in ('owner', 'admin')
-  )
-);
+using (public.is_organization_admin(id))
+with check (public.is_organization_admin(id));
 
-create policy "organization_memberships_select_same_org"
+create policy "organization_memberships_select_member"
 on public.organization_memberships
 for select
-using (
-  exists (
-    select 1
-    from public.organization_memberships viewer
-    where viewer.organization_id = organization_memberships.organization_id
-      and viewer.auth_user_id = auth.uid()
-      and viewer.is_active = true
-  )
-);
+using (public.is_organization_member(organization_id));
+
+create policy "organization_memberships_insert_admin"
+on public.organization_memberships
+for insert
+with check (public.is_organization_admin(organization_id));
+
+create policy "organization_memberships_update_admin"
+on public.organization_memberships
+for update
+using (public.is_organization_admin(organization_id))
+with check (public.is_organization_admin(organization_id));
+
+create policy "organization_memberships_delete_admin"
+on public.organization_memberships
+for delete
+using (public.is_organization_admin(organization_id));
 ```
 
-### Observacao importante sobre insert de memberships
+### Observacao importante sobre bootstrap do primeiro membership
 
-Inserir membership de owner no mesmo fluxo de criacao de organization pode exigir server-side com service role ou uma funcao SQL segura. Por isso, nesta fase deve ser definido como o primeiro membership sera criado.
+A policy `organization_memberships_insert_admin` pressupoe que ja existe um admin/owner na organizacao. Para criar a primeira membership de owner, sera necessario um fluxo de bootstrap.
 
 Opcoes:
 
@@ -277,11 +330,17 @@ Opcoes:
 
 Recomendacao inicial: usar service role server-side apenas em Server Action/rotina administrativa, nunca no client.
 
+Para a organizacao inicial dos dados existentes, a opcao mais segura e migration/backfill controlado ou script administrativo com validacao manual.
+
 ### Validacoes da Fase 1
 
 ```sql
 select count(*) from public.organizations;
 select count(*) from public.organization_memberships;
+
+select public.current_user_organization_ids();
+select public.is_organization_member('<ORG_ID>'::uuid);
+select public.is_organization_admin('<ORG_ID>'::uuid);
 ```
 
 Criterios:
@@ -289,12 +348,27 @@ Criterios:
 - tabelas existem;
 - indices existem;
 - RLS ativo;
+- funcoes existem;
+- grants foram aplicados apenas ao necessario;
+- nenhuma policy de `organization_memberships` consulta diretamente `organization_memberships` dentro do proprio `USING`;
 - nenhuma tabela financeira alterada;
 - app atual continua funcionando.
 
 Rollback:
 
 ```sql
+drop policy if exists "organization_memberships_delete_admin" on public.organization_memberships;
+drop policy if exists "organization_memberships_update_admin" on public.organization_memberships;
+drop policy if exists "organization_memberships_insert_admin" on public.organization_memberships;
+drop policy if exists "organization_memberships_select_member" on public.organization_memberships;
+drop policy if exists "organizations_update_owner_or_admin" on public.organizations;
+drop policy if exists "organizations_insert_owner" on public.organizations;
+drop policy if exists "organizations_select_member" on public.organizations;
+
+drop function if exists public.is_organization_admin(uuid);
+drop function if exists public.is_organization_member(uuid);
+drop function if exists public.current_user_organization_ids();
+
 drop table if exists public.organization_memberships;
 drop table if exists public.organizations;
 ```
@@ -659,19 +733,13 @@ Objetivo: trocar a base de isolamento de `owner_id` para membership em `organiza
 
 ### Policy modelo para select
 
+Quando a tabela protegida nao for `organization_memberships`, a policy pode usar helper nao recursivo:
+
 ```sql
 create policy "expenses_select_organization_member"
 on public.expenses
 for select
-using (
-  exists (
-    select 1
-    from public.organization_memberships m
-    where m.organization_id = expenses.organization_id
-      and m.auth_user_id = auth.uid()
-      and m.is_active = true
-  )
-);
+using (public.is_organization_member(organization_id));
 ```
 
 ### Insert/update/delete
@@ -684,15 +752,7 @@ Exemplo:
 create policy "expenses_insert_organization_member"
 on public.expenses
 for insert
-with check (
-  exists (
-    select 1
-    from public.organization_memberships m
-    where m.organization_id = expenses.organization_id
-      and m.auth_user_id = auth.uid()
-      and m.is_active = true
-  )
-);
+with check (public.is_organization_member(organization_id));
 ```
 
 ### Cuidado
@@ -767,6 +827,18 @@ Pre-condicoes:
 Pode remover tabelas se nao houver dependencia:
 
 ```sql
+drop policy if exists "organization_memberships_delete_admin" on public.organization_memberships;
+drop policy if exists "organization_memberships_update_admin" on public.organization_memberships;
+drop policy if exists "organization_memberships_insert_admin" on public.organization_memberships;
+drop policy if exists "organization_memberships_select_member" on public.organization_memberships;
+drop policy if exists "organizations_update_owner_or_admin" on public.organizations;
+drop policy if exists "organizations_insert_owner" on public.organizations;
+drop policy if exists "organizations_select_member" on public.organizations;
+
+drop function if exists public.is_organization_admin(uuid);
+drop function if exists public.is_organization_member(uuid);
+drop function if exists public.current_user_organization_ids();
+
 drop table if exists public.organization_memberships;
 drop table if exists public.organizations;
 ```
@@ -832,7 +904,10 @@ Validar:
 - user B nao le dados da organization A;
 - membership inativa bloqueia acesso;
 - slug inexistente retorna erro/redirect;
-- usuario sem organizacao ativa entra em fallback/onboarding.
+- usuario sem organizacao ativa entra em fallback/onboarding;
+- policy de `organization_memberships` nao gera `42P17`;
+- helper `is_organization_member()` retorna falso para usuario sem membership;
+- helper `is_organization_admin()` retorna falso para membro comum.
 
 ### Testes de aplicacao
 
@@ -857,6 +932,7 @@ Validar:
 - cria `organizations`;
 - cria `organization_memberships`;
 - cria indices;
+- cria helpers RLS nao recursivos;
 - cria RLS basica;
 - nao altera tabelas financeiras.
 
@@ -906,6 +982,8 @@ Validar:
 8. Quais ambientes precisam ser migrados primeiro?
 9. Como sera validado backup antes de migration real?
 10. Qual modulo sera o primeiro a usar `organization_id` no codigo?
+11. As funcoes RLS auxiliares serao mantidas em `public` ou em schema dedicado futuro?
+12. Qual role sera dona das funcoes `SECURITY DEFINER` em producao?
 
 ## 12. Recomendacao final
 
@@ -915,6 +993,7 @@ A primeira migration real deve ser pequena e criar apenas:
 organizations
 organization_memberships
 indices basicos
+helpers RLS nao recursivos
 RLS basica das novas tabelas
 ```
 
@@ -926,6 +1005,7 @@ Nao deve:
 - mexer em billing;
 - remover `owner_id`;
 - tornar `organization_id` obrigatorio;
-- alterar policies antigas.
+- alterar policies antigas;
+- criar policy recursiva em `organization_memberships`.
 
 Essa abordagem reduz risco e permite validar a base SaaS antes de mexer no comportamento vivo do app.
