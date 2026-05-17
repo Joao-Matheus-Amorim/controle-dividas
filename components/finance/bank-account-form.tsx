@@ -18,6 +18,7 @@ import type { BankAccountFormState, DbBankAccount } from "@/lib/finance/banks-se
 import type { DbFamilyMember } from "@/lib/finance/server";
 
 const initialState: BankAccountFormState = {};
+const emptyAccountTypeValue = "__none";
 
 const accountTypes = [
   "Conta corrente",
@@ -39,6 +40,7 @@ export function BankAccountForm({ members, account, mode = "create" }: BankAccou
   const action = mode === "edit" ? updateBankAccount : createBankAccount;
   const [state, formAction, isPending] = useActionState(action, initialState);
   const isEditing = mode === "edit" && Boolean(account);
+  const accountTypeValue = account?.account_type ?? emptyAccountTypeValue;
 
   return (
     <form action={formAction} className="space-y-5">
@@ -75,11 +77,12 @@ export function BankAccountForm({ members, account, mode = "create" }: BankAccou
 
         <div className="space-y-2">
           <Label htmlFor={isEditing ? `account_type-${account?.id}` : "account_type"}>Tipo de conta</Label>
-          <Select name="account_type" defaultValue={account?.account_type || accountTypes[0]}>
+          <Select name="account_type_select" defaultValue={accountTypeValue}>
             <SelectTrigger id={isEditing ? `account_type-${account?.id}` : "account_type"}>
               <SelectValue placeholder="Tipo de conta" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value={emptyAccountTypeValue}>Sem tipo informado</SelectItem>
               {accountTypes.map((type) => (
                 <SelectItem key={type} value={type}>
                   {type}
@@ -87,6 +90,7 @@ export function BankAccountForm({ members, account, mode = "create" }: BankAccou
               ))}
             </SelectContent>
           </Select>
+          <input type="hidden" name="account_type" value={accountTypeValue === emptyAccountTypeValue ? "" : accountTypeValue} />
         </div>
 
         <div className="space-y-2">
