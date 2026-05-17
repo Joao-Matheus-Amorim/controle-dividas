@@ -2,10 +2,14 @@ import { describe, expect, it } from "vitest";
 
 import {
   createExpenseCategoryFixtureSet,
+  createRlsSlugPrefix,
   createRlsTestPrefix,
   getRlsTestConfig,
   shouldRunRlsTests,
 } from "./helpers";
+
+const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const organizationSlugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 describe("RLS test harness", () => {
   it("stays disabled by default so regular CI does not touch external Supabase state", () => {
@@ -52,22 +56,34 @@ describe("RLS test harness", () => {
     expect(createRlsTestPrefix()).toMatch(/^rls_test_\d+_[a-z0-9]+$/);
   });
 
+  it("creates organization-safe slug prefixes from underscored fixture prefixes", () => {
+    expect(createRlsSlugPrefix("rls_test_static")).toBe("rls-test-static");
+    expect(createRlsSlugPrefix("RLS__TEST__123")).toBe("rls-test-123");
+  });
+
   it("creates an expense category fixture set for organizations A and B", () => {
     const fixture = createExpenseCategoryFixtureSet("rls_test_static");
 
+    expect(fixture.slugPrefix).toBe("rls-test-static");
     expect(fixture.organizations.organizationA.id).not.toBe(fixture.organizations.organizationB.id);
+    expect(fixture.organizations.organizationA.id).toMatch(uuidPattern);
+    expect(fixture.organizations.organizationB.id).toMatch(uuidPattern);
+    expect(fixture.users.userA.id).toMatch(uuidPattern);
+    expect(fixture.users.userB.id).toMatch(uuidPattern);
+    expect(fixture.categories.categoryA.id).toMatch(uuidPattern);
+    expect(fixture.categories.categoryB.id).toMatch(uuidPattern);
+    expect(fixture.categories.legacyCategoryA.id).toMatch(uuidPattern);
+    expect(fixture.organizations.organizationA.slug).toMatch(organizationSlugPattern);
+    expect(fixture.organizations.organizationB.slug).toMatch(organizationSlugPattern);
     expect(fixture.users.userA.organizationId).toBe(fixture.organizations.organizationA.id);
     expect(fixture.users.userB.organizationId).toBe(fixture.organizations.organizationB.id);
     expect(fixture.categories.categoryA.organizationId).toBe(fixture.organizations.organizationA.id);
     expect(fixture.categories.categoryB.organizationId).toBe(fixture.organizations.organizationB.id);
     expect(fixture.categories.legacyCategoryA.organizationId).toBeNull();
     expect(fixture.categories.legacyCategoryA.ownerId).toBe(fixture.users.userA.id);
-    expect(fixture.cleanupKeys).toEqual([
-      "rls_test_static",
-      "rls_test_static_org_a",
-      "rls_test_static_org_b",
-      "rls_test_static_user_a",
-      "rls_test_static_user_b",
-    ]);
+    expect(fixture.cleanupKeys).toContain("rls_test_static");
+    expect(fixture.cleanupKeys).toContain("rls-test-static");
+    expect(fixture.cleanupKeys).toContain(fixture.organizations.organizationA.id);
+    expect(fixture.cleanupKeys).toContain(fixture.organizations.organizationB.id);
   });
 });
