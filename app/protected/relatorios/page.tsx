@@ -7,7 +7,7 @@ import { ReportPendingBills } from "@/components/reports/report-pending-bills";
 import { ReportReceivedIncomes } from "@/components/reports/report-received-incomes";
 import { ReportSummaryCards } from "@/components/reports/report-summary-cards";
 import { getCurrentPeriodContextLabel } from "@/lib/finance/period-context";
-import { getReportsDashboardData } from "@/lib/finance/reports-server";
+import { getOrganizationReportsDashboardData } from "@/lib/organizations/reports";
 
 type PageSearchParams = Promise<Record<string, string | string[] | undefined>>;
 
@@ -33,7 +33,7 @@ export default async function RelatoriosPage({ searchParams }: RelatoriosPagePro
   };
 
   const [report, periodContextLabel] = await Promise.all([
-    getReportsDashboardData(filters),
+    getOrganizationReportsDashboardData(filters),
     getCurrentPeriodContextLabel(),
   ]);
   const hasActiveFilters = Object.values(filters).some(Boolean);
