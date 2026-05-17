@@ -2,7 +2,7 @@ import { deleteReceivableIncome, updateReceivableIncomeStatus } from "@/app/prot
 import { ReceivableIncomeEditDialog } from "@/components/finance/receivable-income-edit-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import type { DbFamilyMember, DbReceivableIncome } from "@/lib/finance/server";
+import type { DbFamilyMember, DbReceivableIncome } from "@/lib/finance/types";
 import { Trash2 } from "lucide-react";
 import { compactCurrency, statusVariant } from "./receivable-utils";
 

@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import type { DbFamilyMember, DbPayableBill } from "@/lib/finance/server";
+import type { DbFamilyMember, DbPayableBill } from "@/lib/finance/types";
 import { PayableFilterBar } from "./payable-filter-bar";
 import { PayableListItem } from "./payable-list-item";
 import type { StatusFilter, TypeFilter } from "./payable-utils";

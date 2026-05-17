@@ -12,7 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import type { DbFamilyMember, DbPayableBill } from "@/lib/finance/server";
+import type { DbFamilyMember, DbPayableBill } from "@/lib/finance/types";
 
 export function PayableBillEditDialog({
   bill,

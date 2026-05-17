@@ -2,7 +2,7 @@ import { PayableBillDeleteDialog } from "@/components/finance/payable-bill-delet
 import { PayableBillEditDialog } from "@/components/finance/payable-bill-edit-dialog";
 import { PayableBillStatusForm } from "@/components/finance/payable-bill-status-form";
 import { Badge } from "@/components/ui/badge";
-import type { DbFamilyMember, DbPayableBill } from "@/lib/finance/server";
+import type { DbFamilyMember, DbPayableBill } from "@/lib/finance/types";
 import { compactCurrency, statusVariant } from "./payable-utils";
 
 type PayableListBill = DbPayableBill & { computed_status: string };

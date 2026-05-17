@@ -14,7 +14,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import type { DbPayableBill } from "@/lib/finance/server";
+import type { DbPayableBill } from "@/lib/finance/types";
 
 const initialState: PayableBillActionState = {};
 
