@@ -12,7 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import type { DbFamilyMember, DbReceivableIncome } from "@/lib/finance/server";
+import type { DbFamilyMember, DbReceivableIncome } from "@/lib/finance/types";
 
 export function ReceivableIncomeEditDialog({
   income,
