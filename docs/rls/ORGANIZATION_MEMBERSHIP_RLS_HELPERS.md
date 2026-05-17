@@ -72,12 +72,20 @@ Candidatas:
 
 ### 4.2 Escrita administrativa
 
-Para updates/deletes administrativos:
+Para updates administrativos, usar `USING` e `WITH CHECK`:
 
 ```sql
 using (public.is_organization_admin(organization_id))
 with check (public.is_organization_admin(organization_id))
 ```
+
+Para deletes administrativos, usar somente `USING`:
+
+```sql
+using (public.is_organization_admin(organization_id))
+```
+
+Importante: `WITH CHECK` nao se aplica a policies `FOR DELETE` em PostgreSQL. Nao copiar exemplos de update diretamente para delete.
 
 Candidatas:
 
@@ -327,6 +335,7 @@ Para a primeira migration de RLS financeira:
 4. Documentar rollback antes de qualquer policy nova.
 5. Testar usuario autenticado comum, nao apenas service role.
 6. Evitar qualquer alteracao recursiva em `organization_memberships`.
+7. Separar exemplos de UPDATE e DELETE, porque DELETE nao aceita `WITH CHECK`.
 
 ## 11. Fora de escopo
 
