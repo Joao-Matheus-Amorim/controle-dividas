@@ -1,0 +1,155 @@
+# SaaS RLS Live Status
+
+Issue: #224
+
+## 1. Objetivo
+
+Este documento registra o estado vivo atual da transicao SaaS multi-tenant do FamilyFinance apos a conclusao do bloco principal de RLS financeira.
+
+Ele complementa o `README.md` sem apagar o historico e sem substituir documentos PMBOK ja existentes.
+
+## 2. Estado atual resumido
+
+O projeto esta em modo:
+
+```txt
+SaaS multi-tenant transicional com RLS financeira principal aplicada.
+```
+
+Isso significa:
+
+- `organizations` e `organization_memberships` existem;
+- `organization_id` existe nas tabelas principais;
+- principais modulos financeiros usam organization-aware queries/actions;
+- RLS financeira principal ja foi migrada para organization-aware com fallback legado;
+- `owner_id` ainda existe e continua sendo usado como compatibilidade;
+- `organization_id` ainda e nullable;
+- rotas por `orgSlug` ainda nao existem;
+- billing/Stripe ainda nao foi implementado.
+
+## 3. Migrations SaaS/RLS atuais
+
+As migrations relevantes para SaaS/RLS ja aplicadas/mergeadas sao:
+
+```txt
+006_organizations_memberships.sql
+007_add_organization_id_columns.sql
+008_expense_categories_organization_rls.sql
+009_expense_categories_owner_write_rls.sql
+010_family_members_organization_rls.sql
+011_expenses_organization_rls.sql
+012_payable_bills_organization_rls.sql
+013_receivable_incomes_organization_rls.sql
+014_banks_organization_rls.sql
+```
+
+## 4. RLS financeira principal
+
+Tabelas ja cobertas por RLS organization-aware:
+
+- `expense_categories`;
+- `family_members`;
+- `expenses`;
+- `payable_bills`;
+- `receivable_incomes`;
+- `banks`.
+
+Padrao aplicado:
+
+```txt
+Leitura:
+organization_id com membership
+OU legado organization_id IS NULL + owner_id
+
+Escrita:
+owner da linha durante transicao
+```
+
+Observacoes importantes:
+
+- `expense_categories` precisou de hotfix de escrita na migration `009`;
+- `banks` preserva comportamento historico e nao depende de `family_members.is_active` na RLS;
+- nenhuma dessas migrations remove `owner_id`;
+- nenhuma torna `organization_id NOT NULL`.
+
+## 5. Testes RLS gated versionados
+
+Ja existem testes RLS gated versionados no repositorio para:
+
+- `expense_categories`;
+- `category-owner-scope`;
+- `family_members`;
+- `expenses`;
+- `payable_bills`;
+- `receivable_incomes`.
+
+`banks` possui guard unitario versionado para as policies em `__tests__/unit/banks-rls-policy-guards.test.ts` e a migration `014` foi validada manualmente no Supabase de teste, mas ainda nao ha arquivo versionado `__tests__/integration/rls/*banks*.test.ts` na `main`.
+
+Os testes RLS gated versionados rodam somente quando o ambiente dedicado esta configurado:
+
+```txt
+RUN_RLS_TESTS=true
+RLS_TEST_SUPABASE_URL
+RLS_TEST_SUPABASE_ANON_KEY
+RLS_TEST_SUPABASE_SERVICE_ROLE_KEY
+RLS_TEST_USER_A_EMAIL
+RLS_TEST_USER_A_PASSWORD
+RLS_TEST_USER_B_EMAIL
+RLS_TEST_USER_B_PASSWORD
+```
+
+No CI comum, sem `RUN_RLS_TESTS=true`, as suites reais ficam desativadas para nao tocar Supabase externo.
+
+## 6. Validacao operacional recente
+
+O bloco RLS financeiro foi validado com:
+
+- `npm run lint`;
+- `npm run build`;
+- `npm run test`;
+- testes RLS gated versionados no Supabase de teste;
+- validacao manual da RLS de `banks` no Supabase de teste;
+- migrations aplicadas manualmente no ambiente de teste antes dos merges.
+
+Ultima validacao informada:
+
+```txt
+29 arquivos de teste passaram
+121 testes passaram
+```
+
+Observacao: esse total inclui a validacao local executada pelo operador no ambiente de teste. O documento nao deve ser interpretado como garantia de que todas as suites gated reais estao versionadas para todas as tabelas; `banks` ainda precisa de suite gated versionada se quisermos paridade completa com as demais tabelas.
+
+## 7. O que ainda nao esta pronto
+
+Ainda nao foi feito:
+
+- suite RLS gated versionada para `banks`;
+- RLS multi-tenant para `profiles`;
+- RLS multi-tenant para `user_module_permissions`;
+- RLS multi-tenant para `user_feature_permissions`;
+- admin multi-org pleno;
+- UX de organization ativa;
+- rotas por `orgSlug`;
+- billing/Stripe;
+- `organization_id NOT NULL`;
+- remocao de `owner_id`.
+
+## 8. Proximos passos recomendados
+
+Ordem segura:
+
+1. adicionar suite RLS gated versionada para `banks`, se quisermos paridade completa dos testes reais;
+2. auditar e endurecer admin/permissoes para multi-org;
+3. criar testes reais gated para `profiles` e permissoes;
+4. planejar RLS para `profiles` e permissoes;
+5. planejar UX de organization ativa;
+6. so depois pensar em rotas por `orgSlug`;
+7. billing apenas depois de isolamento/UX estarem maduros;
+8. `organization_id NOT NULL` e remocao de `owner_id` apenas em gate futuro.
+
+## 9. Regra de manutencao
+
+Daqui para frente, o README deve ser atualizado de forma enxuta e apontar para este documento quando o assunto for status SaaS/RLS.
+
+Evitar duplicar longos blocos de plano no README.
