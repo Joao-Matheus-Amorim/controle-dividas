@@ -12,7 +12,7 @@ import type {
   DbExpenseCategory,
   DbFamilyMember,
   ExpenseFormState,
-} from "@/lib/finance/server";
+} from "@/lib/finance/types";
 
 const initialState: ExpenseFormState = {};
 
