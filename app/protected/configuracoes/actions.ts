@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { createClient } from "@/lib/supabase/server";
 
 type FormState = {
@@ -19,6 +20,10 @@ async function getCurrentUserId() {
   }
 
   return String(data.claims.sub);
+}
+
+function organizationOrLegacyFilter(organizationId: string) {
+  return `organization_id.eq.${organizationId},organization_id.is.null`;
 }
 
 function parseExpenseCategoryForm(formData: FormData) {
@@ -52,9 +57,11 @@ export async function createExpenseCategory(
 
   const supabase = await createClient();
   const ownerId = await getCurrentUserId();
+  const { organization } = await requireOrganizationAccess();
 
   const { error } = await supabase.from("expense_categories").insert({
     owner_id: ownerId,
+    organization_id: organization.id,
     name: input.name,
     description: input.description || null,
     is_default: false,
@@ -89,12 +96,14 @@ export async function updateExpenseCategory(
 
   const supabase = await createClient();
   const ownerId = await getCurrentUserId();
+  const { organization } = await requireOrganizationAccess();
 
   const { data: category, error: fetchError } = await supabase
     .from("expense_categories")
     .select("id, is_default")
     .eq("id", id)
     .eq("owner_id", ownerId)
+    .or(organizationOrLegacyFilter(organization.id))
     .maybeSingle();
 
   if (fetchError) {
@@ -114,9 +123,11 @@ export async function updateExpenseCategory(
     .update({
       name: input.name,
       description: input.description || null,
+      organization_id: organization.id,
     })
     .eq("id", id)
-    .eq("owner_id", ownerId);
+    .eq("owner_id", ownerId)
+    .or(organizationOrLegacyFilter(organization.id));
 
   if (error) {
     return { error: error.message };
@@ -138,13 +149,15 @@ export async function deleteExpenseCategory(formData: FormData) {
 
   const supabase = await createClient();
   const ownerId = await getCurrentUserId();
+  const { organization } = await requireOrganizationAccess();
 
   await supabase
     .from("expense_categories")
     .delete()
     .eq("id", id)
     .eq("owner_id", ownerId)
-    .eq("is_default", false);
+    .eq("is_default", false)
+    .or(organizationOrLegacyFilter(organization.id));
 
   revalidatePath("/protected/configuracoes");
   revalidatePath("/protected/gastos");
@@ -161,12 +174,17 @@ export async function updateFamilyMemberLimit(formData: FormData) {
 
   const supabase = await createClient();
   const ownerId = await getCurrentUserId();
+  const { organization } = await requireOrganizationAccess();
 
   await supabase
     .from("family_members")
-    .update({ monthly_limit: monthlyLimit })
+    .update({
+      monthly_limit: monthlyLimit,
+      organization_id: organization.id,
+    })
     .eq("id", id)
-    .eq("owner_id", ownerId);
+    .eq("owner_id", ownerId)
+    .or(organizationOrLegacyFilter(organization.id));
 
   revalidatePath("/protected/configuracoes");
   revalidatePath("/protected/pessoas");

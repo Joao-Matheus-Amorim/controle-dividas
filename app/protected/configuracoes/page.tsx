@@ -4,12 +4,13 @@ import { SettingsHeroSummary } from "@/components/settings/settings-hero-summary
 import { SettingsMemberLimits } from "@/components/settings/settings-member-limits";
 import { SettingsPageHeader } from "@/components/settings/settings-page-header";
 import { SettingsSummaryCards } from "@/components/settings/settings-summary-cards";
-import { getExpenseCategories, getFamilyMembers } from "@/lib/finance/server";
+import { getOrganizationExpenseCategories } from "@/lib/organizations/categories";
+import { getOrganizationFamilyMembers } from "@/lib/organizations/people";
 
 export default async function ConfiguracoesPage() {
   const [members, categories] = await Promise.all([
-    getFamilyMembers(),
-    getExpenseCategories(),
+    getOrganizationFamilyMembers(),
+    getOrganizationExpenseCategories(),
   ]);
 
   const totalLimit = members.reduce(
