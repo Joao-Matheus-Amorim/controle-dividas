@@ -7,8 +7,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { DbFamilyMember } from "@/lib/finance/server";
-import type { DbProfile } from "@/lib/finance/admin-server";
+import type { DbProfile } from "@/lib/finance/admin-types";
+import type { DbFamilyMember } from "@/lib/finance/types";
 import { Link2, Trash2 } from "lucide-react";
 import { initials } from "./admin-users-utils";
 
