@@ -42,6 +42,20 @@ function normalizeOrganization(row: OrganizationRow): Organization {
   };
 }
 
+function getDefaultOrganizationContext(contexts: OrganizationContext[]) {
+  if (contexts.length === 0) {
+    return null;
+  }
+
+  const ownedContext = contexts.find((context) => context.membership.role === "owner");
+
+  if (ownedContext) {
+    return ownedContext;
+  }
+
+  return contexts[0] ?? null;
+}
+
 export async function getUserOrganizations(): Promise<OrganizationContext[]> {
   const supabase = await createClient();
   const user = await getCurrentUser();
@@ -50,7 +64,9 @@ export async function getUserOrganizations(): Promise<OrganizationContext[]> {
     .from("organization_memberships")
     .select("id, organization_id, auth_user_id, role, is_active, created_at, updated_at")
     .eq("auth_user_id", user.id)
-    .eq("is_active", true);
+    .eq("is_active", true)
+    .order("created_at", { ascending: true })
+    .order("id", { ascending: true });
 
   if (membershipsError) {
     throw new Error(membershipsError.message);
@@ -96,37 +112,28 @@ export async function getUserOrganizations(): Promise<OrganizationContext[]> {
 export async function getCurrentOrganization(orgSlug?: string) {
   const contexts = await getUserOrganizations();
 
-  if (contexts.length === 0) {
-    return null;
-  }
-
   if (orgSlug) {
     return contexts.find((context) => context.organization.slug === orgSlug)?.organization ?? null;
   }
 
-  return contexts[0]?.organization ?? null;
+  return getDefaultOrganizationContext(contexts)?.organization ?? null;
 }
 
 export async function getCurrentMembership(organizationId?: string) {
   const contexts = await getUserOrganizations();
 
-  if (contexts.length === 0) {
-    return null;
-  }
-
   if (organizationId) {
     return contexts.find((context) => context.membership.organization_id === organizationId)?.membership ?? null;
   }
 
-  return contexts[0]?.membership ?? null;
+  return getDefaultOrganizationContext(contexts)?.membership ?? null;
 }
 
 export async function requireOrganizationAccess(orgSlug?: string) {
   const contexts = await getUserOrganizations();
-
   const context = orgSlug
     ? contexts.find((item) => item.organization.slug === orgSlug)
-    : contexts[0];
+    : getDefaultOrganizationContext(contexts);
 
   if (!context) {
     throw new Error("Voce nao tem acesso a esta organizacao.");
