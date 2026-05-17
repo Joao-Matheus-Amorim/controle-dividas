@@ -9,6 +9,40 @@ function readSource(path: string) {
   return readFileSync(join(rootDir, path), "utf8");
 }
 
+function getFunctionBody(source: string, functionName: string) {
+  const functionIndex = source.indexOf(`function ${functionName}`);
+
+  if (functionIndex < 0) {
+    return null;
+  }
+
+  const bodyStart = source.indexOf("{", functionIndex);
+
+  if (bodyStart < 0) {
+    return null;
+  }
+
+  let depth = 0;
+
+  for (let index = bodyStart; index < source.length; index += 1) {
+    const char = source[index];
+
+    if (char === "{") {
+      depth += 1;
+    }
+
+    if (char === "}") {
+      depth -= 1;
+    }
+
+    if (depth === 0) {
+      return source.slice(bodyStart, index + 1);
+    }
+  }
+
+  return null;
+}
+
 type InsertGuard = {
   path: string;
   table: string;
@@ -53,16 +87,17 @@ describe("organization_id insert guards", () => {
     "$functionName inserts new $table rows with the active organization id",
     ({ path, table, functionName }) => {
       const source = readSource(path);
-      const functionIndex = source.indexOf(`function ${functionName}`);
-      const insertIndex = source.indexOf(`.from("${table}").insert({`, functionIndex);
-      const organizationIndex = source.indexOf("organization_id: organization.id", insertIndex);
+      const functionBody = getFunctionBody(source, functionName);
 
-      expect(functionIndex, `${path} must define ${functionName}`).toBeGreaterThanOrEqual(0);
-      expect(insertIndex, `${functionName} must insert into ${table}`).toBeGreaterThan(functionIndex);
+      expect(functionBody, `${path} must define ${functionName}`).not.toBeNull();
       expect(
-        organizationIndex,
-        `${functionName} must write organization_id from the active organization`,
-      ).toBeGreaterThan(insertIndex);
+        functionBody,
+        `${functionName} must insert into ${table}`,
+      ).toContain(`.from("${table}").insert({`);
+      expect(
+        functionBody,
+        `${functionName} insert must write organization_id from the active organization`,
+      ).toContain("organization_id: organization.id");
     },
   );
 });
