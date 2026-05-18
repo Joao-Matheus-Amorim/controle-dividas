@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { ensureAdminProfile, type PermissionFormState, type ProfileFormState } from "@/lib/finance/admin-server";
 import { FINANCE_MODULES, type FinanceModuleKey, type PermissionScope } from "@/lib/finance/permissions";
+import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
@@ -28,6 +29,10 @@ function normalizeAccessModel(value: string) {
   }
 
   return "basic";
+}
+
+function organizationOrLegacyFilter(organizationId: string) {
+  return `organization_id.eq.${organizationId},organization_id.is.null`;
 }
 
 function getDefaultPermissionForAccessModel(accessModel: string, module: FinanceModuleKey) {
@@ -83,10 +88,12 @@ function getDefaultPermissionForAccessModel(accessModel: string, module: Finance
 
 async function ensureUniqueEmail({
   ownerId,
+  organizationId,
   email,
   ignoreProfileId,
 }: {
   ownerId: string;
+  organizationId: string;
   email: string;
   ignoreProfileId?: string;
 }) {
@@ -95,6 +102,7 @@ async function ensureUniqueEmail({
     .from("profiles")
     .select("id")
     .eq("owner_id", ownerId)
+    .or(organizationOrLegacyFilter(organizationId))
     .ilike("email", email)
     .maybeSingle();
 
@@ -109,10 +117,12 @@ async function ensureUniqueEmail({
 
 async function ensureUniqueMemberAccess({
   ownerId,
+  organizationId,
   memberId,
   ignoreProfileId,
 }: {
   ownerId: string;
+  organizationId: string;
   memberId: string;
   ignoreProfileId?: string;
 }) {
@@ -121,6 +131,7 @@ async function ensureUniqueMemberAccess({
     .from("profiles")
     .select("id")
     .eq("owner_id", ownerId)
+    .or(organizationOrLegacyFilter(organizationId))
     .eq("linked_family_member_id", memberId)
     .maybeSingle();
 
@@ -133,13 +144,14 @@ async function ensureUniqueMemberAccess({
   }
 }
 
-async function ensureMemberBelongsToOwner(ownerId: string, memberId: string) {
+async function ensureMemberBelongsToOrganization(ownerId: string, organizationId: string, memberId: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("family_members")
-    .select("id")
+    .select("id, organization_id")
     .eq("id", memberId)
     .eq("owner_id", ownerId)
+    .or(organizationOrLegacyFilter(organizationId))
     .maybeSingle();
 
   if (error) {
@@ -147,7 +159,26 @@ async function ensureMemberBelongsToOwner(ownerId: string, memberId: string) {
   }
 
   if (!data) {
-    throw new Error("Membro da familia invalido para este Admin.");
+    throw new Error("Membro da familia invalido para esta organizacao.");
+  }
+}
+
+async function ensureProfileBelongsToOrganization(ownerId: string, organizationId: string, profileId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, organization_id")
+    .eq("id", profileId)
+    .eq("owner_id", ownerId)
+    .or(organizationOrLegacyFilter(organizationId))
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (!data) {
+    throw new Error("Perfil invalido para esta organizacao.");
   }
 }
 
@@ -200,11 +231,16 @@ export async function createFamilyUser(
 
   const supabase = await createClient();
   const adminProfile = await ensureAdminProfile();
+  const { organization } = await requireOrganizationAccess();
 
   try {
-    await ensureUniqueEmail({ ownerId: adminProfile.owner_id, email });
-    await ensureUniqueMemberAccess({ ownerId: adminProfile.owner_id, memberId: linkedFamilyMemberId });
-    await ensureMemberBelongsToOwner(adminProfile.owner_id, linkedFamilyMemberId);
+    await ensureUniqueEmail({ ownerId: adminProfile.owner_id, organizationId: organization.id, email });
+    await ensureUniqueMemberAccess({
+      ownerId: adminProfile.owner_id,
+      organizationId: organization.id,
+      memberId: linkedFamilyMemberId,
+    });
+    await ensureMemberBelongsToOrganization(adminProfile.owner_id, organization.id, linkedFamilyMemberId);
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Nao foi possivel validar o acesso." };
   }
@@ -213,6 +249,7 @@ export async function createFamilyUser(
     .from("profiles")
     .insert({
       owner_id: adminProfile.owner_id,
+      organization_id: organization.id,
       auth_user_id: null,
       linked_family_member_id: linkedFamilyMemberId,
       name,
@@ -231,6 +268,7 @@ export async function createFamilyUser(
 
       return {
         owner_id: adminProfile.owner_id,
+        organization_id: organization.id,
         profile_id: profile.id,
         module: module.key,
         can_view: defaults.can_view,
@@ -267,29 +305,42 @@ export async function updateFamilyUser(formData: FormData) {
 
   const supabase = await createClient();
   const adminProfile = await ensureAdminProfile();
+  const { organization } = await requireOrganizationAccess();
 
   const { data: profile } = await supabase
     .from("profiles")
     .select("id, role")
     .eq("id", id)
     .eq("owner_id", adminProfile.owner_id)
+    .or(organizationOrLegacyFilter(organization.id))
     .maybeSingle();
 
   if (!profile || profile.role === "admin") return;
 
   try {
-    await ensureUniqueEmail({ ownerId: adminProfile.owner_id, email, ignoreProfileId: id });
-    await ensureUniqueMemberAccess({ ownerId: adminProfile.owner_id, memberId: linkedFamilyMemberId, ignoreProfileId: id });
-    await ensureMemberBelongsToOwner(adminProfile.owner_id, linkedFamilyMemberId);
+    await ensureUniqueEmail({
+      ownerId: adminProfile.owner_id,
+      organizationId: organization.id,
+      email,
+      ignoreProfileId: id,
+    });
+    await ensureUniqueMemberAccess({
+      ownerId: adminProfile.owner_id,
+      organizationId: organization.id,
+      memberId: linkedFamilyMemberId,
+      ignoreProfileId: id,
+    });
+    await ensureMemberBelongsToOrganization(adminProfile.owner_id, organization.id, linkedFamilyMemberId);
   } catch {
     return;
   }
 
   await supabase
     .from("profiles")
-    .update({ name, email, linked_family_member_id: linkedFamilyMemberId })
+    .update({ name, email, linked_family_member_id: linkedFamilyMemberId, organization_id: organization.id })
     .eq("id", id)
-    .eq("owner_id", adminProfile.owner_id);
+    .eq("owner_id", adminProfile.owner_id)
+    .or(organizationOrLegacyFilter(organization.id));
 
   revalidatePath("/protected/admin");
   revalidatePath("/protected/admin/usuarios");
@@ -303,12 +354,14 @@ export async function syncFamilyUserAuthLink(formData: FormData) {
 
   const supabase = await createClient();
   const adminProfile = await ensureAdminProfile();
+  const { organization } = await requireOrganizationAccess();
 
   const { data: profile } = await supabase
     .from("profiles")
     .select("id, owner_id, email, role")
     .eq("id", id)
     .eq("owner_id", adminProfile.owner_id)
+    .or(organizationOrLegacyFilter(organization.id))
     .maybeSingle();
 
   if (!profile?.email || profile.role === "admin") return;
@@ -321,13 +374,15 @@ export async function syncFamilyUserAuthLink(formData: FormData) {
     .from("profiles")
     .update({ auth_user_id: null })
     .eq("owner_id", adminProfile.owner_id)
+    .or(organizationOrLegacyFilter(organization.id))
     .eq("auth_user_id", authUserId);
 
   await supabase
     .from("profiles")
-    .update({ auth_user_id: authUserId })
+    .update({ auth_user_id: authUserId, organization_id: organization.id })
     .eq("id", profile.id)
-    .eq("owner_id", adminProfile.owner_id);
+    .eq("owner_id", adminProfile.owner_id)
+    .or(organizationOrLegacyFilter(organization.id));
 
   revalidatePath("/protected/admin");
   revalidatePath("/protected/admin/usuarios");
@@ -341,17 +396,24 @@ export async function deleteFamilyUser(formData: FormData) {
 
   const supabase = await createClient();
   const adminProfile = await ensureAdminProfile();
+  const { organization } = await requireOrganizationAccess();
 
   const { data: profile } = await supabase
     .from("profiles")
     .select("id, role")
     .eq("id", id)
     .eq("owner_id", adminProfile.owner_id)
+    .or(organizationOrLegacyFilter(organization.id))
     .maybeSingle();
 
   if (!profile || profile.role === "admin") return;
 
-  await supabase.from("profiles").delete().eq("id", id).eq("owner_id", adminProfile.owner_id);
+  await supabase
+    .from("profiles")
+    .delete()
+    .eq("id", id)
+    .eq("owner_id", adminProfile.owner_id)
+    .or(organizationOrLegacyFilter(organization.id));
 
   revalidatePath("/protected/admin");
   revalidatePath("/protected/admin/usuarios");
@@ -366,12 +428,14 @@ export async function toggleFamilyUserStatus(formData: FormData) {
 
   const supabase = await createClient();
   const adminProfile = await ensureAdminProfile();
+  const { organization } = await requireOrganizationAccess();
 
   await supabase
     .from("profiles")
-    .update({ is_active: !isActive })
+    .update({ is_active: !isActive, organization_id: organization.id })
     .eq("id", id)
-    .eq("owner_id", adminProfile.owner_id);
+    .eq("owner_id", adminProfile.owner_id)
+    .or(organizationOrLegacyFilter(organization.id));
 
   revalidatePath("/protected/admin");
   revalidatePath("/protected/admin/usuarios");
@@ -388,6 +452,18 @@ export async function saveProfilePermissions(
 
   const supabase = await createClient();
   const adminProfile = await ensureAdminProfile();
+  const { organization } = await requireOrganizationAccess();
+
+  try {
+    await ensureProfileBelongsToOrganization(adminProfile.owner_id, organization.id, profileId);
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "Nao foi possivel validar este perfil.",
+    };
+  }
 
   const rows = FINANCE_MODULES.map((module) => {
     const key = module.key as FinanceModuleKey;
@@ -395,6 +471,7 @@ export async function saveProfilePermissions(
 
     return {
       owner_id: adminProfile.owner_id,
+      organization_id: organization.id,
       profile_id: profileId,
       module: key,
       can_view: formData.get(`${key}.can_view`) === "on",
