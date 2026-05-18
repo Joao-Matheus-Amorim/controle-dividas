@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { linkAuthUserToFamilyProfile } from "@/lib/finance/profile-linking";
+import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import type { FeaturePermissionKey, FinanceModuleKey, PermissionAction } from "./permissions";
@@ -8,6 +9,7 @@ import type { FeaturePermissionKey, FinanceModuleKey, PermissionAction } from ".
 export type CurrentProfile = {
   id: string;
   owner_id: string;
+  organization_id: string | null;
   auth_user_id: string | null;
   linked_family_member_id: string | null;
   name: string;
@@ -18,6 +20,7 @@ export type CurrentProfile = {
 
 type ModulePermission = {
   profile_id: string;
+  organization_id: string | null;
   module: FinanceModuleKey;
   can_view: boolean;
   can_create: boolean;
@@ -29,6 +32,7 @@ type ModulePermission = {
 
 type FeaturePermission = {
   profile_id: string;
+  organization_id: string | null;
   feature_key: FeaturePermissionKey;
   is_enabled: boolean;
 };
@@ -56,12 +60,28 @@ function isConfiguredAdminEmail(email: string | null) {
   return Boolean(adminEmail && email && email.toLowerCase() === adminEmail);
 }
 
+function organizationOrLegacyFilter(organizationId: string) {
+  return `organization_id.eq.${organizationId},organization_id.is.null`;
+}
+
+async function getActiveOrganizationId() {
+  const { organization } = await requireOrganizationAccess();
+  return organization.id;
+}
+
+function pickOrganizationScopedRow<T extends { organization_id: string | null }>(
+  rows: T[],
+  organizationId: string,
+) {
+  return rows.find((row) => row.organization_id === organizationId) ?? rows.find((row) => row.organization_id === null) ?? null;
+}
+
 async function getProfileByAuthUserId(authUserId: string) {
   const supabase = await createClient();
 
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, owner_id, auth_user_id, linked_family_member_id, name, email, role, is_active")
+    .select("id, owner_id, organization_id, auth_user_id, linked_family_member_id, name, email, role, is_active")
     .eq("auth_user_id", authUserId)
     .maybeSingle();
 
@@ -83,7 +103,7 @@ async function getProfileByAuthorizedEmail(email: string | null) {
 
   const { data, error } = await adminSupabase
     .from("profiles")
-    .select("id, owner_id, auth_user_id, linked_family_member_id, name, email, role, is_active")
+    .select("id, owner_id, organization_id, auth_user_id, linked_family_member_id, name, email, role, is_active")
     .ilike("email", normalizedEmail)
     .maybeSingle();
 
@@ -160,14 +180,15 @@ export async function getCurrentProfile() {
   return profile;
 }
 
-async function getAllActiveMemberIds(ownerId: string) {
+async function getAllActiveMemberIds(ownerId: string, organizationId: string) {
   const adminSupabase = createAdminClient();
 
   const { data, error } = await adminSupabase
     .from("family_members")
     .select("id")
     .eq("owner_id", ownerId)
-    .eq("is_active", true);
+    .eq("is_active", true)
+    .or(organizationOrLegacyFilter(organizationId));
 
   if (error) {
     throw new Error(error.message);
@@ -176,38 +197,48 @@ async function getAllActiveMemberIds(ownerId: string) {
   return (data ?? []).map((member) => String(member.id));
 }
 
-export async function getModulePermission(profileId: string, module: FinanceModuleKey) {
+export async function getModulePermission(
+  profileId: string,
+  module: FinanceModuleKey,
+  organizationIdParam?: string,
+) {
   const adminSupabase = createAdminClient();
+  const organizationId = organizationIdParam ?? (await getActiveOrganizationId());
 
   const { data, error } = await adminSupabase
     .from("user_module_permissions")
-    .select("profile_id, module, can_view, can_create, can_edit, can_delete, scope, allowed_member_ids")
+    .select("profile_id, organization_id, module, can_view, can_create, can_edit, can_delete, scope, allowed_member_ids")
     .eq("profile_id", profileId)
     .eq("module", module)
-    .maybeSingle();
+    .or(organizationOrLegacyFilter(organizationId));
 
   if (error) {
     throw new Error(error.message);
   }
 
-  return data as ModulePermission | null;
+  return pickOrganizationScopedRow((data ?? []) as ModulePermission[], organizationId);
 }
 
-export async function getFeaturePermission(profileId: string, featureKey: FeaturePermissionKey) {
+export async function getFeaturePermission(
+  profileId: string,
+  featureKey: FeaturePermissionKey,
+  organizationIdParam?: string,
+) {
   const adminSupabase = createAdminClient();
+  const organizationId = organizationIdParam ?? (await getActiveOrganizationId());
 
   const { data, error } = await adminSupabase
     .from("user_feature_permissions")
-    .select("profile_id, feature_key, is_enabled")
+    .select("profile_id, organization_id, feature_key, is_enabled")
     .eq("profile_id", profileId)
     .eq("feature_key", featureKey)
-    .maybeSingle();
+    .or(organizationOrLegacyFilter(organizationId));
 
   if (error) {
     throw new Error(error.message);
   }
 
-  return data as FeaturePermission | null;
+  return pickOrganizationScopedRow((data ?? []) as FeaturePermission[], organizationId);
 }
 
 export async function canUseFeature(featureKey: FeaturePermissionKey) {
@@ -221,7 +252,8 @@ export async function canUseFeature(featureKey: FeaturePermissionKey) {
     return true;
   }
 
-  const permission = await getFeaturePermission(profile.id, featureKey);
+  const organizationId = await getActiveOrganizationId();
+  const permission = await getFeaturePermission(profile.id, featureKey, organizationId);
   return Boolean(permission?.is_enabled);
 }
 
@@ -236,7 +268,8 @@ export async function canViewModule(module: FinanceModuleKey) {
     return true;
   }
 
-  const permission = await getModulePermission(profile.id, module);
+  const organizationId = await getActiveOrganizationId();
+  const permission = await getModulePermission(profile.id, module, organizationId);
   return Boolean(permission?.can_view);
 }
 
@@ -252,18 +285,26 @@ export async function getVisibleModuleKeys(modules: FinanceModuleKey[]) {
   }
 
   const adminSupabase = createAdminClient();
+  const organizationId = await getActiveOrganizationId();
   const { data, error } = await adminSupabase
     .from("user_module_permissions")
-    .select("module, can_view")
+    .select("module, can_view, organization_id")
     .eq("profile_id", profile.id)
-    .eq("can_view", true);
+    .or(organizationOrLegacyFilter(organizationId));
 
   if (error) {
     throw new Error(error.message);
   }
 
-  const visible = new Set((data ?? []).map((permission) => String(permission.module)));
-  return modules.filter((module) => visible.has(module));
+  const permissions = (data ?? []) as Pick<ModulePermission, "module" | "can_view" | "organization_id">[];
+  return modules.filter((module) => {
+    const scopedPermission = pickOrganizationScopedRow(
+      permissions.filter((permission) => permission.module === module),
+      organizationId,
+    );
+
+    return Boolean(scopedPermission?.can_view);
+  });
 }
 
 export async function getAccessibleMemberIds(module: FinanceModuleKey, action: PermissionAction = "can_view") {
@@ -273,22 +314,25 @@ export async function getAccessibleMemberIds(module: FinanceModuleKey, action: P
     return [];
   }
 
+  const organizationId = await getActiveOrganizationId();
+
   if (profile.role === "admin") {
-    return getAllActiveMemberIds(profile.owner_id);
+    return getAllActiveMemberIds(profile.owner_id, organizationId);
   }
 
-  const permission = await getModulePermission(profile.id, module);
+  const permission = await getModulePermission(profile.id, module, organizationId);
 
   if (!permission || !permission[action]) {
     return [];
   }
 
   if (permission.scope === "family") {
-    return getAllActiveMemberIds(profile.owner_id);
+    return getAllActiveMemberIds(profile.owner_id, organizationId);
   }
 
   if (permission.scope === "selected") {
-    return permission.allowed_member_ids ?? [];
+    const activeMemberIds = await getAllActiveMemberIds(profile.owner_id, organizationId);
+    return (permission.allowed_member_ids ?? []).filter((memberId) => activeMemberIds.includes(memberId));
   }
 
   return profile.linked_family_member_id ? [profile.linked_family_member_id] : [];

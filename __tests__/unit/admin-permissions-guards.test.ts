@@ -57,13 +57,21 @@ describe("admin permissions ownership guards", () => {
     expect(source).toContain(".or(organizationOrLegacyFilter(organization.id))");
   });
 
-  it("documents current access control as profile and owner based", () => {
+  it("documents current access control as active-organization scoped", () => {
     const source = readSource("lib/finance/access-control.ts");
 
-    expect(source).toContain("export async function getCurrentProfile");
-    expect(source).toContain("async function getAllActiveMemberIds(ownerId: string)");
+    expect(source).toContain("@/lib/organizations/server");
+    expect(source).toContain("requireOrganizationAccess");
+    expect(source).toContain("organization_id: string | null");
+    expect(source).toContain("function organizationOrLegacyFilter");
+    expect(source).toContain("organization_id.eq.${organizationId}");
+    expect(source).toContain("organization_id.is.null");
+    expect(source).toContain("async function getActiveOrganizationId");
+    expect(source).toContain("async function getAllActiveMemberIds(ownerId: string, organizationId: string)");
     expect(source).toContain('.eq("owner_id", ownerId)');
+    expect(source).toContain('.or(organizationOrLegacyFilter(organizationId))');
+    expect(source).toContain("pickOrganizationScopedRow");
     expect(source).toContain("profile.role === \"admin\"");
-    expect(source).toContain("return getAllActiveMemberIds(profile.owner_id)");
+    expect(source).toContain("return getAllActiveMemberIds(profile.owner_id, organizationId)");
   });
 });
