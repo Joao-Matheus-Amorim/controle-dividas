@@ -71,3 +71,4 @@ Um ADR aceito não deve ser editado para mudar a decisão histórica. Se a decis
 | ADR | Status | Decisão |
 | --- | --- | --- |
 | [0001](./0001-saas-first-production-positioning.md) | Aceito | O produto passa a ser conduzido como SaaS financeiro multi-tenant para produção massiva. |
+| [0002](./0002-active-organization-ux-before-orgslug-routes.md) | Aceito | A UX deve exibir a organização ativa antes de selector, rotas por `orgSlug` e billing. |
