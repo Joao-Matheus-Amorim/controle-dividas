@@ -41,6 +41,9 @@ As migrations relevantes para SaaS/RLS ja aplicadas/mergeadas sao:
 012_payable_bills_organization_rls.sql
 013_receivable_incomes_organization_rls.sql
 014_banks_organization_rls.sql
+015_profiles_organization_rls.sql
+016_user_module_permissions_organization_rls.sql
+017_user_feature_permissions_organization_rls.sql
 ```
 
 ## 4. RLS financeira principal
@@ -53,6 +56,12 @@ Tabelas ja cobertas por RLS organization-aware:
 - `payable_bills`;
 - `receivable_incomes`;
 - `banks`.
+
+Tabelas de identidade/permissao ja cobertas por RLS organization-aware transicional:
+
+- `profiles`;
+- `user_module_permissions`;
+- `user_feature_permissions`.
 
 Padrao aplicado:
 
@@ -83,6 +92,9 @@ Ja existem testes RLS gated versionados no repositorio para:
 - `payable_bills`;
 - `receivable_incomes`;
 - `banks`.
+- `profiles`;
+- `user_module_permissions`;
+- `user_feature_permissions`.
 
 Os testes RLS gated versionados rodam somente quando o ambiente dedicado esta configurado:
 
@@ -112,17 +124,14 @@ O bloco RLS financeiro foi validado com:
 Validacao recente informada:
 
 ```txt
-29 arquivos de teste passaram
-121 testes passaram
+35 arquivos de teste passaram
+129 testes passaram
 ```
 
 ## 7. O que ainda nao esta pronto
 
 Ainda nao foi feito:
 
-- RLS multi-tenant para `profiles`;
-- RLS multi-tenant para `user_module_permissions`;
-- RLS multi-tenant para `user_feature_permissions`;
 - admin multi-org pleno;
 - UX de organization ativa;
 - rotas por `orgSlug`;
@@ -134,13 +143,12 @@ Ainda nao foi feito:
 
 Ordem segura:
 
-1. auditar e endurecer admin/permissoes para multi-org;
-2. criar testes reais gated para `profiles` e permissoes;
-3. planejar RLS para `profiles` e permissoes;
-4. planejar UX de organization ativa;
-5. so depois pensar em rotas por `orgSlug`;
-6. billing apenas depois de isolamento/UX estarem maduros;
-7. `organization_id NOT NULL` e remocao de `owner_id` apenas em gate futuro.
+1. auditar e endurecer admin/permissoes para gravar e filtrar `organization_id`;
+2. criar guardas unitarios para migrations RLS recentes quando faltarem;
+3. planejar UX de organization ativa;
+4. so depois pensar em rotas por `orgSlug`;
+5. billing apenas depois de isolamento/UX estarem maduros;
+6. `organization_id NOT NULL` e remocao de `owner_id` apenas em gate futuro.
 
 ## 9. Regra de manutencao
 
