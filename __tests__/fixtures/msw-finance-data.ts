@@ -1,11 +1,22 @@
 export const mockSupabaseUrl = "https://familyfinance.test";
 
+type MockPermission = {
+  profile_id: string;
+  module: string;
+  can_view: boolean;
+  can_create: boolean;
+  can_edit: boolean;
+  can_delete: boolean;
+  scope: "own" | "selected" | "family";
+  allowed_member_ids: string[];
+};
+
 export const mockProfiles = [
   { id: "profile-admin", role: "admin", linked_family_member_id: "member-admin" },
   { id: "profile-own", role: "user", linked_family_member_id: "member-own" },
 ];
 
-export const mockPermissions = [
+export const mockPermissions: MockPermission[] = [
   {
     profile_id: "profile-own",
     module: "GASTOS",

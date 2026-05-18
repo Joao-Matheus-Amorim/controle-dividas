@@ -31,7 +31,7 @@ describe("user_feature_permissions RLS gated integration", () => {
 
       const login = await userClient.auth.signInWithPassword({
         email: config.userAEmail!,
-        ["pass" + "word"]: config.userAPassword!,
+        password: config.userAPassword!,
       });
 
       if (login.error || !login.data.user) {
