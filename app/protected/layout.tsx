@@ -1,7 +1,9 @@
+import { ActiveOrganizationIndicator } from "@/components/app/active-organization-indicator";
 import { AuthButton } from "@/components/auth-button";
 import { EnvVarWarning } from "@/components/env-var-warning";
 import { getVisibleModuleKeys } from "@/lib/finance/access-control";
 import type { FinanceModuleKey } from "@/lib/finance/permissions";
+import { getCurrentOrganization } from "@/lib/organizations/server";
 import { hasEnvVars } from "@/lib/utils";
 import {
   Banknote,
@@ -48,7 +50,11 @@ export default async function ProtectedLayout({
   const modulesToCheck = Array.from(
     new Set([...navigation, ...mobileNavigation].map((item) => item.module)),
   );
-  const visibleModules = new Set(await getVisibleModuleKeys(modulesToCheck));
+  const [visibleModuleKeys, currentOrganization] = await Promise.all([
+    getVisibleModuleKeys(modulesToCheck),
+    getCurrentOrganization(),
+  ]);
+  const visibleModules = new Set(visibleModuleKeys);
   const visibleNavigation = navigation.filter((item) => visibleModules.has(item.module));
   const visibleMobileNavigation = mobileNavigation.filter((item) => visibleModules.has(item.module));
 
@@ -59,9 +65,14 @@ export default async function ProtectedLayout({
       <nav className="sticky top-0 z-40 max-w-full overflow-hidden border-b border-white/5 bg-[#080810]/90 backdrop-blur-xl">
         <div className="mx-auto flex min-h-16 w-full max-w-7xl flex-col gap-3 px-4 py-3 md:px-6">
           <div className="flex min-w-0 items-center justify-between gap-3">
-            <Link href="/protected" className="min-w-0 shrink-0 text-lg font-bold tracking-tight text-white">
-              FamilyFinance
-            </Link>
+            <div className="flex min-w-0 items-center gap-3">
+              <Link href="/protected" className="min-w-0 shrink-0 text-lg font-bold tracking-tight text-white">
+                FamilyFinance
+              </Link>
+              <div className="hidden min-w-0 lg:block">
+                <ActiveOrganizationIndicator organization={currentOrganization} />
+              </div>
+            </div>
             <div className="flex min-w-0 shrink items-center justify-end gap-3 overflow-hidden">
               {!hasEnvVars ? (
                 <EnvVarWarning />
@@ -71,6 +82,9 @@ export default async function ProtectedLayout({
                 </Suspense>
               )}
             </div>
+          </div>
+          <div className="flex min-w-0 lg:hidden">
+            <ActiveOrganizationIndicator organization={currentOrganization} />
           </div>
           {visibleNavigation.length > 0 ? (
             <div className="hidden gap-2 overflow-x-auto pb-1 text-sm md:flex">
