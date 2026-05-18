@@ -60,7 +60,9 @@ const requiredVariables = [
   "RLS_TEST_USER_B_PASSWORD",
 ] as const;
 
-export function getRlsTestConfig(env: NodeJS.ProcessEnv = process.env): RlsTestConfig {
+type RlsTestEnv = Partial<Record<string, string | undefined>>;
+
+export function getRlsTestConfig(env: RlsTestEnv = process.env): RlsTestConfig {
   const enabled = env.RUN_RLS_TESTS === "true";
   const missingVariables = enabled
     ? requiredVariables.filter((key) => !env[key])
@@ -79,7 +81,7 @@ export function getRlsTestConfig(env: NodeJS.ProcessEnv = process.env): RlsTestC
   };
 }
 
-export function shouldRunRlsTests(env: NodeJS.ProcessEnv = process.env) {
+export function shouldRunRlsTests(env: RlsTestEnv = process.env) {
   const config = getRlsTestConfig(env);
   return config.enabled && config.missingVariables.length === 0;
 }

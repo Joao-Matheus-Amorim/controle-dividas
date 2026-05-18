@@ -33,7 +33,7 @@ describe("profiles RLS gated integration", () => {
 
     const userALogin = await userAClient.auth.signInWithPassword({
       email: config.userAEmail!,
-      ["pass" + "word"]: config.userAPassword!,
+      password: config.userAPassword!,
     });
 
     if (userALogin.error || !userALogin.data.user) {
@@ -42,7 +42,7 @@ describe("profiles RLS gated integration", () => {
 
     const userBLogin = await userBClient.auth.signInWithPassword({
       email: config.userBEmail!,
-      ["pass" + "word"]: config.userBPassword!,
+      password: config.userBPassword!,
     });
 
     if (userBLogin.error || !userBLogin.data.user) {
