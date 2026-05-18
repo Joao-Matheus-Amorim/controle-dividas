@@ -27,6 +27,9 @@ Arquivos revisados:
 - `supabase/migrations/004_permission_scope_and_features.sql`
 - `supabase/migrations/006_organizations_memberships.sql`
 - `supabase/migrations/007_add_organization_id_columns.sql`
+- `supabase/migrations/015_profiles_organization_rls.sql`
+- `supabase/migrations/016_user_module_permissions_organization_rls.sql`
+- `supabase/migrations/017_user_feature_permissions_organization_rls.sql`
 
 Busca base:
 
@@ -36,17 +39,17 @@ create policy
 
 ## 3. Resumo executivo
 
-O estado atual ainda e majoritariamente owner-centric nas tabelas financeiras e de permissoes antigas.
+O estado historico inicial era owner-centric nas tabelas financeiras e de permissoes antigas. Desde as migrations SaaS/RLS recentes, as tabelas financeiras principais, `profiles`, `user_module_permissions` e `user_feature_permissions` passaram para RLS organization-aware transicional.
 
 Resumo:
 
 - tabelas financeiras da migration `001` usam policies `auth.uid() = owner_id`;
-- `profiles` e `user_module_permissions` da migration `003` usam `owner_id` e/ou `auth_user_id`;
-- `user_feature_permissions` da migration `004` usa `owner_id`;
+- `profiles` e `user_module_permissions` nasceram owner-centric na migration `003`, mas foram migradas para policies organization-aware nas migrations `015` e `016`;
+- `user_feature_permissions` nasceu owner-centric na migration `004`, mas foi migrada para policy organization-aware na migration `017`;
 - `organizations` e `organization_memberships` da migration `006` ja usam helpers por membership;
 - migration `007` adicionou `organization_id`, mas nao alterou RLS.
 
-Isso confirma que a proxima fase de RLS financeira precisa ser planejada em migrations futuras pequenas.
+Isso confirma que a fase RLS atual avancou em migrations pequenas e que os proximos gates devem focar em admin/permissoes multi-org, UX de organization ativa e hardening final de schema.
 
 ## 4. Migration 001 - tabelas financeiras iniciais
 
@@ -65,7 +68,7 @@ A migration habilita RLS para:
 - `receivable_incomes`;
 - `banks`.
 
-Todas as policies usam o padrao owner-centric:
+Historicamente, todas as policies usavam o padrao owner-centric:
 
 ```sql
 auth.uid() = owner_id
@@ -73,128 +76,131 @@ auth.uid() = owner_id
 
 ### 4.1 `family_members`
 
-Policies atuais:
+Policies historicas da migration `001`:
 
 - `family_members_select_own`
 - `family_members_insert_own`
 - `family_members_update_own`
 - `family_members_delete_own`
 
-Regra atual:
+Regra historica:
 
 ```txt
 select/insert/update/delete por auth.uid() = owner_id
 ```
 
-Lacuna para SaaS:
+Lacuna historica fechada pela migration `010`:
 
-- nao considera `organization_id`;
-- nao considera membership;
-- nao diferencia roles de organization.
+- leitura considera membership por `organization_id`;
+- legado `organization_id IS NULL` continua restrito por `owner_id`;
+- escrita continua restrita ao owner durante a transicao.
 
 ### 4.2 `expense_categories`
 
-Policies atuais:
+Policies historicas da migration `001`:
 
 - `expense_categories_select_own`
 - `expense_categories_insert_own`
 - `expense_categories_update_own`
 - `expense_categories_delete_own`
 
-Regra atual:
+Regra historica:
 
 ```txt
 select/insert/update/delete por auth.uid() = owner_id
 ```
 
-Lacuna para SaaS:
+Lacuna historica fechada pelas migrations `008` e `009`:
 
-- nao considera `organization_id`;
-- categorias default/legadas exigem regra futura clara.
+- leitura considera membership por `organization_id`;
+- legado `organization_id IS NULL` continua restrito por `owner_id`;
+- escrita preserva owner durante a transicao.
 
 ### 4.3 `expenses`
 
-Policies atuais:
+Policies historicas da migration `001`:
 
 - `expenses_select_own`
 - `expenses_insert_own`
 - `expenses_update_own`
 - `expenses_delete_own`
 
-Regra atual:
+Regra historica:
 
 ```txt
 select/insert/update/delete por auth.uid() = owner_id
 ```
 
-Lacuna para SaaS:
+Lacuna historica fechada pela migration `011`:
 
-- nao considera `organization_id`;
-- nao valida membership;
-- nao valida via RLS se `family_member_id` ou `category_id` pertencem a mesma organization.
+- leitura considera membership por `organization_id`;
+- legado `organization_id IS NULL` continua restrito por `owner_id`;
+- escrita continua restrita ao owner durante a transicao.
 
-Observacao: a aplicacao ja possui testes e validacoes server-side para `family_member_id` e `category_id`, mas isso ainda nao substitui RLS multi-tenant.
+Observacao: a aplicacao tambem possui testes e validacoes server-side para `family_member_id` e `category_id`. A RLS transicional protege o escopo da linha; o hardening final ainda pode evoluir checks relacionais mais estritos.
 
 ### 4.4 `payable_bills`
 
-Policies atuais:
+Policies historicas da migration `001`:
 
 - `payable_bills_select_own`
 - `payable_bills_insert_own`
 - `payable_bills_update_own`
 - `payable_bills_delete_own`
 
-Regra atual:
+Regra historica:
 
 ```txt
 select/insert/update/delete por auth.uid() = owner_id
 ```
 
-Lacuna para SaaS:
+Lacuna historica fechada pela migration `012`:
 
-- nao considera `organization_id`;
-- nao valida via RLS se `responsible_member_id` pertence a mesma organization.
+- leitura considera membership por `organization_id`;
+- legado `organization_id IS NULL` continua restrito por `owner_id`;
+- escrita continua restrita ao owner durante a transicao.
 
 ### 4.5 `receivable_incomes`
 
-Policies atuais:
+Policies historicas da migration `001`:
 
 - `receivable_incomes_select_own`
 - `receivable_incomes_insert_own`
 - `receivable_incomes_update_own`
 - `receivable_incomes_delete_own`
 
-Regra atual:
+Regra historica:
 
 ```txt
 select/insert/update/delete por auth.uid() = owner_id
 ```
 
-Lacuna para SaaS:
+Lacuna historica fechada pela migration `013`:
 
-- nao considera `organization_id`;
-- nao valida via RLS se `receiver_member_id` pertence a mesma organization.
+- leitura considera membership por `organization_id`;
+- legado `organization_id IS NULL` continua restrito por `owner_id`;
+- escrita continua restrita ao owner durante a transicao.
 
 ### 4.6 `banks`
 
-Policies atuais:
+Policies historicas da migration `001`:
 
 - `banks_select_own`
 - `banks_insert_own`
 - `banks_update_own`
 - `banks_delete_own`
 
-Regra atual:
+Regra historica:
 
 ```txt
 select/insert/update/delete por auth.uid() = owner_id
 ```
 
-Lacuna para SaaS:
+Lacuna historica fechada pela migration `014`:
 
-- nao considera `organization_id`;
-- nao valida via RLS se `family_member_id` pertence a mesma organization;
-- precisa preservar a regra historica de nao ocultar bancos por membro inativo.
+- leitura considera membership por `organization_id`;
+- legado `organization_id IS NULL` continua restrito por `owner_id`;
+- regra historica de nao ocultar bancos por membro inativo foi preservada.
 
 ## 5. Migration 003 - profiles e permissoes por modulo
 
@@ -211,14 +217,14 @@ A migration habilita RLS para:
 
 ### 5.1 `profiles`
 
-Policies atuais:
+Policies historicas da migration `003`:
 
 - `profiles_select_family`
 - `profiles_insert_family`
 - `profiles_update_family`
 - `profiles_delete_family`
 
-Regras atuais:
+Regras historicas:
 
 ```txt
 select: owner_id = auth.uid() OR auth_user_id = auth.uid()
@@ -227,33 +233,32 @@ update: owner_id = auth.uid() OR auth_user_id = auth.uid()
 delete: owner_id = auth.uid()
 ```
 
-Lacuna para SaaS:
+Lacuna historica fechada pela migration `015`:
 
-- ainda e owner/profile centric;
-- nao considera `organization_id`;
-- nao considera `organization_memberships`;
-- precisa de desenho especifico para admin/owner multi-org.
+- leitura considera membership por `organization_id`, acesso direto do proprio `auth_user_id` e fallback legado por `owner_id`;
+- escrita continua restrita ao owner durante a transicao;
+- admin/owner multi-org ainda precisa de hardening na application layer.
 
 ### 5.2 `user_module_permissions`
 
-Policies atuais:
+Policies historicas da migration `003`:
 
 - `permissions_select_family`
 - `permissions_insert_family`
 - `permissions_update_family`
 - `permissions_delete_family`
 
-Regra atual:
+Regra historica:
 
 ```txt
 select/insert/update/delete por owner_id = auth.uid()
 ```
 
-Lacuna para SaaS:
+Lacuna historica fechada pela migration `016`:
 
-- nao considera `organization_id`;
-- nao considera admin/owner da organization;
-- permissoes afetam visibilidade e precisam de cuidado antes de multi-org pleno.
+- a leitura agora considera membership por `organization_id`;
+- linhas legadas `organization_id IS NULL` continuam restritas por `owner_id`;
+- escrita continua restrita ao owner durante a transicao.
 
 ## 6. Migration 004 - feature permissions
 
@@ -269,24 +274,24 @@ A migration habilita RLS para:
 
 ### 6.1 `user_feature_permissions`
 
-Policies atuais:
+Policies historicas da migration `004`:
 
 - `feature_permissions_select_family`
 - `feature_permissions_insert_family`
 - `feature_permissions_update_family`
 - `feature_permissions_delete_family`
 
-Regra atual:
+Regra historica:
 
 ```txt
 select/insert/update/delete por owner_id = auth.uid()
 ```
 
-Lacuna para SaaS:
+Lacuna historica fechada pela migration `017`:
 
-- nao considera `organization_id`;
-- nao considera membership;
-- precisa acompanhar o redesign de permissoes multi-org.
+- a leitura agora considera membership por `organization_id`;
+- linhas legadas `organization_id IS NULL` continuam restritas por `owner_id`;
+- escrita continua restrita ao owner durante a transicao.
 
 ## 7. Migration 006 - organizations e memberships
 
@@ -383,15 +388,15 @@ Tabelas afetadas:
 - `user_module_permissions`;
 - `user_feature_permissions`.
 
-Implicacao:
+Implicacao historica:
 
 - schema ja permite escopo por organization;
-- RLS ainda nao usa esse escopo nas tabelas financeiras antigas;
-- application layer ja foi migrada parcialmente, mas banco ainda precisa de hardening futuro.
+- RLS passou a usar esse escopo nas migrations `008` a `017`;
+- application layer ja foi migrada parcialmente, mas admin/permissoes ainda precisam de hardening futuro.
 
-## 9. Tabelas sem RLS financeira multi-tenant hoje
+## 9. Tabelas ainda em fase transicional
 
-As seguintes tabelas ainda nao possuem RLS multi-tenant por membership:
+As seguintes tabelas ja possuem RLS organization-aware transicional, mas ainda dependem de `owner_id`, `organization_id` nullable e fallback legado:
 
 - `profiles`;
 - `family_members`;
@@ -403,21 +408,21 @@ As seguintes tabelas ainda nao possuem RLS multi-tenant por membership:
 - `user_module_permissions`;
 - `user_feature_permissions`.
 
-Todas precisam de planejamento antes de migration.
+Isso ainda nao e o modelo SaaS final. O proximo hardening deve remover gradualmente fallback legado apenas depois de backfill completo, testes gated e plano de rollback.
 
 ## 10. Riscos identificados
 
-### 10.1 Dependencia de `owner_id`
+### 10.1 Dependencia transicional de `owner_id`
 
-As policies atuais protegem por `owner_id`, nao por `organization_id`.
+As policies atuais ainda preservam `owner_id` para escrita e fallback legado.
 
 Isso e aceitavel apenas na fase transicional, mas nao e isolamento SaaS final.
 
 ### 10.2 Legado `organization_id IS NULL`
 
-A primeira RLS multi-tenant precisa decidir se permite legado temporariamente.
+As migrations RLS transicionais permitem legado temporariamente.
 
-Se permitir, o fallback deve ser restrito por `owner_id` ou regra equivalente segura.
+O fallback permanece restrito por `owner_id`.
 
 ### 10.3 Recursao em memberships
 
@@ -431,21 +436,21 @@ Testes de RLS nao podem depender apenas de service role/admin client.
 
 Precisam simular usuario autenticado comum.
 
-### 10.5 Permissoes ainda sao owner-centric
+### 10.5 Permissoes ainda dependem de hardening no Admin
 
-`user_module_permissions` e `user_feature_permissions` continuam baseadas em `owner_id`.
+`user_module_permissions` e `user_feature_permissions` ja usam policies organization-aware transicionais.
 
-Antes de multi-org pleno, permissoes precisam de plano proprio.
+Antes de multi-org pleno, o Admin e os fluxos de escrita de permissoes ainda precisam gravar e filtrar `organization_id` de forma consistente na application layer.
 
 ## 11. Recomendacao de proximo passo
 
-Antes da primeira migration de RLS financeira:
+Depois das migrations RLS transicionais:
 
-1. concluir desenho dos helpers RLS (#152);
-2. concluir estrategia de legado `organization_id IS NULL` (#153);
-3. concluir rollout/rollback (#154);
-4. concluir matriz de testes RLS (#155);
-5. so entao abrir primeira PR de migration RLS pequena.
+1. manter guardas unitarios para cada migration RLS recente;
+2. manter testes gated simulando usuario autenticado comum;
+3. auditar Admin/permissoes para gravar e filtrar `organization_id`;
+4. planejar UX de organization ativa;
+5. endurecer `organization_id NOT NULL` apenas depois de backfill completo e rollback definido.
 
 ## 12. Fora de escopo deste inventario
 
