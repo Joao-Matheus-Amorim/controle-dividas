@@ -21,15 +21,40 @@ describe("admin permissions ownership guards", () => {
     }
   });
 
-  it("documents current admin profile and permissions queries as owner-centric", () => {
+  it("keeps admin profile and permission reads scoped to the active organization plus legacy rows", () => {
     const source = readSource("lib/finance/admin-server.ts");
 
     expect(source).toContain("function getConfiguredAdminEmail");
     expect(source).toContain("process.env.ADMIN_EMAIL");
+    expect(source).toContain("@/lib/organizations/server");
+    expect(source).toContain("requireOrganizationAccess");
+    expect(source).toContain("function organizationOrLegacyFilter");
+    expect(source).toContain("organization_id.eq.${organizationId}");
+    expect(source).toContain("organization_id.is.null");
     expect(source).toContain("export async function getFamilyProfiles");
     expect(source).toContain("export async function getFamilyPermissions");
     expect(source).toContain("export async function getFamilyFeaturePermissions");
+    expect(source).toContain("organization_id, auth_user_id");
+    expect(source).toContain("owner_id, organization_id, profile_id");
     expect(source).toContain('.eq("owner_id", adminProfile.owner_id)');
+    expect(source).toContain(".or(organizationOrLegacyFilter(organizationId))");
+  });
+
+  it("keeps admin user and permission writes tied to the active organization", () => {
+    const source = readSource("app/protected/admin/actions.ts");
+
+    expect(source).toContain("@/lib/organizations/server");
+    expect(source).toContain("requireOrganizationAccess");
+    expect(source).toContain("function organizationOrLegacyFilter");
+    expect(source).toContain("async function ensureMemberBelongsToOrganization");
+    expect(source).toContain("async function ensureProfileBelongsToOrganization");
+    expect(source).toContain("organization_id.eq.${organizationId}");
+    expect(source).toContain("organization_id.is.null");
+    expect(source).toContain("organization_id: organization.id");
+    expect(source).toContain("ensureUniqueEmail({ ownerId: adminProfile.owner_id, organizationId: organization.id, email })");
+    expect(source).toContain("ensureMemberBelongsToOrganization(adminProfile.owner_id, organization.id, linkedFamilyMemberId)");
+    expect(source).toContain("ensureProfileBelongsToOrganization(adminProfile.owner_id, organization.id, profileId)");
+    expect(source).toContain(".or(organizationOrLegacyFilter(organization.id))");
   });
 
   it("documents current access control as profile and owner based", () => {

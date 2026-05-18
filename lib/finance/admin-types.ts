@@ -6,6 +6,7 @@ export type ProfileRole = "admin" | "adult" | "child" | "custom" | "user";
 export type DbProfile = {
   id: string;
   owner_id: string;
+  organization_id: string | null;
   auth_user_id: string | null;
   linked_family_member_id: string | null;
   name: string;
@@ -19,6 +20,7 @@ export type DbProfile = {
 export type DbModulePermission = {
   id: string;
   owner_id: string;
+  organization_id: string | null;
   profile_id: string;
   module: FinanceModuleKey;
   can_view: boolean;
@@ -34,6 +36,7 @@ export type DbModulePermission = {
 export type DbFeaturePermission = {
   id: string;
   owner_id: string;
+  organization_id: string | null;
   profile_id: string;
   feature_key: FeaturePermissionKey;
   is_enabled: boolean;

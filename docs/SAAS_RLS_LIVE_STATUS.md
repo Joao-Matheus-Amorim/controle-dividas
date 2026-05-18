@@ -125,7 +125,7 @@ Validacao recente informada:
 
 ```txt
 35 arquivos de teste passaram
-129 testes passaram
+130 testes passaram
 ```
 
 ## 7. O que ainda nao esta pronto
