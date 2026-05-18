@@ -2,21 +2,25 @@
 
 ## Definicao
 
-FamilyFinance nasceu como uma solucao financeira familiar personalizada para uma familia especifica, com Web/PWA funcional, painel Admin familiar, permissoes por usuario, modulos financeiros e app nativo planejado para fase futura.
+FamilyFinance e um SaaS financeiro multi-tenant, mobile-first, seguro e preparado para producao massiva.
 
-A partir da solicitacao formal de mudanca registrada em `docs/pm/07_SOLICITACAO_MUDANCA_SAAS_MULTI_TENANT.md` e da estrategia tecnica registrada em `docs/SAAS_MULTI_TENANT_STRATEGY.md`, o produto passa a ter como nova direcao estrategica a evolucao para um SaaS multi-tenant de gestao financeira familiar.
+A direcao vigente do produto nao e mais uma solucao familiar privada, single-tenant ou personalizada para uma unica familia. A origem familiar do projeto permanece apenas como contexto historico e validacao inicial de dominio, mas nao deve mais guiar roadmap, arquitetura, documentacao, seguranca ou decisoes de escopo.
 
-Essa evolucao nao invalida a origem familiar privada do projeto. Ela transforma a base ja implementada em uma plataforma capaz de atender varias familias, grupos financeiros ou organizacoes independentes, cada uma com dados isolados, membros proprios, permissoes proprias, dashboard proprio e possibilidade futura de planos comerciais.
+A decisao estrategica esta registrada em:
+
+- `docs/adr/0001-saas-first-production-positioning.md`
+
+A partir desta decisao, o produto deve ser conduzido como uma plataforma capaz de atender varias familias, grupos financeiros ou organizacoes independentes, cada uma com dados isolados, membros proprios, permissoes proprias, dashboard proprio, onboarding proprio e possibilidade futura de planos comerciais.
 
 ## Decisao de fase
 
-### Fase anterior
+### Fase historica encerrada
 
 ```txt
 FamilyFinance como solucao familiar privada, single-tenant e personalizada.
 ```
 
-Essa fase permitiu validar:
+Essa fase foi importante para validar dominio, UX inicial, regras financeiras e base tecnica, incluindo:
 
 - autenticacao;
 - dashboard financeiro;
@@ -35,10 +39,12 @@ Essa fase permitiu validar:
 - PWA/mobile-first;
 - testes e documentacao.
 
-### Nova fase proposta/aprovada documentalmente
+Essa fase esta encerrada como direcao de produto.
+
+### Fase vigente
 
 ```txt
-FamilyFinance como SaaS multi-tenant de gestao financeira familiar.
+FamilyFinance como SaaS financeiro multi-tenant para producao massiva.
 ```
 
 A nova fase deve ser implementada de forma incremental, sem SQL destrutivo, sem reescrita da stack, sem billing prematuro e sem misturar rotas, RLS, visual e cobranca em uma unica mudanca.
@@ -56,11 +62,12 @@ O produto alvo passa a ser uma plataforma SaaS/PWA mobile-first com:
 - painel Admin por organizacao;
 - possibilidade futura de app nativo Android/iOS;
 - possibilidade futura de assinatura e planos comerciais;
-- seguranca baseada em RLS, memberships e validacao server-side.
+- seguranca baseada em RLS, memberships e validacao server-side;
+- governanca documental por issues, PRs pequenos, gates, ADRs e documentos PMBOK no que compete ao projeto.
 
 ## Visao central
 
-O FamilyFinance nao e apenas um controle de gastos. Ele deve evoluir para uma central financeira familiar multi-tenant com:
+O FamilyFinance nao e apenas um controle de gastos. Ele deve evoluir para uma central financeira familiar SaaS, multi-tenant e comercialmente operavel com:
 
 - dashboard contextual;
 - contas fixas;
@@ -78,7 +85,8 @@ O FamilyFinance nao e apenas um controle de gastos. Ele deve evoluir para uma ce
 - investimentos futuros;
 - acoes/cotacoes futuras;
 - billing futuro;
-- isolamento completo por organizacao.
+- isolamento completo por organizacao;
+- auditoria operacional futura.
 
 Cada usuario deve ver apenas o que sua organizacao e suas permissoes liberarem.
 
@@ -233,7 +241,7 @@ Billing e parte da visao SaaS, mas nao deve ser implementado antes do isolamento
 A ordem correta e:
 
 ```txt
-organizations -> memberships -> organization_id -> queries/actions -> RLS -> rotas -> PWA/UX -> billing
+organizations -> memberships -> organization_id -> queries/actions -> RLS -> UX/PWA -> rotas -> billing
 ```
 
 Possiveis planos futuros:
@@ -268,10 +276,14 @@ A solicitacao formal de mudanca PMBOK esta em:
 
 - `docs/pm/07_SOLICITACAO_MUDANCA_SAAS_MULTI_TENANT.md`
 
+A decisao SaaS-first vigente esta em:
+
+- `docs/adr/0001-saas-first-production-positioning.md`
+
 ## Principio de produto
 
-O sistema deve ser simples para uso familiar, mas estruturado o suficiente para controle real de permissoes, seguranca, dashboard avancado, isolamento por organizacao, evolucao mobile e futuro modelo SaaS.
+O sistema deve ser simples para uso familiar, mas estruturado o suficiente para controle real de permissoes, seguranca, dashboard avancado, isolamento por organizacao, evolucao mobile, auditoria futura e modelo SaaS.
 
 O maior risco do produto nao e evoluir para SaaS. O maior risco e evoluir rapido demais, misturando banco, RLS, rotas, visual e billing sem fases claras.
 
-A visao do produto passa a ser: construir uma central financeira familiar SaaS, com base mobile-first, segura, incremental e comercialmente valiosa.
+A visao do produto passa a ser: construir uma central financeira SaaS, mobile-first, multi-tenant, segura, incremental, comercialmente valiosa e preparada para producao massiva.
