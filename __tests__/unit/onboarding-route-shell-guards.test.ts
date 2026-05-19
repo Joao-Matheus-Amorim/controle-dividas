@@ -34,16 +34,17 @@ describe("initial organization onboarding route shell guards", () => {
 
     expect(source).toContain("validateInitialOrganizationOnboarding");
     expect(source).toContain("validateCurrentUserEligibility");
+    expect(source).toContain("validateOrganizationSlugAvailability");
     expect(source).toContain("normalizeOrganizationSlug");
     expect(source).toContain("slugPattern");
     expect(source).toContain("supabase.auth.getClaims()");
+    expect(source).toContain("createAdminClient");
     expect(source).toContain('from("profiles")');
     expect(source).toContain('from("organization_memberships")');
     expect(source).toContain('from("organizations")');
     expect(source).toContain("Você já possui uma organização ativa.");
     expect(source).toContain("Este slug já está em uso.");
     expect(source).toContain("Validação concluída");
-    expect(source).not.toContain("createAdminClient");
     expect(source).not.toContain(".insert(");
     expect(source).not.toContain(".upsert(");
     expect(source).not.toContain(".update(");
