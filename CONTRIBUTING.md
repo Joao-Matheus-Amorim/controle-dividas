@@ -23,7 +23,7 @@ git checkout -b feature/nome-da-feature
 
 ```bash
 npm ci
-npm audit --audit-level=critical
+npm audit --audit-level=moderate
 npm run lint
 npm run build
 npm run test
@@ -95,6 +95,7 @@ coisas
 Antes de pedir revisão, confirme:
 
 - O código não expõe secrets, tokens, senhas ou chaves privadas.
+- O audit passa com `npm audit --audit-level=moderate`.
 - O build passa localmente.
 - O lint passa localmente.
 - Os testes passam localmente.
