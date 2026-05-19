@@ -62,6 +62,11 @@ function isConfiguredAdminEmail(email: string | null) {
   return Boolean(adminEmail && email && email.toLowerCase() === adminEmail);
 }
 
+function getBootstrapProfileName(email: string | null) {
+  const localPart = email?.split("@")[0]?.trim();
+  return localPart || "Admin";
+}
+
 function organizationOrLegacyFilter(organizationId: string) {
   return `organization_id.eq.${organizationId},organization_id.is.null`;
 }
@@ -103,7 +108,7 @@ export async function ensureAdminProfile() {
     {
       owner_id: user.id,
       auth_user_id: user.id,
-      name: "Danyel",
+      name: getBootstrapProfileName(user.email),
       email: user.email,
       role: "admin",
       is_active: true,
