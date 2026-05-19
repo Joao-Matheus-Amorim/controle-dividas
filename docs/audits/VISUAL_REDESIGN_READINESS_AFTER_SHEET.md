@@ -6,6 +6,7 @@ Documental audit for the next safe visual-design steps.
 
 Related issue: #283
 Correction issue: #285
+Sync issue: #291
 
 References:
 
@@ -16,7 +17,9 @@ References:
 - Edit form migration: #276
 - Destructive confirmation guard: #278
 - Expense delete guard target fix: #280
-- Unused expense dialog cleanup: #282
+- Unused expense delete dialog cleanup: #282
+- Active expense edit Sheet migration: #288
+- Unused expense edit dialog cleanup: #290
 
 ## Context
 
@@ -26,9 +29,10 @@ ADR 0003 defines that shadcn/ui adoption must be controlled by layers and real u
 
 - `Sheet` was added because it had immediate use in mobile form flows.
 - Create form wrappers were migrated to `AppFormSheet`.
-- Finance edit form dialog components were migrated to `Sheet`, but the active expense edit flow still needs a separate follow-up because it is inline in `components/finance/expense-list-client.tsx`.
+- Finance edit form dialog components were migrated to `Sheet` where they are active paths.
+- The active expense edit flow in `components/finance/expense-list-client.tsx` was migrated to `Sheet`.
 - Destructive delete confirmations were intentionally kept as `Dialog` and guarded.
-- An unused expense delete dialog component was removed after the active flow was identified and protected.
+- Unused expense delete/edit dialog components were removed after the active flows were identified and protected.
 
 This means the project is ready for the next visual-design step, but not yet for a broad redesign PR.
 
@@ -69,18 +73,13 @@ Covered create flows:
 - receivable incomes
 - family users
 
-Covered edit flows with active Sheet usage:
+Covered active edit flows:
 
+- expenses, via `components/finance/expense-list-client.tsx`
 - payable bills / debts
 - bank accounts
 - expense categories
 - receivable incomes
-
-Known exception:
-
-- Active expense editing is still inline in `components/finance/expense-list-client.tsx` and currently uses `Dialog`.
-- The separate `components/finance/expense-edit-dialog.tsx` component was migrated to `Sheet`, but it is not the active edit path used by the live expenses list.
-- A follow-up issue should migrate or otherwise resolve the active inline expense edit flow before the audit can claim expenses are fully covered by Sheet.
 
 ### Keep Dialog for destructive confirmations
 
@@ -104,7 +103,7 @@ The project now has a clearer baseline for mobile financial forms:
 
 - form containers are more consistent;
 - create flows have a shared Sheet direction;
-- most active financial edit flows have a shared Sheet direction;
+- active financial edit flows have a shared Sheet direction;
 - destructive confirmations are intentionally separate;
 - tests guard the current form-container choices;
 - the broad #80 redesign issue can now be split into smaller, safer follow-up issues.
@@ -115,7 +114,6 @@ The project is not ready for a single broad redesign PR.
 
 Remaining risks:
 
-- active expense editing still uses an inline Dialog in `components/finance/expense-list-client.tsx`;
 - visual tokens are not formally documented;
 - spacing, radius, shadows and color usage are still mostly implicit in components;
 - dashboard, lists and cards have not been audited as a full visual system;
@@ -125,19 +123,7 @@ Remaining risks:
 
 ## Recommended next PRs
 
-### 1. Resolve active expense edit flow container
-
-Create a small issue/PR for `components/finance/expense-list-client.tsx`.
-
-Expected decision:
-
-- migrate active expense editing to Sheet; or
-- document why it should remain Dialog; or
-- replace the inline edit modal with the shared `ExpenseEditDialog` only if that component is confirmed as the right active path.
-
-No unrelated list redesign.
-
-### 2. Document visual tokens and component conventions
+### 1. Document visual tokens and component conventions
 
 Create a small documentation-only PR that records current conventions:
 
@@ -151,7 +137,7 @@ Create a small documentation-only PR that records current conventions:
 
 No UI changes.
 
-### 3. Audit dashboard visual hierarchy
+### 2. Audit dashboard visual hierarchy
 
 Audit the dashboard separately before changing it.
 
@@ -164,7 +150,7 @@ Expected output:
 
 No broad redesign.
 
-### 4. Audit financial list visual consistency
+### 3. Audit financial list visual consistency
 
 Audit list patterns across:
 
@@ -181,7 +167,7 @@ Expected output:
 - candidate shared components;
 - risks if abstracted too early.
 
-### 5. Decide destructive confirmation UX explicitly
+### 4. Decide destructive confirmation UX explicitly
 
 Keep current Dialog behavior for now.
 
@@ -196,7 +182,7 @@ Treat #80 as the broad umbrella for the future visual redesign system. The next 
 Recommended immediate follow-up:
 
 ```txt
-Resolve active expense edit flow container
+Document visual design tokens and component conventions
 ```
 
-That follow-up should be tightly scoped to the active expenses list edit flow and should not include broad visual redesign.
+That follow-up should be documentation-only and should not include broad visual redesign.
