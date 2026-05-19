@@ -21,6 +21,16 @@ describe("active organization indicator guard", () => {
     expect(source).toContain("organization={currentOrganization}");
   });
 
+  it("keeps the protected layout using the Separator primitive for visual nav separation", () => {
+    const source = readSource("app/protected/layout.tsx");
+
+    expect(source).toContain("@/components/ui/separator");
+    expect(source).toContain("Separator");
+    expect(source).toContain('orientation="vertical"');
+    expect(source).toContain("hidden h-6 bg-white/10 lg:block");
+    expect(source).toContain("hidden bg-white/5 md:block");
+  });
+
   it("keeps the indicator as display-only without organization switching behavior", () => {
     const source = readSource("components/app/active-organization-indicator.tsx");
 
