@@ -63,14 +63,24 @@ export default async function ProtectedLayout({
     <main className="app-no-x-scroll dark min-h-screen bg-[#080810] text-foreground">
       <div className="pointer-events-none fixed inset-x-0 top-0 h-72 max-w-full bg-[radial-gradient(ellipse_at_top,rgba(139,114,248,0.24),transparent_65%)]" />
 
-      <nav className="sticky top-0 z-40 max-w-full overflow-hidden border-b border-white/5 bg-[#080810]/90 backdrop-blur-xl">
+      <nav className="sticky top-0 z-40 max-w-full overflow-hidden border-b border-white/5 bg-[#080810]/90 shadow-2xl shadow-black/20 backdrop-blur-xl">
         <div className="mx-auto flex min-h-16 w-full max-w-7xl flex-col gap-3 px-4 py-3 md:px-6">
           <div className="flex min-w-0 items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
-              <Link href="/protected" className="min-w-0 shrink-0 text-lg font-bold tracking-tight text-white">
-                FamilyFinance
+              <Link href="/protected" className="group flex min-w-0 shrink-0 items-center gap-2">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.06] text-sm font-black text-[#b09cff] shadow-lg shadow-black/20 transition group-hover:border-[#b09cff]/30 group-hover:bg-[#b09cff]/10">
+                  FF
+                </span>
+                <span className="min-w-0 leading-none">
+                  <span className="block truncate text-lg font-bold tracking-tight text-white">
+                    FamilyFinance
+                  </span>
+                  <span className="hidden text-[10px] font-semibold uppercase tracking-[0.24em] text-white/35 sm:block">
+                    SaaS financeiro
+                  </span>
+                </span>
               </Link>
-              <Separator orientation="vertical" className="hidden h-6 bg-white/10 lg:block" />
+              <Separator orientation="vertical" className="hidden h-8 bg-white/10 lg:block" />
               <div className="hidden min-w-0 lg:block">
                 <ActiveOrganizationIndicator organization={currentOrganization} />
               </div>
@@ -91,16 +101,18 @@ export default async function ProtectedLayout({
           {visibleNavigation.length > 0 ? (
             <>
               <Separator className="hidden bg-white/5 md:block" />
-              <div className="hidden gap-2 overflow-x-auto pb-1 text-sm md:flex">
-                {visibleNavigation.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className="whitespace-nowrap rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-white/55 transition hover:bg-white/[0.07] hover:text-white"
-                  >
-                    {item.label}
-                  </Link>
-                ))}
+              <div className="hidden overflow-x-auto pb-1 md:block">
+                <div className="flex w-max gap-2 rounded-full border border-white/10 bg-white/[0.025] p-1 text-sm shadow-inner shadow-black/20">
+                  {visibleNavigation.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className="whitespace-nowrap rounded-full px-3 py-1.5 text-white/55 transition hover:bg-white/[0.07] hover:text-white"
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
               </div>
             </>
           ) : null}
