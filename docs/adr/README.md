@@ -74,3 +74,4 @@ Um ADR aceito não deve ser editado para mudar a decisão histórica. Se a decis
 | [0002](./0002-active-organization-ux-before-orgslug-routes.md) | Aceito | A UX deve exibir a organização ativa antes de selector, rotas por `orgSlug` e billing. |
 | [0003](./0003-design-system-and-shadcn-adoption.md) | Aceito | shadcn/ui será o kit base oficial do design system, com adoção controlada por camadas. |
 | [0004](./0004-initial-organization-onboarding-boundary.md) | Aceito | A primeira organização e owner membership devem ser criados por onboarding explícito, não por efeito colateral do bootstrap de perfil. |
+| [0005](./0005-onboarding-route-layout-strategy.md) | Aceito | O onboarding inicial deve usar rota fora do layout protegido atual para não exigir organização ativa antes da criação. |
