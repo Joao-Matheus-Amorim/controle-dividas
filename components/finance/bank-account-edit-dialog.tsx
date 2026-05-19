@@ -5,13 +5,13 @@ import { Pencil } from "lucide-react";
 import { BankAccountForm } from "@/components/finance/bank-account-form";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import type { DbBankAccount, DbFamilyMember } from "@/lib/finance/types";
 
 export function BankAccountEditDialog({
@@ -22,8 +22,8 @@ export function BankAccountEditDialog({
   members: DbFamilyMember[];
 }) {
   return (
-    <Dialog>
-      <DialogTrigger asChild>
+    <Sheet>
+      <SheetTrigger asChild>
         <Button
           type="button"
           variant="outline"
@@ -33,18 +33,18 @@ export function BankAccountEditDialog({
         >
           <Pencil className="h-4 w-4" />
         </Button>
-      </DialogTrigger>
-      <DialogContent className="max-h-[88vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Editar banco</DialogTitle>
-          <DialogDescription>
+      </SheetTrigger>
+      <SheetContent side="bottom" className="max-h-[88vh] overflow-y-auto rounded-t-[1.75rem] md:inset-y-0 md:left-auto md:right-0 md:h-full md:w-3/4 md:max-w-md md:rounded-none md:border-l md:border-t-0 md:data-[state=closed]:slide-out-to-right md:data-[state=open]:slide-in-from-right">
+        <SheetHeader>
+          <SheetTitle>Editar banco</SheetTitle>
+          <SheetDescription>
             Atualize banco, pessoa vinculada, tipo de conta, saldo, moeda e observacoes.
-          </DialogDescription>
-        </DialogHeader>
+          </SheetDescription>
+        </SheetHeader>
         <div className="pt-2">
           <BankAccountForm members={members} account={account} mode="edit" />
         </div>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }
