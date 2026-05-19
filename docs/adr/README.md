@@ -73,3 +73,4 @@ Um ADR aceito não deve ser editado para mudar a decisão histórica. Se a decis
 | [0001](./0001-saas-first-production-positioning.md) | Aceito | O produto passa a ser conduzido como SaaS financeiro multi-tenant para produção massiva. |
 | [0002](./0002-active-organization-ux-before-orgslug-routes.md) | Aceito | A UX deve exibir a organização ativa antes de selector, rotas por `orgSlug` e billing. |
 | [0003](./0003-design-system-and-shadcn-adoption.md) | Aceito | shadcn/ui será o kit base oficial do design system, com adoção controlada por camadas. |
+| [0004](./0004-initial-organization-onboarding-boundary.md) | Aceito | A primeira organização e owner membership devem ser criados por onboarding explícito, não por efeito colateral do bootstrap de perfil. |
