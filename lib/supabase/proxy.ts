@@ -7,6 +7,7 @@ import {
 } from "../utils";
 
 const PUBLIC_FILE = /\.(.*)$/;
+const INITIAL_ORGANIZATION_ONBOARDING_PATH = "/onboarding/organizacao";
 
 function shouldSkipAuth(pathname: string) {
   return (
@@ -21,6 +22,10 @@ function shouldSkipAuth(pathname: string) {
   );
 }
 
+function shouldRequireOrganization(pathname: string) {
+  return pathname === "/protected" || pathname.startsWith("/protected/");
+}
+
 function assertRuntimeEnvForProxy() {
   if (hasEnvVars) {
     return;
@@ -31,6 +36,24 @@ function assertRuntimeEnvForProxy() {
       "Supabase public environment variables are missing for the session proxy. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY or NEXT_PUBLIC_SUPABASE_ANON_KEY.",
     );
   }
+}
+
+async function hasActiveOrganizationMembership(
+  supabase: ReturnType<typeof createServerClient>,
+  authUserId: string,
+) {
+  const { data, error } = await supabase
+    .from("organization_memberships")
+    .select("id")
+    .eq("auth_user_id", authUserId)
+    .eq("is_active", true)
+    .limit(1);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data ?? []).length > 0;
 }
 
 export async function updateSession(request: NextRequest) {
@@ -90,6 +113,20 @@ export async function updateSession(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = "/auth/login";
     return NextResponse.redirect(url);
+  }
+
+  if (user?.sub && shouldRequireOrganization(request.nextUrl.pathname)) {
+    const hasMembership = await hasActiveOrganizationMembership(
+      supabase,
+      String(user.sub),
+    );
+
+    if (!hasMembership) {
+      const url = request.nextUrl.clone();
+      url.pathname = INITIAL_ORGANIZATION_ONBOARDING_PATH;
+      url.search = "";
+      return NextResponse.redirect(url);
+    }
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is.
