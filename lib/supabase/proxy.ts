@@ -1,6 +1,10 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { hasEnvVars, supabasePublicKey } from "../utils";
+import {
+  hasEnvVars,
+  shouldFailFastForMissingRuntimeEnv,
+  supabasePublicKey,
+} from "../utils";
 
 const PUBLIC_FILE = /\.(.*)$/;
 
@@ -17,6 +21,18 @@ function shouldSkipAuth(pathname: string) {
   );
 }
 
+function assertRuntimeEnvForProxy() {
+  if (hasEnvVars) {
+    return;
+  }
+
+  if (shouldFailFastForMissingRuntimeEnv()) {
+    throw new Error(
+      "Supabase public environment variables are missing for the session proxy. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY or NEXT_PUBLIC_SUPABASE_ANON_KEY.",
+    );
+  }
+}
+
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
@@ -26,8 +42,9 @@ export async function updateSession(request: NextRequest) {
     return supabaseResponse;
   }
 
-  // If the env vars are not set, skip proxy check. You can remove this
-  // once you setup the project.
+  assertRuntimeEnvForProxy();
+
+  // Local development may run before Supabase env vars are configured.
   if (!hasEnvVars) {
     return supabaseResponse;
   }
