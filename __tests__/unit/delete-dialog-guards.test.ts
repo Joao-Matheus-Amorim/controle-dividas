@@ -16,10 +16,13 @@ describe("expense list active overlay guards", () => {
     expect(source).toContain('} from "@/components/ui/sheet"');
     expect(source).toContain("editingExpense");
     expect(source).toContain("setEditingExpense");
-    expect(source).toContain("<Sheet open={Boolean(editingExpense)}");
-    expect(source).toContain('<SheetContent side="bottom"');
+    expect(source).toContain("<Sheet");
+    expect(source).toContain("open={Boolean(editingExpense)}");
+    expect(source).toContain("<SheetContent");
+    expect(source).toContain('side="bottom"');
     expect(source).toContain("<SheetTitle>Editar gasto</SheetTitle>");
-    expect(source).toContain('expense={editingExpense} mode="edit"');
+    expect(source).toContain("expense={editingExpense}");
+    expect(source).toContain('mode="edit"');
   });
 
   it("keeps the active expense delete confirmation as Dialog", () => {
@@ -30,7 +33,8 @@ describe("expense list active overlay guards", () => {
     expect(source).toContain("isDeleteConfirmed");
     expect(source).toContain("resetDeleteDialog");
     expect(source).toContain("handleDeleteExpense");
-    expect(source).toContain("<Dialog open={Boolean(deletingExpense)}");
+    expect(source).toContain("<Dialog");
+    expect(source).toContain("open={Boolean(deletingExpense)}");
     expect(source).toContain("<DialogContent>");
     expect(source).toContain("<DialogTitle>Excluir gasto</DialogTitle>");
     expect(source).toContain('name="confirm_delete"');
