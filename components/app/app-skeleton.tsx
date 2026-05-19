@@ -1,8 +1,9 @@
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { AppCard } from "./app-card";
 
 export function AppSkeleton({ className }: { className?: string }) {
-  return <div className={cn("animate-pulse rounded-2xl bg-white/10", className)} />;
+  return <Skeleton className={cn("rounded-2xl", className)} />;
 }
 
 export function AppPageSkeleton() {
