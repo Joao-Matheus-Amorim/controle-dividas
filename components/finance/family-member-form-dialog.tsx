@@ -2,18 +2,18 @@
 
 import { UserPlus } from "lucide-react";
 
-import { AppFormDialog } from "@/components/app/app-form-dialog";
+import { AppFormSheet } from "@/components/app/app-form-sheet";
 import { FamilyMemberForm } from "@/components/finance/family-member-form";
 
 export function FamilyMemberFormDialog() {
   return (
-    <AppFormDialog
+    <AppFormSheet
       title="Nova pessoa"
-      description="Cadastre um membro financeiro da família e defina o limite mensal."
+      description="Cadastre um membro financeiro e defina o limite mensal."
       triggerLabel="Nova pessoa"
       icon={UserPlus}
     >
       <FamilyMemberForm />
-    </AppFormDialog>
+    </AppFormSheet>
   );
 }
