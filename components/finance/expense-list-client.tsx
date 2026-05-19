@@ -13,6 +13,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import type { DbExpense, DbExpenseCategory, DbFamilyMember } from "@/lib/finance/server";
 import { formatCurrency } from "@/lib/finance/calculations";
 import { deleteExpense } from "@/app/protected/gastos/actions";
@@ -103,21 +110,21 @@ export function ExpenseListClient({
         ))}
       </div>
 
-      <Dialog open={Boolean(editingExpense)} onOpenChange={(open) => !open && setEditingExpense(null)}>
-        <DialogContent className="max-h-[88vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Editar gasto</DialogTitle>
-            <DialogDescription>
+      <Sheet open={Boolean(editingExpense)} onOpenChange={(open) => !open && setEditingExpense(null)}>
+        <SheetContent side="bottom" className="max-h-[88vh] overflow-y-auto rounded-t-[1.75rem] md:inset-y-0 md:left-auto md:right-0 md:h-full md:w-3/4 md:max-w-md md:rounded-none md:border-l md:border-t-0 md:data-[state=closed]:slide-out-to-right md:data-[state=open]:slide-in-from-right">
+          <SheetHeader>
+            <SheetTitle>Editar gasto</SheetTitle>
+            <SheetDescription>
               Atualize pessoa, categoria, valor, data, local, pagamento e observacoes.
-            </DialogDescription>
-          </DialogHeader>
+            </SheetDescription>
+          </SheetHeader>
           <div className="pt-2">
             {editingExpense ? (
               <ExpenseForm members={members} categories={categories} expense={editingExpense} mode="edit" />
             ) : null}
           </div>
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
 
       <Dialog open={Boolean(deletingExpense)} onOpenChange={(open) => {
         if (!open) {
