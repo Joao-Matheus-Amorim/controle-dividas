@@ -5,6 +5,7 @@
 Technical roadmap for future implementation. No runtime behavior change in this document.
 
 Related issue: #315
+Boundary correction issue: #317
 
 References:
 
@@ -56,9 +57,25 @@ This profile bootstrap must not create organization records or owner memberships
 
 A guard already protects this boundary.
 
+### Existing protected layout boundary
+
+`app/protected/layout.tsx` currently loads navigation permissions and current organization before rendering protected children.
+
+That means a route placed directly under `/protected` may not render for a user with no active organization membership, because the layout can fail before the page is reached.
+
+Therefore, `/protected/onboarding/organizacao` is the desired user-facing path, but implementation must account for the current layout boundary before creating the page.
+
+Possible safe strategies:
+
+- create a route outside the existing protected layout and redirect there;
+- introduce a route group/layout boundary dedicated to onboarding;
+- add a tightly scoped exception in `ProtectedLayout` only after tests prove it does not weaken normal protected routes.
+
+Do not create a page that cannot be reached by the target user state.
+
 ## Proposed explicit onboarding route
 
-Use a dedicated protected route for missing-organization onboarding:
+Desired user-facing route:
 
 ```txt
 /protected/onboarding/organizacao
@@ -69,6 +86,8 @@ This route should be accessible only to an authenticated user who:
 - has a valid current profile;
 - has no active organization membership;
 - is allowed to create the first organization under the transitional policy.
+
+However, because of the existing `ProtectedLayout`, the implementation must first decide how the onboarding page can render without requiring organization context.
 
 The route should not be a generic organization settings page. It should exist only to resolve the missing first organization context.
 
@@ -97,8 +116,10 @@ continue to /protected
 If the user has no active memberships:
 
 ```txt
-redirect to /protected/onboarding/organizacao
+redirect to the onboarding route
 ```
+
+The redirect must not rely on rendering a page that is blocked by the existing protected layout.
 
 ### 4. Onboarding form collects organization data
 
@@ -200,26 +221,37 @@ After financial data uses the organization, rollback must be treated as data mig
 
 ## Recommended implementation sequence
 
-### PR 1 - Add missing organization onboarding guard
+### PR 1 - Guard protected layout onboarding boundary
 
-Test-only.
+Test-only or documentation+guard.
 
-- Ensure protected layout redirects users with no organization membership to a future onboarding route, or document current failure behavior if not implemented yet.
-- No runtime behavior if still planning.
+- Document that the current `ProtectedLayout` requires organization context before children render.
+- Guard that onboarding is not added blindly under the existing protected layout without a boundary strategy.
+- No runtime behavior change.
 
-### PR 2 - Add route shell
+### PR 2 - Decide onboarding layout strategy
+
+ADR or focused documentation PR.
+
+Choose one:
+
+- route outside the existing protected layout;
+- dedicated route group/layout for onboarding;
+- controlled exception in the protected layout.
+
+### PR 3 - Add route shell
 
 UI-only/server-only shell.
 
-- Create `/protected/onboarding/organizacao` page.
+- Create the onboarding page according to the chosen layout strategy.
 - Show form shell and explanation.
 - No database writes yet.
 
-### PR 3 - Add server action validation only
+### PR 4 - Add server action validation only
 
 Server action returns validation results but does not insert yet, or uses mocked internal helper guarded by tests.
 
-### PR 4 - Add organization creation action
+### PR 5 - Add organization creation action
 
 Functional PR.
 
@@ -228,7 +260,7 @@ Functional PR.
 - Revalidate/redirect.
 - Add unit guard and integration-style test with mocked Supabase client.
 
-### PR 5 - Wire protected no-organization redirect
+### PR 6 - Wire no-organization redirect
 
 Functional PR.
 
@@ -242,6 +274,7 @@ Functional PR.
 - Should multiple organizations per user be allowed before the selector exists?
 - Should slug be editable in first version?
 - Should organization creation be blocked until billing exists?
+- Should onboarding use a route outside the current protected layout or a dedicated nested layout?
 
 ## Recommendation
 
@@ -256,3 +289,5 @@ Do not allow creating second organizations until the active organization selecto
 Do not connect billing in the first version.
 
 Do not remove `ADMIN_EMAIL` in the first version.
+
+Resolve the protected-layout boundary before adding the route shell.
