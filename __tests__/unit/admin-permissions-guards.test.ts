@@ -74,4 +74,16 @@ describe("admin permissions ownership guards", () => {
     expect(source).toContain("profile.role === \"admin\"");
     expect(source).toContain("return getAllActiveMemberIds(profile.owner_id, organizationId)");
   });
+
+  it("keeps runtime bootstrap admin names derived from email or neutral fallback", () => {
+    const accessControl = readSource("lib/finance/access-control.ts");
+    const adminServer = readSource("lib/finance/admin-server.ts");
+
+    for (const source of [accessControl, adminServer]) {
+      expect(source).toContain("function getBootstrapProfileName(email: string | null)");
+      expect(source).toContain('return localPart || "Admin"');
+      expect(source).toContain("name: getBootstrapProfileName(user.email)");
+      expect(source).not.toContain('name: "Danyel"');
+    }
+  });
 });
