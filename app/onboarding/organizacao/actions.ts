@@ -1,5 +1,8 @@
 "use server";
 
+import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+
 export type InitialOrganizationOnboardingState = {
   error?: string;
   success?: string;
@@ -14,6 +17,71 @@ function normalizeOrganizationSlug(value: string) {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
+}
+
+async function validateOrganizationSlugAvailability(slug: string) {
+  const adminSupabase = createAdminClient();
+
+  const { data: existingOrganization, error } = await adminSupabase
+    .from("organizations")
+    .select("id")
+    .eq("slug", slug)
+    .maybeSingle();
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  if (existingOrganization) {
+    return { error: "Este slug já está em uso." };
+  }
+
+  return null;
+}
+
+async function validateCurrentUserEligibility(slug: string) {
+  const supabase = await createClient();
+  const { data: authData, error: authError } = await supabase.auth.getClaims();
+  const authUserId = authData?.claims?.sub ? String(authData.claims.sub) : null;
+
+  if (authError || !authUserId) {
+    return { error: "Faça login para continuar o onboarding." };
+  }
+
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("id, is_active")
+    .eq("auth_user_id", authUserId)
+    .maybeSingle();
+
+  if (profileError) {
+    return { error: profileError.message };
+  }
+
+  if (!profile) {
+    return { error: "Perfil não encontrado para este usuário." };
+  }
+
+  if (!profile.is_active) {
+    return { error: "Seu perfil está inativo." };
+  }
+
+  const { data: memberships, error: membershipError } = await supabase
+    .from("organization_memberships")
+    .select("id")
+    .eq("auth_user_id", authUserId)
+    .eq("is_active", true)
+    .limit(1);
+
+  if (membershipError) {
+    return { error: membershipError.message };
+  }
+
+  if ((memberships ?? []).length > 0) {
+    return { error: "Você já possui uma organização ativa." };
+  }
+
+  return validateOrganizationSlugAvailability(slug);
 }
 
 export async function validateInitialOrganizationOnboarding(
@@ -38,6 +106,12 @@ export async function validateInitialOrganizationOnboarding(
 
   if (!slugPattern.test(slug)) {
     return { error: "Use apenas letras minúsculas, números e hífens no slug." };
+  }
+
+  const eligibilityError = await validateCurrentUserEligibility(slug);
+
+  if (eligibilityError) {
+    return eligibilityError;
   }
 
   return {
