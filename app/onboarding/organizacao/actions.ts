@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export type InitialOrganizationOnboardingState = {
   error?: string;
@@ -16,6 +17,26 @@ function normalizeOrganizationSlug(value: string) {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
+}
+
+async function validateOrganizationSlugAvailability(slug: string) {
+  const adminSupabase = createAdminClient();
+
+  const { data: existingOrganization, error } = await adminSupabase
+    .from("organizations")
+    .select("id")
+    .eq("slug", slug)
+    .maybeSingle();
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  if (existingOrganization) {
+    return { error: "Este slug já está em uso." };
+  }
+
+  return null;
 }
 
 async function validateCurrentUserEligibility(slug: string) {
@@ -60,21 +81,7 @@ async function validateCurrentUserEligibility(slug: string) {
     return { error: "Você já possui uma organização ativa." };
   }
 
-  const { data: existingOrganization, error: organizationError } = await supabase
-    .from("organizations")
-    .select("id")
-    .eq("slug", slug)
-    .maybeSingle();
-
-  if (organizationError) {
-    return { error: organizationError.message };
-  }
-
-  if (existingOrganization) {
-    return { error: "Este slug já está em uso." };
-  }
-
-  return null;
+  return validateOrganizationSlugAvailability(slug);
 }
 
 export async function validateInitialOrganizationOnboarding(
