@@ -7,7 +7,7 @@ export type InitialOrganizationOnboardingState = {
 
 const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
-export function normalizeOrganizationSlug(value: string) {
+function normalizeOrganizationSlug(value: string) {
   return value
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
