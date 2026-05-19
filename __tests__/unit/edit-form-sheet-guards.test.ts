@@ -10,7 +10,6 @@ function readSource(path: string) {
 }
 
 const editFormWrappers = [
-  "components/finance/expense-edit-dialog.tsx",
   "components/finance/payable-bill-edit-dialog.tsx",
   "components/finance/bank-account-edit-dialog.tsx",
   "components/finance/expense-category-edit-dialog.tsx",
