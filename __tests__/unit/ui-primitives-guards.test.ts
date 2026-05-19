@@ -32,4 +32,18 @@ describe("ui primitives guards", () => {
     expect(source).toContain("data-slot=\"skeleton\"");
     expect(source).toContain("export { Skeleton }");
   });
+
+  it("keeps separator primitive available without Radix dependency", () => {
+    const source = readSource("components/ui/separator.tsx");
+
+    expect(source).toContain('import { cn } from "@/lib/utils"');
+    expect(source).toContain("function Separator");
+    expect(source).toContain('orientation?: "horizontal" | "vertical"');
+    expect(source).toContain('data-slot="separator"');
+    expect(source).toContain("data-orientation={orientation}");
+    expect(source).toContain('role={decorative ? "none" : "separator"}');
+    expect(source).toContain("aria-orientation");
+    expect(source).toContain('orientation === "horizontal" ? "h-px w-full" : "h-full w-px"');
+    expect(source).not.toContain("@radix-ui/react-separator");
+  });
 });
