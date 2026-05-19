@@ -35,6 +35,7 @@ describe("initial organization onboarding route guards", () => {
     expect(source).toContain("validateCurrentUserEligibility");
     expect(source).toContain("validateOrganizationSlugAvailability");
     expect(source).toContain("createInitialOrganization");
+    expect(source).toContain("isUniqueConstraintError");
     expect(source).toContain("supabase.auth.getClaims()");
     expect(source).toContain("createAdminClient");
     expect(source).toContain('from("profiles")');
@@ -52,6 +53,14 @@ describe("initial organization onboarding route guards", () => {
     expect(source).toContain(".delete().eq(\"id\", organization.id)");
     expect(source).not.toContain(".upsert(");
     expect(source).not.toContain(".update(");
+  });
+
+  it("keeps a transitional database guard against concurrent active memberships", () => {
+    const source = readSource("supabase/migrations/018_one_active_membership_per_user.sql");
+
+    expect(source).toContain("organization_memberships_one_active_per_user_idx");
+    expect(source).toContain("on public.organization_memberships(auth_user_id)");
+    expect(source).toContain("where is_active = true");
   });
 
   it("keeps profile bootstrap from creating organizations or memberships", () => {
