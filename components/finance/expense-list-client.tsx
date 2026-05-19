@@ -3,6 +3,11 @@
 import { ReceiptText, Pencil, Trash2 } from "lucide-react";
 import { useState, useTransition } from "react";
 
+import {
+  deleteExpense,
+  type ExpenseActionState,
+} from "@/app/protected/gastos/actions";
+import { AppActionFeedback } from "@/components/app/app-action-feedback";
 import { ExpenseForm } from "@/components/finance/expense-form";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,7 +27,8 @@ import {
 } from "@/components/ui/sheet";
 import type { DbExpense, DbExpenseCategory, DbFamilyMember } from "@/lib/finance/server";
 import { formatCurrency } from "@/lib/finance/calculations";
-import { deleteExpense } from "@/app/protected/gastos/actions";
+
+const initialDeleteState: ExpenseActionState = {};
 
 function compactCurrency(value: number) {
   return formatCurrency(value).replace("€", "€ ");
@@ -43,18 +49,30 @@ export function ExpenseListClient({
 }) {
   const [editingExpense, setEditingExpense] = useState<DbExpense | null>(null);
   const [deletingExpense, setDeletingExpense] = useState<DbExpense | null>(null);
+  const [deleteState, setDeleteState] = useState<ExpenseActionState>(initialDeleteState);
   const [isDeleteConfirmed, setIsDeleteConfirmed] = useState(false);
   const [isDeleting, startDeleteTransition] = useTransition();
 
   function resetDeleteDialog() {
     setDeletingExpense(null);
+    setDeleteState(initialDeleteState);
+    setIsDeleteConfirmed(false);
+  }
+
+  function openDeleteDialog(expense: DbExpense) {
+    setDeletingExpense(expense);
+    setDeleteState(initialDeleteState);
     setIsDeleteConfirmed(false);
   }
 
   function handleDeleteExpense(formData: FormData) {
     startDeleteTransition(async () => {
-      await deleteExpense(formData);
-      resetDeleteDialog();
+      const result = await deleteExpense(formData);
+      setDeleteState(result);
+
+      if (result.success) {
+        resetDeleteDialog();
+      }
     });
   }
 
@@ -95,10 +113,7 @@ export function ExpenseListClient({
                     variant="outline"
                     size="icon"
                     aria-label="Excluir gasto"
-                    onClick={() => {
-                      setDeletingExpense(expense);
-                      setIsDeleteConfirmed(false);
-                    }}
+                    onClick={() => openDeleteDialog(expense)}
                     className="h-8 w-8 rounded-xl border-white/10 bg-transparent text-white/35 hover:bg-white/10 hover:text-white"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -157,6 +172,8 @@ export function ExpenseListClient({
                 />
                 <span>Confirmo que quero excluir este gasto.</span>
               </label>
+
+              <AppActionFeedback error={deleteState.error} success={deleteState.success} />
 
               <Button
                 type="submit"
