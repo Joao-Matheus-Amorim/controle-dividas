@@ -75,14 +75,22 @@ describe("admin permissions ownership guards", () => {
     expect(source).toContain("return getAllActiveMemberIds(profile.owner_id, organizationId)");
   });
 
-  it("keeps runtime bootstrap admin names derived from email or neutral fallback", () => {
+  it("keeps bootstrap admin profile payload centralized", () => {
+    const helper = readSource("lib/finance/bootstrap-admin-profile.ts");
     const accessControl = readSource("lib/finance/access-control.ts");
     const adminServer = readSource("lib/finance/admin-server.ts");
 
+    expect(helper).toContain("export function getBootstrapProfileName(email: string | null)");
+    expect(helper).toContain("export function createBootstrapAdminProfile");
+    expect(helper).toContain('return localPart || "Admin"');
+    expect(helper).not.toContain('name: "Danyel"');
+
     for (const source of [accessControl, adminServer]) {
-      expect(source).toContain("function getBootstrapProfileName(email: string | null)");
-      expect(source).toContain('return localPart || "Admin"');
-      expect(source).toContain("name: getBootstrapProfileName(user.email)");
+      expect(source).toContain("@/lib/finance/bootstrap-admin-profile");
+      expect(source).toContain("createBootstrapAdminProfile({");
+      expect(source).toContain("authUserId: user.id");
+      expect(source).toContain("email: user.email");
+      expect(source).not.toContain("function getBootstrapProfileName");
       expect(source).not.toContain('name: "Danyel"');
     }
   });

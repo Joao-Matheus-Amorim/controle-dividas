@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 
+import { createBootstrapAdminProfile } from "@/lib/finance/bootstrap-admin-profile";
 import { linkAuthUserToFamilyProfile } from "@/lib/finance/profile-linking";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -58,11 +59,6 @@ function getConfiguredAdminEmail() {
 function isConfiguredAdminEmail(email: string | null) {
   const adminEmail = getConfiguredAdminEmail();
   return Boolean(adminEmail && email && email.toLowerCase() === adminEmail);
-}
-
-function getBootstrapProfileName(email: string | null) {
-  const localPart = email?.split("@")[0]?.trim();
-  return localPart || "Admin";
 }
 
 function organizationOrLegacyFilter(organizationId: string) {
@@ -161,14 +157,10 @@ export async function getCurrentProfile() {
   }
 
   const { error: upsertError } = await supabase.from("profiles").upsert(
-    {
-      owner_id: user.id,
-      auth_user_id: user.id,
-      name: getBootstrapProfileName(user.email),
+    createBootstrapAdminProfile({
+      authUserId: user.id,
       email: user.email,
-      role: "admin",
-      is_active: true,
-    },
+    }),
     { onConflict: "auth_user_id", ignoreDuplicates: true },
   );
 
