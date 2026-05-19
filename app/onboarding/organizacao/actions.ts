@@ -1,7 +1,7 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 
 export type InitialOrganizationOnboardingState = {
   error?: string;
@@ -81,10 +81,63 @@ async function validateCurrentUserEligibility(slug: string) {
     return { error: "Você já possui uma organização ativa." };
   }
 
-  return validateOrganizationSlugAvailability(slug);
+  const slugError = await validateOrganizationSlugAvailability(slug);
+
+  if (slugError) {
+    return slugError;
+  }
+
+  return { authUserId };
 }
 
-export async function validateInitialOrganizationOnboarding(
+async function createInitialOrganization({
+  authUserId,
+  name,
+  slug,
+}: {
+  authUserId: string;
+  name: string;
+  slug: string;
+}) {
+  const adminSupabase = createAdminClient();
+
+  const { data: organization, error: organizationError } = await adminSupabase
+    .from("organizations")
+    .insert({
+      slug,
+      name,
+      owner_auth_user_id: authUserId,
+      plan: "free",
+      status: "active",
+    })
+    .select("id")
+    .single();
+
+  if (organizationError || !organization?.id) {
+    return {
+      error:
+        organizationError?.message ?? "Não foi possível criar a organização.",
+    };
+  }
+
+  const { error: membershipError } = await adminSupabase
+    .from("organization_memberships")
+    .insert({
+      organization_id: organization.id,
+      auth_user_id: authUserId,
+      role: "owner",
+      is_active: true,
+    });
+
+  if (membershipError) {
+    await adminSupabase.from("organizations").delete().eq("id", organization.id);
+    return { error: membershipError.message };
+  }
+
+  return { success: "Organização criada com sucesso." };
+}
+
+export async function createInitialOrganizationFromOnboarding(
   _prevState: InitialOrganizationOnboardingState,
   formData: FormData,
 ): Promise<InitialOrganizationOnboardingState> {
@@ -108,14 +161,15 @@ export async function validateInitialOrganizationOnboarding(
     return { error: "Use apenas letras minúsculas, números e hífens no slug." };
   }
 
-  const eligibilityError = await validateCurrentUserEligibility(slug);
+  const eligibility = await validateCurrentUserEligibility(slug);
 
-  if (eligibilityError) {
-    return eligibilityError;
+  if ("error" in eligibility) {
+    return eligibility;
   }
 
-  return {
-    success:
-      "Validação concluída. A criação da organização será habilitada em uma próxima etapa segura.",
-  };
+  return createInitialOrganization({
+    authUserId: eligibility.authUserId,
+    name,
+    slug,
+  });
 }
