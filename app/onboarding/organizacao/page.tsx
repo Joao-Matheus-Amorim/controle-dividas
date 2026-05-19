@@ -1,8 +1,6 @@
 import Link from "next/link";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { OrganizationOnboardingForm } from "@/components/onboarding/organization-onboarding-form";
 
 export default function InitialOrganizationOnboardingPage() {
   return (
@@ -22,50 +20,18 @@ export default function InitialOrganizationOnboardingPage() {
           </h1>
           <p className="text-sm leading-6 text-white/55">
             Este espaço vai agrupar pessoas, contas, gastos, bancos, permissões e
-            relatórios. A criação definitiva será ligada em uma próxima etapa
-            segura.
+            relatórios. Nesta etapa, os dados são apenas validados; a criação no
+            banco será habilitada em uma próxima PR segura.
           </p>
         </div>
 
         <div className="rounded-[2rem] border border-white/10 bg-white/[0.05] p-5 shadow-2xl shadow-black/30 backdrop-blur">
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="organization_name">Nome da organização</Label>
-              <Input
-                id="organization_name"
-                name="organization_name"
-                placeholder="Ex: Família Amorim"
-                disabled
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="organization_slug">Slug</Label>
-              <Input
-                id="organization_slug"
-                name="organization_slug"
-                placeholder="familia-amorim"
-                disabled
-              />
-              <p className="text-xs leading-5 text-white/35">
-                O slug será usado para identificar a organização de forma segura
-                em fluxos futuros.
-              </p>
-            </div>
-
-            <Button
-              type="button"
-              disabled
-              className="w-full rounded-2xl bg-[#8b72f8] font-bold text-white hover:bg-[#7d66e4]"
-            >
-              Criar organização em breve
-            </Button>
-          </div>
+          <OrganizationOnboardingForm />
         </div>
 
         <div className="rounded-2xl border border-[#8b72f8]/20 bg-[#8b72f8]/10 p-4 text-sm leading-6 text-[#d8d0ff]">
-          Esta tela é apenas a shell visual inicial. Ela ainda não grava dados no
-          banco e não cria organization ou membership.
+          Esta tela ainda não grava dados no banco e não cria organization ou
+          membership. Ela valida o nome e o slug antes da etapa funcional.
         </div>
 
         <Link
