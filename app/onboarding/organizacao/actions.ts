@@ -19,6 +19,10 @@ function normalizeOrganizationSlug(value: string) {
     .replace(/^-+|-+$/g, "");
 }
 
+function isUniqueConstraintError(message: string) {
+  return message.toLowerCase().includes("duplicate key value");
+}
+
 async function validateOrganizationSlugAvailability(slug: string) {
   const adminSupabase = createAdminClient();
 
@@ -101,6 +105,21 @@ async function createInitialOrganization({
 }) {
   const adminSupabase = createAdminClient();
 
+  const { data: existingMemberships, error: existingMembershipsError } = await adminSupabase
+    .from("organization_memberships")
+    .select("id")
+    .eq("auth_user_id", authUserId)
+    .eq("is_active", true)
+    .limit(1);
+
+  if (existingMembershipsError) {
+    return { error: existingMembershipsError.message };
+  }
+
+  if ((existingMemberships ?? []).length > 0) {
+    return { error: "Você já possui uma organização ativa." };
+  }
+
   const { data: organization, error: organizationError } = await adminSupabase
     .from("organizations")
     .insert({
@@ -114,9 +133,10 @@ async function createInitialOrganization({
     .single();
 
   if (organizationError || !organization?.id) {
+    const message = organizationError?.message ?? "Não foi possível criar a organização.";
+
     return {
-      error:
-        organizationError?.message ?? "Não foi possível criar a organização.",
+      error: isUniqueConstraintError(message) ? "Este slug já está em uso." : message,
     };
   }
 
@@ -131,7 +151,12 @@ async function createInitialOrganization({
 
   if (membershipError) {
     await adminSupabase.from("organizations").delete().eq("id", organization.id);
-    return { error: membershipError.message };
+
+    return {
+      error: isUniqueConstraintError(membershipError.message)
+        ? "Você já possui uma organização ativa."
+        : membershipError.message,
+    };
   }
 
   return { success: "Organização criada com sucesso." };
