@@ -11,6 +11,11 @@ import type { PermissionAction } from "@/lib/finance/permissions";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { createClient } from "@/lib/supabase/server";
 
+export type ExpenseActionState = {
+  error?: string;
+  success?: string;
+};
+
 function organizationOrLegacyFilter(organizationId: string) {
   return `organization_id.eq.${organizationId},organization_id.is.null`;
 }
@@ -285,28 +290,43 @@ export async function updateExpense(
   }
 }
 
-export async function deleteExpense(formData: FormData) {
+export async function deleteExpense(formData: FormData): Promise<ExpenseActionState> {
   const id = String(formData.get("id") ?? "");
   const confirmation = String(formData.get("confirm_delete") ?? "");
 
-  if (!id || confirmation !== "confirmado") {
-    return;
+  if (!id) {
+    return { error: "Gasto nao encontrado." };
+  }
+
+  if (confirmation !== "confirmado") {
+    return { error: "Confirme a exclusao antes de continuar." };
   }
 
   try {
     const { profile, organization } = await assertCanManageExpense(id, "can_delete");
     const supabase = await createClient();
 
-    await supabase
+    const { error } = await supabase
       .from("expenses")
       .delete()
       .eq("id", id)
       .eq("owner_id", profile.owner_id)
       .or(organizationOrLegacyFilter(organization.id));
 
+    if (error) {
+      return { error: error.message };
+    }
+
     revalidatePath("/protected/gastos");
     revalidatePath("/protected");
-  } catch {
-    return;
+
+    return { success: "Gasto excluido com sucesso." };
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "Nao foi possivel excluir este gasto.",
+    };
   }
 }
