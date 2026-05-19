@@ -46,4 +46,21 @@ describe("ui primitives guards", () => {
     expect(source).toContain('orientation === "horizontal" ? "h-px w-full" : "h-full w-px"');
     expect(source).not.toContain("@radix-ui/react-separator");
   });
+
+  it("keeps sheet primitive available for mobile forms", () => {
+    const source = readSource("components/ui/sheet.tsx");
+
+    expect(source).toContain('import * as SheetPrimitive from "@radix-ui/react-dialog"');
+    expect(source).toContain('import { cn } from "@/lib/utils"');
+    expect(source).toContain("const Sheet = SheetPrimitive.Root");
+    expect(source).toContain("const SheetTrigger = SheetPrimitive.Trigger");
+    expect(source).toContain("const SheetClose = SheetPrimitive.Close");
+    expect(source).toContain("const SheetOverlay");
+    expect(source).toContain("const SheetContent");
+    expect(source).toContain('type SheetSide = "top" | "right" | "bottom" | "left"');
+    expect(source).toContain("data-[state=open]:animate-in");
+    expect(source).toContain("slide-in-from-bottom");
+    expect(source).toContain("SheetTitle");
+    expect(source).toContain("SheetDescription");
+  });
 });
