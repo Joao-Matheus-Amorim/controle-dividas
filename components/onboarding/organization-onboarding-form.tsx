@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 
 import {
-  validateInitialOrganizationOnboarding,
+  createInitialOrganizationFromOnboarding,
   type InitialOrganizationOnboardingState,
 } from "@/app/onboarding/organizacao/actions";
 import { AppActionFeedback } from "@/components/app/app-action-feedback";
@@ -15,7 +15,7 @@ const initialState: InitialOrganizationOnboardingState = {};
 
 export function OrganizationOnboardingForm() {
   const [state, formAction, isPending] = useActionState(
-    validateInitialOrganizationOnboarding,
+    createInitialOrganizationFromOnboarding,
     initialState,
   );
 
@@ -37,7 +37,7 @@ export function OrganizationOnboardingForm() {
       <AppActionFeedback error={state.error} success={state.success} />
 
       <Button type="submit" disabled={isPending} className="w-full rounded-2xl bg-[#8b72f8] font-bold text-white hover:bg-[#7d66e4]">
-        {isPending ? "Validando..." : "Validar dados"}
+        {isPending ? "Processando..." : "Continuar"}
       </Button>
     </form>
   );

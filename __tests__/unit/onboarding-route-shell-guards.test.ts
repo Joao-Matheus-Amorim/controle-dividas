@@ -9,34 +9,33 @@ function readSource(path: string) {
   return readFileSync(join(rootDir, path), "utf8");
 }
 
-describe("initial organization onboarding route shell guards", () => {
+describe("initial organization onboarding route guards", () => {
   it("keeps the onboarding route outside the current protected layout", () => {
     expect(existsSync(join(rootDir, "app/onboarding/organizacao/page.tsx"))).toBe(true);
     expect(existsSync(join(rootDir, "app/protected/onboarding/organizacao/page.tsx"))).toBe(false);
   });
 
-  it("keeps the onboarding page wired to validation form", () => {
+  it("keeps the onboarding page wired to the organization form", () => {
     const source = readSource("app/onboarding/organizacao/page.tsx");
 
     expect(source).toContain("InitialOrganizationOnboardingPage");
     expect(source).toContain("Onboarding inicial");
     expect(source).toContain("Crie sua organização financeira");
     expect(source).toContain("OrganizationOnboardingForm");
-    expect(source).toContain("ainda não grava dados no");
     expect(source).not.toContain("createClient");
     expect(source).not.toContain("createAdminClient");
     expect(source).not.toContain('from("organizations")');
     expect(source).not.toContain('from("organization_memberships")');
   });
 
-  it("keeps the onboarding action validation-only while checking eligibility", () => {
+  it("keeps organization creation limited to the onboarding action", () => {
     const source = readSource("app/onboarding/organizacao/actions.ts");
 
-    expect(source).toContain("validateInitialOrganizationOnboarding");
+    expect(source).toContain("createInitialOrganizationFromOnboarding");
     expect(source).toContain("validateCurrentUserEligibility");
     expect(source).toContain("validateOrganizationSlugAvailability");
-    expect(source).toContain("normalizeOrganizationSlug");
-    expect(source).toContain("slugPattern");
+    expect(source).toContain("createInitialOrganization");
+    expect(source).toContain("isUniqueConstraintError");
     expect(source).toContain("supabase.auth.getClaims()");
     expect(source).toContain("createAdminClient");
     expect(source).toContain('from("profiles")');
@@ -44,10 +43,35 @@ describe("initial organization onboarding route shell guards", () => {
     expect(source).toContain('from("organizations")');
     expect(source).toContain("Você já possui uma organização ativa.");
     expect(source).toContain("Este slug já está em uso.");
-    expect(source).toContain("Validação concluída");
-    expect(source).not.toContain(".insert(");
+    expect(source).toContain("Organização criada com sucesso.");
+    expect(source).toContain("owner_auth_user_id: authUserId");
+    expect(source).toContain("auth_user_id: authUserId");
+    expect(source).toContain('role: "owner"');
+    expect(source).toContain('plan: "free"');
+    expect(source).toContain('status: "active"');
+    expect(source).toContain(".insert({");
+    expect(source).toContain(".delete().eq(\"id\", organization.id)");
     expect(source).not.toContain(".upsert(");
     expect(source).not.toContain(".update(");
-    expect(source).not.toContain(".delete(");
+  });
+
+  it("keeps a transitional database guard against concurrent active memberships", () => {
+    const source = readSource("supabase/migrations/018_one_active_membership_per_user.sql");
+
+    expect(source).toContain("organization_memberships_one_active_per_user_idx");
+    expect(source).toContain("on public.organization_memberships(auth_user_id)");
+    expect(source).toContain("where is_active = true");
+  });
+
+  it("keeps profile bootstrap from creating organizations or memberships", () => {
+    const accessControl = readSource("lib/finance/access-control.ts");
+    const adminServer = readSource("lib/finance/admin-server.ts");
+
+    for (const source of [accessControl, adminServer]) {
+      expect(source).not.toContain('from("organizations")');
+      expect(source).not.toContain('from("organization_memberships")');
+      expect(source).not.toContain("owner_auth_user_id");
+      expect(source).not.toContain('role: "owner"');
+    }
   });
 });
