@@ -2,19 +2,19 @@
 
 import { Banknote } from "lucide-react";
 
-import { AppFormDialog } from "@/components/app/app-form-dialog";
+import { AppFormSheet } from "@/components/app/app-form-sheet";
 import { BankAccountForm } from "@/components/finance/bank-account-form";
 import type { DbFamilyMember } from "@/lib/finance/server";
 
 export function BankAccountFormDialog({ members }: { members: DbFamilyMember[] }) {
   return (
-    <AppFormDialog
+    <AppFormSheet
       title="Novo banco"
       description="Cadastre uma conta, banco, cartão ou saldo em dinheiro."
       triggerLabel="Novo banco"
       icon={Banknote}
     >
       <BankAccountForm members={members} />
-    </AppFormDialog>
+    </AppFormSheet>
   );
 }
