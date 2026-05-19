@@ -12,3 +12,7 @@ export const supabasePublicKey =
 export const hasEnvVars = Boolean(
   process.env.NEXT_PUBLIC_SUPABASE_URL && supabasePublicKey,
 );
+
+export function shouldFailFastForMissingRuntimeEnv() {
+  return process.env.NODE_ENV === "production" || process.env.APP_ENV === "production";
+}
