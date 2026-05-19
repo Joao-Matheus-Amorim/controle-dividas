@@ -1,6 +1,7 @@
 import { ActiveOrganizationIndicator } from "@/components/app/active-organization-indicator";
 import { AuthButton } from "@/components/auth-button";
 import { EnvVarWarning } from "@/components/env-var-warning";
+import { Separator } from "@/components/ui/separator";
 import { getVisibleModuleKeys } from "@/lib/finance/access-control";
 import type { FinanceModuleKey } from "@/lib/finance/permissions";
 import { getCurrentOrganization } from "@/lib/organizations/server";
@@ -69,6 +70,7 @@ export default async function ProtectedLayout({
               <Link href="/protected" className="min-w-0 shrink-0 text-lg font-bold tracking-tight text-white">
                 FamilyFinance
               </Link>
+              <Separator orientation="vertical" className="hidden h-6 bg-white/10 lg:block" />
               <div className="hidden min-w-0 lg:block">
                 <ActiveOrganizationIndicator organization={currentOrganization} />
               </div>
@@ -87,17 +89,20 @@ export default async function ProtectedLayout({
             <ActiveOrganizationIndicator organization={currentOrganization} />
           </div>
           {visibleNavigation.length > 0 ? (
-            <div className="hidden gap-2 overflow-x-auto pb-1 text-sm md:flex">
-              {visibleNavigation.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="whitespace-nowrap rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-white/55 transition hover:bg-white/[0.07] hover:text-white"
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </div>
+            <>
+              <Separator className="hidden bg-white/5 md:block" />
+              <div className="hidden gap-2 overflow-x-auto pb-1 text-sm md:flex">
+                {visibleNavigation.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="whitespace-nowrap rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-white/55 transition hover:bg-white/[0.07] hover:text-white"
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+            </>
           ) : null}
         </div>
       </nav>
