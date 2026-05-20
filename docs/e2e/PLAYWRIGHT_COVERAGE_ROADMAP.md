@@ -6,6 +6,8 @@ Follow-up: #362
 
 Follow-up: #366
 
+Follow-up: #370
+
 ## Goal
 
 Define an auditable Playwright E2E roadmap for the current SaaS phase.
@@ -36,6 +38,7 @@ No data-mutating E2E flow before a documented cleanup strategy exists.
 | Protected app shell | Gated covered |
 | Protected people route | Gated covered |
 | Protected expenses route | Gated covered |
+| Protected payables route | Gated covered |
 
 ## Protected route matrix
 
@@ -44,8 +47,8 @@ No data-mutating E2E flow before a documented cleanup strategy exists.
 | `/protected` | Gated covered | Dashboard and active organization access. |
 | `/protected/pessoas` | Gated covered | Read-only smoke. |
 | `/protected/gastos` | Gated covered | Read-only smoke. |
-| `/protected/contas-a-pagar` | Pending | Next recommended route smoke. |
-| `/protected/contas-a-receber` | Pending | Route smoke after payables. |
+| `/protected/contas-a-pagar` | Gated covered | Read-only smoke. |
+| `/protected/contas-a-receber` | Pending | Next recommended route smoke. |
 | `/protected/bancos` | Pending | Route smoke after receivables. |
 | `/protected/relatorios` | Pending | Route smoke after banks. |
 | `/protected/configuracoes` | Pending | Route smoke after reports. |
@@ -91,17 +94,16 @@ Data-changing browser tests are intentionally pending until cleanup is documente
 ## Recommended next sequence
 
 ```txt
-1. Add gated smoke for /protected/contas-a-pagar.
-2. Add gated smoke for /protected/contas-a-receber.
-3. Add gated smoke for /protected/bancos.
-4. Add gated smoke for /protected/relatorios.
-5. Add gated smoke for /protected/configuracoes.
-6. Define admin fixture.
-7. Add admin route smoke.
-8. Define limited-user fixture.
-9. Add permission-negative coverage.
-10. Define cleanup strategy.
-11. Add data-changing E2E flows one by one.
+1. Add gated smoke for /protected/contas-a-receber.
+2. Add gated smoke for /protected/bancos.
+3. Add gated smoke for /protected/relatorios.
+4. Add gated smoke for /protected/configuracoes.
+5. Define admin fixture.
+6. Add admin route smoke.
+7. Define limited-user fixture.
+8. Add permission-negative coverage.
+9. Define cleanup strategy.
+10. Add data-changing E2E flows one by one.
 ```
 
 ## Definition of done for this phase
