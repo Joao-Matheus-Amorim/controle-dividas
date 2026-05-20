@@ -12,11 +12,13 @@ A origem familiar do projeto permanece apenas como contexto histórico e valida�
 | Stack | Next.js 16.2.6, React 19, TypeScript, Tailwind CSS e Supabase |
 | Autenticação | Supabase Auth |
 | Multi-tenant | `organizations`, `organization_memberships` e `organization_id` implementados |
+| Onboarding | Organização inicial criada por RPC transacional autenticada |
 | RLS | Organization-aware transicional nas tabelas financeiras principais, profiles e permissões |
 | Permissões | Módulos, ações, escopos, feature permissions e runtime access-control por organização ativa |
 | UX multi-org | Indicador de organização ativa implementado; selector e rotas por `orgSlug` ainda futuros |
 | Design system | shadcn/ui por camadas via ADR; primitives `Alert`, `Skeleton` e `Separator` versionados |
-| Testes | Unitários, integração MSW e suites RLS gated opcionais |
+| Testes | Unitários, integração MSW, guards arquiteturais e suites RLS gated opcionais |
+| E2E | Playwright ainda não implementado |
 | Deploy | Vercel com redeploy manual/controlado conforme fase atual |
 
 ## Fontes oficiais de decisão
@@ -58,7 +60,8 @@ Implementado:
 - RLS organization-aware transicional;
 - runtime access-control por organização ativa;
 - Admin/permissões com hardening de escopo por organização;
-- indicador visual de organização ativa no layout protegido.
+- indicador visual de organização ativa no layout protegido;
+- onboarding inicial por `/onboarding/organizacao` com RPC transacional autenticada para criar organização, membership owner e profile inicial.
 
 Ainda transicional:
 
@@ -67,7 +70,8 @@ Ainda transicional:
 - fallback legado `organization_id IS NULL + owner_id` ainda existe;
 - rotas ainda usam `/protected`;
 - selector/troca de organização ainda não foi implementado;
-- billing ainda não foi implementado.
+- billing ainda não foi implementado;
+- Playwright/E2E ainda não foi implementado.
 
 ## Migrations SaaS/RLS relevantes
 
@@ -84,7 +88,11 @@ Ainda transicional:
 015_profiles_organization_rls.sql
 016_user_module_permissions_organization_rls.sql
 017_user_feature_permissions_organization_rls.sql
+018_one_active_membership_per_user.sql
+019_initial_organization_onboarding_rpc.sql
 ```
+
+Observação operacional: a migration `019_initial_organization_onboarding_rpc.sql` precisa estar aplicada no Supabase do ambiente antes de depender do onboarding inicial em runtime.
 
 ## Testes RLS gated
 
@@ -119,6 +127,7 @@ npm run dev
 npm run build
 npm run start
 npm run lint
+npm run typecheck
 npm run test
 npm run test:run
 npm run test:watch
@@ -128,8 +137,8 @@ Gate recomendado antes de qualquer PR:
 
 ```bash
 npm audit --audit-level=moderate
-npx tsc --noEmit
 npm run lint
+npm run typecheck
 npm run test
 npm run build
 ```
@@ -147,6 +156,7 @@ Públicas/Auth:
 /auth/update-password
 /auth/error
 /auth/confirm
+/onboarding/organizacao
 ```
 
 Protegidas:
@@ -238,37 +248,4 @@ controle-dividas/
 ├─ tailwind.config.ts
 ├─ vitest.config.ts
 ├─ vercel.json
-└─ README.md
 ```
-
-## Deploy
-
-Antes de redeploy manual em produção:
-
-```bash
-npm audit --audit-level=moderate
-npx tsc --noEmit
-npm run lint
-npm run test
-npm run build
-```
-
-Depois, redeployar o deployment correto da branch `main` no painel da Vercel ou usar:
-
-```bash
-npx vercel@latest --prod
-```
-
-## Próximos gates recomendados
-
-1. manter README/docs/ADRs sincronizados;
-2. auditar e limpar issues antigas já concluídas;
-3. evoluir UX de Dashboard sem alterar regra de negócio;
-4. planejar selector/troca de organização;
-5. só depois pensar em rotas por `orgSlug`;
-6. billing apenas depois de isolamento, permissões e UX multi-org maduros;
-7. `organization_id NOT NULL` e remoção de `owner_id` apenas com backfill, gates e rollback.
-
-## Observação final
-
-Este README é a porta de entrada do repositório. Detalhes extensos de arquitetura, PMBOK, RLS, auditorias, decisões e roadmaps ficam nos documentos dedicados em `docs/`.
