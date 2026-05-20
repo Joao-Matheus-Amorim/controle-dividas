@@ -12,6 +12,18 @@ const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 type AdminSupabaseClient = ReturnType<typeof createAdminClient>;
 
+type OnboardingProfile = {
+  id: string;
+  is_active: boolean;
+  organization_id: string | null;
+};
+
+type OnboardingEligibility = {
+  authUserId: string;
+  email: string | null;
+  profile: OnboardingProfile | null;
+};
+
 function normalizeOrganizationSlug(value: string) {
   return value
     .normalize("NFD")
@@ -50,18 +62,16 @@ async function validateOrganizationSlugAvailability(slug: string) {
   return null;
 }
 
-async function createInitialOnboardingProfile({
+async function getOnboardingProfile({
   adminSupabase,
   authUserId,
-  email,
 }: {
   adminSupabase: AdminSupabaseClient;
   authUserId: string;
-  email: string | null;
 }) {
   const { data: profile, error: profileError } = await adminSupabase
     .from("profiles")
-    .select("id, is_active")
+    .select("id, is_active, organization_id")
     .eq("auth_user_id", authUserId)
     .maybeSingle();
 
@@ -69,12 +79,39 @@ async function createInitialOnboardingProfile({
     return { error: profileError.message };
   }
 
-  if (profile) {
-    if (!profile.is_active) {
-      return { error: "Seu perfil está inativo." };
+  if (profile && !profile.is_active) {
+    return { error: "Seu perfil está inativo." };
+  }
+
+  return { profile: (profile ?? null) as OnboardingProfile | null };
+}
+
+async function ensureInitialOnboardingProfile({
+  adminSupabase,
+  authUserId,
+  email,
+  organizationId,
+  existingProfile,
+}: {
+  adminSupabase: AdminSupabaseClient;
+  authUserId: string;
+  email: string | null;
+  organizationId: string;
+  existingProfile: OnboardingProfile | null;
+}) {
+  if (existingProfile) {
+    const { error: updateProfileError } = await adminSupabase
+      .from("profiles")
+      .update({ organization_id: organizationId })
+      .eq("id", existingProfile.id)
+      .eq("auth_user_id", authUserId)
+      .eq("is_active", true);
+
+    if (updateProfileError) {
+      return { error: updateProfileError.message };
     }
 
-    return { authUserId };
+    return null;
   }
 
   const { error: createProfileError } = await adminSupabase
@@ -82,6 +119,7 @@ async function createInitialOnboardingProfile({
     .insert({
       owner_id: authUserId,
       auth_user_id: authUserId,
+      organization_id: organizationId,
       name: getInitialOnboardingProfileName(email),
       email,
       role: "admin",
@@ -92,7 +130,7 @@ async function createInitialOnboardingProfile({
     return { error: createProfileError.message };
   }
 
-  return { authUserId };
+  return null;
 }
 
 async function validateCurrentUserEligibility(slug: string) {
@@ -106,14 +144,13 @@ async function validateCurrentUserEligibility(slug: string) {
   }
 
   const adminSupabase = createAdminClient();
-  const profileEligibility = await createInitialOnboardingProfile({
+  const profileResult = await getOnboardingProfile({
     adminSupabase,
     authUserId,
-    email,
   });
 
-  if ("error" in profileEligibility) {
-    return profileEligibility;
+  if ("error" in profileResult) {
+    return profileResult;
   }
 
   const { data: memberships, error: membershipError } = await adminSupabase
@@ -137,15 +174,27 @@ async function validateCurrentUserEligibility(slug: string) {
     return slugError;
   }
 
-  return { authUserId };
+  return {
+    authUserId,
+    email,
+    profile: profileResult.profile,
+  } satisfies OnboardingEligibility;
+}
+
+async function rollbackInitialOrganization(
+  adminSupabase: AdminSupabaseClient,
+  organizationId: string,
+) {
+  await adminSupabase.from("organizations").delete().eq("id", organizationId);
 }
 
 async function createInitialOrganization({
   authUserId,
+  email,
+  profile,
   name,
   slug,
-}: {
-  authUserId: string;
+}: OnboardingEligibility & {
   name: string;
   slug: string;
 }) {
@@ -196,13 +245,27 @@ async function createInitialOrganization({
     });
 
   if (membershipError) {
-    await adminSupabase.from("organizations").delete().eq("id", organization.id);
+    await rollbackInitialOrganization(adminSupabase, organization.id);
 
     return {
       error: isUniqueConstraintError(membershipError.message)
         ? "Você já possui uma organização ativa."
         : membershipError.message,
     };
+  }
+
+  const profileError = await ensureInitialOnboardingProfile({
+    adminSupabase,
+    authUserId,
+    email,
+    organizationId: organization.id,
+    existingProfile: profile,
+  });
+
+  if (profileError) {
+    await rollbackInitialOrganization(adminSupabase, organization.id);
+
+    return profileError;
   }
 
   return { success: "Organização criada com sucesso." };
@@ -240,6 +303,8 @@ export async function createInitialOrganizationFromOnboarding(
 
   return createInitialOrganization({
     authUserId: eligibility.authUserId,
+    email: eligibility.email,
+    profile: eligibility.profile,
     name,
     slug,
   });
