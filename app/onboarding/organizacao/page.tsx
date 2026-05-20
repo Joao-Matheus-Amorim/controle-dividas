@@ -31,8 +31,8 @@ export default function InitialOrganizationOnboardingPage() {
 
         <div className="rounded-2xl border border-[#8b72f8]/20 bg-[#8b72f8]/10 p-4 text-sm leading-6 text-[#d8d0ff]">
           Escolha um nome e um slug para identificar sua organizacao. Depois da
-          criacao, voce sera direcionado para o app protegido com acesso inicial
-          de owner.
+          criacao, use Voltar para o app para acessar o ambiente protegido com
+          acesso inicial de owner.
         </div>
 
         <Link
