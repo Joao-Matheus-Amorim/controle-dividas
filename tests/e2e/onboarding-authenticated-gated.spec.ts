@@ -22,7 +22,7 @@ test.describe("authenticated onboarding E2E contract", () => {
     expect(runOnboardingE2e).toBe(true);
   });
 
-  onboardingTest("redirects a dedicated authenticated user without active organization to onboarding", async ({ page }) => {
+  onboardingTest("creates the initial organization and enters the protected app", async ({ page }) => {
     const slug = createE2eSlug();
 
     await page.goto("/auth/login");
@@ -36,7 +36,14 @@ test.describe("authenticated onboarding E2E contract", () => {
 
     await page.locator("#organization_name").fill("E2E Onboarding Organization");
     await page.locator("#organization_slug").fill(slug);
+    await page.getByRole("button", { name: "Continuar" }).click();
 
-    await expect(page.getByRole("button", { name: "Continuar" })).toBeVisible();
+    await expect(page.getByText("Organização criada com sucesso.")).toBeVisible();
+
+    await page.getByRole("link", { name: "Voltar para o app" }).click();
+
+    await expect(page).toHaveURL(/\/protected(?:\?|$)/);
+    await expect(page).not.toHaveURL(/\/onboarding\/organizacao/);
+    await expect(page.getByRole("heading", { name: "Visão do mês" })).toBeVisible();
   });
 });
