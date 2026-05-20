@@ -109,7 +109,10 @@ async function ensureInitialOnboardingProfile({
   if (existingProfile) {
     const { error: updateProfileError } = await adminSupabase
       .from("profiles")
-      .update({ organization_id: organizationId })
+      .update({
+        organization_id: organizationId,
+        role: "admin",
+      })
       .eq("id", existingProfile.id)
       .eq("auth_user_id", authUserId)
       .is("organization_id", null)
