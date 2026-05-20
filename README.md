@@ -18,7 +18,7 @@ A origem familiar do projeto permanece apenas como contexto histórico e valida�
 | UX multi-org | Indicador de organização ativa implementado; selector e rotas por `orgSlug` ainda futuros |
 | Design system | shadcn/ui por camadas via ADR; primitives `Alert`, `Skeleton` e `Separator` versionados |
 | Testes | Unitários, integração MSW, guards arquiteturais e suites RLS gated opcionais |
-| E2E | Playwright implementado com smoke de auth/rotas e onboarding autenticado gated |
+| E2E | Playwright implementado com smoke de auth/rotas e contratos autenticados gated de onboarding |
 | Deploy | Vercel com redeploy manual/controlado conforme fase atual |
 
 ## Fontes oficiais de decisão
@@ -62,7 +62,7 @@ Implementado:
 - Admin/permissões com hardening de escopo por organização;
 - indicador visual de organização ativa no layout protegido;
 - onboarding inicial por `/onboarding/organizacao` com RPC transacional autenticada para criar organização, membership owner e profile inicial;
-- Playwright E2E com foundation, smoke de auth/rotas e onboarding autenticado gated.
+- Playwright E2E com foundation, smoke de auth/rotas e contratos autenticados gated para onboarding inicial, usuário com organização ativa e guard de onboarding.
 
 Ainda transicional:
 
@@ -113,17 +113,9 @@ A suíte Playwright roda pelo comando:
 npm run test:e2e
 ```
 
-O fluxo autenticado de onboarding é gated e não roda por padrão. Para habilitar em ambiente dedicado:
+Os fluxos autenticados são gated e não rodam por padrão. Use apenas usuários e projeto Supabase dedicados para E2E. Não usar produção nem usuário real.
 
-```txt
-RUN_ONBOARDING_E2E=true
-E2E_ONBOARDING_EMAIL
-E2E_ONBOARDING_PASSWORD
-```
-
-Use apenas usuário e projeto Supabase dedicados para E2E. Não usar produção nem usuário real.
-
-Detalhes do contrato ficam em `docs/e2e/PLAYWRIGHT_ONBOARDING_TESTS.md`.
+Detalhes dos contratos e variáveis ficam em `docs/e2e/PLAYWRIGHT_ONBOARDING_TESTS.md`.
 
 ## Como rodar localmente
 
