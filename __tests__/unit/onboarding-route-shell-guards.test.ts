@@ -79,9 +79,34 @@ describe("initial organization onboarding route guards", () => {
     expect(source).toContain('plan: "free"');
     expect(source).toContain('status: "active"');
     expect(source).toContain(".insert({");
-    expect(source).toContain(".delete().eq(\"id\", organization.id)");
+    expect(source).toContain("rollbackInitialOrganization");
+    expect(source).toContain(".delete().eq(\"id\", organizationId)");
     expect(source).not.toContain(".upsert(");
-    expect(source).not.toContain(".update(");
+  });
+
+  it("creates or links profile only inside the explicit onboarding action", () => {
+    const source = readSource("app/onboarding/organizacao/actions.ts");
+
+    expect(source).toContain("getOnboardingProfile");
+    expect(source).toContain("ensureInitialOnboardingProfile");
+    expect(source).toContain('select("id, is_active, organization_id")');
+    expect(source).toContain("getInitialOnboardingProfileName");
+    expect(source).toContain("organization_id: organizationId");
+    expect(source).toContain('role: "admin"');
+    expect(source).toContain("Seu perfil está inativo.");
+    expect(source).toContain("existingProfile: profile");
+  });
+
+  it("links profile after organization and owner membership creation", () => {
+    const source = readSource("app/onboarding/organizacao/actions.ts");
+
+    const organizationInsertIndex = source.indexOf('from("organizations")');
+    const membershipInsertIndex = source.indexOf('from("organization_memberships")', organizationInsertIndex);
+    const profileLinkIndex = source.indexOf("ensureInitialOnboardingProfile");
+
+    expect(organizationInsertIndex).toBeGreaterThan(-1);
+    expect(membershipInsertIndex).toBeGreaterThan(organizationInsertIndex);
+    expect(profileLinkIndex).toBeGreaterThan(membershipInsertIndex);
   });
 
   it("keeps a transitional database guard against concurrent active memberships", () => {
