@@ -97,6 +97,14 @@ describe("initial organization onboarding route guards", () => {
     expect(source).toContain("existingProfile: profile");
   });
 
+  it("promotes the initial owner profile to admin while linking it", () => {
+    const source = readSource("app/onboarding/organizacao/actions.ts");
+
+    expect(source).toContain(".update({\n        organization_id: organizationId,\n        role: \"admin\",");
+    expect(source).toContain('role: "admin"');
+    expect(source).toContain('role: "owner"');
+  });
+
   it("blocks inconsistent active profiles already linked to an organization", () => {
     const source = readSource("app/onboarding/organizacao/actions.ts");
 
