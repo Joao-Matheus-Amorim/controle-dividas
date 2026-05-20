@@ -10,6 +10,12 @@ const requiredActiveOrganizationVariables = [
   "E2E_ACTIVE_ORG_PASSWORD",
 ] as const;
 
+const requiredOnboardingCaseVariables = [
+  "E2E_ONBOARDING_CASE_EMAIL",
+  "E2E_ONBOARDING_CASE_PASSWORD",
+  "E2E_ONBOARDING_CASE_SLUG",
+] as const;
+
 export function getOnboardingE2eConfig(env: Env = process.env) {
   const enabled = env.RUN_ONBOARDING_E2E === "true";
   const missingVariables = enabled
@@ -45,6 +51,26 @@ export function getActiveOrganizationE2eConfig(env: Env = process.env) {
 
 export function shouldRunActiveOrganizationE2e(env: Env = process.env) {
   const config = getActiveOrganizationE2eConfig(env);
+  return config.enabled && config.missingVariables.length === 0;
+}
+
+export function getOnboardingCaseE2eConfig(env: Env = process.env) {
+  const enabled = env.RUN_ONBOARDING_CASE_E2E === "true";
+  const missingVariables = enabled
+    ? requiredOnboardingCaseVariables.filter((key) => !env[key])
+    : [];
+
+  return {
+    enabled,
+    missingVariables,
+    email: env.E2E_ONBOARDING_CASE_EMAIL,
+    password: env.E2E_ONBOARDING_CASE_PASSWORD,
+    slug: env.E2E_ONBOARDING_CASE_SLUG,
+  };
+}
+
+export function shouldRunOnboardingCaseE2e(env: Env = process.env) {
+  const config = getOnboardingCaseE2eConfig(env);
   return config.enabled && config.missingVariables.length === 0;
 }
 
