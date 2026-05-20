@@ -57,73 +57,50 @@ describe("initial organization onboarding route guards", () => {
     expect(source).not.toContain("direcionado para o app protegido");
   });
 
-  it("keeps organization creation limited to the onboarding action", () => {
+  it("keeps the server action delegating writes to the transactional RPC", () => {
     const source = readSource("app/onboarding/organizacao/actions.ts");
 
     expect(source).toContain("createInitialOrganizationFromOnboarding");
-    expect(source).toContain("validateCurrentUserEligibility");
-    expect(source).toContain("validateOrganizationSlugAvailability");
-    expect(source).toContain("createInitialOrganization");
-    expect(source).toContain("isUniqueConstraintError");
-    expect(source).toContain("supabase.auth.getClaims()");
-    expect(source).toContain("createAdminClient");
-    expect(source).toContain('from("profiles")');
-    expect(source).toContain('from("organization_memberships")');
-    expect(source).toContain('from("organizations")');
+    expect(source).toContain("createClient");
+    expect(source).toContain('supabase.rpc("create_initial_organization_onboarding"');
+    expect(source).toContain("p_name: name");
+    expect(source).toContain("p_slug: slug");
+    expect(source).toContain("getOnboardingErrorMessage");
+    expect(source).not.toContain("createAdminClient");
+    expect(source).not.toContain('from("profiles")');
+    expect(source).not.toContain('from("organization_memberships")');
+    expect(source).not.toContain('from("organizations")');
+    expect(source).not.toContain("rollbackInitialOrganization");
+  });
+
+  it("keeps the transactional onboarding RPC hardened", () => {
+    const source = readSource("supabase/migrations/019_initial_organization_onboarding_rpc.sql");
+
+    expect(source).toContain("create or replace function public.create_initial_organization_onboarding");
+    expect(source).toContain("language plpgsql");
+    expect(source).toContain("security definer");
+    expect(source).toContain("set search_path = public");
+    expect(source).toContain("auth.uid()");
+    expect(source).toContain("auth.jwt() ->> 'email'");
+    expect(source).toContain("revoke all on function public.create_initial_organization_onboarding(text, text) from public");
+    expect(source).toContain("revoke all on function public.create_initial_organization_onboarding(text, text) from anon");
+    expect(source).toContain("grant execute on function public.create_initial_organization_onboarding(text, text) to authenticated");
+  });
+
+  it("keeps the transactional onboarding RPC enforcing tenant safety", () => {
+    const source = readSource("supabase/migrations/019_initial_organization_onboarding_rpc.sql");
+
+    expect(source).toContain("Seu perfil está inativo.");
+    expect(source).toContain("Seu perfil já está vinculado a uma organização");
     expect(source).toContain("Você já possui uma organização ativa.");
     expect(source).toContain("Este slug já está em uso.");
-    expect(source).toContain("Organização criada com sucesso.");
-    expect(source).toContain("owner_auth_user_id: authUserId");
-    expect(source).toContain("auth_user_id: authUserId");
-    expect(source).toContain('role: "owner"');
-    expect(source).toContain('plan: "free"');
-    expect(source).toContain('status: "active"');
-    expect(source).toContain(".insert({");
-    expect(source).toContain("rollbackInitialOrganization");
-    expect(source).toContain(".delete().eq(\"id\", organizationId)");
-    expect(source).not.toContain(".upsert(");
-  });
-
-  it("creates or links profile only inside the explicit onboarding action", () => {
-    const source = readSource("app/onboarding/organizacao/actions.ts");
-
-    expect(source).toContain("getOnboardingProfile");
-    expect(source).toContain("ensureInitialOnboardingProfile");
-    expect(source).toContain('select("id, is_active, organization_id")');
-    expect(source).toContain("getInitialOnboardingProfileName");
-    expect(source).toContain("organization_id: organizationId");
-    expect(source).toContain('role: "admin"');
-    expect(source).toContain("Seu perfil está inativo.");
-    expect(source).toContain("existingProfile: profile");
-  });
-
-  it("promotes the initial owner profile to admin while linking it", () => {
-    const source = readSource("app/onboarding/organizacao/actions.ts");
-
-    expect(source).toContain(".update({\n        organization_id: organizationId,\n        role: \"admin\",");
-    expect(source).toContain('role: "admin"');
-    expect(source).toContain('role: "owner"');
-  });
-
-  it("blocks inconsistent active profiles already linked to an organization", () => {
-    const source = readSource("app/onboarding/organizacao/actions.ts");
-
-    expect(source).toContain("profile?.organization_id");
-    expect(source).toContain("Seu perfil já está vinculado a uma organização");
-    expect(source).toContain(".is(\"organization_id\", null)");
-    expect(source).not.toContain(".update({ organization_id: organizationId })\n      .eq(\"id\", existingProfile.id)\n      .eq(\"auth_user_id\", authUserId)\n      .eq(\"is_active\", true)");
-  });
-
-  it("links profile after organization and owner membership creation", () => {
-    const source = readSource("app/onboarding/organizacao/actions.ts");
-
-    const organizationInsertIndex = source.indexOf('from("organizations")', source.indexOf("async function createInitialOrganization"));
-    const membershipInsertIndex = source.indexOf('from("organization_memberships")', organizationInsertIndex);
-    const profileLinkIndex = source.indexOf("const profileError = await ensureInitialOnboardingProfile", membershipInsertIndex);
-
-    expect(organizationInsertIndex).toBeGreaterThan(-1);
-    expect(membershipInsertIndex).toBeGreaterThan(organizationInsertIndex);
-    expect(profileLinkIndex).toBeGreaterThan(membershipInsertIndex);
+    expect(source).toContain("insert into public.organizations");
+    expect(source).toContain("insert into public.organization_memberships");
+    expect(source).toContain("insert into public.profiles");
+    expect(source).toContain("update public.profiles");
+    expect(source).toContain("role = 'admin'");
+    expect(source).toContain("'owner'");
+    expect(source).toContain("unique_violation");
   });
 
   it("keeps a transitional database guard against concurrent active memberships", () => {
