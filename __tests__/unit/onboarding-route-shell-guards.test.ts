@@ -97,6 +97,15 @@ describe("initial organization onboarding route guards", () => {
     expect(source).toContain("existingProfile: profile");
   });
 
+  it("blocks inconsistent active profiles already linked to an organization", () => {
+    const source = readSource("app/onboarding/organizacao/actions.ts");
+
+    expect(source).toContain("profile?.organization_id");
+    expect(source).toContain("Seu perfil já está vinculado a uma organização");
+    expect(source).toContain(".is(\"organization_id\", null)");
+    expect(source).not.toContain(".update({ organization_id: organizationId })\n      .eq(\"id\", existingProfile.id)\n      .eq(\"auth_user_id\", authUserId)\n      .eq(\"is_active\", true)");
+  });
+
   it("links profile after organization and owner membership creation", () => {
     const source = readSource("app/onboarding/organizacao/actions.ts");
 
