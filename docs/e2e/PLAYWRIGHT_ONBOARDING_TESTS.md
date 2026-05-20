@@ -8,9 +8,11 @@ Follow-up: #348
 
 Follow-up: #350
 
+Follow-up: #354
+
 ## Goal
 
-Maintain a safe contract for authenticated onboarding E2E tests.
+Maintain a safe contract for authenticated onboarding and protected-shell E2E tests.
 
 The default Playwright command must not require real credentials:
 
@@ -18,7 +20,7 @@ The default Playwright command must not require real credentials:
 npm run test:e2e
 ```
 
-Authenticated onboarding tests must be skipped unless the environment explicitly enables them.
+Authenticated tests must be skipped unless the environment explicitly enables them.
 
 Use only dedicated E2E users in a dedicated test project.
 
@@ -81,6 +83,22 @@ accessing /protected directly keeps the user inside the protected app
 ```
 
 This fixture should not be reused as the initial onboarding fixture.
+
+## Protected shell path
+
+This path reuses the active organization variables and fixture.
+
+The protected shell path verifies:
+
+```txt
+login with the dedicated active-organization E2E user
+protected shell brand is visible
+active organization indicator is visible
+Dashboard navigation is visible
+monthly dashboard heading is visible
+```
+
+This path should not create or mutate application data.
 
 ## Onboarding guard path
 
