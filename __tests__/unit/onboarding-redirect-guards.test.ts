@@ -33,4 +33,17 @@ describe("onboarding redirect guards", () => {
     expect(source).not.toContain('pathname.startsWith("/onboarding")');
     expect(source).not.toContain('pathname === "/onboarding/organizacao" && !user');
   });
+
+  it("preserves Supabase cookies when creating redirect responses", () => {
+    const source = readSource("lib/supabase/proxy.ts");
+
+    expect(source).toContain("function redirectWithSupabaseCookies");
+    expect(source).toContain("NextResponse.redirect(url)");
+    expect(source).toContain("supabaseResponse.cookies.getAll().forEach");
+    expect(source).toContain("redirectResponse.cookies.set(cookie)");
+    expect(source).toContain(
+      "return redirectWithSupabaseCookies(url, supabaseResponse);",
+    );
+    expect(source).not.toContain("return NextResponse.redirect(url);");
+  });
 });

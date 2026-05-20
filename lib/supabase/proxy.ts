@@ -38,6 +38,19 @@ function assertRuntimeEnvForProxy() {
   }
 }
 
+function redirectWithSupabaseCookies(
+  url: URL,
+  supabaseResponse: NextResponse,
+) {
+  const redirectResponse = NextResponse.redirect(url);
+
+  supabaseResponse.cookies.getAll().forEach((cookie) => {
+    redirectResponse.cookies.set(cookie);
+  });
+
+  return redirectResponse;
+}
+
 async function hasActiveOrganizationMembership(
   supabase: ReturnType<typeof createServerClient>,
   authUserId: string,
@@ -89,9 +102,11 @@ export async function updateSession(request: NextRequest) {
         cookiesToSet.forEach(({ name, value }) =>
           request.cookies.set(name, value),
         );
+
         supabaseResponse = NextResponse.next({
           request,
         });
+
         cookiesToSet.forEach(({ name, value, options }) =>
           supabaseResponse.cookies.set(name, value, options),
         );
@@ -112,7 +127,8 @@ export async function updateSession(request: NextRequest) {
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone();
     url.pathname = "/auth/login";
-    return NextResponse.redirect(url);
+
+    return redirectWithSupabaseCookies(url, supabaseResponse);
   }
 
   if (user?.sub && shouldRequireOrganization(request.nextUrl.pathname)) {
@@ -125,7 +141,8 @@ export async function updateSession(request: NextRequest) {
       const url = request.nextUrl.clone();
       url.pathname = INITIAL_ORGANIZATION_ONBOARDING_PATH;
       url.search = "";
-      return NextResponse.redirect(url);
+
+      return redirectWithSupabaseCookies(url, supabaseResponse);
     }
   }
 
