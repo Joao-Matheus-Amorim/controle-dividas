@@ -10,6 +10,8 @@ export type InitialOrganizationOnboardingState = {
 
 const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
+type AdminSupabaseClient = ReturnType<typeof createAdminClient>;
+
 function normalizeOrganizationSlug(value: string) {
   return value
     .normalize("NFD")
@@ -17,6 +19,11 @@ function normalizeOrganizationSlug(value: string) {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
+}
+
+function getInitialOnboardingProfileName(email: string | null) {
+  const localPart = email?.split("@")[0]?.trim();
+  return localPart || "Usuario";
 }
 
 function isUniqueConstraintError(message: string) {
@@ -43,16 +50,16 @@ async function validateOrganizationSlugAvailability(slug: string) {
   return null;
 }
 
-async function validateCurrentUserEligibility(slug: string) {
-  const supabase = await createClient();
-  const { data: authData, error: authError } = await supabase.auth.getClaims();
-  const authUserId = authData?.claims?.sub ? String(authData.claims.sub) : null;
-
-  if (authError || !authUserId) {
-    return { error: "Faça login para continuar o onboarding." };
-  }
-
-  const { data: profile, error: profileError } = await supabase
+async function createInitialOnboardingProfile({
+  adminSupabase,
+  authUserId,
+  email,
+}: {
+  adminSupabase: AdminSupabaseClient;
+  authUserId: string;
+  email: string | null;
+}) {
+  const { data: profile, error: profileError } = await adminSupabase
     .from("profiles")
     .select("id, is_active")
     .eq("auth_user_id", authUserId)
@@ -62,15 +69,54 @@ async function validateCurrentUserEligibility(slug: string) {
     return { error: profileError.message };
   }
 
-  if (!profile) {
-    return { error: "Perfil não encontrado para este usuário." };
+  if (profile) {
+    if (!profile.is_active) {
+      return { error: "Seu perfil está inativo." };
+    }
+
+    return { authUserId };
   }
 
-  if (!profile.is_active) {
-    return { error: "Seu perfil está inativo." };
+  const { error: createProfileError } = await adminSupabase
+    .from("profiles")
+    .insert({
+      owner_id: authUserId,
+      auth_user_id: authUserId,
+      name: getInitialOnboardingProfileName(email),
+      email,
+      role: "admin",
+      is_active: true,
+    });
+
+  if (createProfileError) {
+    return { error: createProfileError.message };
   }
 
-  const { data: memberships, error: membershipError } = await supabase
+  return { authUserId };
+}
+
+async function validateCurrentUserEligibility(slug: string) {
+  const supabase = await createClient();
+  const { data: authData, error: authError } = await supabase.auth.getClaims();
+  const authUserId = authData?.claims?.sub ? String(authData.claims.sub) : null;
+  const email = typeof authData?.claims?.email === "string" ? authData.claims.email : null;
+
+  if (authError || !authUserId) {
+    return { error: "Faça login para continuar o onboarding." };
+  }
+
+  const adminSupabase = createAdminClient();
+  const profileEligibility = await createInitialOnboardingProfile({
+    adminSupabase,
+    authUserId,
+    email,
+  });
+
+  if ("error" in profileEligibility) {
+    return profileEligibility;
+  }
+
+  const { data: memberships, error: membershipError } = await adminSupabase
     .from("organization_memberships")
     .select("id")
     .eq("auth_user_id", authUserId)
