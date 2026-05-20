@@ -2,6 +2,8 @@
 
 Issue: #360
 
+Follow-up: #362
+
 ## Goal
 
 Define an auditable Playwright E2E roadmap for the current SaaS phase.
@@ -54,8 +56,8 @@ No data-mutating E2E flow before a documented cleanup strategy exists.
 | --- | --- | --- |
 | `/` | Pending | Public entry smoke. |
 | `/auth/login` | Covered | Basic render and login interaction coverage. |
-| `/auth/sign-up` | Pending | Non-mutating render smoke. |
-| `/auth/forgot-password` | Pending | Non-mutating render smoke. |
+| `/auth/sign-up` | Covered | Non-mutating render smoke in `tests/e2e/auth-pages-smoke.spec.ts`. |
+| `/auth/forgot-password` | Covered | Non-mutating render smoke in `tests/e2e/auth-pages-smoke.spec.ts`. |
 | `/auth/update-password` | Pending | Expected state must be defined first. |
 | `/auth/error` | Pending | Friendly error smoke. |
 | `/auth/confirm` | Pending | Callback expectation must be defined first. |
