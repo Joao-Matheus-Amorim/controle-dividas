@@ -36,7 +36,8 @@ describe("initial organization onboarding route guards", () => {
     expect(source).toContain("usuario sera vinculado como owner");
     expect(source).toContain("Depois da");
     expect(source).toContain("criacao");
-    expect(source).toContain("app protegido");
+    expect(source).toContain("use Voltar para o app");
+    expect(source).toContain("ambiente protegido");
     expect(source).not.toContain("os dados são apenas validados");
     expect(source).not.toContain("dados são apenas validados");
     expect(source).not.toContain("não grava dados no banco");
@@ -46,6 +47,14 @@ describe("initial organization onboarding route guards", () => {
     expect(source).not.toContain("próxima PR segura");
     expect(source).not.toContain("proxima PR segura");
     expect(source).not.toContain("antes da etapa funcional");
+  });
+
+  it("does not promise automatic navigation after organization creation", () => {
+    const source = readSource("app/onboarding/organizacao/page.tsx");
+
+    expect(source).not.toContain("voce sera direcionado");
+    expect(source).not.toContain("será direcionado");
+    expect(source).not.toContain("direcionado para o app protegido");
   });
 
   it("keeps organization creation limited to the onboarding action", () => {
