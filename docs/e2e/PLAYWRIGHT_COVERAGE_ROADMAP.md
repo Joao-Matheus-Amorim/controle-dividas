@@ -8,6 +8,8 @@ Follow-up: #366
 
 Follow-up: #370
 
+Follow-up: #374
+
 ## Goal
 
 Define an auditable Playwright E2E roadmap for the current SaaS phase.
@@ -39,6 +41,7 @@ No data-mutating E2E flow before a documented cleanup strategy exists.
 | Protected people route | Gated covered |
 | Protected expenses route | Gated covered |
 | Protected payables route | Gated covered |
+| Protected receivables route | Gated covered |
 
 ## Protected route matrix
 
@@ -48,8 +51,8 @@ No data-mutating E2E flow before a documented cleanup strategy exists.
 | `/protected/pessoas` | Gated covered | Read-only smoke. |
 | `/protected/gastos` | Gated covered | Read-only smoke. |
 | `/protected/contas-a-pagar` | Gated covered | Read-only smoke. |
-| `/protected/contas-a-receber` | Pending | Next recommended route smoke. |
-| `/protected/bancos` | Pending | Route smoke after receivables. |
+| `/protected/contas-a-receber` | Gated covered | Read-only smoke. |
+| `/protected/bancos` | Pending | Next recommended route smoke. |
 | `/protected/relatorios` | Pending | Route smoke after banks. |
 | `/protected/configuracoes` | Pending | Route smoke after reports. |
 | `/protected/admin` | Pending | Requires admin fixture definition. |
@@ -94,16 +97,15 @@ Data-changing browser tests are intentionally pending until cleanup is documente
 ## Recommended next sequence
 
 ```txt
-1. Add gated smoke for /protected/contas-a-receber.
-2. Add gated smoke for /protected/bancos.
-3. Add gated smoke for /protected/relatorios.
-4. Add gated smoke for /protected/configuracoes.
-5. Define admin fixture.
-6. Add admin route smoke.
-7. Define limited-user fixture.
-8. Add permission-negative coverage.
-9. Define cleanup strategy.
-10. Add data-changing E2E flows one by one.
+1. Add gated smoke for /protected/bancos.
+2. Add gated smoke for /protected/relatorios.
+3. Add gated smoke for /protected/configuracoes.
+4. Define admin fixture.
+5. Add admin route smoke.
+6. Define limited-user fixture.
+7. Add permission-negative coverage.
+8. Define cleanup strategy.
+9. Add data-changing E2E flows one by one.
 ```
 
 ## Definition of done for this phase
