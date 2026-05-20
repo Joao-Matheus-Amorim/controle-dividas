@@ -4,6 +4,8 @@ Issue: #342
 
 Follow-up: #344
 
+Follow-up: #348
+
 ## Goal
 
 Prepare a safe contract for authenticated onboarding E2E tests.
@@ -16,7 +18,7 @@ npm run test:e2e
 
 Authenticated onboarding tests must be skipped unless the environment explicitly enables them.
 
-## Required variables
+## Initial onboarding variables
 
 ```txt
 RUN_ONBOARDING_E2E=true
@@ -28,27 +30,15 @@ Use only a dedicated E2E user in a dedicated test project.
 
 Do not use production users or operational data.
 
-## Required fixture state
+## Initial onboarding fixture state
 
-The E2E user should start with:
-
-```txt
-Supabase Auth user exists
-public.profiles is absent OR active with organization_id IS NULL
-public.organization_memberships has no active row for the user
-```
+The initial onboarding E2E user should start without an active organization membership.
 
 Migration `019_initial_organization_onboarding_rpc.sql` must be applied in the target Supabase project.
 
 ## Authenticated happy path
 
-When `RUN_ONBOARDING_E2E=true`, the gated onboarding spec is allowed to mutate the dedicated E2E fixture by creating:
-
-```txt
-public.organizations row with a unique e2e-onboarding-* slug
-public.organization_memberships owner row for the E2E auth user
-public.profiles row or organization_id link for the E2E auth user
-```
+When `RUN_ONBOARDING_E2E=true`, the gated onboarding spec is allowed to mutate the dedicated E2E fixture by creating the first organization and owner membership.
 
 The happy path must verify:
 
@@ -61,20 +51,36 @@ manual navigation back to /protected
 protected dashboard is reachable without returning to onboarding
 ```
 
-## Fixture reset before re-running
+## Active organization variables
+
+Use a separate dedicated E2E user for the already-onboarded path:
+
+```txt
+RUN_ACTIVE_ORG_E2E=true
+E2E_ACTIVE_ORG_EMAIL
+E2E_ACTIVE_ORG_PASSWORD
+```
+
+The active organization fixture must already have an active organization membership before the test runs.
+
+The active organization path must verify:
+
+```txt
+login with the dedicated active-organization E2E user
+protected dashboard is reachable
+user is not redirected to /onboarding/organizacao
+accessing /protected directly keeps the user inside the protected app
+```
+
+This fixture should not be reused as the initial onboarding fixture.
+
+## Fixture reset before re-running initial onboarding
 
 Because the happy path creates an active organization membership, the same dedicated user cannot run the onboarding creation path twice without reset.
 
-Before another authenticated onboarding run, reset only the dedicated E2E user in the dedicated test Supabase project:
+Before another authenticated onboarding run, reset only the dedicated E2E user in the dedicated test Supabase project.
 
-```txt
-remove the created e2e-onboarding-* organization data
-remove active public.organization_memberships rows for the E2E auth user
-set public.profiles.organization_id back to NULL for the E2E auth user, or remove the E2E profile row
-keep the Supabase Auth user available for login
-```
-
-Do not run this reset against production.
+Do not run fixture reset against production.
 
 Do not use a real user as the fixture.
 
