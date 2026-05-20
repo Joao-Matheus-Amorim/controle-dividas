@@ -100,9 +100,9 @@ describe("initial organization onboarding route guards", () => {
   it("links profile after organization and owner membership creation", () => {
     const source = readSource("app/onboarding/organizacao/actions.ts");
 
-    const organizationInsertIndex = source.indexOf('from("organizations")');
+    const organizationInsertIndex = source.indexOf('from("organizations")', source.indexOf("async function createInitialOrganization"));
     const membershipInsertIndex = source.indexOf('from("organization_memberships")', organizationInsertIndex);
-    const profileLinkIndex = source.indexOf("ensureInitialOnboardingProfile");
+    const profileLinkIndex = source.indexOf("const profileError = await ensureInitialOnboardingProfile", membershipInsertIndex);
 
     expect(organizationInsertIndex).toBeGreaterThan(-1);
     expect(membershipInsertIndex).toBeGreaterThan(organizationInsertIndex);
