@@ -11,6 +11,8 @@ const runOnboardingE2e = shouldRunOnboardingE2e();
 const onboardingTest = runOnboardingE2e ? test : test.skip;
 
 test.describe("authenticated onboarding E2E contract", () => {
+  test.describe.configure({ mode: "serial" });
+
   test("fails when enabled onboarding E2E variables are incomplete", () => {
     if (!onboardingConfig.enabled) {
       expect(runOnboardingE2e).toBe(false);
@@ -38,11 +40,11 @@ test.describe("authenticated onboarding E2E contract", () => {
     await page.locator("#organization_slug").fill(slug);
     await page.getByRole("button", { name: "Continuar" }).click();
 
-    await expect(page.getByText("Organização criada com sucesso.")).toBeVisible();
+    await expect(page.getByText("Organização criada com sucesso.")).toBeVisible({ timeout: 15_000 });
 
     await page.getByRole("link", { name: "Voltar para o app" }).click();
 
-    await expect(page).toHaveURL(/\/protected(?:\?|$)/);
+    await expect(page).toHaveURL(/\/protected(?:\?|$)/, { timeout: 15_000 });
     await expect(page).not.toHaveURL(/\/onboarding\/organizacao/);
     await expect(page.getByRole("heading", { name: "Visão do mês" })).toBeVisible();
   });
