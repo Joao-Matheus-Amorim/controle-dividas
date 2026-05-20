@@ -11,8 +11,15 @@ const runOnboardingE2e = shouldRunOnboardingE2e();
 const onboardingTest = runOnboardingE2e ? test : test.skip;
 
 test.describe("authenticated onboarding E2E contract", () => {
-  test("is gated by dedicated onboarding E2E variables", () => {
-    expect(runOnboardingE2e ? onboardingConfig.missingVariables : []).toEqual([]);
+  test("fails when enabled onboarding E2E variables are incomplete", () => {
+    if (!onboardingConfig.enabled) {
+      expect(runOnboardingE2e).toBe(false);
+      expect(onboardingConfig.missingVariables).toEqual([]);
+      return;
+    }
+
+    expect(onboardingConfig.missingVariables).toEqual([]);
+    expect(runOnboardingE2e).toBe(true);
   });
 
   onboardingTest("redirects a dedicated authenticated user without active organization to onboarding", async ({ page }) => {
