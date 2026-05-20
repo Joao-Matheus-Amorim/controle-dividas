@@ -1,6 +1,5 @@
 "use server";
 
-import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 export type InitialOrganizationOnboardingState = {
@@ -19,147 +18,12 @@ function normalizeOrganizationSlug(value: string) {
     .replace(/^-+|-+$/g, "");
 }
 
-function isUniqueConstraintError(message: string) {
-  return message.toLowerCase().includes("duplicate key value");
-}
-
-async function validateOrganizationSlugAvailability(slug: string) {
-  const adminSupabase = createAdminClient();
-
-  const { data: existingOrganization, error } = await adminSupabase
-    .from("organizations")
-    .select("id")
-    .eq("slug", slug)
-    .maybeSingle();
-
-  if (error) {
-    return { error: error.message };
+function getOnboardingErrorMessage(message: string) {
+  if (message.toLowerCase().includes("duplicate key value")) {
+    return "Este slug já está em uso.";
   }
 
-  if (existingOrganization) {
-    return { error: "Este slug já está em uso." };
-  }
-
-  return null;
-}
-
-async function validateCurrentUserEligibility(slug: string) {
-  const supabase = await createClient();
-  const { data: authData, error: authError } = await supabase.auth.getClaims();
-  const authUserId = authData?.claims?.sub ? String(authData.claims.sub) : null;
-
-  if (authError || !authUserId) {
-    return { error: "Faça login para continuar o onboarding." };
-  }
-
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select("id, is_active")
-    .eq("auth_user_id", authUserId)
-    .maybeSingle();
-
-  if (profileError) {
-    return { error: profileError.message };
-  }
-
-  if (!profile) {
-    return { error: "Perfil não encontrado para este usuário." };
-  }
-
-  if (!profile.is_active) {
-    return { error: "Seu perfil está inativo." };
-  }
-
-  const { data: memberships, error: membershipError } = await supabase
-    .from("organization_memberships")
-    .select("id")
-    .eq("auth_user_id", authUserId)
-    .eq("is_active", true)
-    .limit(1);
-
-  if (membershipError) {
-    return { error: membershipError.message };
-  }
-
-  if ((memberships ?? []).length > 0) {
-    return { error: "Você já possui uma organização ativa." };
-  }
-
-  const slugError = await validateOrganizationSlugAvailability(slug);
-
-  if (slugError) {
-    return slugError;
-  }
-
-  return { authUserId };
-}
-
-async function createInitialOrganization({
-  authUserId,
-  name,
-  slug,
-}: {
-  authUserId: string;
-  name: string;
-  slug: string;
-}) {
-  const adminSupabase = createAdminClient();
-
-  const { data: existingMemberships, error: existingMembershipsError } = await adminSupabase
-    .from("organization_memberships")
-    .select("id")
-    .eq("auth_user_id", authUserId)
-    .eq("is_active", true)
-    .limit(1);
-
-  if (existingMembershipsError) {
-    return { error: existingMembershipsError.message };
-  }
-
-  if ((existingMemberships ?? []).length > 0) {
-    return { error: "Você já possui uma organização ativa." };
-  }
-
-  const { data: organization, error: organizationError } = await adminSupabase
-    .from("organizations")
-    .insert({
-      slug,
-      name,
-      owner_auth_user_id: authUserId,
-      plan: "free",
-      status: "active",
-    })
-    .select("id")
-    .single();
-
-  if (organizationError || !organization?.id) {
-    const message = organizationError?.message ?? "Não foi possível criar a organização.";
-
-    return {
-      error: isUniqueConstraintError(message) ? "Este slug já está em uso." : message,
-    };
-  }
-
-  const { error: membershipError } = await adminSupabase
-    .from("organization_memberships")
-    .insert({
-      organization_id: organization.id,
-      auth_user_id: authUserId,
-      role: "owner",
-      is_active: true,
-    });
-
-  if (membershipError) {
-    await adminSupabase.from("organizations").delete().eq("id", organization.id);
-
-    return {
-      error: isUniqueConstraintError(membershipError.message)
-        ? "Você já possui uma organização ativa."
-        : membershipError.message,
-    };
-  }
-
-  return { success: "Organização criada com sucesso." };
+  return message;
 }
 
 export async function createInitialOrganizationFromOnboarding(
@@ -186,15 +50,15 @@ export async function createInitialOrganizationFromOnboarding(
     return { error: "Use apenas letras minúsculas, números e hífens no slug." };
   }
 
-  const eligibility = await validateCurrentUserEligibility(slug);
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("create_initial_organization_onboarding", {
+    p_name: name,
+    p_slug: slug,
+  });
 
-  if ("error" in eligibility) {
-    return eligibility;
+  if (error) {
+    return { error: getOnboardingErrorMessage(error.message) };
   }
 
-  return createInitialOrganization({
-    authUserId: eligibility.authUserId,
-    name,
-    slug,
-  });
+  return { success: "Organização criada com sucesso." };
 }

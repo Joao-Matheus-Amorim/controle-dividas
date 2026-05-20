@@ -2,11 +2,22 @@
 
 ## Status
 
-Technical roadmap for future implementation. No runtime behavior change in this document.
+Runtime onboarding is implemented in small guarded steps.
 
-Related issue: #315
-Boundary correction issue: #317
-Layout decision: ADR 0005
+Current implementation status:
+
+- `/onboarding/organizacao` exists outside the protected layout.
+- Authenticated users without an active organization membership are redirected to onboarding.
+- The onboarding server action delegates tenant creation to a transactional database RPC.
+- The RPC creates the initial organization, owner membership, and owner profile link in one database transaction.
+
+Related issues and PRs:
+
+- Initial onboarding roadmap: #315
+- Layout boundary correction: #317
+- Onboarding copy rollout: #334
+- Redirect/cookie hardening: #332
+- Automatic redirect copy correction: #336
 
 References:
 
@@ -17,19 +28,18 @@ References:
 
 ## Goal
 
-Define a safe, explicit flow to create the first organization and owner membership without hiding tenant creation inside profile bootstrap helpers.
+Create the first organization and owner membership through an explicit onboarding flow without hiding tenant creation inside profile bootstrap helpers.
 
-The final implementation must create:
+The implementation must create or link:
 
 - one organization;
 - one active owner membership;
+- one active owner profile linked to the organization;
 - a clear organization context for protected routes.
 
 ## Non-goals
 
-This roadmap does not implement the flow.
-
-Out of scope for the future first implementation:
+Out of scope for the initial implementation:
 
 - billing;
 - orgSlug routes;
@@ -37,65 +47,43 @@ Out of scope for the future first implementation:
 - removing `ADMIN_EMAIL`;
 - removing `owner_id`;
 - making `organization_id` required;
-- changing RLS policies.
+- relaxing RLS policies;
+- allowing multiple active organizations per user.
 
-## Current state
+## Current database model
 
-### Existing database model
+The database supports organizations and memberships through migration `006_organizations_memberships.sql`.
 
-The database already supports organizations and memberships through migration `006_organizations_memberships.sql`.
+Profiles are organization-aware through the nullable `organization_id` column added during the SaaS transition.
 
-### Existing runtime behavior
-
-`lib/organizations/server.ts` reads active memberships and related organizations for the authenticated user.
-
-If there is no membership, the runtime has no active organization context.
-
-### Existing profile bootstrap
-
-`lib/finance/access-control.ts` and `lib/finance/admin-server.ts` can bootstrap or resolve an admin profile through the transitional `ADMIN_EMAIL` path.
-
-This profile bootstrap must not create organization records or owner memberships.
-
-A guard already protects this boundary.
-
-### Existing protected layout boundary
-
-`app/protected/layout.tsx` currently loads navigation permissions and current organization before rendering protected children.
-
-That means a route placed directly under `/protected` may not render for a user with no active organization membership, because the layout can fail before the page is reached.
-
-ADR 0005 resolves this by choosing a route outside the existing protected layout for the first implementation.
+The transitional unique index in `018_one_active_membership_per_user.sql` prevents multiple active memberships for the same user until the organization selector exists.
 
 ## Explicit onboarding route
 
-The chosen user-facing route is:
+The user-facing route is:
 
 ```txt
 /onboarding/organizacao
 ```
 
-This route must still require an authenticated user, but it must not depend on `app/protected/layout.tsx` and must not require organization context before rendering.
+This route:
 
-Do not create `/protected/onboarding/organizacao` in the first implementation.
+- requires an authenticated user through the session proxy flow;
+- does not live under `/protected`;
+- does not depend on `app/protected/layout.tsx`;
+- exists only to resolve the missing first organization context.
 
-The route should not be a generic organization settings page. It should exist only to resolve the missing first organization context.
+Do not create `/protected/onboarding/organizacao` for this flow.
 
-## Proposed flow
+## Runtime flow
 
 ### 1. User signs in
 
 The user authenticates through the existing Supabase auth flow.
 
-### 2. Profile is resolved
+### 2. Organization context is checked
 
-`getCurrentProfile()` resolves or creates the profile according to current transitional rules.
-
-This step must not create organizations.
-
-### 3. Organization context is checked
-
-The system checks `getUserOrganizations()`.
+The session proxy checks active organization membership for protected routes.
 
 If the user has at least one active membership:
 
@@ -103,163 +91,142 @@ If the user has at least one active membership:
 continue to /protected
 ```
 
-If the user has no active memberships:
+If the user has no active membership:
 
 ```txt
 redirect to /onboarding/organizacao
 ```
 
-The redirect must not rely on rendering a page that is blocked by the existing protected layout.
+The redirect preserves Supabase cookies.
 
-### 4. Onboarding form collects organization data
+### 3. Onboarding form collects organization data
 
 Minimum fields:
 
 - organization display name;
-- slug, either auto-generated from name or editable with validation.
+- slug, either user-provided or normalized from the name.
 
-Initial defaults:
-
-- name: derived from profile/email, for example `Organização de <name>` or user-provided;
-- slug: derived from name using lowercase, hyphenated, alphanumeric rules.
-
-### 5. Server action validates access
-
-The server action must validate:
-
-- authenticated user exists;
-- current profile exists and is active;
-- user currently has no active organization membership;
-- requested slug is valid;
-- requested slug is available;
-- profile bootstrap did not already create a hidden membership.
-
-### 6. Server action creates tenant records
-
-The action creates, in one controlled flow:
-
-1. organization row;
-2. owner membership row for the authenticated user.
-
-The action should be idempotent where reasonable, but it must not silently attach a user to an unrelated existing organization.
-
-### 7. Redirect after success
-
-After success:
-
-```txt
-redirect to /protected
-```
-
-The protected layout can then resolve active organization normally.
-
-## Security rules
-
-The implementation must preserve these rules:
-
-- no organization creation inside `getCurrentProfile()`;
-- no organization creation inside `ensureAdminProfile()`;
-- no service role in client components;
-- no public exposure of service role keys;
-- no bypass of RLS for normal user reads;
-- organization creation must be server-side only;
-- owner membership must use the authenticated user's auth id.
-
-## Slug policy
-
-The slug should follow the existing database constraint:
+Slug policy:
 
 ```txt
 ^[a-z0-9]+(?:-[a-z0-9]+)*$
 ```
 
-Recommended implementation:
+### 4. Server action validates basic input
 
-- normalize accents;
-- lowercase;
-- replace non-alphanumeric groups with `-`;
-- trim leading/trailing hyphens;
-- require non-empty slug;
-- check uniqueness before insert;
-- return friendly error if unavailable.
+The server action validates:
 
-Do not add random suffixes silently in the first version. Make conflicts explicit.
+- required name;
+- minimum name length;
+- non-empty slug;
+- slug format.
+
+The action then calls the authenticated RPC:
+
+```txt
+public.create_initial_organization_onboarding(p_name, p_slug)
+```
+
+The action must not use service role and must not write directly to `profiles`, `organizations`, or `organization_memberships`.
+
+### 5. Transactional RPC creates tenant records
+
+The RPC runs as a database transaction and is responsible for the security-sensitive writes.
+
+It validates:
+
+- `auth.uid()` exists;
+- name is present and valid;
+- slug is present, valid, and available;
+- an existing profile is active;
+- an existing profile is not already linked to another organization;
+- the user has no active membership.
+
+It creates:
+
+1. organization row;
+2. owner membership row for the authenticated user;
+3. owner profile row when no profile exists, or links an existing active legacy profile to the new organization.
+
+If any step fails, PostgreSQL rolls back the transaction automatically.
+
+### 6. After success
+
+The current UI shows success feedback on the onboarding page.
+
+The user can then use `Voltar para o app` to access `/protected`.
+
+The flow does not currently perform automatic navigation after success.
+
+## Security rules
+
+The implementation preserves these rules:
+
+- no organization creation inside `getCurrentProfile()`;
+- no organization creation inside `ensureAdminProfile()`;
+- no organization creation in `ProtectedLayout`;
+- no organization creation in the session proxy;
+- no service role in client components;
+- no service role in the onboarding server action;
+- no public exposure of service role keys;
+- no RLS policy relaxation in this step;
+- tenant creation is explicit and restricted to the onboarding RPC;
+- owner membership uses `auth.uid()` from the authenticated caller;
+- profile creation/linking is tied to the authenticated user only;
+- active profiles already linked to another organization are blocked instead of silently reassigned.
+
+## RLS posture
+
+This flow uses a `SECURITY DEFINER` RPC with fixed `search_path = public` for controlled transactional onboarding.
+
+This migration does not relax table RLS policies.
+
+The function grants execute only to `authenticated` and revokes from `public` and `anon`.
 
 ## Error handling
 
-The action should return user-facing feedback for:
+The flow returns user-facing feedback for:
 
 - missing name;
+- short name;
 - invalid slug;
 - slug already used;
-- user already has active organization;
-- profile inactive;
+- unauthenticated user;
+- inactive profile;
+- existing active organization membership;
+- profile already linked to an organization;
 - database failure.
 
 Do not fail silently.
 
-## Rollback
+## Rollback model
 
-Before financial data is attached to the new organization, rollback is simple:
+Rollback is handled by PostgreSQL transaction semantics inside the RPC.
 
-```txt
-delete membership
-then delete organization
-```
+The application layer must not implement manual partial rollback for this flow.
 
-After financial data uses the organization, rollback must be treated as data migration and should not be automatic.
+## Guard coverage
 
-## Recommended implementation sequence
+Guards must ensure:
 
-### PR 1 - Add route shell
+- the onboarding route remains outside `/protected`;
+- the page remains wired to `OrganizationOnboardingForm`;
+- the server action delegates writes to the RPC;
+- the server action does not use `createAdminClient`;
+- the server action does not write directly to tenant tables;
+- the migration uses `SECURITY DEFINER` with fixed search path;
+- the function requires `auth.uid()`;
+- the function is granted only to `authenticated`;
+- profile bootstrap files do not create organizations or memberships;
+- the transitional one-active-membership-per-user guard remains present.
 
-UI-only/server-only shell.
+## Remaining future work
 
-- Create `/onboarding/organizacao` page.
-- Use a minimal onboarding-specific layout or page container.
-- Show form shell and explanation.
-- No database writes yet.
+Future PRs may address:
 
-### PR 2 - Add server action validation only
-
-Server action returns validation results but does not insert yet, or uses mocked internal helper guarded by tests.
-
-### PR 3 - Add organization creation action
-
-Functional PR.
-
-- Create organization.
-- Create owner membership.
-- Revalidate/redirect.
-- Add unit guard and integration-style test with mocked Supabase client.
-
-### PR 4 - Wire no-organization redirect
-
-Functional PR.
-
-- If authenticated/profiled user has no organization context, redirect to `/onboarding/organizacao`.
-- Keep users with memberships on existing flow.
-
-## Open questions
-
-- Should transitional `ADMIN_EMAIL` be required to create the first organization?
-- Should any authenticated user without membership be allowed to create a new organization?
-- Should multiple organizations per user be allowed before the selector exists?
-- Should slug be editable in first version?
-- Should organization creation be blocked until billing exists?
-
-## Recommendation
-
-For the first implementation, keep the scope conservative:
-
-```txt
-Only the current authenticated/profiled user with no active memberships can create their first organization.
-```
-
-Do not allow creating second organizations until the active organization selector exists.
-
-Do not connect billing in the first version.
-
-Do not remove `ADMIN_EMAIL` in the first version.
-
-Use `/onboarding/organizacao` for the first route shell, outside the current protected layout.
+- automatic navigation after successful onboarding;
+- invitation-based onboarding for additional users;
+- organization selector;
+- multiple organizations per user;
+- billing gates;
+- eventual removal or reduction of `ADMIN_EMAIL`.
