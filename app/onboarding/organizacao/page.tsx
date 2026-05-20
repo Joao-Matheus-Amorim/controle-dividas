@@ -16,12 +16,12 @@ export default function InitialOrganizationOnboardingPage() {
             Onboarding inicial
           </p>
           <h1 className="text-3xl font-black tracking-tight">
-            Crie sua organização financeira
+            Crie sua organizacao financeira
           </h1>
           <p className="text-sm leading-6 text-white/55">
-            Este espaço vai agrupar pessoas, contas, gastos, bancos, permissões e
-            relatórios. Nesta etapa, os dados são apenas validados; a criação no
-            banco será habilitada em uma próxima PR segura.
+            Este espaco vai agrupar pessoas, contas, gastos, bancos, permissoes e
+            relatorios. Ao continuar, sua organizacao financeira inicial sera
+            criada e seu usuario sera vinculado como owner dela.
           </p>
         </div>
 
@@ -30,8 +30,9 @@ export default function InitialOrganizationOnboardingPage() {
         </div>
 
         <div className="rounded-2xl border border-[#8b72f8]/20 bg-[#8b72f8]/10 p-4 text-sm leading-6 text-[#d8d0ff]">
-          Esta tela ainda não grava dados no banco e não cria organization ou
-          membership. Ela valida o nome e o slug antes da etapa funcional.
+          Escolha um nome e um slug para identificar sua organizacao. Depois da
+          criacao, voce sera direcionado para o app protegido com acesso inicial
+          de owner.
         </div>
 
         <Link
