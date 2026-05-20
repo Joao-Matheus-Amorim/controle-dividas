@@ -6,9 +6,11 @@ Follow-up: #344
 
 Follow-up: #348
 
+Follow-up: #350
+
 ## Goal
 
-Prepare a safe contract for authenticated onboarding E2E tests.
+Maintain a safe contract for authenticated onboarding E2E tests.
 
 The default Playwright command must not require real credentials:
 
@@ -18,7 +20,15 @@ npm run test:e2e
 
 Authenticated onboarding tests must be skipped unless the environment explicitly enables them.
 
-## Initial onboarding variables
+Use only dedicated E2E users in a dedicated test project.
+
+Do not use production users or operational data.
+
+Migration `019_initial_organization_onboarding_rpc.sql` must be applied in the target Supabase project before running onboarding creation coverage.
+
+## Initial onboarding path
+
+Variables:
 
 ```txt
 RUN_ONBOARDING_E2E=true
@@ -26,21 +36,13 @@ E2E_ONBOARDING_EMAIL
 E2E_ONBOARDING_PASSWORD
 ```
 
-Use only a dedicated E2E user in a dedicated test project.
+Fixture state:
 
-Do not use production users or operational data.
+```txt
+The E2E user starts without an active organization membership.
+```
 
-## Initial onboarding fixture state
-
-The initial onboarding E2E user should start without an active organization membership.
-
-Migration `019_initial_organization_onboarding_rpc.sql` must be applied in the target Supabase project.
-
-## Authenticated happy path
-
-When `RUN_ONBOARDING_E2E=true`, the gated onboarding spec is allowed to mutate the dedicated E2E fixture by creating the first organization and owner membership.
-
-The happy path must verify:
+The happy path verifies:
 
 ```txt
 login with the dedicated E2E user
@@ -51,9 +53,11 @@ manual navigation back to /protected
 protected dashboard is reachable without returning to onboarding
 ```
 
-## Active organization variables
+Because this path creates an active organization membership, the same dedicated user cannot run the onboarding creation path twice without reset.
 
-Use a separate dedicated E2E user for the already-onboarded path:
+## Active organization path
+
+Variables:
 
 ```txt
 RUN_ACTIVE_ORG_E2E=true
@@ -61,9 +65,13 @@ E2E_ACTIVE_ORG_EMAIL
 E2E_ACTIVE_ORG_PASSWORD
 ```
 
-The active organization fixture must already have an active organization membership before the test runs.
+Fixture state:
 
-The active organization path must verify:
+```txt
+The E2E user already has an active organization membership.
+```
+
+The active organization path verifies:
 
 ```txt
 login with the dedicated active-organization E2E user
@@ -74,11 +82,39 @@ accessing /protected directly keeps the user inside the protected app
 
 This fixture should not be reused as the initial onboarding fixture.
 
-## Fixture reset before re-running initial onboarding
+## Onboarding guard path
 
-Because the happy path creates an active organization membership, the same dedicated user cannot run the onboarding creation path twice without reset.
+Variables:
 
-Before another authenticated onboarding run, reset only the dedicated E2E user in the dedicated test Supabase project.
+```txt
+RUN_ONBOARDING_CASE_E2E=true
+E2E_ONBOARDING_CASE_EMAIL
+E2E_ONBOARDING_CASE_PASSWORD
+E2E_ONBOARDING_CASE_SLUG
+```
+
+Fixture state:
+
+```txt
+The E2E user reaches onboarding.
+The configured slug is already unavailable in the dedicated test project.
+```
+
+The onboarding guard path verifies:
+
+```txt
+login with the dedicated onboarding-case E2E user
+redirect to /onboarding/organizacao
+submit organization name and the configured slug
+friendly guard message is shown
+user remains on /onboarding/organizacao
+```
+
+This fixture should not be reused as the successful initial onboarding fixture unless it is reset first.
+
+## Fixture reset
+
+Before another authenticated onboarding creation run, reset only the dedicated E2E user in the dedicated test Supabase project.
 
 Do not run fixture reset against production.
 
@@ -86,7 +122,7 @@ Do not use a real user as the fixture.
 
 ## Data isolation
 
-Use a unique organization slug for each run, such as:
+Use a unique organization slug for successful creation runs, such as:
 
 ```txt
 e2e-onboarding-<timestamp>-<random>
