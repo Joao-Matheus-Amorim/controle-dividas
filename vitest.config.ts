@@ -15,6 +15,9 @@ export default defineConfig({
       ".next",
       "dist",
       "coverage",
+      "playwright-report",
+      "test-results",
+      "tests/e2e",
     ],
   },
   resolve: {
