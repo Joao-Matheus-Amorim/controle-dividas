@@ -25,6 +25,7 @@ git checkout -b feature/nome-da-feature
 npm ci
 npm audit --audit-level=moderate
 npm run lint
+npm run typecheck
 npm run build
 npm run test
 ```
@@ -96,8 +97,9 @@ Antes de pedir revisão, confirme:
 
 - O código não expõe secrets, tokens, senhas ou chaves privadas.
 - O audit passa com `npm audit --audit-level=moderate`.
-- O build passa localmente.
 - O lint passa localmente.
+- O typecheck passa localmente.
+- O build passa localmente.
 - Os testes passam localmente.
 - O Pull Request explica o que mudou e como testar.
 - O CI do GitHub Actions está verde.
