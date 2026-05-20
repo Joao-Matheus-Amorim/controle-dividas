@@ -20,12 +20,32 @@ describe("initial organization onboarding route guards", () => {
 
     expect(source).toContain("InitialOrganizationOnboardingPage");
     expect(source).toContain("Onboarding inicial");
-    expect(source).toContain("Crie sua organização financeira");
+    expect(source).toContain("Crie sua organizacao financeira");
     expect(source).toContain("OrganizationOnboardingForm");
     expect(source).not.toContain("createClient");
     expect(source).not.toContain("createAdminClient");
     expect(source).not.toContain('from("organizations")');
     expect(source).not.toContain('from("organization_memberships")');
+  });
+
+  it("keeps onboarding copy aligned with organization creation behavior", () => {
+    const source = readSource("app/onboarding/organizacao/page.tsx");
+
+    expect(source).toContain("organizacao financeira inicial sera");
+    expect(source).toContain("criada");
+    expect(source).toContain("usuario sera vinculado como owner");
+    expect(source).toContain("Depois da");
+    expect(source).toContain("criacao");
+    expect(source).toContain("app protegido");
+    expect(source).not.toContain("os dados são apenas validados");
+    expect(source).not.toContain("dados são apenas validados");
+    expect(source).not.toContain("não grava dados no banco");
+    expect(source).not.toContain("nao grava dados no banco");
+    expect(source).not.toContain("não cria organization");
+    expect(source).not.toContain("nao cria organization");
+    expect(source).not.toContain("próxima PR segura");
+    expect(source).not.toContain("proxima PR segura");
+    expect(source).not.toContain("antes da etapa funcional");
   });
 
   it("keeps organization creation limited to the onboarding action", () => {
