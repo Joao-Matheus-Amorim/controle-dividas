@@ -83,6 +83,13 @@ async function getOnboardingProfile({
     return { error: "Seu perfil está inativo." };
   }
 
+  if (profile?.organization_id) {
+    return {
+      error:
+        "Seu perfil já está vinculado a uma organização. Peça ao suporte para revisar seu acesso.",
+    };
+  }
+
   return { profile: (profile ?? null) as OnboardingProfile | null };
 }
 
@@ -105,6 +112,7 @@ async function ensureInitialOnboardingProfile({
       .update({ organization_id: organizationId })
       .eq("id", existingProfile.id)
       .eq("auth_user_id", authUserId)
+      .is("organization_id", null)
       .eq("is_active", true);
 
     if (updateProfileError) {
