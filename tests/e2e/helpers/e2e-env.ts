@@ -20,6 +20,11 @@ const requiredLimitedUserVariables = [
   "E2E_LIMITED_USER_PASSWORD",
 ] as const;
 
+const requiredLimitedUserExpectationVariables = [
+  "E2E_LIMITED_USER_HIDDEN_NAV_LABEL",
+  "E2E_LIMITED_USER_DENIED_ROUTE_PATH",
+] as const;
+
 const requiredOnboardingCaseVariables = [
   "E2E_ONBOARDING_CASE_EMAIL",
   "E2E_ONBOARDING_CASE_PASSWORD",
@@ -99,6 +104,25 @@ export function getLimitedUserE2eConfig(env: Env = process.env) {
 
 export function shouldRunLimitedUserE2e(env: Env = process.env) {
   const config = getLimitedUserE2eConfig(env);
+  return config.enabled && config.missingVariables.length === 0;
+}
+
+export function getLimitedUserExpectationE2eConfig(env: Env = process.env) {
+  const config = getLimitedUserE2eConfig(env);
+  const missingExpectationVariables = config.enabled
+    ? requiredLimitedUserExpectationVariables.filter((key) => !env[key])
+    : [];
+
+  return {
+    ...config,
+    missingVariables: [...config.missingVariables, ...missingExpectationVariables],
+    hiddenNavLabel: env.E2E_LIMITED_USER_HIDDEN_NAV_LABEL,
+    deniedRoutePath: env.E2E_LIMITED_USER_DENIED_ROUTE_PATH,
+  };
+}
+
+export function shouldRunLimitedUserExpectationE2e(env: Env = process.env) {
+  const config = getLimitedUserExpectationE2eConfig(env);
   return config.enabled && config.missingVariables.length === 0;
 }
 
