@@ -34,6 +34,8 @@ Follow-up: #420
 
 Follow-up: #422
 
+Follow-up: #424
+
 ## Goal
 
 Define an auditable Playwright E2E roadmap for the current SaaS phase.
@@ -78,6 +80,7 @@ No data-mutating E2E flow before a documented cleanup strategy exists.
 | Hidden module navigation | Gated covered |
 | Direct route denial | Gated covered |
 | Data-changing cleanup strategy | Documented |
+| Data-changing helper contract | Covered |
 
 ## Protected route matrix
 
@@ -119,11 +122,12 @@ No data-mutating E2E flow before a documented cleanup strategy exists.
 
 ## Data-changing flows
 
-Data-changing browser tests are still pending, but the cleanup strategy is now documented in `docs/e2e/DATA_CHANGING_CLEANUP_STRATEGY.md`.
+Data-changing browser tests are still pending, but the cleanup strategy and helper contract are now documented in `docs/e2e/DATA_CHANGING_CLEANUP_STRATEGY.md`.
 
 | Flow | Status |
 | --- | --- |
 | Cleanup strategy | Documented |
+| Data-changing helper contract | Covered |
 | Create member/person | Pending cleanup-backed implementation |
 | Create expense | Pending cleanup-backed implementation |
 | Create payable | Pending cleanup-backed implementation |
