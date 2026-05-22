@@ -1,4 +1,4 @@
-# Playwright E2E coverage roadmap
+﻿# Playwright E2E coverage roadmap
 
 Issue: #360
 
@@ -11,6 +11,8 @@ Follow-up: #370
 Follow-up: #374
 
 Follow-up: #380
+
+Follow-up: #384
 
 ## Goal
 
@@ -45,6 +47,7 @@ No data-mutating E2E flow before a documented cleanup strategy exists.
 | Protected payables route | Gated covered |
 | Protected receivables route | Gated covered |
 | Protected banks route | Gated covered |
+| Protected reports route | Gated covered |
 
 ## Protected route matrix
 
@@ -120,3 +123,4 @@ Protected shell and active organization access are gated and documented.
 Admin and limited-user coverage are blocked only by explicit fixture contracts.
 No data-changing E2E test exists without cleanup strategy.
 ```
+
