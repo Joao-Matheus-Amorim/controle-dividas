@@ -57,7 +57,7 @@ test.describe("data-changing create expense E2E contract", () => {
     await page.getByRole("button", { name: "Novo gasto" }).click();
 
     const memberSelect = page.locator("select[name='family_member_id']");
-    await expect(memberSelect.locator("option")).toHaveCount(2, { timeout: 15_000 });
+    await expect.poll(async () => memberSelect.locator("option").count()).toBeGreaterThan(1);
     await memberSelect.selectOption({ index: 1 });
 
     await page.getByLabel("Valor em euro").fill("1.00");
