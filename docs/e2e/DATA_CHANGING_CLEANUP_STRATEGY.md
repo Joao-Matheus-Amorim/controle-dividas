@@ -2,6 +2,8 @@
 
 Issue: #422
 
+Helper contract: #424
+
 ## Goal
 
 Define the cleanup contract required before any Playwright E2E flow creates, updates, or deletes application data.
@@ -30,6 +32,34 @@ RUN_DATA_CHANGING_E2E=true
 ```
 
 A spec may use a narrower flag when needed, but it must still be skipped by default.
+
+## Implemented helper contract
+
+The data-changing helper contract is implemented in:
+
+```txt
+tests/e2e/helpers/data-changing-env.ts
+tests/e2e/helpers/data-changing-cleanup.ts
+```
+
+The environment helper requires:
+
+```txt
+RUN_DATA_CHANGING_E2E=true
+E2E_DATA_CHANGING_EMAIL
+E2E_DATA_CHANGING_PASSWORD
+NEXT_PUBLIC_SUPABASE_URL
+SUPABASE_SERVICE_ROLE_KEY
+```
+
+The cleanup helper provides:
+
+```txt
+createE2eRunMarker(scope)
+cleanupFamilyMembersByNameMarker(marker)
+```
+
+Cleanup markers must use the generated safe marker shape. Wildcard markers are rejected before service-role cleanup runs.
 
 ## Required data ownership
 
