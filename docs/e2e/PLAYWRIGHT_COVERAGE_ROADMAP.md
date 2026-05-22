@@ -16,6 +16,8 @@ Follow-up: #384
 
 Follow-up: #388
 
+Follow-up: #392
+
 ## Goal
 
 Define an auditable Playwright E2E roadmap for the current SaaS phase.
@@ -51,6 +53,7 @@ No data-mutating E2E flow before a documented cleanup strategy exists.
 | Protected banks route | Gated covered |
 | Protected reports route | Gated covered |
 | Protected settings route | Gated covered |
+| Admin fixture contract | Covered |
 
 ## Protected route matrix
 
@@ -64,9 +67,9 @@ No data-mutating E2E flow before a documented cleanup strategy exists.
 | `/protected/bancos` | Gated covered | Read-only smoke. |
 | `/protected/relatorios` | Gated covered | Read-only smoke. |
 | `/protected/configuracoes` | Gated covered | Read-only smoke. |
-| `/protected/admin` | Pending | Requires admin fixture definition. |
-| `/protected/admin/usuarios` | Pending | Requires admin fixture definition. |
-| `/protected/admin/permissoes` | Pending | Requires admin fixture definition. |
+| `/protected/admin` | Pending | Admin fixture available; next route smoke. |
+| `/protected/admin/usuarios` | Pending | Requires admin route smoke baseline first. |
+| `/protected/admin/permissoes` | Pending | Requires admin route smoke baseline first. |
 
 ## Public/auth matrix
 
@@ -85,7 +88,7 @@ No data-mutating E2E flow before a documented cleanup strategy exists.
 
 | Flow | Status | Notes |
 | --- | --- | --- |
-| Admin fixture | Pending | Needed before admin route smoke. |
+| Admin fixture | Covered | Skipped-by-default `RUN_ADMIN_E2E` contract is defined. |
 | Limited user fixture | Pending | Needed before negative permission coverage. |
 | Hidden module navigation | Pending | Requires limited fixture. |
 | Direct route denial | Pending | Requires expected behavior per route. |
@@ -106,12 +109,11 @@ Data-changing browser tests are intentionally pending until cleanup is documente
 ## Recommended next sequence
 
 ```txt
-1. Define admin fixture.
-2. Add admin route smoke.
-3. Define limited-user fixture.
-4. Add permission-negative coverage.
-5. Define cleanup strategy.
-6. Add data-changing E2E flows one by one.
+1. Add admin route smoke.
+2. Define limited-user fixture.
+3. Add permission-negative coverage.
+4. Define cleanup strategy.
+5. Add data-changing E2E flows one by one.
 ```
 
 ## Definition of done for this phase
