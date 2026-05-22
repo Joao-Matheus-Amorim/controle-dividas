@@ -144,7 +144,6 @@ Data-changing browser tests are still pending, but the cleanup strategy and help
 | Create expense | Gated cleanup-backed covered |
 | Create payable | Gated cleanup-backed covered |
 | Create receivable | Gated cleanup-backed covered |
-| Create receivable | Gated cleanup-backed covered |
 | Create bank account | Pending cleanup-backed implementation |
 | Update/delete records | Pending cleanup-backed implementation |
 
