@@ -42,6 +42,8 @@ Follow-up: #438
 
 Follow-up: #452
 
+Follow-up: #458
+
 ## Goal
 
 Define an auditable Playwright E2E roadmap for the current SaaS phase.
@@ -90,6 +92,7 @@ No data-mutating E2E flow before a documented cleanup strategy exists.
 | Create member/person | Gated cleanup-backed covered |
 | Create expense | Gated cleanup-backed covered |
 | Create payable | Gated cleanup-backed covered |
+| Create receivable | Gated cleanup-backed covered |
 
 ## Protected route matrix
 
@@ -140,14 +143,15 @@ Data-changing browser tests are still pending, but the cleanup strategy and help
 | Create member/person | Gated cleanup-backed covered |
 | Create expense | Gated cleanup-backed covered |
 | Create payable | Gated cleanup-backed covered |
-| Create receivable | Pending cleanup-backed implementation |
+| Create receivable | Gated cleanup-backed covered |
+| Create receivable | Gated cleanup-backed covered |
 | Create bank account | Pending cleanup-backed implementation |
 | Update/delete records | Pending cleanup-backed implementation |
 
 ## Recommended next sequence
 
 ```txt
-1. Add cleanup-backed create receivable E2E flow.
+1. Add cleanup-backed create bank account E2E flow.
 2. Add data-changing E2E flows one by one.
 ```
 
