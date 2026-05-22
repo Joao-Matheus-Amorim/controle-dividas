@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 
 const e2eMarkerPrefix = "e2e-";
+const safeE2eMarkerPattern = /^e2e-[a-z0-9-]+-\d{13}-[a-z0-9]{6}$/;
 
 export function createE2eRunMarker(scope: string) {
   const normalizedScope = scope.replace(/[^a-z0-9-]/gi, "-").toLowerCase();
@@ -8,7 +9,7 @@ export function createE2eRunMarker(scope: string) {
 }
 
 function assertSafeE2eMarker(marker: string) {
-  if (!marker.startsWith(e2eMarkerPrefix) || marker.length < 16) {
+  if (!safeE2eMarkerPattern.test(marker)) {
     throw new Error("Refusing to cleanup records without a safe E2E marker.");
   }
 }
