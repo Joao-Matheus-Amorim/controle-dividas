@@ -15,6 +15,11 @@ const requiredAdminVariables = [
   "E2E_ADMIN_PASSWORD",
 ] as const;
 
+const requiredLimitedUserVariables = [
+  "E2E_LIMITED_USER_EMAIL",
+  "E2E_LIMITED_USER_PASSWORD",
+] as const;
+
 const requiredOnboardingCaseVariables = [
   "E2E_ONBOARDING_CASE_EMAIL",
   "E2E_ONBOARDING_CASE_PASSWORD",
@@ -75,6 +80,25 @@ export function getAdminE2eConfig(env: Env = process.env) {
 
 export function shouldRunAdminE2e(env: Env = process.env) {
   const config = getAdminE2eConfig(env);
+  return config.enabled && config.missingVariables.length === 0;
+}
+
+export function getLimitedUserE2eConfig(env: Env = process.env) {
+  const enabled = env.RUN_LIMITED_USER_E2E === "true";
+  const missingVariables = enabled
+    ? requiredLimitedUserVariables.filter((key) => !env[key])
+    : [];
+
+  return {
+    enabled,
+    missingVariables,
+    email: env.E2E_LIMITED_USER_EMAIL,
+    password: env.E2E_LIMITED_USER_PASSWORD,
+  };
+}
+
+export function shouldRunLimitedUserE2e(env: Env = process.env) {
+  const config = getLimitedUserE2eConfig(env);
   return config.enabled && config.missingVariables.length === 0;
 }
 
