@@ -18,6 +18,8 @@ Follow-up: #388
 
 Follow-up: #392
 
+Follow-up: #396
+
 ## Goal
 
 Define an auditable Playwright E2E roadmap for the current SaaS phase.
@@ -54,6 +56,7 @@ No data-mutating E2E flow before a documented cleanup strategy exists.
 | Protected reports route | Gated covered |
 | Protected settings route | Gated covered |
 | Admin fixture contract | Covered |
+| Protected admin route | Gated covered |
 
 ## Protected route matrix
 
@@ -67,9 +70,9 @@ No data-mutating E2E flow before a documented cleanup strategy exists.
 | `/protected/bancos` | Gated covered | Read-only smoke. |
 | `/protected/relatorios` | Gated covered | Read-only smoke. |
 | `/protected/configuracoes` | Gated covered | Read-only smoke. |
-| `/protected/admin` | Pending | Admin fixture available; next route smoke. |
-| `/protected/admin/usuarios` | Pending | Requires admin route smoke baseline first. |
-| `/protected/admin/permissoes` | Pending | Requires admin route smoke baseline first. |
+| `/protected/admin` | Gated covered | Read-only smoke. |
+| `/protected/admin/usuarios` | Pending | Next admin route smoke. |
+| `/protected/admin/permissoes` | Pending | Requires admin users route smoke baseline first. |
 
 ## Public/auth matrix
 
@@ -109,11 +112,12 @@ Data-changing browser tests are intentionally pending until cleanup is documente
 ## Recommended next sequence
 
 ```txt
-1. Add admin route smoke.
-2. Define limited-user fixture.
-3. Add permission-negative coverage.
-4. Define cleanup strategy.
-5. Add data-changing E2E flows one by one.
+1. Add admin users route smoke.
+2. Add admin permissions route smoke.
+3. Define limited-user fixture.
+4. Add permission-negative coverage.
+5. Define cleanup strategy.
+6. Add data-changing E2E flows one by one.
 ```
 
 ## Definition of done for this phase
