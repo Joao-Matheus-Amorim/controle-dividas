@@ -59,3 +59,16 @@ export async function cleanupExpensesByDescriptionMarker(marker: string) {
     throw new Error(`Failed to cleanup expenses for marker ${marker}: ${error.message}`);
   }
 }
+export async function cleanupPayableBillsByNameMarker(marker: string) {
+  assertSafeE2eMarker(marker);
+
+  const supabase = createCleanupClient();
+  const { error } = await supabase
+    .from("payable_bills")
+    .delete()
+    .ilike("name", `%${marker}%`);
+
+  if (error) {
+    throw new Error(`Failed to cleanup payable_bills for marker ${marker}: ${error.message}`);
+  }
+}
