@@ -45,3 +45,17 @@ export async function cleanupFamilyMembersByNameMarker(marker: string) {
     throw new Error(`Failed to cleanup family_members for marker ${marker}: ${error.message}`);
   }
 }
+
+export async function cleanupExpensesByDescriptionMarker(marker: string) {
+  assertSafeE2eMarker(marker);
+
+  const supabase = createCleanupClient();
+  const { error } = await supabase
+    .from("expenses")
+    .delete()
+    .ilike("description", `%${marker}%`);
+
+  if (error) {
+    throw new Error(`Failed to cleanup expenses for marker ${marker}: ${error.message}`);
+  }
+}
