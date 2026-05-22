@@ -29,11 +29,19 @@ test.describe("data-changing create member E2E contract", () => {
     expect(runDataChangingE2e).toBe(true);
   });
 
-  createMemberTest.beforeEach(async () => {
+  test.beforeEach(async () => {
+    if (!runDataChangingE2e) {
+      return;
+    }
+
     await cleanupFamilyMembersByNameMarker(marker);
   });
 
-  createMemberTest.afterEach(async () => {
+  test.afterEach(async () => {
+    if (!runDataChangingE2e) {
+      return;
+    }
+
     await cleanupFamilyMembersByNameMarker(marker);
   });
 
