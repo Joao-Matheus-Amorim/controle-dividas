@@ -30,6 +30,8 @@ Follow-up: #412
 
 Follow-up: #416
 
+Follow-up: #420
+
 ## Goal
 
 Define an auditable Playwright E2E roadmap for the current SaaS phase.
@@ -72,6 +74,7 @@ No data-mutating E2E flow before a documented cleanup strategy exists.
 | Limited user fixture contract | Covered |
 | Limited-user negative expectation contract | Covered |
 | Hidden module navigation | Gated covered |
+| Direct route denial | Gated covered |
 
 ## Protected route matrix
 
@@ -109,7 +112,7 @@ No data-mutating E2E flow before a documented cleanup strategy exists.
 | Admin fixture | Covered | Skipped-by-default RUN_ADMIN_E2E contract is defined. |
 | Limited user fixture | Covered | Skipped-by-default RUN_LIMITED_USER_E2E contract is defined. |
 | Hidden module navigation | Gated covered | Limited-user hidden navigation expectation is covered. |
-| Direct route denial | Pending | Next permission-negative coverage. |
+| Direct route denial | Gated covered | Limited-user direct route denial expectation is covered. |
 
 ## Data-changing flows
 
@@ -127,9 +130,8 @@ Data-changing browser tests are intentionally pending until cleanup is documente
 ## Recommended next sequence
 
 ```txt
-1. Add direct route denial coverage.
-2. Define cleanup strategy.
-3. Add data-changing E2E flows one by one.
+1. Define cleanup strategy.
+2. Add data-changing E2E flows one by one.
 ```
 
 ## Definition of done for this phase
