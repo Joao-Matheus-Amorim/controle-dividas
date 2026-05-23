@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { getAccessibleMemberIds, getCurrentProfile } from "@/lib/finance/access-control";
+import { getExpenseCategoriesByOwner } from "@/lib/finance/categories-server";
 import { getFamilyMembersByOwner } from "@/lib/finance/members-server";
 import { firstRelation, type MaybeArray } from "@/lib/finance/relations";
 import { seedInitialFinanceDataForOwner } from "@/lib/finance/seed-server";
@@ -95,36 +96,8 @@ export async function getActiveFamilyMembers() {
 export async function getExpenseCategories() {
   await seedInitialFinanceData();
 
-  const supabase = await createClient();
   const ownerId = await getCurrentUserId();
-
-  const { data, error } = await supabase
-    .from("expense_categories")
-    .select("id, owner_id, name, description, is_default, created_at")
-    .eq("owner_id", ownerId)
-    .order("name", { ascending: true });
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  return (data ?? []) as DbExpenseCategory[];
-}
-
-async function getExpenseCategoriesByOwner(ownerId: string) {
-  const supabase = await createClient();
-
-  const { data, error } = await supabase
-    .from("expense_categories")
-    .select("id, owner_id, name, description, is_default, created_at")
-    .eq("owner_id", ownerId)
-    .order("name", { ascending: true });
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  return (data ?? []) as DbExpenseCategory[];
+  return getExpenseCategoriesByOwner(ownerId);
 }
 
 export async function getExpenses() {
