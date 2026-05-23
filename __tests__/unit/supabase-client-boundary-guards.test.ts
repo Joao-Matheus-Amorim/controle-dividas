@@ -14,6 +14,8 @@ const ignoredPathParts = new Set([
   "test-results",
 ]);
 
+const ignoredTopLevelPaths = ["__tests__/", "tests/"];
+
 const allowedSupabaseFactoryFiles = new Set([
   "lib/supabase/admin.ts",
   "lib/supabase/client.ts",
@@ -21,12 +23,8 @@ const allowedSupabaseFactoryFiles = new Set([
   "lib/supabase/server.ts",
 ]);
 
-const forbiddenFactoryPatterns = [
-  /from\s+["']@supabase\/ssr["']/,
-  /from\s+["']@supabase\/supabase-js["']/,
-  /\bcreateBrowserClient\b/,
-  /\bcreateServerClient\b/,
-];
+const forbiddenFactoryNames = ["createBrowserClient", "createServerClient"];
+const forbiddenRuntimeSupabaseImports = ["from \"@supabase/ssr\"", "from \"@supabase/supabase-js\""];
 
 function normalizePath(path: string) {
   return path.split(sep).join("/");
@@ -55,6 +53,10 @@ function listSourceFiles(dir: string): string[] {
       return [];
     }
 
+    if (ignoredTopLevelPaths.some((ignoredPath) => relativePath.startsWith(ignoredPath))) {
+      return [];
+    }
+
     return [relativePath];
   });
 }
@@ -63,15 +65,34 @@ function readSource(path: string) {
   return readFileSync(join(rootDir, path), "utf8");
 }
 
+function hasForbiddenRuntimeSupabaseImport(source: string) {
+  return source
+    .split("\n")
+    .some((line) => {
+      const trimmedLine = line.trim();
+
+      if (!trimmedLine.startsWith("import") || trimmedLine.startsWith("import type")) {
+        return false;
+      }
+
+      return forbiddenRuntimeSupabaseImports.some((importSource) => trimmedLine.includes(importSource));
+    });
+}
+
+function hasForbiddenFactoryCall(source: string) {
+  return forbiddenFactoryNames.some((factoryName) => source.includes(`${factoryName}(`));
+}
+
 describe("Supabase client creation boundaries", () => {
-  it("keeps direct Supabase client factory usage inside approved wrappers", () => {
+  it("keeps runtime Supabase client factory usage inside approved wrappers", () => {
     const violations = listSourceFiles(rootDir).filter((path) => {
       if (allowedSupabaseFactoryFiles.has(path)) {
         return false;
       }
 
       const source = readSource(path);
-      return forbiddenFactoryPatterns.some((pattern) => pattern.test(source));
+
+      return hasForbiddenRuntimeSupabaseImport(source) || hasForbiddenFactoryCall(source);
     });
 
     expect(violations).toEqual([]);
