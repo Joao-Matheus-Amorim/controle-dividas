@@ -3,6 +3,8 @@
 Issue: #496
 Coverage contract: #500
 Read-helper status update: #518
+Seed failure-path fix: #520
+Dashboard extraction status update: #532
 
 ## Goal
 
@@ -12,18 +14,18 @@ This audit reduces GAP-013 by defining safe module boundaries, tracking complete
 
 ## Current state
 
-`lib/finance/server.ts` has been reduced substantially, but GAP-013 is not fully closed.
+`lib/finance/server.ts` has been reduced substantially.
 
-It still owns the public compatibility façade and dashboard aggregation functions, while several focused helpers now live in dedicated modules.
+It still owns the public compatibility façade and orchestration for seed/profile/access/query calls, but relation helpers, seed helpers, read helpers, and the main finance dashboard aggregation helpers now live in dedicated modules.
 
 Current responsibilities still present in `lib/finance/server.ts`:
 
 - current user lookup and auth redirect helper;
 - initial seed façade via `seedInitialFinanceData()`;
 - public compatibility exports for finance read functions;
-- expense dashboard aggregation;
-- payable bill dashboard aggregation;
-- receivable income dashboard aggregation.
+- seed-before-read orchestration;
+- profile/access orchestration for dashboard data;
+- query orchestration that combines dedicated read helpers and dashboard aggregation helpers.
 
 Responsibilities already extracted from `lib/finance/server.ts`:
 
@@ -34,9 +36,12 @@ Responsibilities already extracted from `lib/finance/server.ts`:
 - expense category reads;
 - permission-filtered expense reads;
 - permission-filtered payable bill reads;
-- permission-filtered receivable income reads.
+- permission-filtered receivable income reads;
+- expense dashboard aggregation;
+- payable bill dashboard aggregation;
+- receivable income dashboard aggregation.
 
-This is no longer the same level of concentrated risk as the original audit, but dashboard aggregation and façade responsibilities still require careful follow-up.
+The remaining GAP-013 risk is no longer concentrated in raw read queries or dashboard calculations. It is now mainly the long-term compatibility façade/orchestration strategy for `lib/finance/server.ts`.
 
 ## Existing split evidence
 
@@ -52,7 +57,10 @@ The codebase already has focused server modules:
 - `lib/finance/categories-server.ts` for expense category reads;
 - `lib/finance/expenses-server.ts` for permission-filtered expense reads;
 - `lib/finance/payables-server.ts` for permission-filtered payable bill reads;
-- `lib/finance/receivables-server.ts` for permission-filtered receivable income reads.
+- `lib/finance/receivables-server.ts` for permission-filtered receivable income reads;
+- `lib/finance/expense-dashboard-server.ts` for expense dashboard aggregation;
+- `lib/finance/payable-dashboard-server.ts` for payable bill dashboard aggregation;
+- `lib/finance/receivable-dashboard-server.ts` for receivable income dashboard aggregation.
 
 That direction supports continuing to split by business boundary instead of adding more responsibilities to `server.ts`.
 
@@ -62,16 +70,16 @@ That direction supports continuing to split by business boundary instead of addi
 | --- | --- | --- | --- |
 | `lib/finance/relations.ts` | Shared relation normalization helpers. | Extracted. | Covered by focused unit tests for null, object, empty array, and array relation inputs. |
 | `lib/finance/seed-payloads.ts` | Initial default member/category seed payload builders. | Extracted. | Covered by focused unit tests for payload shape and duplicate-safe contract. |
-| `lib/finance/seed-server.ts` | Initial default seed upsert orchestration. | Extracted. | Covered by focused unit tests for table/upsert behavior. Seed error propagation remains a pending failure-path contract. |
+| `lib/finance/seed-server.ts` | Initial default seed upsert orchestration. | Extracted. | Covered by focused unit tests for table/upsert behavior and Supabase upsert error propagation. |
 | `lib/finance/members-server.ts` | Family member reads shared by finance modules. | Extracted. | Covered by focused unit tests for table, select fields, owner scope, ordering, null-data fallback, and error propagation. |
 | `lib/finance/categories-server.ts` | Expense category reads shared by expense flows. | Extracted. | Covered by focused unit tests for table, select fields, owner scope, name ordering, null-data fallback, and error propagation. |
 | `lib/finance/expenses-server.ts` | Permission-filtered expense reads. | Extracted. | Covered by focused unit tests for permission short-circuit, query shape, owner/member filters, ordering, relation normalization, null-data fallback, and error propagation. |
 | `lib/finance/payables-server.ts` | Permission-filtered payable bill reads. | Extracted. | Covered by focused unit tests for permission short-circuit, query shape, owner/member filters, ordering, relation normalization, `bill_type` fallback, null-data fallback, and error propagation. |
 | `lib/finance/receivables-server.ts` | Permission-filtered receivable income reads. | Extracted. | Covered by focused unit tests for permission short-circuit, query shape, owner/member filters, ordering, relation normalization, null-data fallback, and error propagation. |
-| Expense dashboard aggregation | Member filtering, totals, remaining limit, used percent, exceeded flag. | Pending. | Needs dedicated tests before extraction. |
-| Payable dashboard aggregation | Status enrichment, totals, counts, type buckets, member visibility. | Pending. | Needs dedicated tests before extraction. |
-| Receivable dashboard aggregation | Status enrichment, totals, counts, type buckets, member visibility. | Pending. | Needs dedicated tests before extraction. |
-| `lib/finance/server.ts` façade | Backward-compatible public exports and seed-before-read orchestration. | Still present. | Should remain until call sites are intentionally migrated or protected by compatibility tests. |
+| `lib/finance/expense-dashboard-server.ts` | Expense dashboard aggregation: member filtering, totals, remaining limit, used percent, exceeded flag. | Extracted. | Covered by façade-level dashboard contract tests and direct helper tests. |
+| `lib/finance/payable-dashboard-server.ts` | Payable dashboard aggregation: status enrichment, totals, counts, type buckets, member visibility. | Extracted. | Covered by façade-level dashboard contract tests and direct helper tests. |
+| `lib/finance/receivable-dashboard-server.ts` | Receivable dashboard aggregation: status enrichment, totals, counts, type buckets, member visibility. | Extracted. | Covered by façade-level dashboard contract tests and direct helper tests. |
+| `lib/finance/server.ts` façade | Backward-compatible public exports, seed-before-read orchestration, profile/access orchestration, and domain helper composition. | Still present. | Should remain until call sites are intentionally migrated or a final façade-retention decision is documented and protected. |
 
 ## Coverage rule
 
@@ -94,8 +102,8 @@ The following dependencies still make blind movement risky:
 - `seedInitialFinanceData()` is called by multiple public read functions;
 - `getCurrentUserId()` redirects unauthenticated users;
 - `getCurrentProfile()` and `getAccessibleMemberIds()` enforce permission-sensitive visibility;
-- dashboard aggregations depend on filtered member visibility;
-- dashboard aggregations depend on status enrichment rules;
+- dashboard façade functions depend on filtered member visibility;
+- dashboard façade functions depend on status enrichment rules inside extracted helpers;
 - relation normalization hides Supabase relation array/object differences.
 
 ## Safe split order
@@ -104,47 +112,50 @@ Completed:
 
 1. Extract relation normalization helpers with focused unit coverage.
 2. Extract seed payload helpers with focused unit coverage.
-3. Extract seed orchestration with focused unit coverage for the successful upsert path.
-4. Extract member/category read helpers with scoping/order coverage.
-5. Extract permission-filtered read helpers for expenses, payables, and receivables with query/permission/normalization coverage.
+3. Extract seed orchestration with focused unit coverage for successful upsert behavior.
+4. Add seed-server failure-path coverage and runtime propagation for Supabase upsert errors.
+5. Extract member/category read helpers with scoping/order coverage.
+6. Extract permission-filtered read helpers for expenses, payables, and receivables with query/permission/normalization coverage.
+7. Add façade-level expense dashboard aggregation coverage.
+8. Extract expense dashboard aggregation with direct helper coverage.
+9. Add façade-level payable dashboard aggregation coverage.
+10. Extract payable dashboard aggregation with direct helper coverage.
+11. Add façade-level receivable dashboard aggregation coverage and extract receivable dashboard aggregation with direct helper coverage.
 
 Remaining recommended order:
 
-1. Add seed-server failure-path coverage for Supabase upsert errors.
-2. Add or confirm dashboard aggregation coverage before moving dashboard code.
-3. Extract expense dashboard aggregation in a dedicated PR.
-4. Extract payable dashboard aggregation in a dedicated PR.
-5. Extract receivable dashboard aggregation in a dedicated PR.
-6. Reassess whether `lib/finance/server.ts` should remain as a compatibility façade or whether call sites should migrate to domain modules.
-7. Update this audit or the gap register only after each merge.
+1. Reassess whether `lib/finance/server.ts` should remain as a compatibility façade or whether call sites should migrate to domain modules.
+2. If retaining the façade, document the decision and add/keep façade contract coverage for exported orchestration behavior.
+3. If migrating call sites, do it by small route/domain PRs with explicit compatibility checks.
+4. Update this audit or the gap register only after each merge.
 
 ## Forbidden actions
 
 ```txt
-Do not split all finance server responsibilities in one PR.
+Do not split all remaining finance server responsibilities in one PR.
 Do not change query semantics while moving files.
 Do not rely only on TypeScript/build success as refactor proof.
-Do not move dashboard aggregation code without tests or guards.
+Do not move orchestration code without tests or guards.
 Do not mix server module extraction with RLS, schema, billing, UI, routes, or E2E work.
 Do not remove seed calls unless a replacement contract exists.
 Do not remove owner/access-control filters during movement.
-Do not claim GAP-013 is closed until dashboards and façade strategy are explicitly resolved.
+Do not claim GAP-013 is fully closed until the façade strategy is explicitly resolved.
 ```
 
 ## Acceptance criteria for future refactor PRs
 
-Each future extraction PR must:
+Each future extraction or façade-strategy PR must:
 
-- move only one boundary;
+- move or decide only one boundary;
 - keep public exports compatible or update imports explicitly;
 - preserve permission filters;
 - preserve dashboard aggregation semantics;
-- include tests or guards matching the moved boundary;
+- include tests or guards matching the moved/decided boundary;
 - pass lint, typecheck, build, and tests;
 - update this audit or gap register if the boundary status changes.
 
 ## Status
 
-GAP-013 is partially reduced, not fully closed.
+GAP-013 is largely reduced, but not formally closed.
 
-Completed read-helper extractions now have focused tests. Seed-server failure-path coverage is still pending. The remaining larger risk is concentrated in dashboard aggregation and the long-term compatibility façade strategy for `lib/finance/server.ts`.
+Completed read-helper, seed, seed failure-path, and dashboard aggregation extractions now have focused tests. The remaining decision is whether `lib/finance/server.ts` should stay as a compatibility façade/orchestrator or whether call sites should migrate to narrower domain modules.
