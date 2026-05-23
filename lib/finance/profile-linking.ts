@@ -12,7 +12,16 @@ export async function linkAuthUserToFamilyProfile({
     return { linked: false, reason: "missing_user_or_email" };
   }
 
-  const lookup = await findAuthorizedProfilesByEmail(email);
+  let lookup: Awaited<ReturnType<typeof findAuthorizedProfilesByEmail>>;
+
+  try {
+    lookup = await findAuthorizedProfilesByEmail(email);
+  } catch (error) {
+    return {
+      linked: false,
+      reason: error instanceof Error ? error.message : "authorized_profile_lookup_failed",
+    };
+  }
 
   if (lookup.status === "missing_email") {
     return { linked: false, reason: "missing_user_or_email" };
