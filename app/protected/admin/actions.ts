@@ -8,6 +8,11 @@ import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
+export type FamilyUserActionState = {
+  error?: string;
+  success?: string;
+};
+
 function normalizeScope(value: FormDataEntryValue | null): PermissionScope {
   if (value === "selected" || value === "family") {
     return value;
@@ -80,8 +85,8 @@ function getDefaultPermissionForAccessModel(accessModel: string, module: Finance
   return {
     can_view: module === "DASHBOARD",
     can_create: false,
-    can_edit: false,
     can_delete: false,
+    can_edit: false,
     scope: "own" as PermissionScope,
   };
 }
@@ -295,19 +300,22 @@ export async function createFamilyUser(
   return { success: "Acesso familiar cadastrado com sucesso." };
 }
 
-export async function updateFamilyUser(formData: FormData) {
+export async function updateFamilyUser(formData: FormData): Promise<FamilyUserActionState> {
   const id = String(formData.get("id") ?? "");
   const name = String(formData.get("name") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const linkedFamilyMemberId = String(formData.get("linked_family_member_id") ?? "");
 
-  if (!id || !name || !email || !linkedFamilyMemberId) return;
+  if (!id) return { error: "Acesso familiar nao encontrado." };
+  if (!name) return { error: "Informe o nome do acesso familiar." };
+  if (!email) return { error: "Informe o email de acesso." };
+  if (!linkedFamilyMemberId) return { error: "Selecione o membro da familia vinculado a este acesso." };
 
   const supabase = await createClient();
   const adminProfile = await ensureAdminProfile();
   const { organization } = await requireOrganizationAccess();
 
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("id, role")
     .eq("id", id)
@@ -315,7 +323,9 @@ export async function updateFamilyUser(formData: FormData) {
     .or(organizationOrLegacyFilter(organization.id))
     .maybeSingle();
 
-  if (!profile || profile.role === "admin") return;
+  if (profileError) return { error: profileError.message };
+  if (!profile) return { error: "Acesso familiar nao encontrado." };
+  if (profile.role === "admin") return { error: "Nao e possivel editar o Admin familiar por esta acao." };
 
   try {
     await ensureUniqueEmail({
@@ -331,32 +341,42 @@ export async function updateFamilyUser(formData: FormData) {
       ignoreProfileId: id,
     });
     await ensureMemberBelongsToOrganization(adminProfile.owner_id, organization.id, linkedFamilyMemberId);
-  } catch {
-    return;
+  } catch (error) {
+    return {
+      error: error instanceof Error ? error.message : "Nao foi possivel validar o acesso familiar.",
+    };
   }
 
-  await supabase
+  const { error } = await supabase
     .from("profiles")
     .update({ name, email, linked_family_member_id: linkedFamilyMemberId, organization_id: organization.id })
     .eq("id", id)
     .eq("owner_id", adminProfile.owner_id)
     .or(organizationOrLegacyFilter(organization.id));
 
+  if (error) return { error: error.message };
+
   revalidatePath("/protected/admin");
   revalidatePath("/protected/admin/usuarios");
   revalidatePath("/protected/admin/permissoes");
+
+  return { success: "Acesso familiar atualizado com sucesso." };
 }
 
-export async function syncFamilyUserAuthLink(formData: FormData) {
+export async function updateFamilyUserFormAction(formData: FormData): Promise<void> {
+  await updateFamilyUser(formData);
+}
+
+export async function syncFamilyUserAuthLink(formData: FormData): Promise<FamilyUserActionState> {
   const id = String(formData.get("id") ?? "");
 
-  if (!id) return;
+  if (!id) return { error: "Acesso familiar nao encontrado." };
 
   const supabase = await createClient();
   const adminProfile = await ensureAdminProfile();
   const { organization } = await requireOrganizationAccess();
 
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("id, owner_id, email, role")
     .eq("id", id)
@@ -364,41 +384,53 @@ export async function syncFamilyUserAuthLink(formData: FormData) {
     .or(organizationOrLegacyFilter(organization.id))
     .maybeSingle();
 
-  if (!profile?.email || profile.role === "admin") return;
+  if (profileError) return { error: profileError.message };
+  if (!profile?.email) return { error: "Acesso familiar nao encontrado ou sem email." };
+  if (profile.role === "admin") return { error: "Nao e possivel sincronizar o Admin familiar por esta acao." };
 
   const authUserId = await findAuthUserIdByEmail(profile.email);
 
-  if (!authUserId) return;
+  if (!authUserId) return { error: "Nenhum usuario autenticado encontrado para este email." };
 
-  await supabase
+  const { error: clearLinkError } = await supabase
     .from("profiles")
     .update({ auth_user_id: null })
     .eq("owner_id", adminProfile.owner_id)
     .or(organizationOrLegacyFilter(organization.id))
     .eq("auth_user_id", authUserId);
 
-  await supabase
+  if (clearLinkError) return { error: clearLinkError.message };
+
+  const { error: linkError } = await supabase
     .from("profiles")
     .update({ auth_user_id: authUserId, organization_id: organization.id })
     .eq("id", profile.id)
     .eq("owner_id", adminProfile.owner_id)
     .or(organizationOrLegacyFilter(organization.id));
 
+  if (linkError) return { error: linkError.message };
+
   revalidatePath("/protected/admin");
   revalidatePath("/protected/admin/usuarios");
   revalidatePath("/protected/admin/permissoes");
   revalidatePath("/protected");
+
+  return { success: "Login sincronizado com sucesso." };
 }
 
-export async function deleteFamilyUser(formData: FormData) {
+export async function syncFamilyUserAuthLinkFormAction(formData: FormData): Promise<void> {
+  await syncFamilyUserAuthLink(formData);
+}
+
+export async function deleteFamilyUser(formData: FormData): Promise<FamilyUserActionState> {
   const id = String(formData.get("id") ?? "");
-  if (!id) return;
+  if (!id) return { error: "Acesso familiar nao encontrado." };
 
   const supabase = await createClient();
   const adminProfile = await ensureAdminProfile();
   const { organization } = await requireOrganizationAccess();
 
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("id, role")
     .eq("id", id)
@@ -406,40 +438,70 @@ export async function deleteFamilyUser(formData: FormData) {
     .or(organizationOrLegacyFilter(organization.id))
     .maybeSingle();
 
-  if (!profile || profile.role === "admin") return;
+  if (profileError) return { error: profileError.message };
+  if (!profile) return { error: "Acesso familiar nao encontrado." };
+  if (profile.role === "admin") return { error: "Nao e possivel excluir o Admin familiar." };
 
-  await supabase
+  const { error } = await supabase
     .from("profiles")
     .delete()
     .eq("id", id)
     .eq("owner_id", adminProfile.owner_id)
     .or(organizationOrLegacyFilter(organization.id));
 
+  if (error) return { error: error.message };
+
   revalidatePath("/protected/admin");
   revalidatePath("/protected/admin/usuarios");
   revalidatePath("/protected/admin/permissoes");
+
+  return { success: "Acesso familiar excluido com sucesso." };
 }
 
-export async function toggleFamilyUserStatus(formData: FormData) {
+export async function deleteFamilyUserFormAction(formData: FormData): Promise<void> {
+  await deleteFamilyUser(formData);
+}
+
+export async function toggleFamilyUserStatus(formData: FormData): Promise<FamilyUserActionState> {
   const id = String(formData.get("id") ?? "");
   const isActive = String(formData.get("is_active") ?? "true") === "true";
 
-  if (!id) return;
+  if (!id) return { error: "Acesso familiar nao encontrado." };
 
   const supabase = await createClient();
   const adminProfile = await ensureAdminProfile();
   const { organization } = await requireOrganizationAccess();
 
-  await supabase
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("id, role")
+    .eq("id", id)
+    .eq("owner_id", adminProfile.owner_id)
+    .or(organizationOrLegacyFilter(organization.id))
+    .maybeSingle();
+
+  if (profileError) return { error: profileError.message };
+  if (!profile) return { error: "Acesso familiar nao encontrado." };
+  if (profile.role === "admin") return { error: "Nao e possivel alterar o status do Admin familiar." };
+
+  const { error } = await supabase
     .from("profiles")
     .update({ is_active: !isActive, organization_id: organization.id })
     .eq("id", id)
     .eq("owner_id", adminProfile.owner_id)
     .or(organizationOrLegacyFilter(organization.id));
 
+  if (error) return { error: error.message };
+
   revalidatePath("/protected/admin");
   revalidatePath("/protected/admin/usuarios");
   revalidatePath("/protected/admin/permissoes");
+
+  return { success: isActive ? "Acesso familiar desativado com sucesso." : "Acesso familiar ativado com sucesso." };
+}
+
+export async function toggleFamilyUserStatusFormAction(formData: FormData): Promise<void> {
+  await toggleFamilyUserStatus(formData);
 }
 
 export async function saveProfilePermissions(
