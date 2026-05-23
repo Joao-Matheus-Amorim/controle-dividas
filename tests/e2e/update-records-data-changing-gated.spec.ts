@@ -70,6 +70,7 @@ test.describe("data-changing update records E2E contract", () => {
     await page.getByRole("button", { name: "Cadastrar banco" }).click();
 
     await expect(page.getByText("Banco cadastrado com sucesso.")).toBeVisible({ timeout: 15_000 });
+    await page.goto("/protected/bancos");
     await expect(page.getByText(initialAccountName, { exact: true })).toBeVisible({ timeout: 15_000 });
 
     const accountCard = page
