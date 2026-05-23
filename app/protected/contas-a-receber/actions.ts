@@ -304,6 +304,13 @@ export async function updateReceivableIncomeStatus(
   }
 }
 
+export async function updateReceivableIncomeStatusWithState(
+  _prevState: ReceivableIncomeActionState,
+  formData: FormData,
+): Promise<ReceivableIncomeActionState> {
+  return updateReceivableIncomeStatus(formData);
+}
+
 export async function updateReceivableIncomeStatusFormAction(formData: FormData): Promise<void> {
   await updateReceivableIncomeStatus(formData);
 }
@@ -344,6 +351,13 @@ export async function deleteReceivableIncome(
           : "Nao foi possivel excluir este recebimento.",
     };
   }
+}
+
+export async function deleteReceivableIncomeWithState(
+  _prevState: ReceivableIncomeActionState,
+  formData: FormData,
+): Promise<ReceivableIncomeActionState> {
+  return deleteReceivableIncome(formData);
 }
 
 export async function deleteReceivableIncomeFormAction(formData: FormData): Promise<void> {
