@@ -9,7 +9,6 @@ const mockState = vi.hoisted(() => ({
 
 function makeProfilesQuery() {
   const filters: Record<string, unknown> = {};
-  let selectedLimit: number | null = null;
   let updatePayload: Record<string, unknown> | null = null;
 
   const query = {
@@ -31,9 +30,8 @@ function makeProfilesQuery() {
       return query;
     },
     limit(value: number) {
-      selectedLimit = value;
       return Promise.resolve({
-        data: mockState.profiles.slice(0, selectedLimit),
+        data: mockState.profiles.slice(0, value),
         error: mockState.selectError,
       });
     },
