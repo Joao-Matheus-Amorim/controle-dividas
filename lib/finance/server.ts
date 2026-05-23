@@ -1,11 +1,11 @@
 import { redirect } from "next/navigation";
 
 import { getAccessibleMemberIds, getCurrentProfile } from "@/lib/finance/access-control";
-import {
-  defaultExpenseCategories,
-  defaultFamilyMembers,
-} from "@/lib/finance/default-seed-data";
 import { firstRelation, type MaybeArray } from "@/lib/finance/relations";
+import {
+  buildDefaultExpenseCategorySeedRows,
+  buildDefaultFamilyMemberSeedRows,
+} from "@/lib/finance/seed-payloads";
 import type {
   DbExpense,
   DbExpenseCategory,
@@ -80,23 +80,12 @@ export async function seedInitialFinanceData() {
   const ownerId = await getCurrentUserId();
 
   await supabase.from("family_members").upsert(
-    defaultFamilyMembers.map((member) => ({
-      owner_id: ownerId,
-      name: member.name,
-      role: member.role,
-      monthly_limit: member.monthlyLimit,
-      currency: member.currency,
-      is_active: true,
-    })),
+    buildDefaultFamilyMemberSeedRows(ownerId),
     { onConflict: "owner_id,name", ignoreDuplicates: true },
   );
 
   await supabase.from("expense_categories").upsert(
-    defaultExpenseCategories.map((category) => ({
-      owner_id: ownerId,
-      name: category.name,
-      is_default: true,
-    })),
+    buildDefaultExpenseCategorySeedRows(ownerId),
     { onConflict: "owner_id,name", ignoreDuplicates: true },
   );
 }
