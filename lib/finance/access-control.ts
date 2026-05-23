@@ -106,13 +106,19 @@ async function getProfileByAuthorizedEmail(email: string | null) {
     .from("profiles")
     .select("id, owner_id, organization_id, auth_user_id, linked_family_member_id, name, email, role, is_active")
     .ilike("email", normalizedEmail)
-    .maybeSingle();
+    .limit(2);
 
   if (error) {
     throw new Error(error.message);
   }
 
-  return data as CurrentProfile | null;
+  const profiles = (data ?? []) as CurrentProfile[];
+
+  if (profiles.length > 1) {
+    throw new Error("duplicate_authorized_email");
+  }
+
+  return profiles[0] ?? null;
 }
 
 export async function getCurrentProfile() {
@@ -125,7 +131,17 @@ export async function getCurrentProfile() {
     return existingProfile;
   }
 
-  const authorizedProfile = await getProfileByAuthorizedEmail(user.email);
+  let authorizedProfile: CurrentProfile | null = null;
+
+  try {
+    authorizedProfile = await getProfileByAuthorizedEmail(user.email);
+  } catch (error) {
+    if (error instanceof Error && error.message === "duplicate_authorized_email") {
+      redirect("/auth/error?error=Este email esta autorizado em mais de uma organizacao. Fale com o Admin familiar para corrigir o acesso.");
+    }
+
+    throw error;
+  }
 
   if (authorizedProfile) {
     if (!authorizedProfile.is_active) {
