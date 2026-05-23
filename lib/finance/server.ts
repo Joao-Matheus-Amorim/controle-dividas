@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 
 import { getAccessibleMemberIds, getCurrentProfile } from "@/lib/finance/access-control";
 import { getExpenseCategoriesByOwner } from "@/lib/finance/categories-server";
+import { getExpensesForCurrentProfile } from "@/lib/finance/expenses-server";
 import { getFamilyMembersByOwner } from "@/lib/finance/members-server";
 import { firstRelation, type MaybeArray } from "@/lib/finance/relations";
 import { seedInitialFinanceDataForOwner } from "@/lib/finance/seed-server";
@@ -27,11 +28,6 @@ export type {
   ReceivableIncomeFormState,
 } from "@/lib/finance/types";
 
-type RawExpense = Omit<DbExpense, "family_members" | "expense_categories"> & {
-  family_members: MaybeArray<Pick<DbFamilyMember, "id" | "name" | "monthly_limit">>;
-  expense_categories: MaybeArray<Pick<DbExpenseCategory, "id" | "name">>;
-};
-
 type RawPayableBill = Omit<DbPayableBill, "family_members"> & {
   family_members: MaybeArray<Pick<DbFamilyMember, "id" | "name">>;
 };
@@ -49,14 +45,6 @@ async function getCurrentUserId() {
   }
 
   return String(data.claims.sub);
-}
-
-function normalizeExpense(expense: RawExpense): DbExpense {
-  return {
-    ...expense,
-    family_members: firstRelation(expense.family_members),
-    expense_categories: firstRelation(expense.expense_categories),
-  };
 }
 
 function normalizePayableBill(bill: RawPayableBill): DbPayableBill {
@@ -103,29 +91,7 @@ export async function getExpenseCategories() {
 export async function getExpenses() {
   await seedInitialFinanceData();
 
-  const supabase = await createClient();
-  const profile = await getCurrentProfile();
-  const accessibleMemberIds = await getAccessibleMemberIds("GASTOS", "can_view");
-
-  if (accessibleMemberIds.length === 0) {
-    return [];
-  }
-
-  const { data, error } = await supabase
-    .from("expenses")
-    .select(
-      "id, owner_id, family_member_id, category_id, expense_date, description, purchase_location, amount, payment_method, bank_or_card, notes, created_at, family_members(id, name, monthly_limit), expense_categories(id, name)",
-    )
-    .eq("owner_id", profile.owner_id)
-    .in("family_member_id", accessibleMemberIds)
-    .order("expense_date", { ascending: false })
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  return ((data ?? []) as RawExpense[]).map(normalizeExpense);
+  return getExpensesForCurrentProfile();
 }
 
 export async function getExpenseDashboardData() {
