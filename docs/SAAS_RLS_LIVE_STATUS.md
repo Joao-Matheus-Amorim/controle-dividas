@@ -4,7 +4,7 @@ Issue: #224
 
 ## 1. Objetivo
 
-Este documento registra o estado vivo atual da transicao SaaS multi-tenant do FamilyFinance apos a conclusao do bloco principal de RLS financeira e do onboarding inicial por RPC transacional.
+Este documento registra o estado vivo atual da transicao SaaS multi-tenant do FamilyFinance apos a conclusao do bloco principal de RLS financeira, do onboarding inicial por RPC transacional e da evolucao da cobertura Playwright/E2E gated.
 
 Ele complementa o `README.md` sem apagar o historico e sem substituir documentos PMBOK ja existentes.
 
@@ -13,7 +13,7 @@ Ele complementa o `README.md` sem apagar o historico e sem substituir documentos
 O projeto esta em modo:
 
 ```txt
-SaaS multi-tenant transicional com RLS financeira principal aplicada e onboarding inicial transacional.
+SaaS multi-tenant transicional com RLS financeira principal aplicada, onboarding inicial transacional e cobertura E2E principal gated.
 ```
 
 Isso significa:
@@ -23,12 +23,12 @@ Isso significa:
 - principais modulos financeiros usam organization-aware queries/actions;
 - RLS financeira principal ja foi migrada para organization-aware com fallback legado;
 - o onboarding inicial cria organization, owner membership e profile/link por RPC transacional autenticada;
+- Playwright/E2E possui cobertura versionada para public/auth smoke, rotas protegidas, contratos autenticados gated, permission-sensitive gated e fluxos data-changing com cleanup;
 - `owner_id` ainda existe e continua sendo usado como compatibilidade;
 - `organization_id` ainda e nullable;
 - rotas por `orgSlug` ainda nao existem;
 - selector de organizacao ainda nao existe;
-- billing/Stripe ainda nao foi implementado;
-- Playwright/E2E ainda nao foi implementado.
+- billing/Stripe ainda nao foi implementado.
 
 ## 3. Migrations SaaS/RLS atuais
 
@@ -150,29 +150,49 @@ RLS_TEST_USER_B_PASSWORD
 
 No CI comum, sem `RUN_RLS_TESTS=true`, as suites reais ficam desativadas para nao tocar Supabase externo.
 
-## 7. Validacao operacional recente
+## 7. Playwright/E2E versionado
 
-Gates locais recentes do fluxo de onboarding/RPC:
+A cobertura Playwright/E2E principal ja foi adicionada e documentada em `docs/e2e/PLAYWRIGHT_COVERAGE_ROADMAP.md`.
 
-- `npm run typecheck`;
+Blocos atualmente cobertos no roadmap:
+
+- public/auth smoke;
+- protected unauthenticated redirects;
+- onboarding e active organization gated;
+- protected app shell e rotas protegidas principais gated;
+- rotas admin gated;
+- limited-user hidden navigation e direct route denial gated;
+- data-changing flows gated com cleanup-backed coverage para create, update e remaining record lifecycle.
+
+Observacoes importantes:
+
+- fluxos autenticados e data-changing continuam skipped-by-default;
+- fluxos data-changing dependem de flags explicitas e cleanup documentado;
+- essa cobertura nao significa RLS final, billing, rotas por `orgSlug`, selector de organizacao ou schema final.
+
+## 8. Validacao operacional recente
+
+Gates do CI comum:
+
+- validacao de ambiente obrigatorio;
+- `npm ci`;
+- `npm audit --audit-level=moderate`;
 - `npm run lint`;
-- `npm run test -- __tests__/unit/onboarding-route-shell-guards.test.ts`;
-- `RUN_RLS_TESTS=false npm run test`;
-- `npm run build`.
+- `npm run typecheck`;
+- `npm run build`;
+- `npm run test`.
 
-Validacao recente informada:
+Validacao recente informada no gate comum:
 
 ```txt
-46 arquivos de teste passaram
-180 testes passaram
-10 testes RLS reais ficaram skipped no gate comum
+Suites unitarias, integracao, guards arquiteturais e testes RLS reais skipped-by-default rodam no CI comum.
+Suites Playwright autenticadas/data-changing permanecem gated e nao rodam por padrao sem contrato de ambiente.
 ```
 
-## 8. O que ainda nao esta pronto
+## 9. O que ainda nao esta pronto
 
 Ainda nao foi feito:
 
-- Playwright/E2E;
 - RLS Live Gate separado em CI com ambiente Supabase dedicado;
 - admin multi-org pleno;
 - UX de organization ativa com selector;
@@ -182,22 +202,21 @@ Ainda nao foi feito:
 - remocao de `owner_id`;
 - down migrations automatizadas.
 
-## 9. Proximos passos recomendados
+## 10. Proximos passos recomendados
 
 Ordem segura:
 
 1. aplicar e validar a migration `019` em cada ambiente Supabase;
-2. adicionar typecheck explicito no CI;
-3. adicionar fundacao Playwright;
-4. cobrir onboarding inicial com E2E;
-5. auditar e aposentar helpers owner-only por etapas;
-6. criar RLS Live Gate separado;
-7. planejar UX de organization ativa;
-8. so depois pensar em rotas por `orgSlug`;
-9. billing apenas depois de isolamento/UX estarem maduros;
-10. `organization_id NOT NULL` e remocao de `owner_id` apenas em gate futuro.
+2. manter CI comum verde com lint, typecheck, build e testes;
+3. continuar reconciliando documentacao quando blocos de E2E/RLS mudarem;
+4. auditar e aposentar helpers owner-only por etapas;
+5. criar RLS Live Gate separado;
+6. planejar UX de organization ativa;
+7. so depois pensar em rotas por `orgSlug`;
+8. billing apenas depois de isolamento/UX estarem maduros;
+9. `organization_id NOT NULL` e remocao de `owner_id` apenas em gate futuro.
 
-## 10. Regra de manutencao
+## 11. Regra de manutencao
 
 Daqui para frente, o README deve ser atualizado de forma enxuta e apontar para este documento quando o assunto for status SaaS/RLS.
 
