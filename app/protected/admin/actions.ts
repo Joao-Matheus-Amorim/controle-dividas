@@ -85,8 +85,8 @@ function getDefaultPermissionForAccessModel(accessModel: string, module: Finance
   return {
     can_view: module === "DASHBOARD",
     can_create: false,
-    can_edit: false,
     can_delete: false,
+    can_edit: false,
     scope: "own" as PermissionScope,
   };
 }
@@ -363,6 +363,10 @@ export async function updateFamilyUser(formData: FormData): Promise<FamilyUserAc
   return { success: "Acesso familiar atualizado com sucesso." };
 }
 
+export async function updateFamilyUserFormAction(formData: FormData): Promise<void> {
+  await updateFamilyUser(formData);
+}
+
 export async function syncFamilyUserAuthLink(formData: FormData): Promise<FamilyUserActionState> {
   const id = String(formData.get("id") ?? "");
 
@@ -414,6 +418,10 @@ export async function syncFamilyUserAuthLink(formData: FormData): Promise<Family
   return { success: "Login sincronizado com sucesso." };
 }
 
+export async function syncFamilyUserAuthLinkFormAction(formData: FormData): Promise<void> {
+  await syncFamilyUserAuthLink(formData);
+}
+
 export async function deleteFamilyUser(formData: FormData): Promise<FamilyUserActionState> {
   const id = String(formData.get("id") ?? "");
   if (!id) return { error: "Acesso familiar nao encontrado." };
@@ -448,6 +456,10 @@ export async function deleteFamilyUser(formData: FormData): Promise<FamilyUserAc
   revalidatePath("/protected/admin/permissoes");
 
   return { success: "Acesso familiar excluido com sucesso." };
+}
+
+export async function deleteFamilyUserFormAction(formData: FormData): Promise<void> {
+  await deleteFamilyUser(formData);
 }
 
 export async function toggleFamilyUserStatus(formData: FormData): Promise<FamilyUserActionState> {
@@ -486,6 +498,10 @@ export async function toggleFamilyUserStatus(formData: FormData): Promise<Family
   revalidatePath("/protected/admin/permissoes");
 
   return { success: isActive ? "Acesso familiar desativado com sucesso." : "Acesso familiar ativado com sucesso." };
+}
+
+export async function toggleFamilyUserStatusFormAction(formData: FormData): Promise<void> {
+  await toggleFamilyUserStatus(formData);
 }
 
 export async function saveProfilePermissions(
