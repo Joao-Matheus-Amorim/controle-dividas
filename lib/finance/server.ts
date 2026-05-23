@@ -5,6 +5,7 @@ import {
   defaultExpenseCategories,
   defaultFamilyMembers,
 } from "@/lib/finance/default-seed-data";
+import { firstRelation, type MaybeArray } from "@/lib/finance/relations";
 import type {
   DbExpense,
   DbExpenseCategory,
@@ -26,8 +27,6 @@ export type {
   PayableBillType,
   ReceivableIncomeFormState,
 } from "@/lib/finance/types";
-
-type MaybeArray<T> = T | T[] | null;
 
 type RawExpense = Omit<DbExpense, "family_members" | "expense_categories"> & {
   family_members: MaybeArray<Pick<DbFamilyMember, "id" | "name" | "monthly_limit">>;
@@ -51,10 +50,6 @@ async function getCurrentUserId() {
   }
 
   return String(data.claims.sub);
-}
-
-function firstRelation<T>(relation: MaybeArray<T>): T | null {
-  return Array.isArray(relation) ? relation[0] ?? null : relation;
 }
 
 function normalizeExpense(expense: RawExpense): DbExpense {
