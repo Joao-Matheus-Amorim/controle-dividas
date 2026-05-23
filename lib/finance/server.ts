@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 
 import { getAccessibleMemberIds, getCurrentProfile } from "@/lib/finance/access-control";
 import { getExpenseCategoriesByOwner } from "@/lib/finance/categories-server";
+import { buildExpenseDashboardData } from "@/lib/finance/expense-dashboard-server";
 import { getExpensesForCurrentProfile } from "@/lib/finance/expenses-server";
 import { getFamilyMembersByOwner } from "@/lib/finance/members-server";
 import { getPayableBillsForCurrentProfile } from "@/lib/finance/payables-server";
@@ -76,35 +77,12 @@ export async function getExpenseDashboardData() {
     getExpenses(),
   ]);
 
-  const members = allMembers
-    .filter((member) => member.is_active)
-    .filter((member) => accessibleMemberIds.includes(member.id));
-
-  const memberSummaries = members.map((member) => {
-    const spent = expenses
-      .filter((expense) => expense.family_member_id === member.id)
-      .reduce((total, expense) => total + Number(expense.amount), 0);
-
-    const monthlyLimit = Number(member.monthly_limit);
-    const remaining = monthlyLimit - spent;
-    const usedPercent = monthlyLimit > 0 ? (spent / monthlyLimit) * 100 : 0;
-
-    return {
-      ...member,
-      spent,
-      remaining,
-      usedPercent,
-      exceeded: remaining < 0,
-    };
-  });
-
-  return {
-    members,
+  return buildExpenseDashboardData({
+    allMembers,
     categories,
     expenses,
-    memberSummaries,
-    totalExpenses: expenses.reduce((total, expense) => total + Number(expense.amount), 0),
-  };
+    accessibleMemberIds,
+  });
 }
 
 export async function getPayableBills() {
