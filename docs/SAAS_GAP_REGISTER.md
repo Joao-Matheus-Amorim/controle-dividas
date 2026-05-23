@@ -40,7 +40,6 @@ A gap is not solved until a small PR is merged with green CI and the related doc
 | GAP-009 | Schema hardening | `organization_id NOT NULL` is not safe yet. | Prove backfill, inserts, RLS readiness, and rollback first. |
 | GAP-010 | Documentation freshness | Audits can become stale after implementation PRs. | Reconcile docs after each merged implementation PR. |
 | GAP-011 | UI contracts | Critical finance UI components do not yet have explicit contract or snapshot-style coverage. | Start with one representative critical component and add non-brittle contract coverage before broad expansion. |
-| GAP-013 | Finance server size | `lib/finance/server.ts` is large enough to risk accumulating unrelated server responsibilities. | Audit responsibilities and split only where a clear boundary is proven. |
 | GAP-014 | One active membership | The current one-active-membership model limits multi-organization use cases and must be explicit as product behavior. | Define the active organization UX/product contract before changing membership rules. |
 | GAP-015 | Sensitive operation controls | Rate limiting, sensitive-action audit logging, and data retention policies are not yet documented as implemented controls. | Create planning issues for rate limits, audit events, and retention policy before runtime work. |
 | GAP-016 | Onboarding terminology | The onboarding path and wording expose organization terminology that can feel abstract for personal/family finance users. | Define product copy and UX contract before UI changes. |
@@ -53,6 +52,7 @@ A gap is not solved until a small PR is merged with green CI and the related doc
 | ID | Area | Closed by | Notes |
 | --- | --- | --- | --- |
 | GAP-012 | Supabase proxy coverage | #488, #489, #490, #493, #494 | Covered by proxy entrypoint guard and Supabase client factory boundary guard. This does not claim final RLS hardening or final tenant-isolation readiness. |
+| GAP-013 | Finance server size | #496, #500, #518, #520, #522, #524, #526, #528, #530, #532, #534 | Resolved by extracting relation, seed, read-helper, and dashboard aggregation boundaries; adding failure-path coverage; documenting ADR 0006; and protecting `lib/finance/server.ts` as an intentional compatibility façade/orchestrator with guard coverage. |
 
 ## Next recommended risk
 
@@ -60,7 +60,7 @@ GAP-001 is the next recommended risk: define active organization and multiple-or
 
 GAP-011 is also a product-quality risk and should be handled as a focused test-hardening track before major UI redesigns.
 
-GAP-013 through GAP-019 came from external review and must be handled as separate issue/PR cycles before implementation.
+GAP-014 through GAP-019 came from external review and must be handled as separate issue/PR cycles before implementation.
 
 Reason:
 
