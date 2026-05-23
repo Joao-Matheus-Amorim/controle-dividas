@@ -57,7 +57,7 @@ describe("payable dashboard aggregation helper", () => {
       }),
       createBill({
         id: "overdue-bill",
-        amount: "250.50",
+        amount: 250.5,
         due_date: "2000-01-01",
         status: "pendente",
         bill_type: "fixa",
