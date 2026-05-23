@@ -19,6 +19,11 @@ type FamilyMemberSupabaseClient = {
   from(table: "family_members"): FamilyMemberQueryBuilder;
 };
 
+async function createFamilyMemberClient(): Promise<FamilyMemberSupabaseClient> {
+  const supabase = await createClient();
+  return supabase as never;
+}
+
 export async function getFamilyMembersByOwnerFromClient(
   supabase: FamilyMemberSupabaseClient,
   ownerId: string,
@@ -37,6 +42,6 @@ export async function getFamilyMembersByOwnerFromClient(
 }
 
 export async function getFamilyMembersByOwner(ownerId: string) {
-  const supabase = await createClient();
+  const supabase = await createFamilyMemberClient();
   return getFamilyMembersByOwnerFromClient(supabase, ownerId);
 }
