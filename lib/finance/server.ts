@@ -4,11 +4,11 @@ import { getAccessibleMemberIds, getCurrentProfile } from "@/lib/finance/access-
 import { getExpenseCategoriesByOwner } from "@/lib/finance/categories-server";
 import { getExpensesForCurrentProfile } from "@/lib/finance/expenses-server";
 import { getFamilyMembersByOwner } from "@/lib/finance/members-server";
+import { getPayableBillsForCurrentProfile } from "@/lib/finance/payables-server";
 import { firstRelation, type MaybeArray } from "@/lib/finance/relations";
 import { seedInitialFinanceDataForOwner } from "@/lib/finance/seed-server";
 import type {
   DbFamilyMember,
-  DbPayableBill,
   DbReceivableIncome,
 } from "@/lib/finance/types";
 import { createClient } from "@/lib/supabase/server";
@@ -26,10 +26,6 @@ export type {
   ReceivableIncomeFormState,
 } from "@/lib/finance/types";
 
-type RawPayableBill = Omit<DbPayableBill, "family_members"> & {
-  family_members: MaybeArray<Pick<DbFamilyMember, "id" | "name">>;
-};
-
 type RawReceivableIncome = Omit<DbReceivableIncome, "family_members"> & {
   family_members: MaybeArray<Pick<DbFamilyMember, "id" | "name">>;
 };
@@ -43,14 +39,6 @@ async function getCurrentUserId() {
   }
 
   return String(data.claims.sub);
-}
-
-function normalizePayableBill(bill: RawPayableBill): DbPayableBill {
-  return {
-    ...bill,
-    bill_type: bill.bill_type ?? "avulsa",
-    family_members: firstRelation(bill.family_members),
-  };
 }
 
 function normalizeReceivableIncome(income: RawReceivableIncome): DbReceivableIncome {
@@ -137,29 +125,7 @@ export async function getExpenseDashboardData() {
 export async function getPayableBills() {
   await seedInitialFinanceData();
 
-  const supabase = await createClient();
-  const profile = await getCurrentProfile();
-  const accessibleMemberIds = await getAccessibleMemberIds("CONTAS_A_PAGAR", "can_view");
-
-  if (accessibleMemberIds.length === 0) {
-    return [];
-  }
-
-  const { data, error } = await supabase
-    .from("payable_bills")
-    .select(
-      "id, owner_id, name, category, amount, due_date, responsible_member_id, status, bill_type, bank_used, recurrence, notes, created_at, family_members(id, name)",
-    )
-    .eq("owner_id", profile.owner_id)
-    .in("responsible_member_id", accessibleMemberIds)
-    .order("due_date", { ascending: true })
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  return ((data ?? []) as RawPayableBill[]).map(normalizePayableBill);
+  return getPayableBillsForCurrentProfile();
 }
 
 export async function getPayableBillsDashboardData() {
