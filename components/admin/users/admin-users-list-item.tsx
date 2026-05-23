@@ -1,8 +1,8 @@
 import {
-  deleteFamilyUser,
-  syncFamilyUserAuthLink,
-  toggleFamilyUserStatus,
-  updateFamilyUser,
+  deleteFamilyUserFormAction,
+  syncFamilyUserAuthLinkFormAction,
+  toggleFamilyUserStatusFormAction,
+  updateFamilyUserFormAction,
 } from "@/app/protected/admin/actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -43,7 +43,7 @@ export function AdminUsersListItem({ profile, adminProfileId, members }: AdminUs
 
         <div className="flex flex-wrap items-center gap-2 md:justify-end">
           {!isCurrentAdmin && !profile.auth_user_id ? (
-            <form action={syncFamilyUserAuthLink}>
+            <form action={syncFamilyUserAuthLinkFormAction}>
               <input type="hidden" name="id" value={profile.id} />
               <Button type="submit" variant="outline" className="h-9 rounded-xl border-[#8b72f8]/30 bg-[#8b72f8]/10 text-[#b09cff] hover:bg-[#8b72f8]/20">
                 <Link2 className="mr-2 h-4 w-4" />
@@ -52,7 +52,7 @@ export function AdminUsersListItem({ profile, adminProfileId, members }: AdminUs
             </form>
           ) : null}
 
-          <form action={toggleFamilyUserStatus}>
+          <form action={toggleFamilyUserStatusFormAction}>
             <input type="hidden" name="id" value={profile.id} />
             <input type="hidden" name="is_active" value={String(profile.is_active)} />
             <Button type="submit" variant="outline" disabled={isCurrentAdmin} className="h-9 rounded-xl border-white/10 bg-transparent text-white/60 hover:bg-white/10 hover:text-white disabled:opacity-40">
@@ -61,7 +61,7 @@ export function AdminUsersListItem({ profile, adminProfileId, members }: AdminUs
           </form>
 
           {!isCurrentAdmin ? (
-            <form action={deleteFamilyUser}>
+            <form action={deleteFamilyUserFormAction}>
               <input type="hidden" name="id" value={profile.id} />
               <Button type="submit" variant="outline" size="icon" aria-label="Excluir acesso" className="h-9 w-9 rounded-xl border-[#f0506e]/20 bg-[#f0506e]/10 text-[#f0506e] hover:bg-[#f0506e]/20">
                 <Trash2 className="h-4 w-4" />
@@ -76,7 +76,7 @@ export function AdminUsersListItem({ profile, adminProfileId, members }: AdminUs
           <summary className="cursor-pointer text-xs font-bold uppercase tracking-[0.18em] text-white/35">
             Editar acesso
           </summary>
-          <form action={updateFamilyUser} className="mt-4 grid gap-3 md:grid-cols-4">
+          <form action={updateFamilyUserFormAction} className="mt-4 grid gap-3 md:grid-cols-4">
             <input type="hidden" name="id" value={profile.id} />
             <Input name="name" defaultValue={profile.name} placeholder="Nome" className="h-10 rounded-xl" required />
             <Input name="email" type="email" defaultValue={profile.email || ""} placeholder="Email" className="h-10 rounded-xl" required />
