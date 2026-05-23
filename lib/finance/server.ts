@@ -5,6 +5,7 @@ import { getExpenseCategoriesByOwner } from "@/lib/finance/categories-server";
 import { buildExpenseDashboardData } from "@/lib/finance/expense-dashboard-server";
 import { getExpensesForCurrentProfile } from "@/lib/finance/expenses-server";
 import { getFamilyMembersByOwner } from "@/lib/finance/members-server";
+import { buildPayableBillsDashboardData } from "@/lib/finance/payable-dashboard-server";
 import { getPayableBillsForCurrentProfile } from "@/lib/finance/payables-server";
 import { getReceivableIncomesForCurrentProfile } from "@/lib/finance/receivables-server";
 import { seedInitialFinanceDataForOwner } from "@/lib/finance/seed-server";
@@ -100,37 +101,12 @@ export async function getPayableBillsDashboardData() {
     getFamilyMembersByOwner(profile.owner_id),
     getPayableBills(),
   ]);
-  const members = allMembers
-    .filter((member) => member.is_active)
-    .filter((member) => accessibleMemberIds.includes(member.id));
 
-  const today = new Date().toISOString().slice(0, 10);
-  const enrichedBills = bills.map((bill) => ({
-    ...bill,
-    computed_status:
-      bill.status !== "pago" && bill.due_date < today ? "atrasado" : bill.status,
-  }));
-
-  const pendingBills = enrichedBills.filter((bill) => bill.computed_status === "pendente");
-  const overdueBills = enrichedBills.filter((bill) => bill.computed_status === "atrasado");
-  const paidBills = enrichedBills.filter((bill) => bill.computed_status === "pago");
-  const oneOffBills = enrichedBills.filter((bill) => bill.bill_type === "avulsa");
-  const fixedBills = enrichedBills.filter((bill) => bill.bill_type === "fixa");
-
-  return {
-    members,
-    bills: enrichedBills,
-    totalPending: pendingBills.reduce((total, bill) => total + Number(bill.amount), 0),
-    totalOverdue: overdueBills.reduce((total, bill) => total + Number(bill.amount), 0),
-    totalPaid: paidBills.reduce((total, bill) => total + Number(bill.amount), 0),
-    totalOneOff: oneOffBills.reduce((total, bill) => total + Number(bill.amount), 0),
-    totalFixed: fixedBills.reduce((total, bill) => total + Number(bill.amount), 0),
-    pendingCount: pendingBills.length,
-    overdueCount: overdueBills.length,
-    paidCount: paidBills.length,
-    oneOffCount: oneOffBills.length,
-    fixedCount: fixedBills.length,
-  };
+  return buildPayableBillsDashboardData({
+    allMembers,
+    bills,
+    accessibleMemberIds,
+  });
 }
 
 export async function getReceivableIncomes() {
