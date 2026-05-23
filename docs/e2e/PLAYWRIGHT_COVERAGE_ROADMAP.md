@@ -96,6 +96,7 @@ No data-mutating E2E flow before a documented cleanup strategy exists.
 | Create payable | Gated cleanup-backed covered |
 | Create receivable | Gated cleanup-backed covered |
 | Create bank account | Gated cleanup-backed covered |
+| Update records | Gated cleanup-backed covered |
 
 ## Protected route matrix
 
@@ -148,13 +149,14 @@ Data-changing browser tests are still pending, but the cleanup strategy and help
 | Create payable | Gated cleanup-backed covered |
 | Create receivable | Gated cleanup-backed covered |
 | Create bank account | Gated cleanup-backed covered |
-| Update/delete records | Pending cleanup-backed implementation |
+| Update records | Gated cleanup-backed covered |
+| Remaining record flow | Pending explicit fixture contract |
 
 ## Recommended next sequence
 
 ```txt
-1. Add cleanup-backed update/delete E2E flow.
-2. Add final data-changing E2E roadmap update after update/delete coverage lands.
+1. Define explicit fixture contract for the remaining record flow.
+2. Add cleanup-backed E2E only after the fixture contract exists.
 ```
 
 ## Definition of done for this phase
