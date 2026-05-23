@@ -23,6 +23,7 @@ A gap is not solved until a small PR is merged with green CI and the related doc
 | Permission-sensitive E2E | Gated covered |
 | Data-changing E2E | Gated cleanup-backed covered |
 | Admin and permissions documentation reconciliation | Covered |
+| Supabase proxy and client boundary guards | Covered |
 
 ## Open gaps
 
@@ -39,7 +40,6 @@ A gap is not solved until a small PR is merged with green CI and the related doc
 | GAP-009 | Schema hardening | `organization_id NOT NULL` is not safe yet. | Prove backfill, inserts, RLS readiness, and rollback first. |
 | GAP-010 | Documentation freshness | Audits can become stale after implementation PRs. | Reconcile docs after each merged implementation PR. |
 | GAP-011 | UI contracts | Critical finance UI components do not yet have explicit contract or snapshot-style coverage. | Start with one representative critical component and add non-brittle contract coverage before broad expansion. |
-| GAP-012 | Supabase proxy coverage | The custom Supabase proxy layer could become a silent isolation bypass if any request escapes it. | Add a focused audit/guard issue for proxy usage and organization context propagation. |
 | GAP-013 | Finance server size | `lib/finance/server.ts` is large enough to risk accumulating unrelated server responsibilities. | Audit responsibilities and split only where a clear boundary is proven. |
 | GAP-014 | One active membership | The current one-active-membership model limits multi-organization use cases and must be explicit as product behavior. | Define the active organization UX/product contract before changing membership rules. |
 | GAP-015 | Sensitive operation controls | Rate limiting, sensitive-action audit logging, and data retention policies are not yet documented as implemented controls. | Create planning issues for rate limits, audit events, and retention policy before runtime work. |
@@ -48,13 +48,19 @@ A gap is not solved until a small PR is merged with green CI and the related doc
 | GAP-018 | Dashboard visualization | Dashboard chart/time-series visualization is not explicitly covered as a product capability. | Define dashboard insight requirements before adding charting dependencies. |
 | GAP-019 | Client state strategy | There is no explicit client state strategy for growing filters, pagination, optimistic updates, and local UI coordination. | Document when local state, URL state, server actions, or a store should be used. |
 
+## Recently closed gaps
+
+| ID | Area | Closed by | Notes |
+| --- | --- | --- | --- |
+| GAP-012 | Supabase proxy coverage | #488, #489, #490, #493, #494 | Covered by proxy entrypoint guard and Supabase client factory boundary guard. This does not claim final RLS hardening or final tenant-isolation readiness. |
+
 ## Next recommended risk
 
 GAP-001 is the next recommended risk: define active organization and multiple-organization UX behavior.
 
 GAP-011 is also a product-quality risk and should be handled as a focused test-hardening track before major UI redesigns.
 
-GAP-012 through GAP-019 came from external review and must be handled as separate issue/PR cycles before implementation.
+GAP-013 through GAP-019 came from external review and must be handled as separate issue/PR cycles before implementation.
 
 Reason:
 
@@ -63,7 +69,6 @@ Reason:
 - GAP-001 prevents tests around undefined behavior;
 - GAP-001 avoids designing billing around ambiguous organization context;
 - GAP-011 prevents critical finance UI regressions from passing unnoticed during redesigns/refactors;
-- GAP-012 prevents tenant-isolation assumptions from depending on an unguarded proxy path;
 - GAP-015 tracks controls expected by users handling sensitive financial data.
 
 ## Boundaries
