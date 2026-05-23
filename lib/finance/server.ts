@@ -5,12 +5,8 @@ import { getExpenseCategoriesByOwner } from "@/lib/finance/categories-server";
 import { getExpensesForCurrentProfile } from "@/lib/finance/expenses-server";
 import { getFamilyMembersByOwner } from "@/lib/finance/members-server";
 import { getPayableBillsForCurrentProfile } from "@/lib/finance/payables-server";
-import { firstRelation, type MaybeArray } from "@/lib/finance/relations";
+import { getReceivableIncomesForCurrentProfile } from "@/lib/finance/receivables-server";
 import { seedInitialFinanceDataForOwner } from "@/lib/finance/seed-server";
-import type {
-  DbFamilyMember,
-  DbReceivableIncome,
-} from "@/lib/finance/types";
 import { createClient } from "@/lib/supabase/server";
 
 export type {
@@ -26,10 +22,6 @@ export type {
   ReceivableIncomeFormState,
 } from "@/lib/finance/types";
 
-type RawReceivableIncome = Omit<DbReceivableIncome, "family_members"> & {
-  family_members: MaybeArray<Pick<DbFamilyMember, "id" | "name">>;
-};
-
 async function getCurrentUserId() {
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getClaims();
@@ -39,13 +31,6 @@ async function getCurrentUserId() {
   }
 
   return String(data.claims.sub);
-}
-
-function normalizeReceivableIncome(income: RawReceivableIncome): DbReceivableIncome {
-  return {
-    ...income,
-    family_members: firstRelation(income.family_members),
-  };
 }
 
 export async function seedInitialFinanceData() {
@@ -173,29 +158,7 @@ export async function getPayableBillsDashboardData() {
 export async function getReceivableIncomes() {
   await seedInitialFinanceData();
 
-  const supabase = await createClient();
-  const profile = await getCurrentProfile();
-  const accessibleMemberIds = await getAccessibleMemberIds("CONTAS_A_RECEBER", "can_view");
-
-  if (accessibleMemberIds.length === 0) {
-    return [];
-  }
-
-  const { data, error } = await supabase
-    .from("receivable_incomes")
-    .select(
-      "id, owner_id, receiver_member_id, source, income_type, amount, expected_date, status, receiving_bank, notes, created_at, family_members(id, name)",
-    )
-    .eq("owner_id", profile.owner_id)
-    .in("receiver_member_id", accessibleMemberIds)
-    .order("expected_date", { ascending: true })
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  return ((data ?? []) as RawReceivableIncome[]).map(normalizeReceivableIncome);
+  return getReceivableIncomesForCurrentProfile();
 }
 
 export async function getReceivableIncomesDashboardData() {
