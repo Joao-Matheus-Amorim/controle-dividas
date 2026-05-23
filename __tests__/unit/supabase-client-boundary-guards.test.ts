@@ -24,7 +24,6 @@ const allowedSupabaseFactoryFiles = new Set([
 ]);
 
 const forbiddenFactoryNames = ["createBrowserClient", "createServerClient"];
-const forbiddenRuntimeSupabaseImports = ["from \"@supabase/ssr\"", "from \"@supabase/supabase-js\""];
 
 function normalizePath(path: string) {
   return path.split(sep).join("/");
@@ -75,7 +74,18 @@ function hasForbiddenRuntimeSupabaseImport(source: string) {
         return false;
       }
 
-      return forbiddenRuntimeSupabaseImports.some((importSource) => trimmedLine.includes(importSource));
+      if (trimmedLine.includes("@supabase/ssr")) {
+        return true;
+      }
+
+      if (!trimmedLine.includes("@supabase/supabase-js")) {
+        return false;
+      }
+
+      const importsOnlyTypes =
+        trimmedLine.includes("{ type ") && !trimmedLine.includes("createClient");
+
+      return !importsOnlyTypes;
     });
 }
 
