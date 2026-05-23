@@ -97,6 +97,7 @@ No data-mutating E2E flow before a documented cleanup strategy exists.
 | Create receivable | Gated cleanup-backed covered |
 | Create bank account | Gated cleanup-backed covered |
 | Update records | Gated cleanup-backed covered |
+| Remaining record flow | Gated cleanup-backed covered |
 
 ## Protected route matrix
 
@@ -138,7 +139,7 @@ No data-mutating E2E flow before a documented cleanup strategy exists.
 
 ## Data-changing flows
 
-Data-changing browser tests are still pending, but the cleanup strategy and helper contract are now documented in `docs/e2e/DATA_CHANGING_CLEANUP_STRATEGY.md`.
+Data-changing browser tests use explicit opt-in flags and cleanup-backed fixtures. The cleanup strategy and helper contract are documented in `docs/e2e/DATA_CHANGING_CLEANUP_STRATEGY.md`.
 
 | Flow | Status |
 | --- | --- |
@@ -150,13 +151,13 @@ Data-changing browser tests are still pending, but the cleanup strategy and help
 | Create receivable | Gated cleanup-backed covered |
 | Create bank account | Gated cleanup-backed covered |
 | Update records | Gated cleanup-backed covered |
-| Remaining record flow | Pending explicit fixture contract |
+| Remaining record flow | Gated cleanup-backed covered |
 
 ## Recommended next sequence
 
 ```txt
-1. Define explicit fixture contract for the remaining record flow.
-2. Add cleanup-backed E2E only after the fixture contract exists.
+1. Keep public/auth pending routes documented until their expected states are defined.
+2. Pick the next uncovered SaaS risk outside the completed data-changing E2E block.
 ```
 
 ## Definition of done for this phase
@@ -168,4 +169,5 @@ Onboarding happy path and guard paths are gated and documented.
 Protected shell and active organization access are gated and documented.
 Admin and limited-user coverage are blocked only by explicit fixture contracts.
 No data-changing E2E test exists without cleanup strategy.
+The data-changing E2E coverage block has cleanup-backed coverage for create, update, and remaining record lifecycle flows.
 ```
