@@ -8,9 +8,11 @@ const duplicateSafeSeedOptions = {
   ignoreDuplicates: true,
 } as const;
 
+type SeedUpsertResult = PromiseLike<unknown>;
+
 type SeedSupabaseClient = {
   from(table: "family_members" | "expense_categories"): {
-    upsert(rows: unknown[], options: typeof duplicateSafeSeedOptions): Promise<unknown>;
+    upsert(rows: unknown[], options: typeof duplicateSafeSeedOptions): SeedUpsertResult;
   };
 };
 
