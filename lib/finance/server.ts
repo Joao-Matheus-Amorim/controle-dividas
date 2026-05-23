@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { getAccessibleMemberIds, getCurrentProfile } from "@/lib/finance/access-control";
+import { getFamilyMembersByOwner } from "@/lib/finance/members-server";
 import { firstRelation, type MaybeArray } from "@/lib/finance/relations";
 import { seedInitialFinanceDataForOwner } from "@/lib/finance/seed-server";
 import type {
@@ -77,22 +78,6 @@ export async function seedInitialFinanceData() {
   const ownerId = await getCurrentUserId();
 
   await seedInitialFinanceDataForOwner(supabase, ownerId);
-}
-
-async function getFamilyMembersByOwner(ownerId: string) {
-  const supabase = await createClient();
-
-  const { data, error } = await supabase
-    .from("family_members")
-    .select("id, owner_id, name, role, monthly_limit, currency, is_active, created_at")
-    .eq("owner_id", ownerId)
-    .order("created_at", { ascending: true });
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  return (data ?? []) as DbFamilyMember[];
 }
 
 export async function getFamilyMembers() {
