@@ -8,7 +8,7 @@ const duplicateSafeSeedOptions = {
   ignoreDuplicates: true,
 } as const;
 
-type SeedUpsertResult = PromiseLike<unknown>;
+type SeedUpsertResult = PromiseLike<{ error: { message: string } | null }>;
 
 type SeedSupabaseClient = {
   from(table: "family_members" | "expense_categories"): {
@@ -16,15 +16,27 @@ type SeedSupabaseClient = {
   };
 };
 
+async function assertSeedUpsertSucceeded(upsert: SeedUpsertResult) {
+  const { error } = await upsert;
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
 export async function seedInitialFinanceDataForOwner(
   supabase: SeedSupabaseClient,
   ownerId: string,
 ) {
-  await supabase
-    .from("family_members")
-    .upsert(buildDefaultFamilyMemberSeedRows(ownerId), duplicateSafeSeedOptions);
+  await assertSeedUpsertSucceeded(
+    supabase
+      .from("family_members")
+      .upsert(buildDefaultFamilyMemberSeedRows(ownerId), duplicateSafeSeedOptions),
+  );
 
-  await supabase
-    .from("expense_categories")
-    .upsert(buildDefaultExpenseCategorySeedRows(ownerId), duplicateSafeSeedOptions);
+  await assertSeedUpsertSucceeded(
+    supabase
+      .from("expense_categories")
+      .upsert(buildDefaultExpenseCategorySeedRows(ownerId), duplicateSafeSeedOptions),
+  );
 }
