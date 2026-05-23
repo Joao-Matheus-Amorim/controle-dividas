@@ -2,9 +2,11 @@
 
 Issue: #189
 
+Follow-up: #480
+
 ## Objetivo
 
-Auditar o estado atual de admin e permissoes antes de evoluir para multi-organization pleno.
+Auditar e reconciliar o estado atual de admin e permissoes antes de evoluir para multi-organization pleno.
 
 Esta auditoria nao altera codigo, banco, RLS, rotas ou billing.
 
@@ -12,21 +14,46 @@ Esta auditoria nao altera codigo, banco, RLS, rotas ou billing.
 
 - `lib/finance/admin-server.ts`
 - `lib/finance/access-control.ts`
+- `app/protected/admin/actions.ts`
 - `app/protected/admin/page.tsx`
 - `app/protected/admin/usuarios/page.tsx`
 - `app/protected/admin/permissoes/page.tsx`
+- `__tests__/unit/admin-permissions-guards.test.ts`
 
 ## Resultado executivo
 
-Admin e permissoes ainda sao majoritariamente owner-centric.
+Admin e permissoes nao devem mais ser descritos como puramente owner-centric.
 
-Isso e aceitavel no modo transicional atual, mas nao e suficiente para SaaS multi-org final.
+O estado atual da `main` e transicional e active-organization scoped:
 
-## Achados
+- leituras admin usam `requireOrganizationAccess()`;
+- leituras de profiles, membros, module permissions e feature permissions filtram por `owner_id` mais organization ativa ou legado;
+- escritas admin gravam `organization_id` nos principais fluxos;
+- escritas validam que membros/perfis pertencem a organization ativa ou legado antes de alterar dados;
+- guardas unitarios impedem regressao para admin/permissoes sem escopo de organization ativa.
 
-### 1. Admin centralizado em helper legado
+Isso melhora a seguranca multi-org transicional, mas ainda nao significa SaaS multi-org final.
 
-As paginas admin usam `getAdminDashboardData` de `lib/finance/admin-server.ts`.
+## Estado historico anterior
+
+A auditoria original identificou Admin e permissoes como majoritariamente owner-centric.
+
+Esse diagnostico foi correto para o momento da auditoria, mas ficou desatualizado apos hardening posterior de Admin/permissoes.
+
+O risco atual nao e mais "Admin puramente owner-centric". O risco atual e manter o modelo transicional seguro enquanto ainda existem:
+
+- `ADMIN_EMAIL` como bootstrap administrativo;
+- dependencia de `owner_id` para compatibilidade;
+- fallback legado `organization_id IS NULL`;
+- ausencia de selector multi-org completo;
+- ausencia de rotas por `orgSlug`;
+- RLS final e schema final ainda pendentes.
+
+## Achados atuais
+
+### 1. Admin centralizado em helper unico
+
+As paginas admin continuam usando `getAdminDashboardData` de `lib/finance/admin-server.ts`.
 
 Paginas impactadas:
 
@@ -34,66 +61,112 @@ Paginas impactadas:
 - `/protected/admin/usuarios`
 - `/protected/admin/permissoes`
 
-Classificacao: aceitavel temporariamente, mas precisa hardening antes de multi-org final.
+Classificacao atual: desejavel para evitar logica duplicada nas paginas. O helper central agora chama `requireOrganizationAccess()` e repassa `organization.id` para as leituras admin.
 
-### 2. Admin ainda depende de `ADMIN_EMAIL`
+### 2. Admin ainda depende de `ADMIN_EMAIL` para bootstrap
 
-O fluxo atual cria/valida admin por email configurado e `owner_id`.
+O fluxo de bootstrap administrativo ainda depende de email configurado.
 
-Classificacao: funcional para o modelo familiar inicial, mas insuficiente para SaaS multi-org.
+Classificacao atual: aceitavel apenas como mecanismo transicional de bootstrap. Nao substitui um modelo SaaS final com owner/admin por organization, convites, billing e governanca de conta.
 
-### 3. Profiles ainda sao filtrados por owner
+### 3. Profiles agora sao filtrados por owner mais organization ativa ou legado
 
-`getFamilyProfiles` ainda filtra profiles por `owner_id`.
+`getFamilyProfiles` usa:
 
-Risco:
+```txt
+owner_id = adminProfile.owner_id
+AND (organization_id = active organization OR organization_id IS NULL)
+```
 
-- nao usa `organization_id`;
-- nao usa membership;
-- nao cobre bem usuario com multiplas organizations.
+Classificacao atual: escopo transicional correto para a fase atual.
 
-### 4. Permissoes ainda sao filtradas por owner
+Risco restante:
 
-`getFamilyPermissions` e `getFamilyFeaturePermissions` ainda filtram por `owner_id`.
+- ainda depende de `owner_id`;
+- ainda aceita legado `organization_id IS NULL`;
+- ainda nao representa o modelo final baseado apenas em membership/organization.
 
-Risco:
+### 4. Permissoes agora sao filtradas por owner mais organization ativa ou legado
 
-- `organization_id` existe no schema, mas ainda nao e usado no admin;
-- permissoes continuam presas ao modelo familiar/owner.
+`getFamilyPermissions` e `getFamilyFeaturePermissions` usam o mesmo padrao transicional:
 
-### 5. Access control ainda usa profile/owner como base
+```txt
+owner_id = adminProfile.owner_id
+AND (organization_id = active organization OR organization_id IS NULL)
+```
 
-`access-control.ts` ainda usa profile, owner, admin client e membro ativo por owner.
+Classificacao atual: escopo transicional correto para a fase atual.
 
-Risco:
+Risco restante:
 
-- nao considera organization ativa diretamente;
-- admin por role pode ser interpretado de forma ampla demais no futuro multi-org.
+- permissions ainda nao devem ser consideradas SaaS final;
+- RLS final e UX multi-org ainda precisam ser planejadas antes de remover fallback legado.
 
-## O que nao foi encontrado
+### 5. Escritas admin gravam e validam organization ativa
 
-Nao foi encontrada implementacao completa de:
+`app/protected/admin/actions.ts` usa `requireOrganizationAccess()` nos fluxos de escrita e grava `organization_id: organization.id` em:
 
-- admin por organization ativa;
-- selector de organization no admin;
-- permissoes por organization no fluxo admin;
-- testes multi-org para admin/permissoes.
+- criacao de profile;
+- criacao de module permissions;
+- update de profile legado;
+- sync de `auth_user_id`;
+- toggle de status;
+- upsert de permissoes.
 
-## Recomendacoes
+Tambem valida escopo antes de alterar dados com helpers como:
 
-1. Planejar helper admin organization-aware.
-2. Migrar leituras admin para organization ativa.
-3. Separar admin familiar legado de admin SaaS.
-4. Criar testes multi-org para admin/permissoes.
-5. So depois alterar RLS de profiles/permissoes.
+- `ensureMemberBelongsToOrganization`;
+- `ensureProfileBelongsToOrganization`;
+- `ensureUniqueEmail` com organization;
+- `ensureUniqueMemberAccess` com organization.
+
+Classificacao atual: hardening transicional implementado na application layer.
+
+### 6. Access control considera organization ativa
+
+`access-control.ts` ja integra `requireOrganizationAccess()` e filtros de organization ativa ou legado.
+
+Classificacao atual: melhor que o estado owner-centric historico, mas ainda transicional.
+
+## Guardas existentes
+
+`__tests__/unit/admin-permissions-guards.test.ts` protege o estado atual ao exigir:
+
+- centralizacao das paginas admin em `getAdminDashboardData`;
+- uso de `requireOrganizationAccess`;
+- filtro `organization_id.eq.${organizationId}`;
+- fallback `organization_id.is.null`;
+- leituras admin filtradas por owner mais organization/legado;
+- escritas admin amarradas a organization ativa;
+- access control documentado como active-organization scoped.
+
+## O que ainda nao existe
+
+Ainda nao existe implementacao completa de:
+
+- selector UX para usuario com multiplas organizations;
+- rotas admin por `orgSlug`;
+- remocao do fallback legado;
+- remocao de `owner_id`;
+- `organization_id NOT NULL`;
+- billing e limites por plano;
+- RLS final sem dependencia transicional de owner/legado.
+
+## Recomendacoes atualizadas
+
+1. Manter guardas unitarios de Admin/permissoes active-organization scoped.
+2. Nao aplicar RLS final em profiles/permissoes antes de decidir UX multi-org e legado.
+3. Planejar selector de organization ativa antes de rotas por `orgSlug`.
+4. Planejar remocao gradual de fallback legado apenas depois de backfill completo e testes.
+5. Tratar `ADMIN_EMAIL` como bootstrap transicional, nao como modelo SaaS final.
 
 ## Ordem sugerida
 
-1. Criar testes de acesso admin multi-org.
-2. Migrar leituras admin para organization-aware.
-3. Migrar escrita de permissoes para organization-aware.
-4. Atualizar RLS de profiles/permissoes.
-5. Planejar rotas por `orgSlug` para admin.
+1. Reconciliar documentacao desatualizada de Admin/permissoes.
+2. Planejar UX de multiplas organizations e organization ativa.
+3. Criar testes especificos para troca/seleção de organization quando a UX existir.
+4. Planejar rotas por `orgSlug` para Admin e modulos protegidos.
+5. So depois endurecer RLS final de profiles/permissoes e remover fallback legado.
 
 ## Fora de escopo
 
@@ -110,6 +183,6 @@ Esta auditoria nao implementa:
 
 ## Conclusao
 
-Admin e permissoes estao funcionais para o modelo familiar/transicional, mas ainda nao estao prontos para SaaS multi-org final.
+Admin e permissoes foram endurecidos para o modelo transicional com organization ativa.
 
-O proximo passo seguro e criar testes e helpers organization-aware para admin antes de qualquer mudanca destrutiva em RLS, rotas ou schema.
+Eles ainda nao representam o SaaS multi-org final, mas a documentacao deve refletir que o risco mudou: de owner-centric puro para transicional active-organization scoped com fallback legado controlado.
