@@ -38,17 +38,21 @@ A gap is not solved until a small PR is merged with green CI and the related doc
 | GAP-008 | Multi-org tests | Switching between organizations has no dedicated tests because the UX contract is not defined. | Define behavior first, then add tests. |
 | GAP-009 | Schema hardening | `organization_id NOT NULL` is not safe yet. | Prove backfill, inserts, RLS readiness, and rollback first. |
 | GAP-010 | Documentation freshness | Audits can become stale after implementation PRs. | Reconcile docs after each merged implementation PR. |
+| GAP-011 | UI contracts | Critical finance UI components do not yet have explicit contract or snapshot-style coverage. | Start with one representative critical component and add non-brittle contract coverage before broad expansion. |
 
 ## Next recommended risk
 
 GAP-001 is the next recommended risk: define active organization and multiple-organization UX behavior.
 
+GAP-011 is also a product-quality risk and should be handled as a focused test-hardening track before major UI redesigns.
+
 Reason:
 
-- it must come before explicit organization routes;
-- it informs permission behavior;
-- it prevents tests around undefined behavior;
-- it avoids designing billing around ambiguous organization context.
+- GAP-001 must come before explicit organization routes;
+- GAP-001 informs permission behavior;
+- GAP-001 prevents tests around undefined behavior;
+- GAP-001 avoids designing billing around ambiguous organization context;
+- GAP-011 prevents critical finance UI regressions from passing unnoticed during redesigns/refactors.
 
 ## Boundaries
 
@@ -58,4 +62,5 @@ No stale documentation.
 No merge without green CI.
 No broad mixed PR.
 No route, billing, schema, or RLS final work before its contract exists.
+No broad snapshot dump without a clear UI contract.
 ```
