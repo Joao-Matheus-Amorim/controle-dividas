@@ -102,6 +102,13 @@ describe("authorized profile email lookup", () => {
     });
   });
 
+  it("throws lookup errors from the low-level helper", async () => {
+    const { findAuthorizedProfilesByEmail } = await import("@/lib/finance/authorized-profile-lookup");
+    mockState.selectError = { message: "profile lookup unavailable" };
+
+    await expect(findAuthorizedProfilesByEmail("maria@example.com")).rejects.toThrow("profile lookup unavailable");
+  });
+
   it("returns duplicate when more than one profile matches the email", async () => {
     const { findAuthorizedProfilesByEmail } = await import("@/lib/finance/authorized-profile-lookup");
     mockState.profiles = [
@@ -132,6 +139,29 @@ describe("authorized profile email lookup", () => {
         filters: { id: "profile-1" },
       },
     ]);
+  });
+
+  it("returns result contract instead of throwing when linking lookup fails", async () => {
+    const { linkAuthUserToFamilyProfile } = await import("@/lib/finance/profile-linking");
+    mockState.selectError = { message: "profile lookup unavailable" };
+
+    await expect(
+      linkAuthUserToFamilyProfile({
+        authUserId: "auth-user-1",
+        email: "maria@example.com",
+      }),
+    ).resolves.toEqual({ linked: false, reason: "profile lookup unavailable" });
+    expect(mockState.updates).toHaveLength(0);
+  });
+
+  it("returns structured signup denial instead of throwing when lookup fails", async () => {
+    const { checkAuthorizedFamilyEmail } = await import("@/app/auth/sign-up/actions");
+    mockState.selectError = { message: "profile lookup unavailable" };
+
+    await expect(checkAuthorizedFamilyEmail("maria@example.com")).resolves.toEqual({
+      allowed: false,
+      error: "profile lookup unavailable",
+    });
   });
 
   it("does not link when email is ambiguous", async () => {
