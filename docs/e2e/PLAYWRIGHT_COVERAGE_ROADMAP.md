@@ -46,6 +46,8 @@ Follow-up: #458
 
 Follow-up: #465
 
+Follow-up: #477
+
 ## Goal
 
 Define an auditable Playwright E2E roadmap for the current SaaS phase.
@@ -119,13 +121,13 @@ No data-mutating E2E flow before a documented cleanup strategy exists.
 
 | Route | Status | Notes |
 | --- | --- | --- |
-| `/` | Pending | Public entry smoke. |
+| `/` | Covered | Public entry smoke in `tests/e2e/public-auth-pending-routes-smoke.spec.ts`. |
 | `/auth/login` | Covered | Basic render and login interaction coverage. |
 | `/auth/sign-up` | Covered | Non-mutating render smoke in `tests/e2e/auth-pages-smoke.spec.ts`. |
 | `/auth/forgot-password` | Covered | Non-mutating render smoke in `tests/e2e/auth-pages-smoke.spec.ts`. |
-| `/auth/update-password` | Pending | Expected state must be defined first. |
-| `/auth/error` | Pending | Friendly error smoke. |
-| `/auth/confirm` | Pending | Callback expectation must be defined first. |
+| `/auth/update-password` | Covered | Non-mutating render smoke in `tests/e2e/public-auth-pending-routes-smoke.spec.ts`. |
+| `/auth/error` | Covered | Error page smoke in `tests/e2e/public-auth-pending-routes-smoke.spec.ts`. |
+| `/auth/confirm` | Covered | Missing-params redirect smoke in `tests/e2e/public-auth-pending-routes-smoke.spec.ts`. |
 | `/onboarding/organizacao` | Covered | Auth and onboarding flows covered by gated contracts. |
 
 ## Permission-sensitive matrix
@@ -156,8 +158,8 @@ Data-changing browser tests use explicit opt-in flags and cleanup-backed fixture
 ## Recommended next sequence
 
 ```txt
-1. Keep public/auth pending routes documented until their expected states are defined.
-2. Pick the next uncovered SaaS risk outside the completed data-changing E2E block.
+1. Pick the next uncovered SaaS risk outside covered public/auth, protected-route, permission-sensitive, and data-changing E2E blocks.
+2. Keep each new risk behind an explicit issue, small PR, green CI, and accurate roadmap update.
 ```
 
 ## Definition of done for this phase
