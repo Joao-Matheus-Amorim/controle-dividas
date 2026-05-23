@@ -7,6 +7,7 @@ import { getExpensesForCurrentProfile } from "@/lib/finance/expenses-server";
 import { getFamilyMembersByOwner } from "@/lib/finance/members-server";
 import { buildPayableBillsDashboardData } from "@/lib/finance/payable-dashboard-server";
 import { getPayableBillsForCurrentProfile } from "@/lib/finance/payables-server";
+import { buildReceivableIncomesDashboardData } from "@/lib/finance/receivable-dashboard-server";
 import { getReceivableIncomesForCurrentProfile } from "@/lib/finance/receivables-server";
 import { seedInitialFinanceDataForOwner } from "@/lib/finance/seed-server";
 import { createClient } from "@/lib/supabase/server";
@@ -124,35 +125,10 @@ export async function getReceivableIncomesDashboardData() {
     getFamilyMembersByOwner(profile.owner_id),
     getReceivableIncomes(),
   ]);
-  const members = allMembers
-    .filter((member) => member.is_active)
-    .filter((member) => accessibleMemberIds.includes(member.id));
 
-  const today = new Date().toISOString().slice(0, 10);
-  const enrichedIncomes = incomes.map((income) => ({
-    ...income,
-    computed_status:
-      income.status !== "recebido" && income.expected_date < today
-        ? "atrasado"
-        : income.status,
-  }));
-
-  const expectedIncomes = enrichedIncomes.filter((income) => income.computed_status === "previsto");
-  const overdueIncomes = enrichedIncomes.filter((income) => income.computed_status === "atrasado");
-  const receivedIncomes = enrichedIncomes.filter((income) => income.computed_status === "recebido");
-  const fixedIncomes = enrichedIncomes.filter((income) => income.income_type === "fixa");
-  const variableIncomes = enrichedIncomes.filter((income) => income.income_type === "variavel");
-
-  return {
-    members,
-    incomes: enrichedIncomes,
-    totalExpected: expectedIncomes.reduce((total, income) => total + Number(income.amount), 0),
-    totalOverdue: overdueIncomes.reduce((total, income) => total + Number(income.amount), 0),
-    totalReceived: receivedIncomes.reduce((total, income) => total + Number(income.amount), 0),
-    totalFixed: fixedIncomes.reduce((total, income) => total + Number(income.amount), 0),
-    totalVariable: variableIncomes.reduce((total, income) => total + Number(income.amount), 0),
-    expectedCount: expectedIncomes.length,
-    overdueCount: overdueIncomes.length,
-    receivedCount: receivedIncomes.length,
-  };
+  return buildReceivableIncomesDashboardData({
+    allMembers,
+    incomes,
+    accessibleMemberIds,
+  });
 }
