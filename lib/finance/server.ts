@@ -7,8 +7,6 @@ import { getFamilyMembersByOwner } from "@/lib/finance/members-server";
 import { firstRelation, type MaybeArray } from "@/lib/finance/relations";
 import { seedInitialFinanceDataForOwner } from "@/lib/finance/seed-server";
 import type {
-  DbExpense,
-  DbExpenseCategory,
   DbFamilyMember,
   DbPayableBill,
   DbReceivableIncome,
