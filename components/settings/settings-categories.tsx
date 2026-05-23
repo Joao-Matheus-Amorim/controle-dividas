@@ -1,10 +1,8 @@
-import { deleteExpenseCategory } from "@/app/protected/configuracoes/actions";
 import { ExpenseCategoryEditDialog } from "@/components/finance/expense-category-edit-dialog";
 import { ExpenseCategoryForm } from "@/components/finance/expense-category-form";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import type { DbExpenseCategory } from "@/lib/finance/types";
-import { Trash2 } from "lucide-react";
+import { SettingsCategoryDeleteForm } from "./settings-category-delete-form";
 
 interface SettingsCategoriesProps {
   categories: DbExpenseCategory[];
@@ -27,7 +25,7 @@ export function SettingsCategories({ categories }: SettingsCategoriesProps) {
           <p className="text-xs font-semibold text-[#8b72f8]">{categories.length}</p>
         </div>
         {categories.map((category) => (
-          <div key={category.id} className="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-[#080810]/50 p-3">
+          <div key={category.id} className="flex items-start justify-between gap-4 rounded-2xl border border-white/10 bg-[#080810]/50 p-3">
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <p className="text-sm font-semibold text-white">{category.name}</p>
@@ -37,14 +35,9 @@ export function SettingsCategories({ categories }: SettingsCategoriesProps) {
             </div>
 
             {!category.is_default ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-start gap-2">
                 <ExpenseCategoryEditDialog category={category} />
-                <form action={deleteExpenseCategory}>
-                  <input type="hidden" name="id" value={category.id} />
-                  <Button type="submit" variant="outline" size="icon" aria-label="Excluir categoria" className="h-9 w-9 rounded-xl border-white/10 bg-transparent text-white/35 hover:bg-white/10 hover:text-white">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </form>
+                <SettingsCategoryDeleteForm categoryId={category.id} />
               </div>
             ) : null}
           </div>
