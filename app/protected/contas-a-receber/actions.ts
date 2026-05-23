@@ -14,6 +14,11 @@ import { createClient } from "@/lib/supabase/server";
 const receivableIncomeTypes = ["fixa", "variavel"] as const;
 const receivableIncomeStatuses = ["previsto", "recebido", "atrasado"] as const;
 
+export type ReceivableIncomeActionState = {
+  error?: string;
+  success?: string;
+};
+
 function organizationOrLegacyFilter(organizationId: string) {
   return `organization_id.eq.${organizationId},organization_id.is.null`;
 }
@@ -253,19 +258,25 @@ export async function updateReceivableIncome(
   }
 }
 
-export async function updateReceivableIncomeStatus(formData: FormData) {
+export async function updateReceivableIncomeStatus(
+  formData: FormData,
+): Promise<ReceivableIncomeActionState> {
   const id = String(formData.get("id") ?? "");
   const status = String(formData.get("status") ?? "previsto");
 
-  if (!id || !receivableIncomeStatuses.includes(status as (typeof receivableIncomeStatuses)[number])) {
-    return;
+  if (!id) {
+    return { error: "Recebimento nao encontrado." };
+  }
+
+  if (!receivableIncomeStatuses.includes(status as (typeof receivableIncomeStatuses)[number])) {
+    return { error: "Status invalido." };
   }
 
   try {
     const { profile, organization } = await assertCanManageReceivableIncome(id, "can_edit");
     const supabase = await createClient();
 
-    await supabase
+    const { error } = await supabase
       .from("receivable_incomes")
       .update({
         status,
@@ -275,34 +286,58 @@ export async function updateReceivableIncomeStatus(formData: FormData) {
       .eq("owner_id", profile.owner_id)
       .or(organizationOrLegacyFilter(organization.id));
 
+    if (error) {
+      return { error: error.message };
+    }
+
     revalidatePath("/protected/contas-a-receber");
     revalidatePath("/protected");
-  } catch {
-    return;
+
+    return { success: "Status atualizado com sucesso." };
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "Nao foi possivel atualizar o status deste recebimento.",
+    };
   }
 }
 
-export async function deleteReceivableIncome(formData: FormData) {
+export async function deleteReceivableIncome(
+  formData: FormData,
+): Promise<ReceivableIncomeActionState> {
   const id = String(formData.get("id") ?? "");
 
   if (!id) {
-    return;
+    return { error: "Recebimento nao encontrado." };
   }
 
   try {
     const { profile, organization } = await assertCanManageReceivableIncome(id, "can_delete");
     const supabase = await createClient();
 
-    await supabase
+    const { error } = await supabase
       .from("receivable_incomes")
       .delete()
       .eq("id", id)
       .eq("owner_id", profile.owner_id)
       .or(organizationOrLegacyFilter(organization.id));
 
+    if (error) {
+      return { error: error.message };
+    }
+
     revalidatePath("/protected/contas-a-receber");
     revalidatePath("/protected");
-  } catch {
-    return;
+
+    return { success: "Recebimento excluido com sucesso." };
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "Nao foi possivel excluir este recebimento.",
+    };
   }
 }
