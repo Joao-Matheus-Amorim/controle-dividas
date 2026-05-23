@@ -11,6 +11,11 @@ type FormState = {
   success?: string;
 };
 
+export type SettingsActionState = {
+  error?: string;
+  success?: string;
+};
+
 async function getCurrentUserId() {
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getClaims();
@@ -140,18 +145,20 @@ export async function updateExpenseCategory(
   return { success: "Categoria atualizada com sucesso." };
 }
 
-export async function deleteExpenseCategory(formData: FormData) {
+export async function deleteExpenseCategory(
+  formData: FormData,
+): Promise<SettingsActionState> {
   const id = String(formData.get("id") ?? "");
 
   if (!id) {
-    return;
+    return { error: "Categoria nao encontrada." };
   }
 
   const supabase = await createClient();
   const ownerId = await getCurrentUserId();
   const { organization } = await requireOrganizationAccess();
 
-  await supabase
+  const { error } = await supabase
     .from("expense_categories")
     .delete()
     .eq("id", id)
@@ -159,24 +166,47 @@ export async function deleteExpenseCategory(formData: FormData) {
     .eq("is_default", false)
     .or(organizationOrLegacyFilter(organization.id));
 
+  if (error) {
+    return { error: error.message };
+  }
+
   revalidatePath("/protected/configuracoes");
   revalidatePath("/protected/gastos");
   revalidatePath("/protected");
+
+  return { success: "Categoria excluida com sucesso." };
 }
 
-export async function updateFamilyMemberLimit(formData: FormData) {
+export async function deleteExpenseCategoryWithState(
+  _prevState: SettingsActionState,
+  formData: FormData,
+): Promise<SettingsActionState> {
+  return deleteExpenseCategory(formData);
+}
+
+export async function deleteExpenseCategoryFormAction(formData: FormData): Promise<void> {
+  await deleteExpenseCategory(formData);
+}
+
+export async function updateFamilyMemberLimit(
+  formData: FormData,
+): Promise<SettingsActionState> {
   const id = String(formData.get("id") ?? "");
   const monthlyLimit = Number(formData.get("monthly_limit") ?? 0);
 
-  if (!id || Number.isNaN(monthlyLimit) || monthlyLimit < 0) {
-    return;
+  if (!id) {
+    return { error: "Pessoa nao encontrada." };
+  }
+
+  if (Number.isNaN(monthlyLimit) || monthlyLimit < 0) {
+    return { error: "Informe um limite mensal valido." };
   }
 
   const supabase = await createClient();
   const ownerId = await getCurrentUserId();
   const { organization } = await requireOrganizationAccess();
 
-  await supabase
+  const { error } = await supabase
     .from("family_members")
     .update({
       monthly_limit: monthlyLimit,
@@ -186,9 +216,26 @@ export async function updateFamilyMemberLimit(formData: FormData) {
     .eq("owner_id", ownerId)
     .or(organizationOrLegacyFilter(organization.id));
 
+  if (error) {
+    return { error: error.message };
+  }
+
   revalidatePath("/protected/configuracoes");
   revalidatePath("/protected/pessoas");
   revalidatePath("/protected/gastos");
   revalidatePath("/protected/relatorios");
   revalidatePath("/protected");
+
+  return { success: "Limite atualizado com sucesso." };
+}
+
+export async function updateFamilyMemberLimitWithState(
+  _prevState: SettingsActionState,
+  formData: FormData,
+): Promise<SettingsActionState> {
+  return updateFamilyMemberLimit(formData);
+}
+
+export async function updateFamilyMemberLimitFormAction(formData: FormData): Promise<void> {
+  await updateFamilyMemberLimit(formData);
 }

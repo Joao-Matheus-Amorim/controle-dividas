@@ -1,8 +1,7 @@
-import { toggleFamilyMemberStatus, updateFamilyMember } from "@/app/protected/pessoas/actions";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import type { DbFamilyMember } from "@/lib/finance/types";
+import { PeopleEditForm } from "./people-edit-form";
+import { PeopleStatusForm } from "./people-status-form";
 import { compactCurrency, initials, type AccessProfileSummary } from "./people-utils";
 
 interface PeopleListItemProps {
@@ -42,28 +41,14 @@ export function PeopleListItem({ member, access }: PeopleListItemProps) {
           </div>
         </div>
 
-        <form action={toggleFamilyMemberStatus}>
-          <input type="hidden" name="id" value={member.id} />
-          <input type="hidden" name="is_active" value={String(member.is_active)} />
-          <Button type="submit" variant="outline" className="h-9 rounded-xl border-white/10 bg-transparent text-white/60 hover:bg-white/10 hover:text-white">
-            {member.is_active ? "Desativar" : "Ativar"}
-          </Button>
-        </form>
+        <PeopleStatusForm memberId={member.id} isActive={member.is_active} />
       </div>
 
       <details className="rounded-2xl border border-white/10 bg-white/[0.035] p-3">
         <summary className="cursor-pointer text-xs font-bold uppercase tracking-[0.18em] text-white/35">
           Editar pessoa
         </summary>
-        <form action={updateFamilyMember} className="mt-4 grid gap-3 md:grid-cols-4">
-          <input type="hidden" name="id" value={member.id} />
-          <Input name="name" defaultValue={member.name} placeholder="Nome" className="h-10 rounded-xl" required />
-          <Input name="role" defaultValue={member.role || ""} placeholder="Perfil familiar" className="h-10 rounded-xl" />
-          <Input name="monthly_limit" type="number" step="0.01" min="0" defaultValue={Number(member.monthly_limit)} placeholder="Limite" className="h-10 rounded-xl" required />
-          <Button type="submit" className="h-10 rounded-xl bg-[#8b72f8] text-white hover:bg-[#7d66e4]">
-            Salvar
-          </Button>
-        </form>
+        <PeopleEditForm member={member} />
       </details>
     </div>
   );

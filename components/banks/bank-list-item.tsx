@@ -1,10 +1,9 @@
-import { deleteBankAccount, updateBankAccountBalance } from "@/app/protected/bancos/actions";
 import { BankAccountEditDialog } from "@/components/finance/bank-account-edit-dialog";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import type { DbBankAccount, DbFamilyMember } from "@/lib/finance/types";
-import { Banknote, Trash2 } from "lucide-react";
+import { Banknote } from "lucide-react";
+import { BankBalanceForm } from "./bank-balance-form";
+import { BankDeleteForm } from "./bank-delete-form";
 
 interface BankListItemProps {
   account: DbBankAccount;
@@ -29,23 +28,14 @@ export function BankListItem({ account, members, canEdit, canDelete }: BankListI
       </div>
 
       {(canEdit || canDelete) ? (
-        <div className="flex items-center justify-between gap-3 md:justify-end">
+        <div className="flex items-start justify-between gap-3 md:justify-end">
           {canEdit ? (
             <>
               <BankAccountEditDialog account={account} members={members} />
-              <form action={updateBankAccountBalance} className="flex gap-2">
-                <input type="hidden" name="id" value={account.id} />
-                <Input name="current_balance" type="number" step="0.01" defaultValue={Number(account.current_balance)} className="h-9 w-28 rounded-xl border-white/10 bg-[#080810] text-xs text-white" />
-                <Button type="submit" variant="outline" className="h-9 rounded-xl border-white/10 bg-transparent text-white/60 hover:bg-white/10 hover:text-white">Salvar</Button>
-              </form>
+              <BankBalanceForm account={account} />
             </>
           ) : null}
-          {canDelete ? (
-            <form action={deleteBankAccount}>
-              <input type="hidden" name="id" value={account.id} />
-              <Button type="submit" variant="outline" size="icon" aria-label="Excluir banco" className="h-9 w-9 rounded-xl border-white/10 bg-transparent text-white/35 hover:bg-white/10 hover:text-white"><Trash2 className="h-4 w-4" /></Button>
-            </form>
-          ) : null}
+          {canDelete ? <BankDeleteForm accountId={account.id} /> : null}
         </div>
       ) : null}
     </div>

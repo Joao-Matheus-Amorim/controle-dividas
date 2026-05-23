@@ -11,6 +11,11 @@ import type { BankAccountFormState } from "@/lib/finance/banks-server";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { createClient } from "@/lib/supabase/server";
 
+export type BankAccountActionState = {
+  error?: string;
+  success?: string;
+};
+
 function organizationOrLegacyFilter(organizationId: string) {
   return `organization_id.eq.${organizationId},organization_id.is.null`;
 }
@@ -228,19 +233,25 @@ export async function updateBankAccount(
   }
 }
 
-export async function updateBankAccountBalance(formData: FormData) {
+export async function updateBankAccountBalance(
+  formData: FormData,
+): Promise<BankAccountActionState> {
   const id = String(formData.get("id") ?? "");
   const currentBalance = Number(formData.get("current_balance") ?? 0);
 
-  if (!id || Number.isNaN(currentBalance)) {
-    return;
+  if (!id) {
+    return { error: "Banco nao encontrado." };
+  }
+
+  if (Number.isNaN(currentBalance)) {
+    return { error: "Informe um saldo valido." };
   }
 
   try {
     const { profile, organization } = await assertCanManageBankAccount(id, "can_edit");
     const supabase = await createClient();
 
-    await supabase
+    const { error } = await supabase
       .from("banks")
       .update({
         current_balance: currentBalance,
@@ -250,34 +261,80 @@ export async function updateBankAccountBalance(formData: FormData) {
       .eq("owner_id", profile.owner_id)
       .or(organizationOrLegacyFilter(organization.id));
 
+    if (error) {
+      return { error: error.message };
+    }
+
     revalidatePath("/protected/bancos");
     revalidatePath("/protected");
-  } catch {
-    return;
+
+    return { success: "Saldo atualizado com sucesso." };
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "Nao foi possivel atualizar o saldo deste banco.",
+    };
   }
 }
 
-export async function deleteBankAccount(formData: FormData) {
+export async function updateBankAccountBalanceWithState(
+  _prevState: BankAccountActionState,
+  formData: FormData,
+): Promise<BankAccountActionState> {
+  return updateBankAccountBalance(formData);
+}
+
+export async function updateBankAccountBalanceFormAction(formData: FormData): Promise<void> {
+  await updateBankAccountBalance(formData);
+}
+
+export async function deleteBankAccount(
+  formData: FormData,
+): Promise<BankAccountActionState> {
   const id = String(formData.get("id") ?? "");
 
   if (!id) {
-    return;
+    return { error: "Banco nao encontrado." };
   }
 
   try {
     const { profile, organization } = await assertCanManageBankAccount(id, "can_delete");
     const supabase = await createClient();
 
-    await supabase
+    const { error } = await supabase
       .from("banks")
       .delete()
       .eq("id", id)
       .eq("owner_id", profile.owner_id)
       .or(organizationOrLegacyFilter(organization.id));
 
+    if (error) {
+      return { error: error.message };
+    }
+
     revalidatePath("/protected/bancos");
     revalidatePath("/protected");
-  } catch {
-    return;
+
+    return { success: "Banco excluido com sucesso." };
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "Nao foi possivel excluir este banco.",
+    };
   }
+}
+
+export async function deleteBankAccountWithState(
+  _prevState: BankAccountActionState,
+  formData: FormData,
+): Promise<BankAccountActionState> {
+  return deleteBankAccount(formData);
+}
+
+export async function deleteBankAccountFormAction(formData: FormData): Promise<void> {
+  await deleteBankAccount(formData);
 }
