@@ -3,7 +3,19 @@
 import { findAuthorizedProfilesByEmail } from "@/lib/finance/authorized-profile-lookup";
 
 export async function checkAuthorizedFamilyEmail(email: string) {
-  const lookup = await findAuthorizedProfilesByEmail(email);
+  let lookup: Awaited<ReturnType<typeof findAuthorizedProfilesByEmail>>;
+
+  try {
+    lookup = await findAuthorizedProfilesByEmail(email);
+  } catch (error) {
+    return {
+      allowed: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Nao foi possivel validar este email autorizado agora. Tente novamente.",
+    };
+  }
 
   if (lookup.status === "missing_email") {
     return { allowed: false, error: "Informe o email autorizado pelo Admin." };
