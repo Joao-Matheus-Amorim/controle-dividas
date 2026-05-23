@@ -2,10 +2,7 @@ import { redirect } from "next/navigation";
 
 import { getAccessibleMemberIds, getCurrentProfile } from "@/lib/finance/access-control";
 import { firstRelation, type MaybeArray } from "@/lib/finance/relations";
-import {
-  buildDefaultExpenseCategorySeedRows,
-  buildDefaultFamilyMemberSeedRows,
-} from "@/lib/finance/seed-payloads";
+import { seedInitialFinanceDataForOwner } from "@/lib/finance/seed-server";
 import type {
   DbExpense,
   DbExpenseCategory,
@@ -79,15 +76,7 @@ export async function seedInitialFinanceData() {
   const supabase = await createClient();
   const ownerId = await getCurrentUserId();
 
-  await supabase.from("family_members").upsert(
-    buildDefaultFamilyMemberSeedRows(ownerId),
-    { onConflict: "owner_id,name", ignoreDuplicates: true },
-  );
-
-  await supabase.from("expense_categories").upsert(
-    buildDefaultExpenseCategorySeedRows(ownerId),
-    { onConflict: "owner_id,name", ignoreDuplicates: true },
-  );
+  await seedInitialFinanceDataForOwner(supabase, ownerId);
 }
 
 async function getFamilyMembersByOwner(ownerId: string) {
