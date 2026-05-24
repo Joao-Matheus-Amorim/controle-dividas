@@ -16,7 +16,8 @@ describe("profiles readiness audit", () => {
     expect(audit).toContain("profiles should not be schema-hardened in this pr");
     expect(audit).toContain("next safe step is a dedicated profiles preflight and dry-run pr");
     expect(audit).not.toContain("readiness: ready");
-    expect(audit).not.toContain("hardened");
+    expect(audit).not.toContain("current status: hardened");
+    expect(audit).not.toContain("profiles are ready for schema hardening");
   });
 
   it("documents the reviewed code surface", () => {
