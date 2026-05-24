@@ -32,7 +32,10 @@ export async function seedInitialFinanceDataForOwner(
   await assertSeedUpsertSucceeded(
     supabase
       .from("family_members")
-      .upsert(buildDefaultFamilyMemberSeedRows(ownerId), duplicateSafeSeedOptions),
+      .upsert(
+        buildDefaultFamilyMemberSeedRows(ownerId, organizationId),
+        duplicateSafeSeedOptions,
+      ),
   );
 
   await assertSeedUpsertSucceeded(

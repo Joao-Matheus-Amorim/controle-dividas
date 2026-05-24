@@ -13,13 +13,14 @@ describe("finance seed payload builders", () => {
   const ownerId = "owner-123";
   const organizationId = "org-123";
 
-  it("builds duplicate-safe default family member seed rows", () => {
-    const rows = buildDefaultFamilyMemberSeedRows(ownerId);
+  it("builds organization-scoped duplicate-safe default family member seed rows", () => {
+    const rows = buildDefaultFamilyMemberSeedRows(ownerId, organizationId);
 
     expect(rows).toHaveLength(defaultFamilyMembers.length);
     expect(rows).toEqual(
       defaultFamilyMembers.map((member) => ({
         owner_id: ownerId,
+        organization_id: organizationId,
         name: member.name,
         role: member.role,
         monthly_limit: member.monthlyLimit,
@@ -44,16 +45,18 @@ describe("finance seed payload builders", () => {
   });
 
   it("uses the provided owner id for every seed row", () => {
-    const memberRows = buildDefaultFamilyMemberSeedRows(ownerId);
+    const memberRows = buildDefaultFamilyMemberSeedRows(ownerId, organizationId);
     const categoryRows = buildDefaultExpenseCategorySeedRows(ownerId, organizationId);
 
     expect(memberRows.every((row) => row.owner_id === ownerId)).toBe(true);
     expect(categoryRows.every((row) => row.owner_id === ownerId)).toBe(true);
   });
 
-  it("uses the provided organization id for every expense category seed row", () => {
+  it("uses the provided organization id for every seed row", () => {
+    const memberRows = buildDefaultFamilyMemberSeedRows(ownerId, organizationId);
     const categoryRows = buildDefaultExpenseCategorySeedRows(ownerId, organizationId);
 
+    expect(memberRows.every((row) => row.organization_id === organizationId)).toBe(true);
     expect(categoryRows.every((row) => row.organization_id === organizationId)).toBe(true);
   });
 });
