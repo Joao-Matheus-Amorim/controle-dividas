@@ -34,7 +34,9 @@ describe("SaaS hardening status docs", () => {
     expect(liveStatus).toContain("021_family_members_organization_scope_hardening.sql");
     expect(liveStatus).toContain("expense_categories.organization_id");
     expect(liveStatus).toContain("family_members.organization_id");
-    expect(liveStatus).toContain("organization_id ainda e nullable nas demais tabelas tenant-scoped nao endurecidas");
+    expect(liveStatus).toContain(
+      "`organization_id` ainda e nullable nas demais tabelas tenant-scoped nao endurecidas",
+    );
     expect(liveStatus).not.toContain("nenhuma torna `organization_id not null`");
   });
 
