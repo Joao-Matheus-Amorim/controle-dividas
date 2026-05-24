@@ -3,13 +3,17 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+type Operation = "insert" | "update" | "upsert" | "delete";
+
 type FunctionExpectation = {
   file: string;
   functionName: string;
   table: string;
-  operation: "insert" | "update" | "upsert" | "delete";
+  operation: Operation;
   requiresOrganizationId?: boolean;
   requiresOrganizationFilter?: boolean;
+  payloadVariable?: string;
+  targetHint?: string;
 };
 
 const writeExpectations: FunctionExpectation[] = [
@@ -191,6 +195,7 @@ const writeExpectations: FunctionExpectation[] = [
     table: "user_module_permissions",
     operation: "insert",
     requiresOrganizationId: true,
+    payloadVariable: "permissionRows",
   },
   {
     file: "app/protected/admin/actions.ts",
@@ -207,6 +212,7 @@ const writeExpectations: FunctionExpectation[] = [
     operation: "update",
     requiresOrganizationId: true,
     requiresOrganizationFilter: true,
+    targetHint: "auth_user_id: authUserId",
   },
   {
     file: "app/protected/admin/actions.ts",
@@ -229,15 +235,16 @@ const writeExpectations: FunctionExpectation[] = [
     table: "user_module_permissions",
     operation: "upsert",
     requiresOrganizationId: true,
+    payloadVariable: "rows",
   },
 ];
 
-function sourcePath(file: string) {
-  return join(process.cwd(), file);
+function readSource(file: string) {
+  return readFileSync(join(process.cwd(), file), "utf8");
 }
 
-function readSource(file: string) {
-  return readFileSync(sourcePath(file), "utf8");
+function compact(source: string) {
+  return source.replace(/\s+/g, "");
 }
 
 function escapeRegExp(value: string) {
@@ -246,51 +253,180 @@ function escapeRegExp(value: string) {
 
 function functionBlock(file: string, functionName: string) {
   const source = readSource(file);
-  const startPattern = new RegExp(`export\\s+async\\s+function\\s+${escapeRegExp(functionName)}\\b`);
-  const startMatch = startPattern.exec(source);
+  const startToken = `export async function ${functionName}`;
+  const start = source.indexOf(startToken);
 
-  expect(startMatch, `Missing function ${functionName} in ${file}`).not.toBeNull();
+  expect(start, `Missing function ${functionName} in ${file}`).toBeGreaterThanOrEqual(0);
+
+  const next = source.indexOf("\nexport async function ", start + startToken.length);
+
+  return source.slice(start, next >= 0 ? next : source.length);
+}
+
+function targetWriteBlock(
+  source: string,
+  table: string,
+  operation: Operation,
+  targetHint?: string,
+) {
+  const compactSource = compact(source);
+  const tableTokenDouble = `.from("${table}")`;
+  const tableTokenSingle = `.from('${table}')`;
+  const candidates: string[] = [];
+
+  let searchIndex = 0;
+
+  while (searchIndex < compactSource.length) {
+    const doubleIndex = compactSource.indexOf(tableTokenDouble, searchIndex);
+    const singleIndex = compactSource.indexOf(tableTokenSingle, searchIndex);
+
+    const indexes = [doubleIndex, singleIndex].filter((index) => index >= 0);
+    const start = indexes.length > 0 ? Math.min(...indexes) : -1;
+
+    if (start < 0) break;
+
+    const nextFrom = compactSource.indexOf(".from(", start + 1);
+    const candidate = compactSource.slice(
+      start,
+      nextFrom >= 0 ? nextFrom : compactSource.length,
+    );
+
+    if (candidate.includes(`.${operation}(`)) {
+      candidates.push(candidate);
+    }
+
+    searchIndex = start + 1;
+  }
+
+  expect(
+    candidates.length,
+    `Missing ${operation} write for ${table}`,
+  ).toBeGreaterThan(0);
+
+  if (!targetHint) {
+    return candidates[0];
+  }
+
+  const compactHint = compact(targetHint);
+  const hintedCandidate = candidates.find((candidate) =>
+    candidate.includes(compactHint),
+  );
+
+  expect(
+    hintedCandidate,
+    `Missing ${operation} write for ${table} with hint ${targetHint}`,
+  ).toBeDefined();
+
+  return hintedCandidate ?? candidates[0];
+}
+
+function variableBlock(source: string, variableName: string) {
+  const declaration = new RegExp(
+    `\\b(?:const|let)\\s+${escapeRegExp(variableName)}\\b(?:\\s*:[^=;]+)?\\s*=`,
+  );
+  const startMatch = declaration.exec(source);
+
+  expect(startMatch, `Missing variable ${variableName}`).not.toBeNull();
 
   const start = startMatch?.index ?? 0;
-  const nextFunction = /\nexport\s+async\s+function\s+/g;
-  nextFunction.lastIndex = start + 1;
-  const nextMatch = nextFunction.exec(source);
+  const nextFrom = source.indexOf(".from(", start + 1);
 
-  return source.slice(start, nextMatch?.index ?? source.length);
+  return compact(source.slice(start, nextFrom >= 0 ? nextFrom : source.length));
 }
 
-function tableWritePattern(table: string, operation: FunctionExpectation["operation"]) {
-  return new RegExp(`\\.from\\(\\s*["']${escapeRegExp(table)}["']\\s*\\)[\\s\\S]*?\\.${operation}\\(`);
-}
-
-function organizationIdAssignmentPattern() {
-  return /organization_id\s*:\s*organization\.id/;
-}
-
-function organizationFilterPattern() {
-  return /\.or\(\s*organizationOrLegacyFilter\(organization\.id\)\s*\)/;
-}
+const organizationIdAssignment = /organization_id:organization\.id/;
+const organizationFilter = /\.or\(organizationOrLegacyFilter\(organization\.id\)\)/;
 
 describe("finance write organization_id coverage", () => {
+  it("does not let a different write satisfy the target write organization_id assertion", () => {
+    const source = `
+      await supabase
+        .from("profiles")
+        .insert({ organization_id: organization.id });
+
+      await supabase
+        .from("user_module_permissions")
+        .insert({ profile_id: profile.id });
+    `;
+
+    const target = targetWriteBlock(source, "user_module_permissions", "insert");
+
+    expect(target).not.toMatch(organizationIdAssignment);
+  });
+
+  it("does not let a scoped read satisfy the target mutation organization filter assertion", () => {
+    const source = `
+      await supabase
+        .from("profiles")
+        .select("id")
+        .or(organizationOrLegacyFilter(organization.id));
+
+      await supabase
+        .from("profiles")
+        .update({ organization_id: organization.id })
+        .eq("id", id);
+    `;
+
+    const target = targetWriteBlock(source, "profiles", "update");
+
+    expect(target).not.toMatch(organizationFilter);
+  });
+
+  it("supports typed and mutable payload variable declarations", () => {
+    const typedConstSource = `
+      const rows: PermissionRow[] = [
+        { organization_id: organization.id },
+      ];
+
+      await supabase.from("user_module_permissions").upsert(rows);
+    `;
+
+    const letSource = `
+      let permissionRows = [
+        { organization_id: organization.id },
+      ];
+
+      await supabase.from("user_module_permissions").insert(permissionRows);
+    `;
+
+    expect(variableBlock(typedConstSource, "rows")).toMatch(organizationIdAssignment);
+    expect(variableBlock(letSource, "permissionRows")).toMatch(organizationIdAssignment);
+  });
+
   it.each(writeExpectations)(
-    "$functionName $operation on $table keeps organization context",
+    "$functionName $operation on $table keeps organization context on the target write",
     (expectation) => {
       const block = functionBlock(expectation.file, expectation.functionName);
-
-      expect(block, `${expectation.functionName} should write ${expectation.table}`).toMatch(
-        tableWritePattern(expectation.table, expectation.operation),
+      const write = targetWriteBlock(
+        block,
+        expectation.table,
+        expectation.operation,
+        expectation.targetHint,
       );
 
+      if (expectation.payloadVariable) {
+        expect(
+          write,
+          `${expectation.functionName} should use payload variable ${expectation.payloadVariable} for ${expectation.table}`,
+        ).toContain(`.${expectation.operation}(${expectation.payloadVariable}`);
+      }
+
+      const organizationSubject = expectation.payloadVariable
+        ? variableBlock(block, expectation.payloadVariable)
+        : write;
+
       if (expectation.requiresOrganizationId) {
-        expect(block, `${expectation.functionName} should set active organization_id`).toMatch(
-          organizationIdAssignmentPattern(),
-        );
+        expect(
+          organizationSubject,
+          `${expectation.functionName} should set active organization_id on ${expectation.table}`,
+        ).toMatch(organizationIdAssignment);
       }
 
       if (expectation.requiresOrganizationFilter) {
-        expect(block, `${expectation.functionName} should scope by active/legacy organization`).toMatch(
-          organizationFilterPattern(),
-        );
+        expect(
+          write,
+          `${expectation.functionName} should scope ${expectation.table} mutation by active/legacy organization`,
+        ).toMatch(organizationFilter);
       }
     },
   );
