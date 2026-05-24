@@ -10,7 +10,7 @@ It is intentionally documentation-only. It does not apply a backfill, does not c
 
 ## Current phase
 
-The project is still in the planning/preflight phase.
+The project is still in the planning/preflight/dry-run phase.
 
 Completed prerequisites:
 
@@ -18,6 +18,7 @@ Completed prerequisites:
 - Finance write paths are guarded to set or preserve `organization_id`.
 - Legacy `organization_id IS NULL` readiness audit exists.
 - Read-only preflight counters exist at `docs/sql/legacy-organization-null-preflight.sql`.
+- Read-only deterministic mapping dry-run exists at `docs/sql/legacy-organization-backfill-dry-run.sql`.
 
 Not completed yet:
 
@@ -31,11 +32,12 @@ Before any future backfill PR is approved, collect and paste the following evide
 
 1. CI status for the backfill branch.
 2. Output of `docs/sql/legacy-organization-null-preflight.sql`.
-3. Table-by-table mapping rule showing how each legacy row gets its organization.
-4. Expected number of rows to update per table.
-5. Manual Supabase execution notes, when a migration must be applied manually.
-6. Rollback strategy for every table touched.
-7. Post-backfill validation queries and results.
+3. Output of `docs/sql/legacy-organization-backfill-dry-run.sql`.
+4. Table-by-table mapping rule showing how each legacy row gets its organization.
+5. Expected number of rows to update per table.
+6. Manual Supabase execution notes, when a migration must be applied manually.
+7. Rollback strategy for every table touched.
+8. Post-backfill validation queries and results.
 
 If any evidence is missing, the backfill PR must not be merged.
 
@@ -45,22 +47,27 @@ A future backfill must proceed in this order:
 
 1. Pull latest `main` and create a small branch for one table or one tightly related table group.
 2. Run `docs/sql/legacy-organization-null-preflight.sql` and save the output.
-3. Define the ownership mapping rule for the target table.
-4. Write the backfill SQL in a dedicated migration or approved manual SQL file.
-5. Add a rollback plan before execution.
-6. Add post-backfill validation SQL before execution.
-7. Run CI.
-8. Apply the backfill only after review and green CI.
-9. Run the preflight again after execution.
-10. Paste before/after counts into the PR or follow-up issue.
+3. Run `docs/sql/legacy-organization-backfill-dry-run.sql` and save the output.
+4. Define the ownership mapping rule for the target table.
+5. Confirm the dry-run reports deterministic mapping for every row targeted by the backfill.
+6. Exclude or separately plan any row reported as blocked or ambiguous.
+7. Write the backfill SQL in a dedicated migration or approved manual SQL file.
+8. Add a rollback plan before execution.
+9. Add post-backfill validation SQL before execution.
+10. Run CI.
+11. Apply the backfill only after review and green CI.
+12. Run the preflight and dry-run again after execution.
+13. Paste before/after counts into the PR or follow-up issue.
 
 ## Table-by-table stop/go criteria
 
 ### Proceed with a table backfill only if
 
 - The table appears in the preflight output.
+- The table appears in the dry-run output.
 - The null count is known.
 - The owner-to-organization mapping is deterministic.
+- The dry-run reports the target rows as deterministically mappable.
 - Ambiguous rows are explicitly listed and excluded or handled by a separate plan.
 - Rollback SQL or restore procedure is documented.
 - Post-backfill validation SQL exists.
@@ -69,8 +76,9 @@ A future backfill must proceed in this order:
 
 - A row can map to more than one organization.
 - The mapping requires guessing.
+- The dry-run reports blocked or ambiguous rows that the backfill would update.
 - The table contains rows without a reliable owner/profile relationship.
-- Preflight counts changed unexpectedly between review and execution.
+- Preflight or dry-run counts changed unexpectedly between review and execution.
 - CI is not green.
 - Rollback is not documented.
 
@@ -79,6 +87,7 @@ A future backfill must proceed in this order:
 Do not add `organization_id NOT NULL` until all of these are true:
 
 - Preflight returns zero `organization_id IS NULL` rows for every transitional table.
+- Dry-run returns zero blocked or ambiguous rows for every transitional table.
 - Bootstrap admin organization assignment is resolved.
 - RLS tests remain green.
 - Runtime write guards remain green.
@@ -119,6 +128,7 @@ At minimum, rerun:
 
 ```txt
 docs/sql/legacy-organization-null-preflight.sql
+docs/sql/legacy-organization-backfill-dry-run.sql
 ```
 
 ## Out of scope for this runbook PR
