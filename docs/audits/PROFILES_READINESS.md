@@ -1,13 +1,13 @@
 # Profiles readiness audit
 
 Issue: #616
-Related issues: #618, #620
+Related issues: #618, #620, #622
 
 ## Purpose
 
 Record the current readiness state for hardening profile organization scope.
 
-This audit now tracks read-only SQL preparation and the profile bootstrap runtime boundary. It does not add a migration, schema change, data change, RLS change, UI change, billing change, E2E change, or legacy fallback removal.
+This audit now tracks read-only SQL preparation, the profile bootstrap runtime boundary, and the pending evidence gate. It does not add a migration, schema change, data change, RLS change, runtime change, UI change, billing change, E2E change, or legacy fallback removal.
 
 ## Finding
 
@@ -25,6 +25,16 @@ docs/sql/profile-organization-dry-run.sql
 ```
 
 These checks are preparation only. They gather read-only evidence and do not mutate data or apply constraints.
+
+## Evidence status
+
+The current evidence status is tracked in:
+
+```txt
+docs/audits/PROFILES_EVIDENCE_STATUS.md
+```
+
+Current status: pending target-environment output.
 
 ## Runtime bootstrap boundary
 
@@ -57,6 +67,7 @@ No profiles hardening migration should be created until the checks prove that re
 - No schema change.
 - No data change.
 - No RLS change.
+- No runtime change.
 - No UI change.
 - No billing change.
 - No E2E change.
