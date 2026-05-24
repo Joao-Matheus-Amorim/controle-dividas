@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   createClient: vi.fn(),
   seedInitialFinanceDataForOwner: vi.fn(),
+  requireOrganizationAccess: vi.fn(),
   getCurrentProfile: vi.fn(),
   getAccessibleMemberIds: vi.fn(),
   getFamilyMembersByOwner: vi.fn(),
@@ -15,6 +16,10 @@ vi.mock("@/lib/supabase/server", () => ({
 
 vi.mock("@/lib/finance/seed-server", () => ({
   seedInitialFinanceDataForOwner: mocks.seedInitialFinanceDataForOwner,
+}));
+
+vi.mock("@/lib/organizations/server", () => ({
+  requireOrganizationAccess: mocks.requireOrganizationAccess,
 }));
 
 vi.mock("@/lib/finance/access-control", () => ({
@@ -33,6 +38,7 @@ vi.mock("@/lib/finance/receivables-server", () => ({
 import { getReceivableIncomesDashboardData } from "@/lib/finance/server";
 
 const ownerId = "owner-123";
+const organizationId = "org-123";
 
 function createSupabaseAuthClient() {
   return {
@@ -51,6 +57,7 @@ describe("receivable dashboard aggregation", () => {
 
     mocks.createClient.mockResolvedValue(createSupabaseAuthClient());
     mocks.seedInitialFinanceDataForOwner.mockResolvedValue(undefined);
+    mocks.requireOrganizationAccess.mockResolvedValue({ organization: { id: organizationId } });
     mocks.getCurrentProfile.mockResolvedValue({ owner_id: ownerId });
     mocks.getAccessibleMemberIds.mockResolvedValue(["member-visible"]);
   });
@@ -139,6 +146,12 @@ describe("receivable dashboard aggregation", () => {
     const result = await getReceivableIncomesDashboardData();
 
     expect(mocks.seedInitialFinanceDataForOwner).toHaveBeenCalledTimes(2);
+    expect(mocks.seedInitialFinanceDataForOwner).toHaveBeenCalledWith(
+      expect.anything(),
+      ownerId,
+      organizationId,
+    );
+    expect(mocks.requireOrganizationAccess).toHaveBeenCalledTimes(2);
     expect(mocks.getCurrentProfile).toHaveBeenCalledTimes(1);
     expect(mocks.getAccessibleMemberIds).toHaveBeenCalledWith("CONTAS_A_RECEBER", "can_view");
     expect(mocks.getFamilyMembersByOwner).toHaveBeenCalledWith(ownerId);
