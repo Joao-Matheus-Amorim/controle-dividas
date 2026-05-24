@@ -1,18 +1,30 @@
 # Profiles readiness audit
 
 Issue: #616
+Related issue: #618
 
 ## Purpose
 
 Record the current readiness state for hardening profile organization scope.
 
-This PR is documentation only. It does not add a migration, SQL check, runtime change, RLS change, UI change, billing change, E2E change, or legacy fallback removal.
+This PR is documentation and read-only SQL preparation only. It does not add a migration, runtime change, RLS change, UI change, billing change, E2E change, or legacy fallback removal.
 
 ## Finding
 
 Profiles should not be schema-hardened in this PR.
 
 The current product has explicit initial organization onboarding, and family profile write paths set the active organization scope. However, bootstrap profile creation remains transitional and can still happen before onboarding links the profile to an organization.
+
+## Read-only checks for future hardening
+
+Table-scoped read-only checks now exist for future profiles hardening:
+
+```txt
+docs/sql/profile-organization-null-check.sql
+docs/sql/profile-organization-dry-run.sql
+```
+
+These checks are preparation only. They gather read-only evidence and do not mutate data or apply constraints.
 
 ## Reviewed areas
 
@@ -26,9 +38,9 @@ The current product has explicit initial organization onboarding, and family pro
 
 ## Decision
 
-The next safe step is a dedicated profiles preflight and dry-run PR.
+The next safe step after these checks is to review their output from the target environment before considering a schema-only hardening migration.
 
-That later PR should gather fresh read-only evidence before any schema-only hardening migration is considered.
+No profiles hardening migration should be created until the checks prove that remaining legacy rows are zero or otherwise safely resolved in a separate scoped PR.
 
 ## Out of scope
 
