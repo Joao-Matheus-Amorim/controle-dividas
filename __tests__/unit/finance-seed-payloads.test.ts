@@ -11,6 +11,7 @@ import {
 
 describe("finance seed payload builders", () => {
   const ownerId = "owner-123";
+  const organizationId = "org-123";
 
   it("builds duplicate-safe default family member seed rows", () => {
     const rows = buildDefaultFamilyMemberSeedRows(ownerId);
@@ -28,13 +29,14 @@ describe("finance seed payload builders", () => {
     );
   });
 
-  it("builds duplicate-safe default expense category seed rows", () => {
-    const rows = buildDefaultExpenseCategorySeedRows(ownerId);
+  it("builds organization-scoped duplicate-safe default expense category seed rows", () => {
+    const rows = buildDefaultExpenseCategorySeedRows(ownerId, organizationId);
 
     expect(rows).toHaveLength(defaultExpenseCategories.length);
     expect(rows).toEqual(
       defaultExpenseCategories.map((category) => ({
         owner_id: ownerId,
+        organization_id: organizationId,
         name: category.name,
         is_default: true,
       })),
@@ -43,9 +45,15 @@ describe("finance seed payload builders", () => {
 
   it("uses the provided owner id for every seed row", () => {
     const memberRows = buildDefaultFamilyMemberSeedRows(ownerId);
-    const categoryRows = buildDefaultExpenseCategorySeedRows(ownerId);
+    const categoryRows = buildDefaultExpenseCategorySeedRows(ownerId, organizationId);
 
     expect(memberRows.every((row) => row.owner_id === ownerId)).toBe(true);
     expect(categoryRows.every((row) => row.owner_id === ownerId)).toBe(true);
+  });
+
+  it("uses the provided organization id for every expense category seed row", () => {
+    const categoryRows = buildDefaultExpenseCategorySeedRows(ownerId, organizationId);
+
+    expect(categoryRows.every((row) => row.organization_id === organizationId)).toBe(true);
   });
 });
