@@ -1,6 +1,7 @@
 # Feature decision status
 
 Issue: #624
+Related issue: #626
 
 ## Purpose
 
@@ -10,29 +11,29 @@ Record the decision status for the feature permission table before any later har
 
 ```txt
 Decision status: use feature permissions
-Hardening status: blocked until scoped write path exists
+Write path status: scoped write path added
+Hardening status: blocked until readiness, preflight, and dry-run are completed
 ```
 
 ## Current evidence
 
-The existing audit found read paths but did not confirm an active application write path.
+The product will keep and use feature permissions.
+
+A scoped server action now writes feature permission rows with organization scope from the active organization.
 
 ## Decision
 
-The product will keep and use feature permissions.
-
 Do not create a hardening migration yet.
 
-The next implementation step is a separate scoped write-path PR.
+The next implementation step after this write path is a separate readiness audit or UI PR.
 
-That future PR must prove that writes set organization scope from the active organization before any preflight, dry-run, or schema hardening PR is opened.
+A future hardening sequence may only proceed after readiness, read-only preflight, and read-only dry-run evidence are reviewed in separate scoped PRs.
 
 ## Out of scope
 
 - No migration.
 - No schema change.
-- No data change.
-- No runtime change.
+- No data change outside the explicit server action when invoked.
 - No RLS change.
 - No UI change.
 - No billing change.
