@@ -10,7 +10,10 @@ const docs = {
 } as const;
 
 function read(path: string) {
-  return readFileSync(join(process.cwd(), path), "utf8").toLowerCase();
+  return readFileSync(join(process.cwd(), path), "utf8")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
 }
 
 describe("SaaS hardening status docs", () => {
