@@ -1,13 +1,13 @@
 # User feature permissions write path audit
 
 Issue: #614
-Related issue: #624
+Related issues: #624, #626
 
 ## Purpose
 
 Audit whether `public.user_feature_permissions.organization_id` is ready for future organization scope hardening.
 
-This document does not introduce a migration. It records the current read/write surface and the reason hardening must not proceed yet.
+This document does not introduce a migration. It records the current read/write surface and the reason schema hardening must not proceed yet.
 
 ## Current finding
 
@@ -16,9 +16,10 @@ This document does not introduce a migration. It records the current read/write 
 Current status:
 
 ```txt
-Readiness: blocked
+Readiness: blocked pending readiness, preflight, and dry-run
 Decision: keep and use feature permissions
-Next safe step: define and implement a scoped write path in a separate PR
+Write path: scoped server action exists
+Next safe step: readiness audit or UI integration in a separate PR
 ```
 
 Decision status is tracked in:
@@ -58,31 +59,34 @@ This is read-only and intentionally transitional.
 
 ## Write path review
 
-No active application write path was found for `user_feature_permissions` in the audited source surface.
+A scoped application write path now exists:
 
-Specifically, no source code path was found that creates or mutates `user_feature_permissions` rows with:
+```txt
+app/protected/admin/actions.ts
+saveProfileFeaturePermissions
+```
 
-- `insert`;
-- `upsert`;
-- `update`;
-- `delete`.
+Current write behavior:
 
-Because there is no confirmed application write path yet, the project cannot currently prove that future rows will always receive `organization_id`.
+- validates the target profile belongs to the active organization or accepted legacy scope;
+- writes one row per known feature permission key;
+- writes `owner_id` from the admin profile;
+- writes `organization_id` from the active organization;
+- writes `profile_id` from the validated target profile;
+- writes `granted_by` from the admin profile.
 
 ## Decision
 
 Do not add preflight/dry-run SQL or a schema hardening migration for `user_feature_permissions` yet.
 
-The product will keep and use feature permissions. A future hardening sequence may resume only after a real write path exists and is proven to set `organization_id` from the active organization.
+A future hardening sequence may resume only after readiness, read-only preflight, and read-only dry-run evidence are reviewed in separate scoped PRs.
 
 ## Out of scope
 
 This audit does not change:
 
 - schema;
-- data;
 - RLS policies;
-- runtime behavior;
 - UI;
 - billing;
 - E2E;
