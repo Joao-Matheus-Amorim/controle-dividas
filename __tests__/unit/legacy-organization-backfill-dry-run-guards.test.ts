@@ -52,6 +52,18 @@ describe("legacy organization backfill dry-run SQL", () => {
     expect(executableSql).toContain("where organization_id is null");
   });
 
+  it("emits zero-count rows for empty transitional tables", () => {
+    expect(executableSql).toContain("transitional_tables as");
+    expect(executableSql).toContain("from transitional_tables");
+    expect(executableSql).toContain("left join legacy_mapping_summary");
+    expect(executableSql).toContain("order by transitional_tables.sort_order");
+    expect(executableSql).toContain("coalesce(legacy_mapping_summary.total_legacy_null_organization_rows, 0)");
+    expect(executableSql).toContain("coalesce(legacy_mapping_summary.deterministically_mappable_rows, 0)");
+    expect(executableSql).toContain("coalesce(legacy_mapping_summary.blocked_missing_owner_profile_rows, 0)");
+    expect(executableSql).toContain("coalesce(legacy_mapping_summary.blocked_owner_without_organization_rows, 0)");
+    expect(executableSql).toContain("coalesce(legacy_mapping_summary.blocked_ambiguous_owner_organization_rows, 0)");
+  });
+
   it("uses owner/profile organization mapping without updating rows", () => {
     expect(executableSql).toContain("owner_organization_mapping");
     expect(executableSql).toContain("from public.profiles");
