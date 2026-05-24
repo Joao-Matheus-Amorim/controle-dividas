@@ -1,6 +1,7 @@
 # User feature permissions write path audit
 
 Issue: #614
+Related issue: #624
 
 ## Purpose
 
@@ -17,7 +18,13 @@ Current status:
 ```txt
 Readiness: blocked
 Reason: no active application write path was found in the audited source surface
-Next safe step: define and implement a scoped write path, or explicitly deprecate/remove the table before any NOT NULL migration
+Next safe step: define and implement a scoped write path, explicitly deprecate the table, or keep it blocked until requirements are clear
+```
+
+Decision status is tracked in:
+
+```txt
+docs/audits/FEATURE_DECISION_STATUS.md
 ```
 
 ## Read path review
