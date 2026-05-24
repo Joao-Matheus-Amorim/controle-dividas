@@ -23,7 +23,7 @@ function createSeedClient(
 }
 
 describe("finance seed server", () => {
-  it("upserts default members and organization-scoped categories with duplicate-safe options", async () => {
+  it("upserts organization-scoped default members and categories with duplicate-safe options", async () => {
     const ownerId = "owner-123";
     const organizationId = "org-123";
     const { client, from, upsertCalls } = createSeedClient();
@@ -35,7 +35,7 @@ describe("finance seed server", () => {
     expect(upsertCalls).toEqual([
       {
         table: "family_members",
-        rows: buildDefaultFamilyMemberSeedRows(ownerId),
+        rows: buildDefaultFamilyMemberSeedRows(ownerId, organizationId),
         options: { onConflict: "owner_id,name", ignoreDuplicates: true },
       },
       {
