@@ -50,29 +50,50 @@ This reduces new null-organization drift but does not migrate historical data.
 
 This is the main intentional runtime path that remains organization-less and must be handled before any `profiles.organization_id NOT NULL` migration.
 
-## Guard added
+## Preflight counters
 
-A focused guard was added in:
+A read-only SQL preflight was added in:
+
+```txt
+docs/sql/legacy-organization-null-preflight.sql
+```
+
+Run it before any future backfill or `organization_id NOT NULL` hardening to capture the current number of legacy rows per table where `organization_id IS NULL`.
+
+The preflight is intentionally read-only and returns one result set with:
+
+```txt
+table_name | null_organization_rows
+```
+
+It does not update data, alter schema, create objects, drop objects, or grant/revoke permissions.
+
+## Guards added
+
+Focused guards were added in:
 
 ```txt
 __tests__/unit/legacy-organization-null-backfill-readiness.test.ts
+__tests__/unit/legacy-organization-null-preflight-guards.test.ts
 ```
 
-It verifies:
+They verify:
 
 - migration `007` still lists the transitional tables with nullable `organization_id` columns;
 - migration `007` does not silently introduce a backfill;
 - migration `007` does not silently introduce `organization_id NOT NULL`;
-- bootstrap admin profile remains explicitly organization-less until onboarding assigns scope.
+- bootstrap admin profile remains explicitly organization-less until onboarding assigns scope;
+- the preflight SQL covers every transitional table;
+- the preflight SQL remains read-only executable SQL.
 
 ## Follow-up recommendations
 
 Before any actual backfill or nullability hardening:
 
-1. Create a data backfill migration plan per table.
-2. Define how bootstrap admin profiles are assigned to an organization.
-3. Add a rollback plan for every backfill step.
-4. Add preflight SQL checks that count `organization_id IS NULL` rows per table.
+1. Run `docs/sql/legacy-organization-null-preflight.sql` and save the results in the backfill PR notes.
+2. Create a data backfill migration plan per table.
+3. Define how bootstrap admin profiles are assigned to an organization.
+4. Add a rollback plan for every backfill step.
 5. Backfill in a dedicated PR before attempting any `NOT NULL` constraint.
 6. Remove legacy `owner_id` fallback only after backfill, behavioral tests, and RLS validation.
 
