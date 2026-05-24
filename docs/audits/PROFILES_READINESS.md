@@ -32,4 +32,11 @@ That later PR should gather fresh read-only evidence before any schema-only hard
 
 ## Out of scope
 
-No schema change, data change, runtime change, RLS change, UI change, billing change, E2E change, or legacy fallback removal.
+- No schema change.
+- No data change.
+- No runtime change.
+- No RLS change.
+- No UI change.
+- No billing change.
+- No E2E change.
+- No legacy fallback removal.
