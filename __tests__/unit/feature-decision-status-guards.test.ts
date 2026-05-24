@@ -10,16 +10,17 @@ function read(path: string) {
 describe("feature decision status", () => {
   const status = read("docs/audits/FEATURE_DECISION_STATUS.md");
 
-  it("keeps hardening blocked until a decision exists", () => {
-    expect(status).toContain("decision status: pending");
-    expect(status).toContain("hardening status: blocked");
+  it("records that feature permissions will be used while hardening remains blocked", () => {
+    expect(status).toContain("decision status: use feature permissions");
+    expect(status).toContain("hardening status: blocked until scoped write path exists");
     expect(status).not.toContain("hardening status: ready");
+    expect(status).not.toContain("decision status: pending");
   });
 
   it("keeps the next step explicit", () => {
-    expect(status).toContain("define a scoped write path");
-    expect(status).toContain("deprecate the table");
-    expect(status).toContain("keep the table blocked");
+    expect(status).toContain("the product will keep and use feature permissions");
+    expect(status).toContain("the next implementation step is a separate scoped write-path pr");
+    expect(status).toContain("writes set organization scope from the active organization");
   });
 
   it("keeps this PR out of implementation changes", () => {
