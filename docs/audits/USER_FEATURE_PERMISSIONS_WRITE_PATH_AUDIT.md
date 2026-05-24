@@ -17,8 +17,8 @@ Current status:
 
 ```txt
 Readiness: blocked
-Reason: no active application write path was found in the audited source surface
-Next safe step: define and implement a scoped write path, explicitly deprecate the table, or keep it blocked until requirements are clear
+Decision: keep and use feature permissions
+Next safe step: define and implement a scoped write path in a separate PR
 ```
 
 Decision status is tracked in:
@@ -67,17 +67,13 @@ Specifically, no source code path was found that creates or mutates `user_featur
 - `update`;
 - `delete`.
 
-Because there is no confirmed application write path, the project cannot currently prove that future rows will always receive `organization_id`.
+Because there is no confirmed application write path yet, the project cannot currently prove that future rows will always receive `organization_id`.
 
 ## Decision
 
 Do not add preflight/dry-run SQL or a schema hardening migration for `user_feature_permissions` yet.
 
-A future hardening sequence may resume only after one of these is true:
-
-1. a real write path exists and is proven to set `organization_id` from the active organization; or
-2. the table is explicitly deprecated/removed through a separate scoped decision; or
-3. production evidence and product requirements prove the table is static/unused and no longer needs hardening.
+The product will keep and use feature permissions. A future hardening sequence may resume only after a real write path exists and is proven to set `organization_id` from the active organization.
 
 ## Out of scope
 
