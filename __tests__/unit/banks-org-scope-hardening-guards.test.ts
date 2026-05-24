@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 
 const migrationPath = "supabase/migrations/025_banks_organization_scope_hardening.sql";
 const runbookPath = "docs/runbooks/BANKS_ORG_SCOPE_HARDENING.md";
+const forbiddenTables = ["expenses", "payable_bills", "receivable_incomes"] as const;
 
 function read(path: string) {
   return readFileSync(join(process.cwd(), path), "utf8").toLowerCase();
@@ -22,6 +23,13 @@ function withoutComments(sql: string) {
 
 function version(filename: string) {
   return filename.match(/^(\d+)_/)?.[1] ?? null;
+}
+
+function expectNoForbiddenTableReferences(sql: string) {
+  for (const table of forbiddenTables) {
+    expect(sql).not.toContain(`public.${table}`);
+    expect(sql).not.toContain(`"public"."${table}"`);
+  }
 }
 
 describe("banks organization scope hardening", () => {
@@ -43,9 +51,7 @@ describe("banks organization scope hardening", () => {
     expect(migration).toContain('from "public"."banks"');
     expect(migration).toContain('alter table "public"."banks"');
     expect(migration).toContain('alter column "organization_id" set not null');
-    expect(migration).not.toContain("public.expenses");
-    expect(migration).not.toContain("public.payable_bills");
-    expect(migration).not.toContain("public.receivable_incomes");
+    expectNoForbiddenTableReferences(migration);
   });
 
   it("fails before hardening if null organization rows still exist", () => {
