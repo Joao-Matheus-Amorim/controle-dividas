@@ -1,6 +1,6 @@
 # Expense Categories Organization Scope Hardening
 
-Issue: #568
+Issues: #568, #570
 
 ## Purpose
 
@@ -9,7 +9,7 @@ Document the operational notes for hardening `public.expense_categories.organiza
 This runbook applies only to the migration:
 
 ```txt
-supabase/migrations/018_expense_categories_organization_scope_hardening.sql
+supabase/migrations/020_expense_categories_organization_scope_hardening.sql
 ```
 
 ## Scope
@@ -41,6 +41,22 @@ expense_categories | 0 ambiguous rows
 
 The migration also includes its own preflight guard and will fail before applying the schema change if any `public.expense_categories.organization_id IS NULL` rows exist.
 
+## Seed compatibility requirement
+
+Before applying the migration, runtime seed code must pass an explicit `organization_id` for every default `public.expense_categories` row.
+
+The expected seed contract is:
+
+```txt
+buildDefaultExpenseCategorySeedRows(ownerId, organizationId)
+```
+
+The category seed rows must include:
+
+```txt
+organization_id: organizationId
+```
+
 ## Rollback
 
 Rollback is schema-only. It does not restore or change data.
@@ -68,7 +84,6 @@ This change does not:
 - alter `profiles`;
 - alter any other tenant-scoped table;
 - change RLS policies;
-- change runtime actions;
 - change UI;
 - change billing;
 - change E2E tests;
