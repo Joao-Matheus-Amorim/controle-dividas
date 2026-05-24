@@ -1,12 +1,13 @@
 # Organization Scope Hardening Plan
 
 Issue: #566
+Status reconciliation: #575
 
 ## Purpose
 
-Define the safe plan for a future schema hardening step where tenant-scoped rows require a non-empty organization scope.
+Define the safe plan for schema hardening steps where tenant-scoped rows require a non-empty organization scope.
 
-This document is planning-only. It does not apply schema changes, does not update data, does not change RLS policies, and does not remove legacy `owner_id` fallback.
+This document is still a planning/control document. It records completed incremental hardening and the remaining order. It does not update data, does not change RLS policies, and does not remove legacy `owner_id` fallback.
 
 ## Current evidence
 
@@ -17,47 +18,51 @@ The following safety chain exists:
 3. Backfill runbook with rollback and validation requirements.
 4. Read-only deterministic mapping dry-run.
 5. Production evidence showing zero legacy null-organization rows across transitional tenant tables.
+6. Incremental hardening already completed for the first low-risk finance tables.
 
-## Candidate tables
+## Current hardening state
 
-The hardening candidates are the tenant-scoped transitional tables currently covered by the preflight and dry-run evidence:
-
-| Table | Candidate status | Notes |
+| Table | Current status | Notes |
 | --- | --- | --- |
-| `family_members` | candidate | finance/member write guards are in place |
-| `expense_categories` | candidate | finance/category write guards are in place |
-| `expenses` | candidate | finance/expense write guards are in place |
-| `payable_bills` | candidate | payable write guards are in place |
-| `receivable_incomes` | candidate | receivable write guards are in place |
-| `banks` | candidate | bank write guards are in place |
-| `user_module_permissions` | candidate | permission write guards are in place |
+| `expense_categories` | hardened | `020_expense_categories_organization_scope_hardening.sql` applies `organization_id NOT NULL` after a migration-local preflight guard |
+| `family_members` | hardened | `021_family_members_organization_scope_hardening.sql` applies `organization_id NOT NULL` after seed contract and migration-local preflight guard |
+| `expenses` | candidate | finance/expense write guards are in place; schema still transitional |
+| `payable_bills` | candidate | payable write guards are in place; schema still transitional |
+| `receivable_incomes` | candidate | receivable write guards are in place; schema still transitional |
+| `banks` | candidate | bank write guards are in place; schema still transitional |
+| `user_module_permissions` | candidate | permission write guards are in place; schema still transitional |
 | `user_feature_permissions` | candidate after write-path confirmation | prior audits found no active write path in the audited surface |
 | `profiles` | special handling required | bootstrap/admin profile behavior must be resolved before hardening |
 
 ## Required pre-migration evidence
 
-Before any future schema-hardening PR is approved, the PR must include fresh evidence from the production target environment:
+Before any future schema-hardening PR is approved, the PR must include fresh evidence from the target environment:
 
 ```txt
 docs/sql/legacy-organization-null-preflight.sql
 docs/sql/legacy-organization-backfill-dry-run.sql
 ```
 
-The evidence must show:
+For every target table, the evidence must show:
 
-- zero null-organization rows for every target table;
+- zero null-organization rows;
 - zero blocked rows;
 - zero ambiguous rows;
 - no drift between review and execution.
 
 ## Recommended order
 
-Do not harden every table in one PR. Use a small PR sequence:
+Do not harden every table in one PR. Continue using a small PR sequence:
 
-1. Non-profile finance tables with active write guards.
+1. Remaining non-profile finance tables with active write guards.
 2. Permission tables after confirming all write paths set organization scope.
 3. `profiles` only after bootstrap/admin organization assignment is proven compatible.
 4. Legacy fallback removal only after schema hardening and read-path migration are complete.
+
+Already completed in this sequence:
+
+1. `expense_categories`.
+2. `family_members`.
 
 ## Stop criteria
 
@@ -101,12 +106,11 @@ Until that is resolved, `profiles` must not be hardened together with lower-risk
 This plan does not change:
 
 - data;
-- migrations;
+- migrations by itself;
 - RLS policies;
 - runtime actions;
 - auth/linking;
 - UI;
 - billing;
 - E2E;
-- legacy `owner_id` fallback;
-- schema nullability.
+- legacy `owner_id` fallback.
