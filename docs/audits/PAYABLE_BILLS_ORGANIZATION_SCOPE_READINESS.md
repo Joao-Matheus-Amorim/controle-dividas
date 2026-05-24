@@ -1,6 +1,7 @@
 # Payable bills organization scope readiness
 
 Issue: #590
+Related issue: #592
 
 ## Purpose
 
@@ -16,8 +17,19 @@ Current status:
 
 ```txt
 Readiness: mostly ready, still transitional
-Next safe step: table-scoped preflight/dry-run before a future dedicated hardening PR
+Next safe step: future dedicated hardening PR after fresh preflight/dry-run evidence
 ```
+
+## Read-only checks for future hardening
+
+Table-scoped read-only checks now exist for future `payable_bills` hardening:
+
+```txt
+docs/sql/payable-bills-organization-null-preflight.sql
+docs/sql/payable-bills-organization-dry-run.sql
+```
+
+These scripts are preparation only. They do not mutate data and do not apply constraints.
 
 ## Write path review
 
@@ -85,8 +97,8 @@ The following remain intentional transitional behavior:
 
 However, a future hardening PR should be separate and must include:
 
-- table-scoped null-organization preflight evidence;
-- table-scoped deterministic dry-run evidence;
+- fresh null-organization preflight evidence;
+- fresh deterministic dry-run evidence;
 - migration-local preflight guard;
 - rollback instructions;
 - static guard proving the migration is scoped only to `payable_bills`;
