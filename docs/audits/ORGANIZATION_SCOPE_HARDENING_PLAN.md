@@ -28,7 +28,7 @@ The following safety chain exists:
 | `family_members` | hardened | `021_family_members_organization_scope_hardening.sql` applies `organization_id NOT NULL` after seed contract and migration-local preflight guard |
 | `expenses` | hardened | `022_expenses_organization_scope_hardening.sql` applies `organization_id NOT NULL` after expenses-specific readiness, preflight, dry-run and migration-local preflight guard |
 | `payable_bills` | hardened | `023_payable_bills_organization_scope_hardening.sql` applies `organization_id NOT NULL` after payable bills-specific readiness, preflight, dry-run and migration-local preflight guard |
-| `receivable_incomes` | candidate | receivable write guards are in place; schema still transitional |
+| `receivable_incomes` | hardened | `024_receivable_incomes_organization_scope_hardening.sql` applies `organization_id NOT NULL` after receivable incomes-specific readiness, preflight, dry-run and migration-local preflight guard |
 | `banks` | candidate | bank write guards are in place; schema still transitional |
 | `user_module_permissions` | candidate | permission write guards are in place; schema still transitional |
 | `user_feature_permissions` | candidate after write-path confirmation | prior audits found no active write path in the audited surface |
@@ -67,6 +67,7 @@ Already completed in this sequence:
 2. `family_members`.
 3. `expenses`.
 4. `payable_bills`.
+5. `receivable_incomes`.
 
 ## Stop criteria
 
