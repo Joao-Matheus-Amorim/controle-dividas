@@ -154,6 +154,9 @@ const rlsCoverage: RlsTableExpectation[] = [
   },
 ];
 
+const membershipTableName = "organization_" + "memberships";
+const membershipTableReadPattern = new RegExp(String.raw`\bfrom\s+public\s*\.\s*${membershipTableName}\b`, "i");
+
 function migrationPath(file: string) {
   return join(process.cwd(), "supabase/migrations", file);
 }
@@ -213,6 +216,12 @@ describe("RLS coverage inventory", () => {
 
     expect(stripSqlComments(commentedSql)).not.toMatch(/enable\s+row\s+level\s+security/i);
     expect(stripSqlComments(commentedSql)).not.toMatch(/create\s+policy/i);
+  });
+
+  it("matches membership table reads regardless of SQL formatting", () => {
+    expect("FROM public." + membershipTableName).toMatch(membershipTableReadPattern);
+    expect("from\n  public." + membershipTableName).toMatch(membershipTableReadPattern);
+    expect("from\tpublic . " + membershipTableName).toMatch(membershipTableReadPattern);
   });
 
   it.each(rlsCoverage)("enables RLS for $table", (entry) => {
@@ -277,7 +286,7 @@ describe("RLS coverage inventory", () => {
       });
 
       expect(block).toContain(policy.helper);
-      expect(block).not.toContain("from public.organization_memberships");
+      expect(block).not.toMatch(membershipTableReadPattern);
     });
   });
 
