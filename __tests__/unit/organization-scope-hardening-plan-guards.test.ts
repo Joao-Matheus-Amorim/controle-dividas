@@ -23,7 +23,10 @@ function readPlan() {
 }
 
 function normalize(text: string) {
-  return text.toLowerCase();
+  return text
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
 }
 
 describe("organization scope hardening plan", () => {
@@ -63,11 +66,12 @@ describe("organization scope hardening plan", () => {
     expect(plan).toContain("e2e");
   });
 
-  it("states that this planning PR does not change data, migrations, policies, or schema nullability", () => {
-    expect(plan).toContain("planning-only");
-    expect(plan).toContain("does not apply schema changes");
+  it("states that this plan does not directly change data, policies, runtime, or product surfaces", () => {
+    expect(plan).toContain("planning/control document");
     expect(plan).toContain("does not update data");
     expect(plan).toContain("does not change rls policies");
-    expect(plan).toContain("schema nullability");
+    expect(plan).toContain("this plan does not change");
+    expect(plan).toContain("runtime actions");
+    expect(plan).toContain("legacy `owner_id` fallback");
   });
 });
