@@ -1,6 +1,6 @@
 # Current RLS Policies Inventory
 
-Issue: #151
+Issue: #548
 
 ## 1. Objetivo
 
@@ -14,9 +14,10 @@ Esta PR nao altera:
 - policies;
 - helpers SQL;
 - codigo de producao;
-- testes;
 - rotas;
 - billing.
+
+Ela adiciona um guard unitario de inventario em `__tests__/unit/rls-coverage-inventory.test.ts` para falhar no CI se uma tabela critica perder o `enable row level security` ou as policies esperadas nas migrations auditadas.
 
 ## 2. Fontes revisadas
 
@@ -27,6 +28,13 @@ Arquivos revisados:
 - `supabase/migrations/004_permission_scope_and_features.sql`
 - `supabase/migrations/006_organizations_memberships.sql`
 - `supabase/migrations/007_add_organization_id_columns.sql`
+- `supabase/migrations/008_expense_categories_organization_rls.sql`
+- `supabase/migrations/009_expense_categories_owner_write_rls.sql`
+- `supabase/migrations/010_family_members_organization_rls.sql`
+- `supabase/migrations/011_expenses_organization_rls.sql`
+- `supabase/migrations/012_payable_bills_organization_rls.sql`
+- `supabase/migrations/013_receivable_incomes_organization_rls.sql`
+- `supabase/migrations/014_banks_organization_rls.sql`
 - `supabase/migrations/015_profiles_organization_rls.sql`
 - `supabase/migrations/016_user_module_permissions_organization_rls.sql`
 - `supabase/migrations/017_user_feature_permissions_organization_rls.sql`
@@ -35,6 +43,7 @@ Busca base:
 
 ```txt
 create policy
+alter table public.<table> enable row level security
 ```
 
 ## 3. Resumo executivo
@@ -43,13 +52,30 @@ O estado historico inicial era owner-centric nas tabelas financeiras e de permis
 
 Resumo:
 
-- tabelas financeiras da migration `001` usam policies `auth.uid() = owner_id`;
+- `organizations` e `organization_memberships` possuem RLS baseado em membership/admin via helpers `SECURITY DEFINER` da migration `006`;
+- tabelas financeiras da migration `001` nasceram owner-centric, mas foram migradas para policies organization-aware transicionais nas migrations `008` a `014`;
 - `profiles` e `user_module_permissions` nasceram owner-centric na migration `003`, mas foram migradas para policies organization-aware nas migrations `015` e `016`;
 - `user_feature_permissions` nasceu owner-centric na migration `004`, mas foi migrada para policy organization-aware na migration `017`;
-- `organizations` e `organization_memberships` da migration `006` ja usam helpers por membership;
-- migration `007` adicionou `organization_id`, mas nao alterou RLS.
+- migration `007` adicionou `organization_id`, mas nao alterou RLS;
+- o modelo atual ainda e transicional para tabelas com `organization_id` nullable e fallback legado por `owner_id`.
 
-Isso confirma que a fase RLS atual avancou em migrations pequenas e que os proximos gates devem focar em admin/permissoes multi-org, UX de organization ativa e hardening final de schema.
+A auditoria da issue #548 classifica como:
+
+| Tabela | Status | Observacao |
+| --- | --- | --- |
+| `organizations` | covered | RLS por membership/admin/owner na migration `006`. |
+| `organization_memberships` | covered | RLS por helpers nao recursivos na migration `006`. |
+| `profiles` | transitional | Organization-aware, mas preserva `owner_id` e acesso direto via `auth_user_id`. |
+| `family_members` | transitional | Organization-aware para leitura; writes seguem owner-scoped na transicao. |
+| `expenses` | transitional | Organization-aware para leitura; writes seguem owner-scoped na transicao. |
+| `expense_categories` | transitional | Organization-aware com hotfix owner-scoped para update/delete. |
+| `banks` | transitional | Organization-aware; nao depende de membro ativo por preservar historico. |
+| `payable_bills` | transitional | Organization-aware para leitura; writes seguem owner-scoped na transicao. |
+| `receivable_incomes` | transitional | Organization-aware para leitura; writes seguem owner-scoped na transicao. |
+| `user_module_permissions` | transitional | Organization-aware; writes seguem owner-scoped na transicao. |
+| `user_feature_permissions` | transitional | Organization-aware; writes seguem owner-scoped na transicao. |
+
+Nao foi encontrado gap obvio de policy ausente nas migrations auditadas. O principal ponto remanescente e que varias tabelas ainda estao em modelo transicional, nao em isolamento SaaS final com `organization_id NOT NULL`.
 
 ## 4. Migration 001 - tabelas financeiras iniciais
 
@@ -460,7 +486,6 @@ Este inventario nao altera:
 - migrations;
 - helpers SQL;
 - codigo de producao;
-- testes;
 - rotas;
 - billing;
 - `owner_id`;
