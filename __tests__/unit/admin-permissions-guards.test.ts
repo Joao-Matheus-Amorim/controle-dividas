@@ -54,6 +54,22 @@ describe("admin permissions ownership guards", () => {
     expect(source).toContain(".or(organizationOrLegacyFilter(organization.id))");
   });
 
+  it("keeps feature permission writes scoped to the active organization", () => {
+    const source = readSource("app/protected/admin/actions.ts");
+
+    expect(source).toContain("export async function saveProfileFeaturePermissions");
+    expect(source).toContain("FEATURE_PERMISSIONS.map");
+    expect(source).toContain("await ensureProfileBelongsToOrganization(adminProfile.owner_id, organization.id, profileId)");
+    expect(source).toContain("owner_id: adminProfile.owner_id");
+    expect(source).toContain("organization_id: organization.id");
+    expect(source).toContain("profile_id: profileId");
+    expect(source).toContain("feature_key: feature.key");
+    expect(source).toContain("is_enabled: isFeatureEnabled(formData, feature.key)");
+    expect(source).toContain("granted_by: adminProfile.id");
+    expect(source).toContain('.from("user_feature_permissions")');
+    expect(source).toContain('.upsert(rows, { onConflict: "profile_id,feature_key" })');
+  });
+
   it("documents current access control as active-organization scoped", () => {
     const source = readSource("lib/finance/access-control.ts");
 
