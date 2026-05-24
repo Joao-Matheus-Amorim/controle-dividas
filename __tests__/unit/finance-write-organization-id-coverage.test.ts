@@ -3,302 +3,71 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-type FunctionExpectation = {
+type Operation = "insert" | "update" | "upsert" | "delete";
+
+type WriteExpectation = {
   file: string;
   functionName: string;
   table: string;
-  operation: "insert" | "update" | "upsert" | "delete";
-  requiresOrganizationId?: boolean;
-  requiresOrganizationFilter?: boolean;
+  operation: Operation;
+  requiresOrganizationId: boolean;
+  requiresOrganizationFilter: boolean;
 };
 
-const writeExpectations: FunctionExpectation[] = [
-  {
-    file: "app/protected/pessoas/actions.ts",
-    functionName: "createFamilyMember",
-    table: "family_members",
-    operation: "insert",
-    requiresOrganizationId: true,
-  },
-  {
-    file: "app/protected/pessoas/actions.ts",
-    functionName: "updateFamilyMember",
-    table: "family_members",
-    operation: "update",
-    requiresOrganizationId: true,
-    requiresOrganizationFilter: true,
-  },
-  {
-    file: "app/protected/pessoas/actions.ts",
-    functionName: "toggleFamilyMemberStatus",
-    table: "family_members",
-    operation: "update",
-    requiresOrganizationId: true,
-    requiresOrganizationFilter: true,
-  },
-  {
-    file: "app/protected/configuracoes/actions.ts",
-    functionName: "createExpenseCategory",
-    table: "expense_categories",
-    operation: "insert",
-    requiresOrganizationId: true,
-  },
-  {
-    file: "app/protected/configuracoes/actions.ts",
-    functionName: "updateExpenseCategory",
-    table: "expense_categories",
-    operation: "update",
-    requiresOrganizationId: true,
-    requiresOrganizationFilter: true,
-  },
-  {
-    file: "app/protected/configuracoes/actions.ts",
-    functionName: "deleteExpenseCategory",
-    table: "expense_categories",
-    operation: "delete",
-    requiresOrganizationFilter: true,
-  },
-  {
-    file: "app/protected/configuracoes/actions.ts",
-    functionName: "updateFamilyMemberLimit",
-    table: "family_members",
-    operation: "update",
-    requiresOrganizationId: true,
-    requiresOrganizationFilter: true,
-  },
-  {
-    file: "app/protected/gastos/actions.ts",
-    functionName: "createExpense",
-    table: "expenses",
-    operation: "insert",
-    requiresOrganizationId: true,
-  },
-  {
-    file: "app/protected/gastos/actions.ts",
-    functionName: "updateExpense",
-    table: "expenses",
-    operation: "update",
-    requiresOrganizationId: true,
-    requiresOrganizationFilter: true,
-  },
-  {
-    file: "app/protected/gastos/actions.ts",
-    functionName: "deleteExpense",
-    table: "expenses",
-    operation: "delete",
-    requiresOrganizationFilter: true,
-  },
-  {
-    file: "app/protected/bancos/actions.ts",
-    functionName: "createBankAccount",
-    table: "banks",
-    operation: "insert",
-    requiresOrganizationId: true,
-  },
-  {
-    file: "app/protected/bancos/actions.ts",
-    functionName: "updateBankAccount",
-    table: "banks",
-    operation: "update",
-    requiresOrganizationId: true,
-    requiresOrganizationFilter: true,
-  },
-  {
-    file: "app/protected/bancos/actions.ts",
-    functionName: "updateBankAccountBalance",
-    table: "banks",
-    operation: "update",
-    requiresOrganizationId: true,
-    requiresOrganizationFilter: true,
-  },
-  {
-    file: "app/protected/bancos/actions.ts",
-    functionName: "deleteBankAccount",
-    table: "banks",
-    operation: "delete",
-    requiresOrganizationFilter: true,
-  },
-  {
-    file: "app/protected/contas-a-pagar/actions.ts",
-    functionName: "createPayableBill",
-    table: "payable_bills",
-    operation: "insert",
-    requiresOrganizationId: true,
-  },
-  {
-    file: "app/protected/contas-a-pagar/actions.ts",
-    functionName: "updatePayableBill",
-    table: "payable_bills",
-    operation: "update",
-    requiresOrganizationId: true,
-    requiresOrganizationFilter: true,
-  },
-  {
-    file: "app/protected/contas-a-pagar/actions.ts",
-    functionName: "updatePayableBillStatus",
-    table: "payable_bills",
-    operation: "update",
-    requiresOrganizationId: true,
-    requiresOrganizationFilter: true,
-  },
-  {
-    file: "app/protected/contas-a-pagar/actions.ts",
-    functionName: "deletePayableBill",
-    table: "payable_bills",
-    operation: "delete",
-    requiresOrganizationFilter: true,
-  },
-  {
-    file: "app/protected/contas-a-receber/actions.ts",
-    functionName: "createReceivableIncome",
-    table: "receivable_incomes",
-    operation: "insert",
-    requiresOrganizationId: true,
-  },
-  {
-    file: "app/protected/contas-a-receber/actions.ts",
-    functionName: "updateReceivableIncome",
-    table: "receivable_incomes",
-    operation: "update",
-    requiresOrganizationId: true,
-    requiresOrganizationFilter: true,
-  },
-  {
-    file: "app/protected/contas-a-receber/actions.ts",
-    functionName: "updateReceivableIncomeStatus",
-    table: "receivable_incomes",
-    operation: "update",
-    requiresOrganizationId: true,
-    requiresOrganizationFilter: true,
-  },
-  {
-    file: "app/protected/contas-a-receber/actions.ts",
-    functionName: "deleteReceivableIncome",
-    table: "receivable_incomes",
-    operation: "delete",
-    requiresOrganizationFilter: true,
-  },
-  {
-    file: "app/protected/admin/actions.ts",
-    functionName: "createFamilyUser",
-    table: "profiles",
-    operation: "insert",
-    requiresOrganizationId: true,
-  },
-  {
-    file: "app/protected/admin/actions.ts",
-    functionName: "createFamilyUser",
-    table: "user_module_permissions",
-    operation: "insert",
-    requiresOrganizationId: true,
-  },
-  {
-    file: "app/protected/admin/actions.ts",
-    functionName: "updateFamilyUser",
-    table: "profiles",
-    operation: "update",
-    requiresOrganizationId: true,
-    requiresOrganizationFilter: true,
-  },
-  {
-    file: "app/protected/admin/actions.ts",
-    functionName: "syncFamilyUserAuthLink",
-    table: "profiles",
-    operation: "update",
-    requiresOrganizationId: true,
-    requiresOrganizationFilter: true,
-  },
-  {
-    file: "app/protected/admin/actions.ts",
-    functionName: "deleteFamilyUser",
-    table: "profiles",
-    operation: "delete",
-    requiresOrganizationFilter: true,
-  },
-  {
-    file: "app/protected/admin/actions.ts",
-    functionName: "toggleFamilyUserStatus",
-    table: "profiles",
-    operation: "update",
-    requiresOrganizationId: true,
-    requiresOrganizationFilter: true,
-  },
-  {
-    file: "app/protected/admin/actions.ts",
-    functionName: "saveProfilePermissions",
-    table: "user_module_permissions",
-    operation: "upsert",
-    requiresOrganizationId: true,
-  },
-];
+const writeExpectations = `
+app/protected/pessoas/actions.ts|createFamilyMember|family_members|insert|id
+app/protected/pessoas/actions.ts|updateFamilyMember|family_members|update|id|filter
+app/protected/pessoas/actions.ts|toggleFamilyMemberStatus|family_members|update|id|filter
+app/protected/configuracoes/actions.ts|createExpenseCategory|expense_categories|insert|id
+app/protected/configuracoes/actions.ts|updateExpenseCategory|expense_categories|update|id|filter
+app/protected/configuracoes/actions.ts|deleteExpenseCategory|expense_categories|delete|filter
+app/protected/configuracoes/actions.ts|updateFamilyMemberLimit|family_members|update|id|filter
+app/protected/gastos/actions.ts|createExpense|expenses|insert|id
+app/protected/gastos/actions.ts|updateExpense|expenses|update|id|filter
+app/protected/gastos/actions.ts|deleteExpense|expenses|delete|filter
+app/protected/bancos/actions.ts|createBankAccount|banks|insert|id
+app/protected/bancos/actions.ts|updateBankAccount|banks|update|id|filter
+app/protected/bancos/actions.ts|updateBankAccountBalance|banks|update|id|filter
+app/protected/bancos/actions.ts|deleteBankAccount|banks|delete|filter
+app/protected/contas-a-pagar/actions.ts|createPayableBill|payable_bills|insert|id
+app/protected/contas-a-pagar/actions.ts|updatePayableBill|payable_bills|update|id|filter
+app/protected/contas-a-pagar/actions.ts|updatePayableBillStatus|payable_bills|update|id|filter
+app/protected/contas-a-pagar/actions.ts|deletePayableBill|payable_bills|delete|filter
+app/protected/contas-a-receber/actions.ts|createReceivableIncome|receivable_incomes|insert|id
+app/protected/contas-a-receber/actions.ts|updateReceivableIncome|receivable_incomes|update|id|filter
+app/protected/contas-a-receber/actions.ts|updateReceivableIncomeStatus|receivable_incomes|update|id|filter
+app/protected/contas-a-receber/actions.ts|deleteReceivableIncome|receivable_incomes|delete|filter
+app/protected/admin/actions.ts|createFamilyUser|profiles|insert|id
+app/protected/admin/actions.ts|createFamilyUser|user_module_permissions|insert|id
+app/protected/admin/actions.ts|updateFamilyUser|profiles|update|id|filter
+app/protected/admin/actions.ts|syncFamilyUserAuthLink|profiles|update|id|filter
+app/protected/admin/actions.ts|deleteFamilyUser|profiles|delete|filter
+app/protected/admin/actions.ts|toggleFamilyUserStatus|profiles|update|id|filter
+app/protected/admin/actions.ts|saveProfilePermissions|user_module_permissions|upsert|id
+`
+  .trim()
+  .split("\n")
+  .map((line): WriteExpectation => {
+    const [file, functionName, table, operation, ...flags] = line.split("|");
 
-function sourcePath(file: string) {
-  return join(process.cwd(), file);
-}
+    return {
+      file,
+      functionName,
+      table,
+      operation: operation as Operation,
+      requiresOrganizationId: flags.includes("id"),
+      requiresOrganizationFilter: flags.includes("filter"),
+    };
+  });
 
-function readSource(file: string) {
-  return readFileSync(sourcePath(file), "utf8");
+function source(file: string) {
+  return readFileSync(join(process.cwd(), file), "utf8");
 }
 
 function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function functionBlock(file: string, functionName: string) {
-  const source = readSource(file);
-  const startPattern = new RegExp(`export\\s+async\\s+function\\s+${escapeRegExp(functionName)}\\b`);
-  const startMatch = startPattern.exec(source);
-
-  expect(startMatch, `Missing function ${functionName} in ${file}`).not.toBeNull();
-
-  const start = startMatch?.index ?? 0;
-  const nextFunction = /\nexport\s+async\s+function\s+/g;
-  nextFunction.lastIndex = start + 1;
-  const nextMatch = nextFunction.exec(source);
-
-  return source.slice(start, nextMatch?.index ?? source.length);
-}
-
-function tableWritePattern(table: string, operation: FunctionExpectation["operation"]) {
-  return new RegExp(`\\.from\\(\\s*["']${escapeRegExp(table)}["']\\s*\\)[\\s\\S]*?\\.${operation}\\(`);
-}
-
-function organizationIdAssignmentPattern() {
-  return /organization_id\s*:\s*organization\.id/;
-}
-
-function organizationFilterPattern() {
-  return /\.or\(\s*organizationOrLegacyFilter\(organization\.id\)\s*\)/;
-}
-
-describe("finance write organization_id coverage", () => {
-  it.each(writeExpectations)(
-    "$functionName $operation on $table keeps organization context",
-    (expectation) => {
-      const block = functionBlock(expectation.file, expectation.functionName);
-
-      expect(block, `${expectation.functionName} should write ${expectation.table}`).toMatch(
-        tableWritePattern(expectation.table, expectation.operation),
-      );
-
-      if (expectation.requiresOrganizationId) {
-        expect(block, `${expectation.functionName} should set active organization_id`).toMatch(
-          organizationIdAssignmentPattern(),
-        );
-      }
-
-      if (expectation.requiresOrganizationFilter) {
-        expect(block, `${expectation.functionName} should scope by active/legacy organization`).toMatch(
-          organizationFilterPattern(),
-        );
-      }
-    },
-  );
-
-  it("keeps bootstrap admin profile explicitly transitional until organization onboarding assigns scope", () => {
-    const bootstrap = readSource("lib/finance/bootstrap-admin-profile.ts");
-
-    expect(bootstrap).toContain("owner_id: authUserId");
-    expect(bootstrap).not.toContain("organization_id");
-  });
-});
+function functionBlock(file: string, name: string) {
+  const text = source(file);
+  const start = text.search(new RegExp(`export\\s+a…Íå¹qqÌ­™Õ¹Ñ¥½¹qqÌ¬‘í•Í…Á•I•áÀ¡¹…µ”¥õqq‰€¤¤ì((€•áÁ•Ð¡ÍÑ…ÉÐ°5¥ÍÍ¥¹œ™Õ¹Ñ¥½¸€‘í¹…µ•ô¥¸€‘í™¥±•õ€¤¹Ñ½	•É•…Ñ•ÉQ¡…¹=ÉÅÕ…° À¤ì((€½¹ÍÐÉ•ÍÐ€ôÑ•áÐ¹Í±¥”¡ÍÑ…ÉÐ€¬€Ä¤ì(€½¹ÍÐ¹•áÐ€ôÉ•ÍÐ¹Í•…É  ½q¹•áÁ½ÉÑqÌ­…Íå¹qÌ­™Õ¹Ñ¥½¹qÌ¬¼¤ì(€É•ÑÕÉ¸Ñ•áÐ¹Í±¥”¡ÍÑ…ÉÐ°¹•áÐ€øô€À€üÍÑ…ÉÐ€¬€Ä€¬¹•áÐ€èÑ•áÐ¹±•¹Ñ ¤ì)ô()™Õ¹Ñ¥½¸Ñ…É•Ñ5ÕÑ…Ñ¥½¹	±½¬¡Ñ•áÐèÍÑÉ¥¹œ°Ñ…‰±”èÍÑÉ¥¹œ°½Á•É…Ñ¥½¸è=Á•É…Ñ¥½¸¤ì(€½¹ÍÐ™É½µA…ÑÑ•É¸€ô¹•ÜI•áÀ¡qp¹™É½µqp¡qqÌ©lˆt‘í•Í…Á•I•áÀ¡Ñ…‰±”¥õlˆuqqÌ©qp¥€°€‰œˆ¤ì(€±•Ðµ…Ñ èI•áÁá•ÉÉ…äð¹Õ±°ì((€Ý¡¥±”€ ¡µ…Ñ €ô™É½µA…ÑÑ•É¸¹•á•Œ¡Ñ•áÐ¤¤€„ôô¹Õ±°¤ì(€€€½¹ÍÐÍÑ…ÉÐ€ôµ…Ñ ¹¥¹‘•àì(€€€½¹ÍÐ¹•áÐ€ôÑ•áÐ¹Í±¥”¡ÍÑ…ÉÐ€¬€Ä¤¹Í•…É  ½p¹™É½µp¡qÌ©lˆt¼¤ì(€€€½¹ÍÐ…¹‘¥‘…Ñ”€ôÑ•áÐ¹Í±¥”¡ÍÑ…ÉÐ°¹•áÐ€øô€À€üÍÑ…ÉÐ€¬€Ä€¬¹•áÐ€èÑ•áÐ¹±•¹Ñ ¤ì((€€€¥˜€¡¹•ÜI•áÀ¡qp¸‘í½Á•É…Ñ¥½¹õqp¡€¤¹Ñ•ÍÐ¡…¹‘¥‘…Ñ”¤¤ì(€€€€€É•ÑÕÉ¸…¹‘¥‘…Ñ”ì(€€€ô(€ô((€Ñ¡É½Ü¹•ÜÉÉ½È¡5¥ÍÍ¥¹œ€‘í½Á•É…Ñ¥½¹ôµÕÑ…Ñ¥½¸™½È€‘íÑ…‰±•õ€¤ì)ô()½¹ÍÐ½É…¹¥é…Ñ¥½¹%‘ÍÍ¥¹µ•¹Ð€ô€½½É…¹¥é…Ñ¥½¹}¥‘qÌ¨éqÌ©½É…¹¥é…Ñ¥½¹p¹¥¼ì)½¹ÍÐ½É…¹¥é…Ñ¥½¹M½Á•¥±Ñ•È€ô€½p¹½Ép¡qÌ©½É…¹¥é…Ñ¥½¹=É1•…å¥±Ñ•Ép¡½É…¹¥é…Ñ¥½¹p¹¥‘p¥qÌ©p¤¼ì()‘•ÍÉ¥‰” ‰™¥¹…¹”ÝÉ¥Ñ”½É…¹¥é…Ñ¥½¹}¥½Ù•É…”ˆ°€ ¤€ôøì(€¥Ð¹•… ¡ÝÉ¥Ñ•áÁ•Ñ…Ñ¥½¹Ì¤ (€€€€ˆ‘™Õ¹Ñ¥½¹9…µ”€‘½Á•É…Ñ¥½¸½¸€‘Ñ…‰±”­••ÁÌ½É…¹¥é…Ñ¥½¸½¹Ñ•áÐˆ°(€€€€¡•áÁ•Ñ…Ñ¥½¸¤€ôøì(€€€€€½¹ÍÐµÕÑ…Ñ¥½¸€ôÑ…É•Ñ5ÕÑ…Ñ¥½¹	±½¬ (€€€€€€€™Õ¹Ñ¥½¹	±½¬¡•áÁ•Ñ…Ñ¥½¸¹™¥±”°•áÁ•Ñ…Ñ¥½¸¹™Õ¹Ñ¥½¹9…µ”¤°(€€€€€€€•áÁ•Ñ…Ñ¥½¸¹Ñ…‰±”°(€€€€€€€•áÁ•Ñ…Ñ¥½¸¹½Á•É…Ñ¥½¸°(€€€€€€¤ì((€€€€€¥˜€¡•áÁ•Ñ…Ñ¥½¸¹É•ÅÕ¥É•Í=É…¹¥é…Ñ¥½¹%¤ì(€€€€€€€•áÁ•Ð¡µÕÑ…Ñ¥½¸°€‘í•áÁ•Ñ…Ñ¥½¸¹™Õ¹Ñ¥½¹9…µ•ôÍ¡½Õ±Í•Ð½É…¹¥é…Ñ¥½¹}¥½¸€‘í•áÁ•Ñ…Ñ¥½¸¹Ñ…‰±•õ€¤¹Ñ½5…Ñ  (€€€€€€€€€½É…¹¥é…Ñ¥½¹%‘ÍÍ¥¹µ•¹Ð°(€€€€€€€€¤ì(€€€€€ô((€€€€€¥˜€¡•áÁ•Ñ…Ñ¥½¸¹É•ÅÕ¥É•Í=É…¹¥é…Ñ¥½¹¥±Ñ•È¤ì(€€€€€€€•áÁ•Ð¡µÕÑ…Ñ¥½¸°€‘í•áÁ•Ñ…Ñ¥½¸¹™Õ¹Ñ¥½¹9…µ•ôÍ¡½Õ±Í½Á”€‘í•áÁ•Ñ…Ñ¥½¸¹Ñ…‰±•ô‰ä½É…¹¥é…Ñ¥½¹€¤¹Ñ½5…Ñ  (€€€€€€€€€½É…¹¥é…Ñ¥½¹M½Á•¥±Ñ•È°(€€€€€€€€¤ì(€€€€€ô(€€€ô°(€€¤ì((€¥Ð ‰­••ÁÌ‰½½ÑÍÑÉ…À…‘µ¥¸ÁÉ½™¥±”ÑÉ…¹Í¥Ñ¥½¹…°Õ¹Ñ¥°½É…¹¥é…Ñ¥½¸½¹‰½…É‘¥¹œ…ÍÍ¥¹ÌÍ½Á”ˆ°€ ¤€ôøì(€€€½¹ÍÐ‰½½ÑÍÑÉ…À€ôÍ½ÕÉ” ‰±¥ˆ½™¥¹…¹”½‰½½ÑÍÑÉ…Àµ…‘µ¥¸µÁÉ½™¥±”¹ÑÌˆ¤ì((€€€•áÁ•Ð¡‰½½ÑÍÑÉ…À¤¹Ñ½½¹Ñ…¥¸ ‰½Ý¹•É}¥è…ÕÑ¡UÍ•É%ˆ¤ì(€€€•áÁ•Ð¡‰½½ÑÍÑÉ…À¤¹¹½Ð¹Ñ½½¹Ñ…¥¸ ‰½É…¹¥é…Ñ¥½¹}¥ˆ¤ì(€ô¤ì)ô¤ì(
