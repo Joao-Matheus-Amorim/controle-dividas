@@ -20,7 +20,7 @@ describe("profile bootstrap organization guards", () => {
     (path) => {
       const source = readSource(path);
 
-      expect(source).toContain("createBootstrapAdminProfile");
+      expect(source).toContain("/onboarding/organizacao");
       expect(source).toContain("profiles");
       expect(source).not.toContain('from("organizations")');
       expect(source).not.toContain("from('organizations')");
@@ -30,6 +30,20 @@ describe("profile bootstrap organization guards", () => {
       expect(source).not.toContain('organization_memberships").upsert');
       expect(source).not.toContain('organizations").insert');
       expect(source).not.toContain('organizations").upsert');
+    },
+  );
+
+  it.each(profileBootstrapFiles)(
+    "keeps %s from creating organization-less bootstrap profiles",
+    (path) => {
+      const source = readSource(path);
+
+      expect(source).not.toContain("createBootstrapAdminProfile");
+      expect(source).not.toContain('.from("profiles").upsert');
+      expect(source).not.toContain(".from('profiles').upsert");
+      expect(source).not.toContain('.from("profiles").insert');
+      expect(source).not.toContain(".from('profiles').insert");
+      expect(source).toContain('redirect("/onboarding/organizacao")');
     },
   );
 
