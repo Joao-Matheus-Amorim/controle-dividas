@@ -9,8 +9,8 @@ Record the decision status for the feature permission table before any later har
 ## Current status
 
 ```txt
-Decision status: pending
-Hardening status: blocked
+Decision status: use feature permissions
+Hardening status: blocked until scoped write path exists
 ```
 
 ## Current evidence
@@ -19,13 +19,13 @@ The existing audit found read paths but did not confirm an active application wr
 
 ## Decision
 
+The product will keep and use feature permissions.
+
 Do not create a hardening migration yet.
 
-The next step must be one of:
+The next implementation step is a separate scoped write-path PR.
 
-1. define a scoped write path in a separate PR;
-2. deprecate the table in a separate PR;
-3. keep the table blocked until requirements are clear.
+That future PR must prove that writes set organization scope from the active organization before any preflight, dry-run, or schema hardening PR is opened.
 
 ## Out of scope
 
