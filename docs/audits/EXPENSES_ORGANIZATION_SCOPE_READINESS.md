@@ -1,6 +1,7 @@
 # Expenses organization scope readiness
 
 Issue: #582
+Related issue: #586
 
 ## Purpose
 
@@ -18,6 +19,17 @@ Current status:
 Readiness: mostly ready, still transitional
 Next safe step: future dedicated hardening PR after fresh preflight/dry-run evidence
 ```
+
+## Read-only checks for future hardening
+
+Table-scoped read-only checks now exist for future `expenses` hardening:
+
+```txt
+docs/sql/expenses-organization-null-preflight.sql
+docs/sql/expenses-organization-backfill-dry-run.sql
+```
+
+These scripts are preparation only. They do not mutate data and do not apply constraints.
 
 ## Write path review
 
