@@ -1,0 +1,77 @@
+name: RLS Live Gate
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rls-live-gate-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  rls-live-gate:
+    name: RLS Live Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    env:
+      APP_ENV: rls-live-gate
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      RUN_RLS_TESTS: "true"
+      RLS_TEST_SUPABASE_URL: ${{ vars.RLS_TEST_SUPABASE_URL }}
+      RLS_TEST_SUPABASE_ANON_KEY: ${{ secrets.RLS_TEST_SUPABASE_ANON_KEY }}
+      RLS_TEST_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.RLS_TEST_SUPABASE_SERVICE_ROLE_KEY }}
+      RLS_TEST_USER_A_EMAIL: ${{ secrets.RLS_TEST_USER_A_EMAIL }}
+      RLS_TEST_USER_A_PASSWORD: ${{ secrets.RLS_TEST_USER_A_PASSWORD }}
+      RLS_TEST_USER_B_EMAIL: ${{ secrets.RLS_TEST_USER_B_EMAIL }}
+      RLS_TEST_USER_B_PASSWORD: ${{ secrets.RLS_TEST_USER_B_PASSWORD }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Validate RLS live gate environment
+        shell: bash
+        run: |
+          missing=0
+
+          require_env() {
+            local name="$1"
+            local value="${!name}"
+
+            if [ -z "$value" ]; then
+              echo "::error title=Missing RLS live gate environment::$name must be configured for the dedicated RLS Supabase test environment."
+              missing=1
+            fi
+          }
+
+          require_env RLS_TEST_SUPABASE_URL
+          require_env RLS_TEST_SUPABASE_ANON_KEY
+          require_env RLS_TEST_SUPABASE_SERVICE_ROLE_KEY
+          require_env RLS_TEST_USER_A_EMAIL
+          require_env RLS_TEST_USER_A_PASSWORD
+          require_env RLS_TEST_USER_B_EMAIL
+          require_env RLS_TEST_USER_B_PASSWORD
+
+          if [ "$RUN_RLS_TESTS" != "true" ]; then
+            echo "::error title=Invalid RLS flag::RUN_RLS_TESTS must be true inside the dedicated RLS Live Gate."
+            missing=1
+          fi
+
+          if [ "$missing" -ne 0 ]; then
+            exit 1
+          fi
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run RLS gated tests
+        run: npm run test
