@@ -32,7 +32,7 @@ The following safety chain exists:
 | `banks` | hardened | `025_banks_organization_scope_hardening.sql` applies `organization_id NOT NULL` after banks-specific readiness, preflight, dry-run and migration-local preflight guard |
 | `user_module_permissions` | hardened | `026_user_module_permissions_organization_scope_hardening.sql` applies `organization_id NOT NULL` after module permissions-specific readiness, preflight, dry-run and migration-local preflight guard |
 | `user_feature_permissions` | blocked pending write-path decision | `docs/audits/USER_FEATURE_PERMISSIONS_WRITE_PATH_AUDIT.md` found no active application write path in the audited source surface |
-| `profiles` | special handling required | bootstrap/admin profile behavior must be resolved before hardening |
+| `profiles` | special handling required | `docs/audits/PROFILES_READINESS.md` keeps profiles blocked until a dedicated preflight/dry-run PR proves readiness |
 
 ## Required pre-migration evidence
 
