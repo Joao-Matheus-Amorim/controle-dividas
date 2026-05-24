@@ -43,7 +43,7 @@ describe("SaaS hardening status docs", () => {
   it("keeps the hardening plan explicit about completed and remaining tables", () => {
     expect(hardeningPlan).toContain("`expense_categories` | hardened");
     expect(hardeningPlan).toContain("`family_members` | hardened");
-    expect(hardeningPlan).toContain("`expenses` | candidate");
+    expect(hardeningPlan).toContain("`expenses` | hardened");
     expect(hardeningPlan).toContain("`profiles` | special handling required");
     expect(hardeningPlan).toContain("already completed in this sequence");
   });
