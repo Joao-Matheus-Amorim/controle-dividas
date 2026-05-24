@@ -11,7 +11,7 @@ A origem familiar do projeto permanece apenas como contexto histórico e valida�
 | Produto | SaaS financeiro multi-tenant em fase transicional endurecida |
 | Stack | Next.js 16.2.6, React 19, TypeScript, Tailwind CSS e Supabase |
 | Autenticação | Supabase Auth |
-| Multi-tenant | `organizations`, `organization_memberships` e `organization_id` implementados |
+| Multi-tenant | `organizations`, `organization_memberships` e `organization_id` implementados; `expense_categories` e `family_members` já têm hardening `NOT NULL`; demais tabelas tenant-scoped seguem transicionais |
 | Onboarding | Organização inicial criada por RPC transacional autenticada |
 | RLS | Organization-aware transicional nas tabelas financeiras principais, profiles e permissões |
 | Permissões | Módulos, ações, escopos, feature permissions e runtime access-control por organização ativa |
@@ -46,7 +46,7 @@ Issue antes do PR.
 Sem mudança funcional escondida em PR documental.
 Sem billing antes de isolamento, UX multi-org e permissões amadurecerem.
 Sem rotas por orgSlug antes da UX de organização ativa estar clara.
-Sem remover owner_id ou tornar organization_id NOT NULL antes de backfill, gates e rollback.
+Sem remover owner_id ou tornar novas colunas organization_id NOT NULL antes de preflight, dry-run, gates e rollback.
 ```
 
 ## Estado SaaS multi-tenant
@@ -62,19 +62,20 @@ Implementado:
 - Admin/permissões com hardening de escopo por organização;
 - indicador visual de organização ativa no layout protegido;
 - onboarding inicial por `/onboarding/organizacao` com RPC transacional autenticada para criar organização, membership owner e profile inicial;
+- hardening `organization_id NOT NULL` já aplicado de forma incremental em `expense_categories` e `family_members`;
 - Playwright E2E com foundation, smoke de auth/rotas e contratos autenticados gated para onboarding inicial, usuário com organização ativa e guard de onboarding.
 
 Ainda transicional:
 
 - `owner_id` ainda existe por compatibilidade;
-- `organization_id` ainda é nullable;
-- fallback legado `organization_id IS NULL + owner_id` ainda existe;
+- `organization_id` ainda é nullable nas demais tabelas tenant-scoped não endurecidas;
+- fallback legado `organization_id IS NULL + owner_id` ainda existe onde o schema/read path permanece transicional;
 - rotas ainda usam `/protected`;
 - selector/troca de organização ainda não foi implementado;
 - billing ainda não foi implementado;
 - cobertura E2E ainda não é completa para todos os módulos e perfis.
 
-## Migrations SaaS/RLS relevantes
+## Migrations SaaS/RLS/hardening relevantes
 
 ```txt
 006_organizations_memberships.sql
@@ -91,9 +92,11 @@ Ainda transicional:
 017_user_feature_permissions_organization_rls.sql
 018_one_active_membership_per_user.sql
 019_initial_organization_onboarding_rpc.sql
+020_expense_categories_organization_scope_hardening.sql
+021_family_members_organization_scope_hardening.sql
 ```
 
-Observação operacional: a migration `019_initial_organization_onboarding_rpc.sql` precisa estar aplicada no Supabase do ambiente antes de depender do onboarding inicial em runtime.
+Observação operacional: a migration `019_initial_organization_onboarding_rpc.sql` precisa estar aplicada no Supabase do ambiente antes de depender do onboarding inicial em runtime. As migrations `020` e `021` dependem de evidência recente de preflight/dry-run com zero linhas bloqueadas ou ambíguas para suas tabelas-alvo.
 
 ## Testes RLS gated
 
