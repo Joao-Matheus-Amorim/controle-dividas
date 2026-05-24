@@ -4,7 +4,7 @@ Issue: #224
 
 ## 1. Objetivo
 
-Este documento registra o estado vivo atual da transicao SaaS multi-tenant do FamilyFinance apos a conclusao do bloco principal de RLS financeira, do onboarding inicial por RPC transacional e da evolucao da cobertura Playwright/E2E gated.
+Este documento registra o estado vivo atual da transicao SaaS multi-tenant do FamilyFinance apos a conclusao do bloco principal de RLS financeira, do onboarding inicial por RPC transacional, da evolucao da cobertura Playwright/E2E gated e do inicio controlado de hardening `organization_id NOT NULL`.
 
 Ele complementa o `README.md` sem apagar o historico e sem substituir documentos PMBOK ja existentes.
 
@@ -13,7 +13,7 @@ Ele complementa o `README.md` sem apagar o historico e sem substituir documentos
 O projeto esta em modo:
 
 ```txt
-SaaS multi-tenant transicional com RLS financeira principal aplicada, onboarding inicial transacional e cobertura E2E principal gated.
+SaaS multi-tenant transicional com RLS financeira principal aplicada, onboarding inicial transacional, cobertura E2E principal gated e hardening parcial de organization scope.
 ```
 
 Isso significa:
@@ -24,15 +24,17 @@ Isso significa:
 - RLS financeira principal ja foi migrada para organization-aware com fallback legado;
 - o onboarding inicial cria organization, owner membership e profile/link por RPC transacional autenticada;
 - Playwright/E2E possui cobertura versionada para public/auth smoke, rotas protegidas, contratos autenticados gated, permission-sensitive gated e fluxos data-changing com cleanup;
+- `expense_categories.organization_id` ja foi endurecido como `NOT NULL` pela migration `020`;
+- `family_members.organization_id` ja foi endurecido como `NOT NULL` pela migration `021`;
 - `owner_id` ainda existe e continua sendo usado como compatibilidade;
-- `organization_id` ainda e nullable;
+- `organization_id` ainda e nullable nas demais tabelas tenant-scoped nao endurecidas;
 - rotas por `orgSlug` ainda nao existem;
 - selector de organizacao ainda nao existe;
 - billing/Stripe ainda nao foi implementado.
 
-## 3. Migrations SaaS/RLS atuais
+## 3. Migrations SaaS/RLS/hardening atuais
 
-As migrations relevantes para SaaS/RLS ja mergeadas sao:
+As migrations relevantes para SaaS/RLS/hardening ja mergeadas sao:
 
 ```txt
 006_organizations_memberships.sql
@@ -49,12 +51,15 @@ As migrations relevantes para SaaS/RLS ja mergeadas sao:
 017_user_feature_permissions_organization_rls.sql
 018_one_active_membership_per_user.sql
 019_initial_organization_onboarding_rpc.sql
+020_expense_categories_organization_scope_hardening.sql
+021_family_members_organization_scope_hardening.sql
 ```
 
-Observacao operacional:
+Observacoes operacionais:
 
 ```txt
 A migration 019 precisa estar aplicada no Supabase de cada ambiente antes de depender do onboarding inicial em runtime.
+As migrations 020 e 021 exigem evidencia recente de preflight/dry-run com zero linhas bloqueadas ou ambiguas para suas tabelas-alvo.
 ```
 
 ## 4. RLS financeira principal
@@ -79,18 +84,19 @@ Padrao aplicado:
 ```txt
 Leitura:
 organization_id com membership
-OU legado organization_id IS NULL + owner_id
+OU legado organization_id IS NULL + owner_id onde a tabela ainda permite estado legado
 
 Escrita:
-owner da linha durante transicao
+owner/organizacao ativa durante transicao, conforme guardas de write path
 ```
 
 Observacoes importantes:
 
-- `expense_categories` precisou de hotfix de escrita na migration `009`;
+- `expense_categories` precisou de hotfix de escrita na migration `009` e depois recebeu hardening `NOT NULL` na migration `020`;
+- `family_members` recebeu hardening `NOT NULL` na migration `021` apos o seed default passar a incluir `organization_id`;
 - `banks` preserva comportamento historico e nao depende de `family_members.is_active` na RLS;
 - nenhuma dessas migrations remove `owner_id`;
-- nenhuma torna `organization_id NOT NULL`;
+- as demais tabelas tenant-scoped continuam transicionais ate hardening especifico futuro;
 - a migration `019` adiciona RPC transacional de onboarding, mas nao relaxa RLS.
 
 ## 5. Onboarding inicial transacional
@@ -198,7 +204,7 @@ Ainda nao foi feito:
 - UX de organization ativa com selector;
 - rotas por `orgSlug`;
 - billing/Stripe;
-- `organization_id NOT NULL`;
+- `organization_id NOT NULL` nas demais tabelas tenant-scoped transicionais;
 - remocao de `owner_id`;
 - down migrations automatizadas.
 
@@ -206,15 +212,15 @@ Ainda nao foi feito:
 
 Ordem segura:
 
-1. aplicar e validar a migration `019` em cada ambiente Supabase;
-2. manter CI comum verde com lint, typecheck, build e testes;
-3. continuar reconciliando documentacao quando blocos de E2E/RLS mudarem;
-4. auditar e aposentar helpers owner-only por etapas;
-5. criar RLS Live Gate separado;
+1. manter CI comum verde com lint, typecheck, build e testes;
+2. continuar reconciliando documentacao quando blocos de E2E/RLS/schema mudarem;
+3. auditar e aposentar helpers owner-only por etapas;
+4. criar RLS Live Gate separado;
+5. continuar hardening `organization_id NOT NULL` por tabela, somente com preflight, dry-run, rollback e guard;
 6. planejar UX de organization ativa;
 7. so depois pensar em rotas por `orgSlug`;
 8. billing apenas depois de isolamento/UX estarem maduros;
-9. `organization_id NOT NULL` e remocao de `owner_id` apenas em gate futuro.
+9. remocao de `owner_id` apenas em gate futuro apos schema/read-path final.
 
 ## 11. Regra de manutencao
 
