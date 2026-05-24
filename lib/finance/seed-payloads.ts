@@ -14,9 +14,13 @@ export function buildDefaultFamilyMemberSeedRows(ownerId: string) {
   }));
 }
 
-export function buildDefaultExpenseCategorySeedRows(ownerId: string) {
+export function buildDefaultExpenseCategorySeedRows(
+  ownerId: string,
+  organizationId: string,
+) {
   return defaultExpenseCategories.map((category) => ({
     owner_id: ownerId,
+    organization_id: organizationId,
     name: category.name,
     is_default: true,
   }));
