@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 
-import { createBootstrapAdminProfile } from "@/lib/finance/bootstrap-admin-profile";
 import { linkAuthUserToFamilyProfile } from "@/lib/finance/profile-linking";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -122,7 +121,6 @@ async function getProfileByAuthorizedEmail(email: string | null) {
 }
 
 export async function getCurrentProfile() {
-  const supabase = await createClient();
   const user = await getCurrentUser();
 
   const existingProfile = await getProfileByAuthUserId(user.id);
@@ -172,25 +170,7 @@ export async function getCurrentProfile() {
     redirect("/auth/error?error=Seu email ainda nao foi autorizado pelo Admin familiar.");
   }
 
-  const { error: upsertError } = await supabase.from("profiles").upsert(
-    createBootstrapAdminProfile({
-      authUserId: user.id,
-      email: user.email,
-    }),
-    { onConflict: "auth_user_id", ignoreDuplicates: true },
-  );
-
-  if (upsertError) {
-    throw new Error(upsertError.message);
-  }
-
-  const profile = await getProfileByAuthUserId(user.id);
-
-  if (!profile) {
-    throw new Error("Nao foi possivel carregar o perfil atual.");
-  }
-
-  return profile;
+  redirect("/onboarding/organizacao");
 }
 
 async function getAllActiveMemberIds(ownerId: string, organizationId: string) {
