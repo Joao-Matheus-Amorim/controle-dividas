@@ -112,8 +112,8 @@ describe("banks organization scope readiness", () => {
   it("keeps the audit as readiness-only, not a hardening migration", () => {
     expect(audit).toContain("this document does not introduce a migration");
     expect(audit).toContain("should not be hardened in this pr");
-    expect(audit).toContain("table-scoped null-organization preflight evidence");
-    expect(audit).toContain("table-scoped deterministic dry-run evidence");
+    expect(audit).toContain("fresh null-organization preflight evidence");
+    expect(audit).toContain("fresh deterministic dry-run evidence");
     expect(audit).toContain("migration-local preflight guard");
     expect(audit).toContain("no runtime, rls, ui, billing or e2e mixing");
   });
