@@ -27,7 +27,7 @@ The following safety chain exists:
 | `expense_categories` | hardened | `020_expense_categories_organization_scope_hardening.sql` applies `organization_id NOT NULL` after a migration-local preflight guard |
 | `family_members` | hardened | `021_family_members_organization_scope_hardening.sql` applies `organization_id NOT NULL` after seed contract and migration-local preflight guard |
 | `expenses` | hardened | `022_expenses_organization_scope_hardening.sql` applies `organization_id NOT NULL` after expenses-specific readiness, preflight, dry-run and migration-local preflight guard |
-| `payable_bills` | candidate | payable write guards are in place; schema still transitional |
+| `payable_bills` | hardened | `023_payable_bills_organization_scope_hardening.sql` applies `organization_id NOT NULL` after payable bills-specific readiness, preflight, dry-run and migration-local preflight guard |
 | `receivable_incomes` | candidate | receivable write guards are in place; schema still transitional |
 | `banks` | candidate | bank write guards are in place; schema still transitional |
 | `user_module_permissions` | candidate | permission write guards are in place; schema still transitional |
@@ -66,6 +66,7 @@ Already completed in this sequence:
 1. `expense_categories`.
 2. `family_members`.
 3. `expenses`.
+4. `payable_bills`.
 
 ## Stop criteria
 
