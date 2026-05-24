@@ -3,9 +3,13 @@ import {
   defaultFamilyMembers,
 } from "@/lib/finance/default-seed-data";
 
-export function buildDefaultFamilyMemberSeedRows(ownerId: string) {
+export function buildDefaultFamilyMemberSeedRows(
+  ownerId: string,
+  organizationId: string,
+) {
   return defaultFamilyMembers.map((member) => ({
     owner_id: ownerId,
+    organization_id: organizationId,
     name: member.name,
     role: member.role,
     monthly_limit: member.monthlyLimit,
