@@ -162,6 +162,18 @@ function readMigration(file: string) {
   return readFileSync(migrationPath(file), "utf8");
 }
 
+function stripSqlComments(sql: string) {
+  return sql
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .split("\n")
+    .map((line) => line.replace(/--.*$/g, ""))
+    .join("\n");
+}
+
+function readExecutableMigration(file: string) {
+  return stripSqlComments(readMigration(file));
+}
+
 function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -173,10 +185,34 @@ function policyPattern(table: string, policy: RlsPolicyExpectation) {
   );
 }
 
+function policyBlock(file: string, table: string, policy: RlsPolicyExpectation) {
+  const sql = readExecutableMigration(file);
+  const startMatch = policyPattern(table, policy).exec(sql);
+
+  expect(startMatch, `Missing executable policy ${policy.name} for ${table}`).not.toBeNull();
+
+  const start = startMatch?.index ?? 0;
+  const nextPolicy = /\n\s*create\s+policy\s+"/gi;
+  nextPolicy.lastIndex = start + 1;
+  const nextMatch = nextPolicy.exec(sql);
+
+  return sql.slice(start, nextMatch?.index ?? sql.length);
+}
+
 describe("RLS coverage inventory", () => {
   it("lists every critical finance tenant table exactly once", () => {
     const auditedTables = rlsCoverage.map((item) => item.table).sort();
     expect(auditedTables).toEqual([...criticalFinanceTenantTables].sort());
+  });
+
+  it("does not treat commented-out RLS statements as executable coverage", () => {
+    const commentedSql = `
+      -- alter table public.fake enable row level security;
+      /* create policy "fake_select" on public.fake for select using (true); */
+    `;
+
+    expect(stripSqlComments(commentedSql)).not.toMatch(/enable\s+row\s+level\s+security/i);
+    expect(stripSqlComments(commentedSql)).not.toMatch(/create\s+policy/i);
   });
 
   it.each(rlsCoverage)("enables RLS for $table", (entry) => {
@@ -186,11 +222,11 @@ describe("RLS coverage inventory", () => {
       }
 
       return new RegExp(`alter\\s+table\\s+public\\.${entry.table}\\s+enable\\s+row\\s+level\\s+security`, "i").test(
-        readMigration(file),
+        readExecutableMigration(file),
       );
     });
 
-    expect(hasEnableStatement, `Missing RLS enable statement for ${entry.table}`).toBe(true);
+    expect(hasEnableStatement, `Missing executable RLS enable statement for ${entry.table}`).toBe(true);
   });
 
   it.each(rlsCoverage)("declares select/insert/update/delete policies for $table", (entry) => {
@@ -199,20 +235,50 @@ describe("RLS coverage inventory", () => {
   });
 
   it.each(rlsCoverage.flatMap((entry) => entry.policies.map((policy) => ({ ...policy, table: entry.table }))))(
-    "keeps $operation policy $name for $table",
+    "keeps executable $operation policy $name for $table",
     ({ table, ...policy }) => {
       expect(existsSync(migrationPath(policy.file)), `Missing migration file ${policy.file}`).toBe(true);
-      expect(readMigration(policy.file)).toMatch(policyPattern(table, policy));
+      expect(readExecutableMigration(policy.file)).toMatch(policyPattern(table, policy));
     },
   );
 
-  it("keeps organization membership helper policies non-recursive through SECURITY DEFINER helpers", () => {
-    const migration = readMigration("006_organizations_memberships.sql");
+  it("keeps organization membership policy blocks on SECURITY DEFINER helpers", () => {
+    const expectations = [
+      {
+        name: "organization_memberships_select_member",
+        operation: "select" as const,
+        helper: "public.is_organization_member(organization_id)",
+      },
+      {
+        name: "organization_memberships_insert_admin",
+        operation: "insert" as const,
+        helper: "public.is_organization_admin(organization_id)",
+      },
+      {
+        name: "organization_memberships_update_admin",
+        operation: "update" as const,
+        helper: "public.is_organization_admin(organization_id)",
+      },
+      {
+        name: "organization_memberships_delete_admin",
+        operation: "delete" as const,
+        helper: "public.is_organization_admin(organization_id)",
+      },
+    ];
 
+    const migration = readExecutableMigration("006_organizations_memberships.sql");
     expect(migration).toContain("security definer");
     expect(migration).toContain("set search_path = public");
-    expect(migration).toContain("public.is_organization_member(organization_id)");
-    expect(migration).toContain("public.is_organization_admin(organization_id)");
+
+    expectations.forEach((policy) => {
+      const block = policyBlock("006_organizations_memberships.sql", "organization_memberships", {
+        file: "006_organizations_memberships.sql",
+        ...policy,
+      });
+
+      expect(block).toContain(policy.helper);
+      expect(block).not.toContain("from public.organization_memberships");
+    });
   });
 
   it("marks nullable organization_id tables as transitional rather than final SaaS coverage", () => {
