@@ -14,7 +14,7 @@ describe("profiles readiness audit", () => {
 
   it("does not claim profiles schema hardening is ready", () => {
     expect(audit).toContain("profiles should not be schema-hardened in this pr");
-    expect(audit).toContain("next safe step is a dedicated profiles preflight and dry-run pr");
+    expect(audit).toContain("the next safe step after these checks is to review their output");
     expect(audit).not.toContain("readiness: ready");
     expect(audit).not.toContain("current status: hardened");
     expect(audit).not.toContain("profiles are ready for schema hardening");
@@ -28,8 +28,10 @@ describe("profiles readiness audit", () => {
     expect(audit).toContain("app/protected/admin/actions.ts");
   });
 
-  it("keeps this PR explicitly documentation-only", () => {
-    expect(audit).toContain("this pr is documentation only");
+  it("keeps this PR explicitly limited to documentation and read-only preparation", () => {
+    expect(audit).toContain("this pr is documentation and read-only sql preparation only");
+    expect(audit).toContain("docs/sql/profile-organization-null-check.sql");
+    expect(audit).toContain("docs/sql/profile-organization-dry-run.sql");
     expect(audit).toContain("no schema change");
     expect(audit).toContain("no data change");
     expect(audit).toContain("no runtime change");
