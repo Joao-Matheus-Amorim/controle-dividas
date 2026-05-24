@@ -247,6 +247,10 @@ function compact(source: string) {
   return source.replace(/\s+/g, "");
 }
 
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 function functionBlock(file: string, functionName: string) {
   const source = readSource(file);
   const startToken = `export async function ${functionName}`;
@@ -317,18 +321,17 @@ function targetWriteBlock(
 }
 
 function variableBlock(source: string, variableName: string) {
-  const compactSource = compact(source);
-  const startToken = `const${variableName}=`;
-  const start = compactSource.indexOf(startToken);
-
-  expect(start, `Missing variable ${variableName}`).toBeGreaterThanOrEqual(0);
-
-  const nextFrom = compactSource.indexOf(".from(", start + startToken.length);
-
-  return compactSource.slice(
-    start,
-    nextFrom >= 0 ? nextFrom : compactSource.length,
+  const declaration = new RegExp(
+    `\\b(?:const|let)\\s+${escapeRegExp(variableName)}\\b(?:\\s*:[^=;]+)?\\s*=`,
   );
+  const startMatch = declaration.exec(source);
+
+  expect(startMatch, `Missing variable ${variableName}`).not.toBeNull();
+
+  const start = startMatch?.index ?? 0;
+  const nextFrom = source.indexOf(".from(", start + 1);
+
+  return compact(source.slice(start, nextFrom >= 0 ? nextFrom : source.length));
 }
 
 const organizationIdAssignment = /organization_id:organization\.id/;
@@ -367,6 +370,27 @@ describe("finance write organization_id coverage", () => {
     const target = targetWriteBlock(source, "profiles", "update");
 
     expect(target).not.toMatch(organizationFilter);
+  });
+
+  it("supports typed and mutable payload variable declarations", () => {
+    const typedConstSource = `
+      const rows: PermissionRow[] = [
+        { organization_id: organization.id },
+      ];
+
+      await supabase.from("user_module_permissions").upsert(rows);
+    `;
+
+    const letSource = `
+      let permissionRows = [
+        { organization_id: organization.id },
+      ];
+
+      await supabase.from("user_module_permissions").insert(permissionRows);
+    `;
+
+    expect(variableBlock(typedConstSource, "rows")).toMatch(organizationIdAssignment);
+    expect(variableBlock(letSource, "permissionRows")).toMatch(organizationIdAssignment);
   });
 
   it.each(writeExpectations)(
