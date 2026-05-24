@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 
-import { createBootstrapAdminProfile } from "@/lib/finance/bootstrap-admin-profile";
 import type {
   DbFeaturePermission,
   DbModulePermission,
@@ -84,7 +83,6 @@ async function getProfileByAuthUserId(authUserId: string) {
 }
 
 export async function ensureAdminProfile() {
-  const supabase = await createClient();
   const user = await getCurrentUser();
   const existingProfile = await getProfileByAuthUserId(user.id);
 
@@ -100,25 +98,7 @@ export async function ensureAdminProfile() {
     redirect("/protected");
   }
 
-  const { error } = await supabase.from("profiles").upsert(
-    createBootstrapAdminProfile({
-      authUserId: user.id,
-      email: user.email,
-    }),
-    { onConflict: "auth_user_id", ignoreDuplicates: true },
-  );
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  const profile = await getProfileByAuthUserId(user.id);
-
-  if (!profile || profile.role !== "admin" || !profile.is_active) {
-    redirect("/protected");
-  }
-
-  return profile;
+  redirect("/onboarding/organizacao");
 }
 
 export async function requireAdminProfile() {
