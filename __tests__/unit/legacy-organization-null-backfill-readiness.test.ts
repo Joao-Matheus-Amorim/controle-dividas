@@ -23,22 +23,33 @@ function compact(sql: string) {
   return sql.replace(/\s+/g, " ").trim().toLowerCase();
 }
 
+function stripSqlComments(sql: string) {
+  return sql
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .split("\n")
+    .map((line) => line.replace(/--.*$/g, ""))
+    .join("\n");
+}
+
 describe("legacy organization_id null backfill readiness", () => {
-  const migration = compact(
-    readProjectFile("supabase/migrations/007_add_organization_id_columns.sql"),
-  );
+  const rawMigration = readProjectFile("supabase/migrations/007_add_organization_id_columns.sql");
+  const migration = compact(rawMigration);
+  const executableMigration = compact(stripSqlComments(rawMigration));
 
   it.each(transitionalTables)("keeps %s organization_id explicitly transitional in migration 007", (table) => {
-    expect(migration).toContain(
+    expect(executableMigration).toContain(
       `alter table public.${table} add column if not exists organization_id uuid references public.organizations(id) on delete cascade`,
     );
   });
 
-  it("does not introduce backfill or not-null semantics in the transition migration", () => {
+  it("documents that migration 007 is intentionally non-destructive", () => {
     expect(migration).toContain("does not backfill data");
     expect(migration).toContain("does not make organization_id not null");
-    expect(migration).not.toMatch(/organization_id[^;]*not null/);
-    expect(migration).not.toMatch(/update\s+public\.[a-z_]+\s+set\s+organization_id/);
+  });
+
+  it("does not introduce executable backfill or not-null semantics in the transition migration", () => {
+    expect(executableMigration).not.toMatch(/organization_id[^;]*not null/);
+    expect(executableMigration).not.toMatch(/update\s+public\.[a-z_]+\s+set\s+organization_id/);
   });
 
   it("keeps the bootstrap admin profile explicitly organization-less until onboarding assigns scope", () => {
