@@ -75,7 +75,7 @@ describe("admin permissions ownership guards", () => {
     expect(source).toContain("return getAllActiveMemberIds(profile.owner_id, organizationId)");
   });
 
-  it("keeps bootstrap admin profile payload centralized", () => {
+  it("keeps bootstrap admin profile helper isolated from runtime callers", () => {
     const helper = readSource("lib/finance/bootstrap-admin-profile.ts");
     const accessControl = readSource("lib/finance/access-control.ts");
     const adminServer = readSource("lib/finance/admin-server.ts");
@@ -86,10 +86,15 @@ describe("admin permissions ownership guards", () => {
     expect(helper).not.toContain('name: "Danyel"');
 
     for (const source of [accessControl, adminServer]) {
-      expect(source).toContain("@/lib/finance/bootstrap-admin-profile");
-      expect(source).toContain("createBootstrapAdminProfile({");
-      expect(source).toContain("authUserId: user.id");
-      expect(source).toContain("email: user.email");
+      expect(source).not.toContain("@/lib/finance/bootstrap-admin-profile");
+      expect(source).not.toContain("createBootstrapAdminProfile({");
+      expect(source).not.toContain("authUserId: user.id");
+      expect(source).not.toContain("email: user.email");
+      expect(source).not.toContain('.from("profiles").upsert');
+      expect(source).not.toContain(".from('profiles').upsert");
+      expect(source).not.toContain('.from("profiles").insert');
+      expect(source).not.toContain(".from('profiles').insert");
+      expect(source).toContain('redirect("/onboarding/organizacao")');
       expect(source).not.toContain("function getBootstrapProfileName");
       expect(source).not.toContain('name: "Danyel"');
     }
