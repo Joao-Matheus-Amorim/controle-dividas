@@ -10,6 +10,7 @@ import { getPayableBillsForCurrentProfile } from "@/lib/finance/payables-server"
 import { buildReceivableIncomesDashboardData } from "@/lib/finance/receivable-dashboard-server";
 import { getReceivableIncomesForCurrentProfile } from "@/lib/finance/receivables-server";
 import { seedInitialFinanceDataForOwner } from "@/lib/finance/seed-server";
+import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { createClient } from "@/lib/supabase/server";
 
 export type {
@@ -39,8 +40,9 @@ async function getCurrentUserId() {
 export async function seedInitialFinanceData() {
   const supabase = await createClient();
   const ownerId = await getCurrentUserId();
+  const { organization } = await requireOrganizationAccess();
 
-  await seedInitialFinanceDataForOwner(supabase, ownerId);
+  await seedInitialFinanceDataForOwner(supabase, ownerId, organization.id);
 }
 
 export async function getFamilyMembers() {

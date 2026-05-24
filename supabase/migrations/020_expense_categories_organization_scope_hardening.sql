@@ -1,5 +1,5 @@
 -- Harden expense_categories organization scope
--- Issue: #568
+-- Issues: #568, #570
 --
 -- This migration intentionally targets only public.expense_categories.
 -- It must not update data. Run the read-only preflight and dry-run reports before

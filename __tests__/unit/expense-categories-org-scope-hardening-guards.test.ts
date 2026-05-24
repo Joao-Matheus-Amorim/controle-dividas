@@ -1,9 +1,10 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { readdirSync, readFileSync } from "node:fs";
+import { basename, join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-const migrationPath = "supabase/migrations/018_expense_categories_organization_scope_hardening.sql";
+const migrationsDir = "supabase/migrations";
+const migrationPath = "supabase/migrations/020_expense_categories_organization_scope_hardening.sql";
 const runbookPath = "docs/runbooks/EXPENSE_CATEGORIES_ORG_SCOPE_HARDENING.md";
 
 function read(path: string) {
@@ -22,10 +23,33 @@ function compact(value: string) {
   return value.replace(/\s+/g, " ").trim().toLowerCase();
 }
 
+function migrationVersion(filename: string) {
+  return filename.match(/^(\d+)_/)?.[1] ?? null;
+}
+
 describe("expense_categories organization scope hardening", () => {
   const rawMigration = read(migrationPath);
   const executableMigration = compact(stripSqlComments(rawMigration));
   const runbook = compact(read(runbookPath));
+
+  it("uses a unique migration version prefix", () => {
+    const migrationFiles = readdirSync(join(process.cwd(), migrationsDir)).filter((filename) =>
+      filename.endsWith(".sql"),
+    );
+    const versions = migrationFiles.map((filename) => migrationVersion(filename)).filter(Boolean);
+    const duplicateVersions = versions.filter(
+      (version, index) => versions.indexOf(version) !== index,
+    );
+
+    expect(duplicateVersions).toEqual([]);
+    expect(migrationFiles).toContain(basename(migrationPath));
+    expect(migrationFiles).not.toContain(
+      "018_expense_categories_organization_scope_hardening.sql",
+    );
+    expect(migrationFiles).not.toContain(
+      "019_expense_categories_organization_scope_hardening.sql",
+    );
+  });
 
   it("targets only expense_categories organization_id", () => {
     expect(executableMigration).toContain("from public.expense_categories");
@@ -59,9 +83,12 @@ describe("expense_categories organization scope hardening", () => {
     expect(executableMigration).not.toMatch(/\bdrop\b/);
   });
 
-  it("documents rollback and required pre-apply checks", () => {
+  it("documents rollback, required pre-apply checks, and seed compatibility", () => {
+    expect(runbook).toContain("supabase/migrations/020_expense_categories_organization_scope_hardening.sql");
     expect(runbook).toContain("docs/sql/legacy-organization-null-preflight.sql");
     expect(runbook).toContain("docs/sql/legacy-organization-backfill-dry-run.sql");
+    expect(runbook).toContain("builddefaultexpensecategoryseedrows(ownerid, organizationid)");
+    expect(runbook).toContain("organization_id: organizationid");
     expect(runbook).toContain("rollback is schema-only");
     expect(runbook).toContain("alter column organization_id drop not null");
   });

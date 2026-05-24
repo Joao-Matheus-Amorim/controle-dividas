@@ -23,11 +23,12 @@ function createSeedClient(
 }
 
 describe("finance seed server", () => {
-  it("upserts default members and categories with duplicate-safe options", async () => {
+  it("upserts default members and organization-scoped categories with duplicate-safe options", async () => {
     const ownerId = "owner-123";
+    const organizationId = "org-123";
     const { client, from, upsertCalls } = createSeedClient();
 
-    await seedInitialFinanceDataForOwner(client, ownerId);
+    await seedInitialFinanceDataForOwner(client, ownerId, organizationId);
 
     expect(from).toHaveBeenNthCalledWith(1, "family_members");
     expect(from).toHaveBeenNthCalledWith(2, "expense_categories");
@@ -39,7 +40,7 @@ describe("finance seed server", () => {
       },
       {
         table: "expense_categories",
-        rows: buildDefaultExpenseCategorySeedRows(ownerId),
+        rows: buildDefaultExpenseCategorySeedRows(ownerId, organizationId),
         options: { onConflict: "owner_id,name", ignoreDuplicates: true },
       },
     ]);
@@ -50,7 +51,7 @@ describe("finance seed server", () => {
       family_members: { error: { message: "family seed failed" } },
     });
 
-    await expect(seedInitialFinanceDataForOwner(client, "owner-123")).rejects.toThrow(
+    await expect(seedInitialFinanceDataForOwner(client, "owner-123", "org-123")).rejects.toThrow(
       "family seed failed",
     );
 
@@ -63,7 +64,7 @@ describe("finance seed server", () => {
       expense_categories: { error: { message: "category seed failed" } },
     });
 
-    await expect(seedInitialFinanceDataForOwner(client, "owner-123")).rejects.toThrow(
+    await expect(seedInitialFinanceDataForOwner(client, "owner-123", "org-123")).rejects.toThrow(
       "category seed failed",
     );
 

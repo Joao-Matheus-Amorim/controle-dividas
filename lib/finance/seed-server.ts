@@ -27,6 +27,7 @@ async function assertSeedUpsertSucceeded(upsert: SeedUpsertResult) {
 export async function seedInitialFinanceDataForOwner(
   supabase: SeedSupabaseClient,
   ownerId: string,
+  organizationId: string,
 ) {
   await assertSeedUpsertSucceeded(
     supabase
@@ -37,6 +38,9 @@ export async function seedInitialFinanceDataForOwner(
   await assertSeedUpsertSucceeded(
     supabase
       .from("expense_categories")
-      .upsert(buildDefaultExpenseCategorySeedRows(ownerId), duplicateSafeSeedOptions),
+      .upsert(
+        buildDefaultExpenseCategorySeedRows(ownerId, organizationId),
+        duplicateSafeSeedOptions,
+      ),
   );
 }
