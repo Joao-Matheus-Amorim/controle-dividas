@@ -18,7 +18,7 @@ The following safety chain exists:
 3. Backfill runbook with rollback and validation requirements.
 4. Read-only deterministic mapping dry-run.
 5. Production evidence showing zero legacy null-organization rows across transitional tenant tables.
-6. Incremental hardening already completed for the first low-risk finance tables.
+6. Incremental hardening already completed for the first finance tables.
 
 ## Current hardening state
 
@@ -26,7 +26,7 @@ The following safety chain exists:
 | --- | --- | --- |
 | `expense_categories` | hardened | `020_expense_categories_organization_scope_hardening.sql` applies `organization_id NOT NULL` after a migration-local preflight guard |
 | `family_members` | hardened | `021_family_members_organization_scope_hardening.sql` applies `organization_id NOT NULL` after seed contract and migration-local preflight guard |
-| `expenses` | candidate | finance/expense write guards are in place; schema still transitional |
+| `expenses` | hardened | `022_expenses_organization_scope_hardening.sql` applies `organization_id NOT NULL` after expenses-specific readiness, preflight, dry-run and migration-local preflight guard |
 | `payable_bills` | candidate | payable write guards are in place; schema still transitional |
 | `receivable_incomes` | candidate | receivable write guards are in place; schema still transitional |
 | `banks` | candidate | bank write guards are in place; schema still transitional |
@@ -50,6 +50,8 @@ For every target table, the evidence must show:
 - zero ambiguous rows;
 - no drift between review and execution.
 
+Table-specific preflight/dry-run scripts may also be added for the target table when useful for review clarity.
+
 ## Recommended order
 
 Do not harden every table in one PR. Continue using a small PR sequence:
@@ -63,6 +65,7 @@ Already completed in this sequence:
 
 1. `expense_categories`.
 2. `family_members`.
+3. `expenses`.
 
 ## Stop criteria
 
