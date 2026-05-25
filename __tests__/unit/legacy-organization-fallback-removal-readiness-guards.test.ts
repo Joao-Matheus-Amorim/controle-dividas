@@ -9,6 +9,16 @@ function readSource(path: string) {
   return readFileSync(join(rootDir, path), "utf8").toLowerCase();
 }
 
+function getSection(source: string, heading: string, nextHeading: string) {
+  const start = source.indexOf(heading.toLowerCase());
+  const end = source.indexOf(nextHeading.toLowerCase(), start + heading.length);
+
+  expect(start, `missing section heading: ${heading}`).toBeGreaterThanOrEqual(0);
+  expect(end, `missing next section heading: ${nextHeading}`).toBeGreaterThan(start);
+
+  return source.slice(start, end);
+}
+
 describe("legacy organization fallback removal readiness", () => {
   it("keeps admin actions scoped to active organization equality", () => {
     const source = readSource("app/protected/admin/actions.ts");
@@ -68,14 +78,15 @@ describe("legacy organization fallback removal readiness", () => {
 
   it("keeps remaining organization helper fallback work explicit", () => {
     const audit = readSource("docs/audits/LEGACY_ORGANIZATION_FALLBACK_REMOVAL_READINESS.md");
+    const remainingSection = getSection(audit, "## Remaining fallback categories", "## Required next step");
 
     expect(audit).toContain("must continue one surface at a time");
-    expect(audit).toContain("the remaining organization helper files still use active organization or legacy null organization filtering");
-    expect(audit).toContain("organization_id.eq.<active organization id>,organization_id.is.null");
-    expect(audit).toContain("lib/organizations/expenses.ts");
-    expect(audit).toContain("lib/organizations/receivables.ts");
-    expect(audit).toContain("lib/organizations/people.ts");
-    expect(audit).not.toContain("lib/organizations/payables.ts\nlib/organizations/receivables.ts");
+    expect(remainingSection).toContain("the remaining organization helper files still use active organization or legacy null organization filtering");
+    expect(remainingSection).toContain("organization_id.eq.<active organization id>,organization_id.is.null");
+    expect(remainingSection).toContain("lib/organizations/expenses.ts");
+    expect(remainingSection).toContain("lib/organizations/receivables.ts");
+    expect(remainingSection).toContain("lib/organizations/people.ts");
+    expect(remainingSection).not.toContain("lib/organizations/payables.ts");
     expect(audit).toContain("avoid schema, rls, ui, and e2e mixing");
   });
 });
