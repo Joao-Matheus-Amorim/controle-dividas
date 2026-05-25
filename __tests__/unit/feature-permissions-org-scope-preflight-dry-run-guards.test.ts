@@ -17,6 +17,10 @@ function withoutComments(sql: string) {
     .join("\n");
 }
 
+function forbiddenStatementPattern(token: string) {
+  return new RegExp(`(^|[^a-z0-9_])${token}([^a-z0-9_]|$)`, "i");
+}
+
 describe("feature permissions organization preflight and dry-run guards", () => {
   const preflight = read(preflightPath);
   const dryRun = read(dryRunPath);
@@ -45,17 +49,17 @@ describe("feature permissions organization preflight and dry-run guards", () => 
     expect(combinedSql).not.toContain('"public"."banks"');
   });
 
-  it("keeps the SQL checks read-only", () => {
+  it("keeps the SQL checks read-only with robust token boundaries", () => {
     for (const token of forbiddenTokens) {
-      expect(combinedSql).not.toContain(`${token} `);
-      expect(combinedSql).not.toContain(`${token}\n`);
+      expect(combinedSql).not.toMatch(forbiddenStatementPattern(token));
     }
   });
 
-  it("keeps preflight focused on null organization rows", () => {
+  it("keeps preflight focused on null organization rows and unsafe profile mappings", () => {
     expect(preflight).toContain("null_organization_rows");
     expect(preflight).toContain('permission."organization_id" is null');
     expect(preflight).toContain("profile_organization_id");
+    expect(preflight).toContain('profile."owner_id" <> permission."owner_id"');
   });
 
   it("keeps dry-run classification explicit and non-mutating", () => {
