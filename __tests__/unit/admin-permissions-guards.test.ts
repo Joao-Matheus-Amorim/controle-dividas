@@ -70,17 +70,18 @@ describe("admin permissions ownership guards", () => {
     expect(source).toContain('.upsert(rows, { onConflict: "profile_id,feature_key" })');
   });
 
-  it("documents current access control as active-organization scoped", () => {
+  it("documents runtime access control as active-organization scoped without legacy permission fallback", () => {
     const source = readSource("lib/finance/access-control.ts");
 
     expect(source).toContain("@/lib/organizations/server");
     expect(source).toContain("requireOrganizationAccess");
     expect(source).toContain("organization_id: string | null");
-    expect(source).toContain("function organizationOrLegacyFilter");
-    expect(source).toContain("organization_id.eq.${organizationId}");
-    expect(source).toContain("organization_id.is.null");
     expect(source).toContain("async function getActiveOrganizationId");
-    expect(source).toContain("pickOrganizationScopedRow");
+    expect(source).toContain('.eq("organization_id", organizationId)');
+    expect(source).not.toContain("function organizationOrLegacyFilter");
+    expect(source).not.toContain("organization_id.eq.${organizationId}");
+    expect(source).not.toContain("organization_id.is.null");
+    expect(source).not.toContain("pickOrganizationScopedRow");
   });
 
   it("keeps bootstrap admin profile helper isolated from runtime callers", () => {
