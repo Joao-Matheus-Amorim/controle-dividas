@@ -2,7 +2,7 @@
 
 Issue: #641
 
-Related issues: #643, #645, #647, #648, #650
+Related issues: #643, #645, #647, #648, #650, #652
 
 ## Purpose
 
@@ -22,6 +22,7 @@ Completed scoped removals:
 #647 admin write validation and deletion boundaries in app/protected/admin/actions.ts
 #648 bank organization helper reads in lib/organizations/banks.ts
 #650 category organization helper reads in lib/organizations/categories.ts
+#652 payable organization helper reads in lib/organizations/payables.ts
 ```
 
 The remaining legacy fallback surfaces must stay scoped to later PRs. Do not remove fallback broadly across runtime, organization helpers, schema, RLS, UI, or E2E in the same change.
@@ -121,6 +122,17 @@ The removed surface includes:
 
 These reads now require active organization scope and keep owner checks where still needed during the transition.
 
+### Payable organization helper reads
+
+lib/organizations/payables.ts no longer accepts legacy null organization rows when reading payable organization helper data.
+
+The removed surface includes:
+
+- payable bill reads from `payable_bills`;
+- payable dashboard member reads from `family_members`.
+
+These reads now require active organization scope and keep owner checks where still needed during the transition. Existing module permission/member filtering remains preserved without accepting null organization rows.
+
 ## Remaining fallback categories
 
 ### Organization feature read paths
@@ -131,7 +143,6 @@ Remaining helper surfaces include:
 
 ```txt
 lib/organizations/expenses.ts
-lib/organizations/payables.ts
 lib/organizations/receivables.ts
 lib/organizations/people.ts
 ```
