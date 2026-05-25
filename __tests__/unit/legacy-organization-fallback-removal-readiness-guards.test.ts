@@ -27,14 +27,10 @@ const sourcePaths = [
 ];
 
 describe("legacy organization fallback removal readiness", () => {
-  it("keeps this PR explicitly audit-only", () => {
-    expect(audit).toContain("documentation-only readiness audit");
-    expect(audit).toContain("does not remove runtime fallback");
-    expect(audit).toContain("does not change schema");
-    expect(audit).toContain("does not change rls policies");
-    expect(audit).toContain("does not change ui");
-    expect(audit).toContain("does not change billing");
-    expect(audit).toContain("does not add e2e coverage");
+  it("keeps fallback removal scoped by surface", () => {
+    expect(audit).toContain("must continue one surface at a time");
+    expect(audit).toContain("do not remove fallback broadly");
+    expect(audit).toContain("avoid schema, rls, billing, ui, and e2e mixing");
   });
 
   it("documents the reviewed fallback source inventory", () => {
@@ -43,15 +39,16 @@ describe("legacy organization fallback removal readiness", () => {
     }
   });
 
-  it("keeps runtime fallback removal as a later scoped PR", () => {
-    expect(audit).toContain("legacy fallback removal is not ready to happen in this pr");
-    expect(audit).toContain("separate scoped runtime pr");
-    expect(audit).toContain("removes one fallback surface at a time");
-    expect(audit).toContain("avoid schema, rls, billing, ui, and e2e mixing");
+  it("records completed scoped fallback removals", () => {
+    expect(audit).toContain("#643 runtime permission reads in lib/finance/access-control.ts");
+    expect(audit).toContain("#645 admin dashboard reads in lib/finance/admin-server.ts");
+    expect(audit).toContain("lib/finance/access-control.ts no longer accepts legacy null organization rows");
+    expect(audit).toContain("lib/finance/admin-server.ts no longer accepts legacy null organization rows");
   });
 
-  it("records the exact transitional fallback pattern", () => {
-    expect(audit).toContain("organizationorlegacyfilter");
+  it("keeps remaining fallback categories explicit", () => {
+    expect(audit).toContain("app/protected/admin/actions.ts still accepts legacy null organization rows");
+    expect(audit).toContain("organization helper files still use active organization or legacy null organization filtering");
     expect(audit).toContain("organization_id.eq.<active organization id>,organization_id.is.null");
     expect(audit).toContain("new writes in these actions already write the active organization id");
   });
