@@ -17,6 +17,7 @@ where permission."organization_id" is null
   and (
     profile."id" is null
     or profile."organization_id" is null
+    or profile."owner_id" <> permission."owner_id"
   );
 
 select
