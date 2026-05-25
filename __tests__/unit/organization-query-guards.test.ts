@@ -20,13 +20,12 @@ const migratedPages = [
   "app/protected/relatorios/page.tsx",
 ];
 
-const organizationHelpers = [
+const organizationHelpersWithLegacyFallback = [
   "lib/organizations/people.ts",
   "lib/organizations/categories.ts",
   "lib/organizations/payables.ts",
   "lib/organizations/receivables.ts",
   "lib/organizations/expenses.ts",
-  "lib/organizations/banks.ts",
 ];
 
 describe("organization-aware query guards", () => {
@@ -73,12 +72,20 @@ describe("organization-aware query guards", () => {
     expect(source).not.toContain("@/lib/finance/banks-server");
   });
 
-  it("preserves transitional organization-or-legacy filters in organization helpers", () => {
-    for (const path of organizationHelpers) {
+  it("preserves transitional organization-or-legacy filters only in remaining organization helpers", () => {
+    for (const path of organizationHelpersWithLegacyFallback) {
       const source = readSource(path);
 
       expect(source, `${path} must keep organization filter`).toContain("organization_id.eq.${organizationId}");
       expect(source, `${path} must keep legacy compatibility`).toContain("organization_id.is.null");
     }
+  });
+
+  it("keeps bank helper reads on active organization equality after scoped fallback removal", () => {
+    const source = readSource("lib/organizations/banks.ts");
+
+    expect(source).toContain('.eq("organization_id", organization.id)');
+    expect(source).not.toContain("organization_id.eq.${organizationId}");
+    expect(source).not.toContain("organization_id.is.null");
   });
 });
