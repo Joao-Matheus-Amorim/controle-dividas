@@ -6,7 +6,7 @@ import { AdminPermissionsSummaryCards } from "@/components/admin/permissions/adm
 import { getAdminDashboardData } from "@/lib/finance/admin-server";
 
 export default async function AdminPermissoesPage() {
-  const { profiles, permissions, modules, members } = await getAdminDashboardData();
+  const { profiles, permissions, featurePermissions, modules, members } = await getAdminDashboardData();
   const familyUsers = profiles.filter((profile) => profile.role !== "admin");
   const configuredProfiles = new Set(permissions.map((permission) => permission.profile_id));
 
@@ -23,7 +23,12 @@ export default async function AdminPermissoesPage() {
         permissionCount={permissions.length}
         moduleCount={modules.length}
       />
-      <AdminPermissionsFormSection profiles={profiles} permissions={permissions} members={members} />
+      <AdminPermissionsFormSection
+        profiles={profiles}
+        permissions={permissions}
+        featurePermissions={featurePermissions}
+        members={members}
+      />
       <AdminPermissionsModulesList modules={modules} />
     </div>
   );
