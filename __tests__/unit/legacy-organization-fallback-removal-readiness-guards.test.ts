@@ -81,8 +81,8 @@ describe("legacy organization fallback removal readiness", () => {
     const remainingSection = getSection(audit, "## Remaining fallback categories", "## Required next step");
 
     expect(audit).toContain("must continue one surface at a time");
+    expect(audit).toContain("organization_id.eq.<active organization id>,organization_id.is.null");
     expect(remainingSection).toContain("the remaining organization helper files still use active organization or legacy null organization filtering");
-    expect(remainingSection).toContain("organization_id.eq.<active organization id>,organization_id.is.null");
     expect(remainingSection).toContain("lib/organizations/expenses.ts");
     expect(remainingSection).toContain("lib/organizations/receivables.ts");
     expect(remainingSection).toContain("lib/organizations/people.ts");
