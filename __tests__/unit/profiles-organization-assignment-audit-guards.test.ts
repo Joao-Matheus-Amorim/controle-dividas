@@ -36,13 +36,14 @@ describe("profiles organization assignment audit", () => {
     expect(onboardingRpc).toContain("and organization_id is null");
   });
 
-  it("keeps admin profile writes assigning active organization scope", () => {
+  it("keeps admin profile writes assigning and requiring active organization scope", () => {
     expect(adminActions).toContain("export async function createfamilyuser");
     expect(adminActions).toContain("organization_id: organization.id");
     expect(adminActions).toContain("export async function updatefamilyuser");
     expect(adminActions).toContain("export async function syncfamilyuserauthlink");
     expect(adminActions).toContain("export async function togglefamilyuserstatus");
-    expect(adminActions).toContain("organizationorlegacyfilter(organization.id)");
+    expect(adminActions).toContain('.eq("organization_id", organization.id)');
+    expect(adminActions).not.toContain("organizationorlegacyfilter(organization.id)");
   });
 
   it("keeps profiles readiness audit evidence-only", () => {
