@@ -12,7 +12,7 @@ describe("feature decision status", () => {
 
   it("records that feature permissions will be used while hardening remains blocked", () => {
     expect(status).toContain("decision status: use feature permissions");
-    expect(status).toContain("write path status: scoped write path added");
+    expect(status).toContain("write path status: scoped callable write path added");
     expect(status).toContain("hardening status: blocked until readiness, preflight, and dry-run are completed");
     expect(status).not.toContain("hardening status: ready");
     expect(status).not.toContain("decision status: pending");
@@ -21,6 +21,7 @@ describe("feature decision status", () => {
   it("keeps the next step explicit", () => {
     expect(status).toContain("the product will keep and use feature permissions");
     expect(status).toContain("writes feature permission rows with organization scope from the active organization");
+    expect(status).toContain("minimal callable feature permissions form");
     expect(status).toContain("readiness, read-only preflight, and read-only dry-run evidence");
   });
 
@@ -28,6 +29,7 @@ describe("feature decision status", () => {
     expect(status).toContain("no migration");
     expect(status).toContain("no schema change");
     expect(status).toContain("no rls change");
-    expect(status).toContain("no ui change");
+    expect(status).toContain("no billing change");
+    expect(status).toContain("no e2e change");
   });
 });
