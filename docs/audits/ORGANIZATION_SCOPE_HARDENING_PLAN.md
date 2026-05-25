@@ -31,7 +31,7 @@ The following safety chain exists:
 | `receivable_incomes` | hardened | `024_receivable_incomes_organization_scope_hardening.sql` applies `organization_id NOT NULL` after receivable incomes-specific readiness, preflight, dry-run and migration-local preflight guard |
 | `banks` | hardened | `025_banks_organization_scope_hardening.sql` applies `organization_id NOT NULL` after banks-specific readiness, preflight, dry-run and migration-local preflight guard |
 | `user_module_permissions` | hardened | `026_user_module_permissions_organization_scope_hardening.sql` applies `organization_id NOT NULL` after module permissions-specific readiness, preflight, dry-run and migration-local preflight guard |
-| `user_feature_permissions` | blocked pending write-path decision | `docs/audits/USER_FEATURE_PERMISSIONS_WRITE_PATH_AUDIT.md` found no active application write path in the audited source surface |
+| `user_feature_permissions` | ready for preflight/dry-run | `docs/audits/USER_FEATURE_PERMISSIONS_ORGANIZATION_SCOPE_READINESS.md` confirms scoped callable write path and keeps hardening blocked until fresh read-only evidence exists |
 | `profiles` | special handling required | `docs/audits/PROFILES_READINESS.md` references profiles read-only checks; hardening still requires target-environment evidence review before any migration |
 
 ## Required pre-migration evidence
