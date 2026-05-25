@@ -1,24 +1,25 @@
 # User feature permissions organization scope readiness
 
 Issue: #628
-Related issues: #614, #624, #626, #630
+Related issues: #614, #624, #626, #630, #632
 
 ## Purpose
 
 Audit whether `public.user_feature_permissions.organization_id` is ready for future organization scope hardening.
 
-This document tracks readiness, read-only SQL checks, and the hardening gate. It does not introduce a migration, schema hardening, data backfill, RLS changes, billing, E2E, or fallback removal.
+This document tracks readiness, read-only SQL checks, the evidence-review gate, and the hardening gate. It does not introduce a migration, schema hardening, data backfill, RLS changes, billing, E2E, or fallback removal.
 
 ## Current finding
 
-`user_feature_permissions` is ready for target-environment read-only evidence collection, but it should not be hardened in this PR.
+`user_feature_permissions` has table-specific read-only checks, but it should not be hardened until target-environment output is reviewed and recorded.
 
 Current status:
 
 ```txt
 Readiness: read-only preflight and dry-run checks added
-Hardening: blocked until fresh evidence from those checks is reviewed
-Next safe step: review target-environment preflight/dry-run output
+Evidence review: pending target-environment output review
+Hardening: blocked until reviewed output shows no unsafe legacy rows
+Next safe step: record target-environment preflight/dry-run output
 ```
 
 ## Read-only checks
@@ -31,6 +32,20 @@ docs/sql/feature-permissions-organization-dry-run.sql
 ```
 
 These checks are evidence only. They must not mutate data or apply constraints.
+
+## Evidence review gate
+
+Before any schema hardening PR, the project must record the output of the two read-only checks from the target environment.
+
+The evidence review must confirm:
+
+- `null_organization_rows` is zero; or every legacy row has an accepted deterministic mapping and is resolved before hardening;
+- `null_organization_rows_without_matching_profile_scope` is zero;
+- dry-run `needs_review` is zero;
+- no owner/profile mismatch exists for legacy rows;
+- no drift happened between evidence review and migration execution.
+
+If any value is unsafe or ambiguous, stop and do not open hardening.
 
 ## Read path review
 
