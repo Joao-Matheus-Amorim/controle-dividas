@@ -88,6 +88,8 @@ Delete remains scoped by owner and active organization or legacy null-organizati
 
 ## Decision
 
+The next safe step after this runtime alignment is to review the profiles read-only check output from the target environment before considering a schema-only hardening migration.
+
 Profiles are ready for target-environment evidence review only.
 
 No profiles hardening migration should be created until the read-only checks prove that remaining legacy rows are zero or otherwise safely resolved in a separate scoped PR.
