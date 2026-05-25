@@ -9,32 +9,50 @@ function readSource(path: string) {
   return readFileSync(join(rootDir, path), "utf8").toLowerCase();
 }
 
-describe("admin organization scope fallback guard", () => {
+describe("legacy organization fallback removal readiness", () => {
   it("keeps admin actions scoped to active organization equality", () => {
     const source = readSource("app/protected/admin/actions.ts");
 
-    expect(source).toContain('requireorganizationaccess');
+    expect(source).toContain("requireorganizationaccess");
     expect(source).toContain('.eq("owner_id", adminprofile.owner_id)');
     expect(source).toContain('.eq("organization_id", organization.id)');
-    expect(source).not.toContain('organization_id.is.null');
-    expect(source).not.toContain('.or(organizationorlegacyfilter');
+    expect(source).not.toContain("organization_id.is.null");
+    expect(source).not.toContain(".or(organizationorlegacyfilter");
   });
 
-  it("records admin actions as a completed scoped fallback removal", () => {
+  it("keeps bank organization helper reads scoped to active organization equality", () => {
+    const source = readSource("lib/organizations/banks.ts");
+
+    expect(source).toContain("requireorganizationaccess");
+    expect(source).toContain('.eq("owner_id", profile.owner_id)');
+    expect(source).toContain('.eq("organization_id", organization.id)');
+    expect(source).not.toContain("organizationorlegacyfilter");
+    expect(source).not.toContain("organization_id.is.null");
+  });
+
+  it("records completed scoped fallback removals", () => {
     const audit = readSource("docs/audits/LEGACY_ORGANIZATION_FALLBACK_REMOVAL_READINESS.md");
 
     expect(audit).toContain("#647 admin write validation and deletion boundaries in app/protected/admin/actions.ts");
     expect(audit).toContain("app/protected/admin/actions.ts no longer accepts legacy null organization rows");
-    expect(audit).toContain("profile update, link, delete and status paths");
+    expect(audit).toContain("#648 bank organization helper reads in lib/organizations/banks.ts");
+    expect(audit).toContain("lib/organizations/banks.ts no longer accepts legacy null organization rows");
+    expect(audit).toContain("bank dashboard member reads from `family_members`");
+    expect(audit).toContain("bank account reads from `banks`");
     expect(audit).not.toContain("app/protected/admin/actions.ts still accepts legacy null organization rows");
   });
 
-  it("keeps organization helper fallback work separate", () => {
+  it("keeps remaining organization helper fallback work explicit", () => {
     const audit = readSource("docs/audits/LEGACY_ORGANIZATION_FALLBACK_REMOVAL_READINESS.md");
 
     expect(audit).toContain("must continue one surface at a time");
-    expect(audit).toContain("organization helper files still use active organization or legacy null organization filtering");
+    expect(audit).toContain("the remaining organization helper files still use active organization or legacy null organization filtering");
     expect(audit).toContain("organization_id.eq.<active organization id>,organization_id.is.null");
-    expect(audit).toContain("avoid schema, rls, billing, ui, and e2e mixing");
+    expect(audit).toContain("lib/organizations/categories.ts");
+    expect(audit).toContain("lib/organizations/expenses.ts");
+    expect(audit).toContain("lib/organizations/payables.ts");
+    expect(audit).toContain("lib/organizations/receivables.ts");
+    expect(audit).toContain("lib/organizations/people.ts");
+    expect(audit).toContain("avoid schema, rls, ui, and e2e mixing");
   });
 });
