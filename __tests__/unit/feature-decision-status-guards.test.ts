@@ -34,11 +34,11 @@ describe("feature decision status", () => {
     expect(status).toContain("no e2e change");
   });
 
-  it("records readiness for the next evidence step only", () => {
-    expect(readiness).toContain("ready for read-only preflight and dry-run");
+  it("records readiness for evidence review only", () => {
+    expect(readiness).toContain("readiness: read-only preflight and dry-run checks added");
     expect(readiness).toContain("should not be hardened in this pr");
-    expect(readiness).toContain("fresh null-organization preflight evidence");
-    expect(readiness).toContain("fresh deterministic dry-run evidence");
-    expect(readiness).toContain("no table-specific preflight/dry-run sql exists yet");
+    expect(readiness).toContain("reviewed null-organization preflight evidence");
+    expect(readiness).toContain("reviewed deterministic dry-run evidence");
+    expect(readiness).toContain("the table now has dedicated read-only preflight/dry-run checks");
   });
 });

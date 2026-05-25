@@ -1,25 +1,36 @@
 # User feature permissions organization scope readiness
 
 Issue: #628
-Related issues: #614, #624, #626
+Related issues: #614, #624, #626, #630
 
 ## Purpose
 
-Audit whether `public.user_feature_permissions.organization_id` is ready for future read-only preflight and dry-run checks.
+Audit whether `public.user_feature_permissions.organization_id` is ready for future organization scope hardening.
 
-This document does not introduce SQL checks, a migration, schema hardening, data backfill, RLS changes, billing, E2E, or fallback removal.
+This document tracks readiness, read-only SQL checks, and the hardening gate. It does not introduce a migration, schema hardening, data backfill, RLS changes, billing, E2E, or fallback removal.
 
 ## Current finding
 
-`user_feature_permissions` is now a candidate for the next evidence step, but it should not be hardened in this PR.
+`user_feature_permissions` is ready for target-environment read-only evidence collection, but it should not be hardened in this PR.
 
 Current status:
 
 ```txt
-Readiness: ready for read-only preflight and dry-run
-Hardening: blocked until fresh preflight and dry-run evidence exists
-Next safe step: dedicated read-only preflight/dry-run PR
+Readiness: read-only preflight and dry-run checks added
+Hardening: blocked until fresh evidence from those checks is reviewed
+Next safe step: review target-environment preflight/dry-run output
 ```
+
+## Read-only checks
+
+The table-specific read-only checks are:
+
+```txt
+docs/sql/feature-permissions-organization-null-preflight.sql
+docs/sql/feature-permissions-organization-dry-run.sql
+```
+
+These checks are evidence only. They must not mutate data or apply constraints.
 
 ## Read path review
 
@@ -91,7 +102,7 @@ Current RLS behavior remains transitional:
 - legacy null-organization rows remain accepted through owner scope;
 - `organization_id` is not yet `NOT NULL`.
 
-This is compatible with readiness for read-only preflight/dry-run, not with immediate hardening.
+This is compatible with read-only preflight/dry-run evidence collection, not with immediate hardening.
 
 ## Transitional assumptions still present
 
@@ -99,19 +110,18 @@ The following remain intentional transitional behavior:
 
 - `owner_id` is still part of read/write records;
 - `organization_id IS NULL` legacy fallback is still accepted in read and profile-validation paths;
-- no `NOT NULL` migration exists for `user_feature_permissions` yet;
-- no table-specific preflight/dry-run SQL exists yet.
+- no `NOT NULL` migration exists for `user_feature_permissions` yet.
 
 ## Readiness decision
 
 `user_feature_permissions` is no longer blocked by missing product decision or missing callable write path.
 
-The table is ready for a dedicated read-only preflight/dry-run PR.
+The table now has dedicated read-only preflight/dry-run checks.
 
 A future hardening PR must still be separate and must include:
 
-- fresh null-organization preflight evidence;
-- fresh deterministic dry-run evidence;
+- reviewed null-organization preflight evidence;
+- reviewed deterministic dry-run evidence;
 - migration-local preflight guard;
 - rollback instructions;
 - static guard proving the migration is scoped only to `user_feature_permissions`;
@@ -123,8 +133,6 @@ This audit does not change:
 
 - schema;
 - data;
-- SQL preflight checks;
-- dry-run checks;
 - RLS policies;
 - runtime behavior;
 - UI behavior;
