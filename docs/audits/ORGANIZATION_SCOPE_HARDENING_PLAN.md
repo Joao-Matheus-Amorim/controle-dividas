@@ -31,7 +31,7 @@ The following safety chain exists:
 | `receivable_incomes` | hardened | `024_receivable_incomes_organization_scope_hardening.sql` applies `organization_id NOT NULL` after receivable incomes-specific readiness, preflight, dry-run and migration-local preflight guard |
 | `banks` | hardened | `025_banks_organization_scope_hardening.sql` applies `organization_id NOT NULL` after banks-specific readiness, preflight, dry-run and migration-local preflight guard |
 | `user_module_permissions` | hardened | `026_user_module_permissions_organization_scope_hardening.sql` applies `organization_id NOT NULL` after module permissions-specific readiness, preflight, dry-run and migration-local preflight guard |
-| `user_feature_permissions` | preflight/dry-run checks added | `docs/sql/feature-permissions-organization-null-preflight.sql` and `docs/sql/feature-permissions-organization-dry-run.sql` are read-only; hardening remains blocked until target-environment output is reviewed |
+| `user_feature_permissions` | hardened | `027_user_feature_permissions_organization_scope_hardening.sql` follows feature-specific readiness, read-only evidence review and migration-local preflight guard |
 | `profiles` | special handling required | `docs/audits/PROFILES_READINESS.md` references profiles read-only checks; hardening still requires target-environment evidence review before any migration |
 
 ## Required pre-migration evidence
@@ -70,6 +70,7 @@ Already completed in this sequence:
 5. `receivable_incomes`.
 6. `banks`.
 7. `user_module_permissions`.
+8. `user_feature_permissions`.
 
 ## Stop criteria
 
