@@ -36,9 +36,10 @@ describe("feature decision status", () => {
 
   it("records readiness for evidence review only", () => {
     expect(readiness).toContain("readiness: read-only preflight and dry-run checks added");
-    expect(readiness).toContain("should not be hardened in this pr");
-    expect(readiness).toContain("reviewed null-organization preflight evidence");
-    expect(readiness).toContain("reviewed deterministic dry-run evidence");
-    expect(readiness).toContain("the table now has dedicated read-only preflight/dry-run checks");
+    expect(readiness).toContain("evidence review: pending target-environment output review");
+    expect(readiness).toContain("hardening: blocked until reviewed output shows no unsafe legacy rows");
+    expect(readiness).toContain("next safe step: record target-environment preflight/dry-run output");
+    expect(readiness).toContain("null_organization_rows_without_matching_profile_scope");
+    expect(readiness).toContain("dry-run `needs_review` is zero");
   });
 });
