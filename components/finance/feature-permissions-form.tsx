@@ -138,10 +138,7 @@ export function FeaturePermissionsForm({
                   <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-lg border border-white/15 bg-[#080810] text-transparent transition peer-checked:border-[#8b72f8] peer-checked:bg-[#8b72f8] peer-checked:text-white group-hover:border-[#8b72f8]/50">
                     <Check className="h-3.5 w-3.5" />
                   </span>
-                  <span>
-                    <span className="block font-semibold peer-checked:text-white">{feature.label}</span>
-                    <span className="mt-1 block text-xs text-white/30">{feature.description}</span>
-                  </span>
+                  <span className="block font-semibold peer-checked:text-white">{feature.label}</span>
                 </label>
               );
             })}
