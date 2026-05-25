@@ -30,6 +30,16 @@ describe("legacy organization fallback removal readiness", () => {
     expect(source).not.toContain("organization_id.is.null");
   });
 
+  it("keeps category organization helper reads scoped to active organization equality", () => {
+    const source = readSource("lib/organizations/categories.ts");
+
+    expect(source).toContain("requireorganizationaccess");
+    expect(source).toContain('.eq("owner_id", profile.owner_id)');
+    expect(source).toContain('.eq("organization_id", organization.id)');
+    expect(source).not.toContain("organizationorlegacyfilter");
+    expect(source).not.toContain("organization_id.is.null");
+  });
+
   it("records completed scoped fallback removals", () => {
     const audit = readSource("docs/audits/LEGACY_ORGANIZATION_FALLBACK_REMOVAL_READINESS.md");
 
@@ -37,8 +47,9 @@ describe("legacy organization fallback removal readiness", () => {
     expect(audit).toContain("app/protected/admin/actions.ts no longer accepts legacy null organization rows");
     expect(audit).toContain("#648 bank organization helper reads in lib/organizations/banks.ts");
     expect(audit).toContain("lib/organizations/banks.ts no longer accepts legacy null organization rows");
-    expect(audit).toContain("bank dashboard member reads from `family_members`");
-    expect(audit).toContain("bank account reads from `banks`");
+    expect(audit).toContain("#650 category organization helper reads in lib/organizations/categories.ts");
+    expect(audit).toContain("lib/organizations/categories.ts no longer accepts legacy null organization rows");
+    expect(audit).toContain("expense category reads from `expense_categories`");
     expect(audit).not.toContain("app/protected/admin/actions.ts still accepts legacy null organization rows");
   });
 
@@ -48,7 +59,6 @@ describe("legacy organization fallback removal readiness", () => {
     expect(audit).toContain("must continue one surface at a time");
     expect(audit).toContain("the remaining organization helper files still use active organization or legacy null organization filtering");
     expect(audit).toContain("organization_id.eq.<active organization id>,organization_id.is.null");
-    expect(audit).toContain("lib/organizations/categories.ts");
     expect(audit).toContain("lib/organizations/expenses.ts");
     expect(audit).toContain("lib/organizations/payables.ts");
     expect(audit).toContain("lib/organizations/receivables.ts");
