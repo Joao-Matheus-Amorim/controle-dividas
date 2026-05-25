@@ -60,20 +60,9 @@ function isConfiguredAdminEmail(email: string | null) {
   return Boolean(adminEmail && email && email.toLowerCase() === adminEmail);
 }
 
-function organizationOrLegacyFilter(organizationId: string) {
-  return `organization_id.eq.${organizationId},organization_id.is.null`;
-}
-
 async function getActiveOrganizationId() {
   const { organization } = await requireOrganizationAccess();
   return organization.id;
-}
-
-function pickOrganizationScopedRow<T extends { organization_id: string | null }>(
-  rows: T[],
-  organizationId: string,
-) {
-  return rows.find((row) => row.organization_id === organizationId) ?? rows.find((row) => row.organization_id === null) ?? null;
 }
 
 async function getProfileByAuthUserId(authUserId: string) {
@@ -181,7 +170,7 @@ async function getAllActiveMemberIds(ownerId: string, organizationId: string) {
     .select("id")
     .eq("owner_id", ownerId)
     .eq("is_active", true)
-    .or(organizationOrLegacyFilter(organizationId));
+    .eq("organization_id", organizationId);
 
   if (error) {
     throw new Error(error.message);
@@ -203,13 +192,14 @@ export async function getModulePermission(
     .select("profile_id, organization_id, module, can_view, can_create, can_edit, can_delete, scope, allowed_member_ids")
     .eq("profile_id", profileId)
     .eq("module", module)
-    .or(organizationOrLegacyFilter(organizationId));
+    .eq("organization_id", organizationId)
+    .maybeSingle();
 
   if (error) {
     throw new Error(error.message);
   }
 
-  return pickOrganizationScopedRow((data ?? []) as ModulePermission[], organizationId);
+  return data as ModulePermission | null;
 }
 
 export async function getFeaturePermission(
@@ -225,13 +215,14 @@ export async function getFeaturePermission(
     .select("profile_id, organization_id, feature_key, is_enabled")
     .eq("profile_id", profileId)
     .eq("feature_key", featureKey)
-    .or(organizationOrLegacyFilter(organizationId));
+    .eq("organization_id", organizationId)
+    .maybeSingle();
 
   if (error) {
     throw new Error(error.message);
   }
 
-  return pickOrganizationScopedRow((data ?? []) as FeaturePermission[], organizationId);
+  return data as FeaturePermission | null;
 }
 
 export async function canUseFeature(featureKey: FeaturePermissionKey) {
@@ -283,7 +274,7 @@ export async function getVisibleModuleKeys(modules: FinanceModuleKey[]) {
     .from("user_module_permissions")
     .select("module, can_view, organization_id")
     .eq("profile_id", profile.id)
-    .or(organizationOrLegacyFilter(organizationId));
+    .eq("organization_id", organizationId);
 
   if (error) {
     throw new Error(error.message);
@@ -291,11 +282,7 @@ export async function getVisibleModuleKeys(modules: FinanceModuleKey[]) {
 
   const permissions = (data ?? []) as Pick<ModulePermission, "module" | "can_view" | "organization_id">[];
   return modules.filter((module) => {
-    const scopedPermission = pickOrganizationScopedRow(
-      permissions.filter((permission) => permission.module === module),
-      organizationId,
-    );
-
+    const scopedPermission = permissions.find((permission) => permission.module === module);
     return Boolean(scopedPermission?.can_view);
   });
 }
