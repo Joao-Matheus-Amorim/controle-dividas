@@ -41,6 +41,23 @@ function makeProfilesQuery() {
   let updatePayload: Record<string, unknown> | null = null;
   let deleteMode = false;
 
+  const finishWriteIfReady = () => {
+    if (!filters.organization_id) {
+      return query;
+    }
+
+    if (updatePayload) {
+      mockState.updatedPayloads.push({ ...updatePayload, filters: { ...filters } });
+      return Promise.resolve({ error: mockState.updateError });
+    }
+
+    if (deleteMode) {
+      return Promise.resolve({ error: mockState.deleteError });
+    }
+
+    return query;
+  };
+
   const query = {
     select() {
       return query;
@@ -52,7 +69,7 @@ function makeProfilesQuery() {
         mockState.deletedIds.push(String(value));
       }
 
-      return query;
+      return finishWriteIfReady();
     },
     or(expression: string) {
       filters.or = expression;
@@ -184,7 +201,11 @@ describe("admin family user actions", () => {
     expect(lastUpdatePayload()).toEqual(expect.objectContaining({
       is_active: false,
       organization_id: "org-1",
-      filters: expect.objectContaining({ id: "profile-1", owner_id: "owner-1" }),
+      filters: expect.objectContaining({
+        id: "profile-1",
+        owner_id: "owner-1",
+        organization_id: "org-1",
+      }),
     }));
   });
 
@@ -200,7 +221,11 @@ describe("admin family user actions", () => {
     expect(lastUpdatePayload()).toEqual(expect.objectContaining({
       is_active: false,
       organization_id: "org-1",
-      filters: expect.objectContaining({ id: "profile-1", owner_id: "owner-1" }),
+      filters: expect.objectContaining({
+        id: "profile-1",
+        owner_id: "owner-1",
+        organization_id: "org-1",
+      }),
     }));
   });
 

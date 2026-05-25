@@ -12,6 +12,7 @@ type FunctionExpectation = {
   operation: Operation;
   requiresOrganizationId?: boolean;
   requiresOrganizationFilter?: boolean;
+  requiresActiveOrganizationFilter?: boolean;
   payloadVariable?: string;
   targetHint?: string;
 };
@@ -203,7 +204,7 @@ const writeExpectations: FunctionExpectation[] = [
     table: "profiles",
     operation: "update",
     requiresOrganizationId: true,
-    requiresOrganizationFilter: true,
+    requiresActiveOrganizationFilter: true,
   },
   {
     file: "app/protected/admin/actions.ts",
@@ -211,7 +212,7 @@ const writeExpectations: FunctionExpectation[] = [
     table: "profiles",
     operation: "update",
     requiresOrganizationId: true,
-    requiresOrganizationFilter: true,
+    requiresActiveOrganizationFilter: true,
     targetHint: "auth_user_id: authUserId",
   },
   {
@@ -219,7 +220,7 @@ const writeExpectations: FunctionExpectation[] = [
     functionName: "deleteFamilyUser",
     table: "profiles",
     operation: "delete",
-    requiresOrganizationFilter: true,
+    requiresActiveOrganizationFilter: true,
   },
   {
     file: "app/protected/admin/actions.ts",
@@ -227,7 +228,7 @@ const writeExpectations: FunctionExpectation[] = [
     table: "profiles",
     operation: "update",
     requiresOrganizationId: true,
-    requiresOrganizationFilter: true,
+    requiresActiveOrganizationFilter: true,
   },
   {
     file: "app/protected/admin/actions.ts",
@@ -336,6 +337,7 @@ function variableBlock(source: string, variableName: string) {
 
 const organizationIdAssignment = /organization_id:organization\.id/;
 const organizationFilter = /\.or\(organizationOrLegacyFilter\(organization\.id\)\)/;
+const activeOrganizationFilter = /\.eq\("organization_id",organization\.id\)/;
 
 describe("finance write organization_id coverage", () => {
   it("does not let a different write satisfy the target write organization_id assertion", () => {
@@ -427,6 +429,13 @@ describe("finance write organization_id coverage", () => {
           write,
           `${expectation.functionName} should scope ${expectation.table} mutation by active/legacy organization`,
         ).toMatch(organizationFilter);
+      }
+
+      if (expectation.requiresActiveOrganizationFilter) {
+        expect(
+          write,
+          `${expectation.functionName} should scope ${expectation.table} mutation by active organization`,
+        ).toMatch(activeOrganizationFilter);
       }
     },
   );

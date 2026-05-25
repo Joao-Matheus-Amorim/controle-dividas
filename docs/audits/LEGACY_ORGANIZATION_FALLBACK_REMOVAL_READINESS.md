@@ -2,7 +2,7 @@
 
 Issue: #641
 
-Related issues: #643, #645
+Related issues: #643, #645, #647
 
 ## Purpose
 
@@ -19,9 +19,10 @@ Completed scoped removals:
 ```txt
 #643 runtime permission reads in lib/finance/access-control.ts
 #645 admin dashboard reads in lib/finance/admin-server.ts
+#647 admin write validation and deletion boundaries in app/protected/admin/actions.ts
 ```
 
-The remaining legacy fallback surfaces must stay scoped to later PRs. Do not remove fallback broadly across runtime, admin validation, organization helpers, schema, RLS, UI, billing, or E2E in the same change.
+The remaining legacy fallback surfaces must stay scoped to later PRs. Do not remove fallback broadly across runtime, organization helpers, schema, RLS, UI, billing, or E2E in the same change.
 
 ## Fallback pattern still present
 
@@ -81,11 +82,11 @@ The removed surface includes:
 
 These reads now require active organization scope and keep owner checks where still needed during the transition.
 
-## Remaining fallback categories
-
 ### Admin write validation and deletion boundaries
 
-app/protected/admin/actions.ts still accepts legacy null organization rows while validating or targeting existing records for:
+app/protected/admin/actions.ts no longer accepts legacy null organization rows while validating or targeting existing records.
+
+The removed surface includes:
 
 - unique email checks;
 - unique linked member checks;
@@ -95,7 +96,9 @@ app/protected/admin/actions.ts still accepts legacy null organization rows while
 - module permission save validation;
 - feature permission save validation.
 
-New writes in these actions already write the active organization id, but existing legacy lookup compatibility is still present.
+These paths now require active organization scope and keep owner checks where still needed during the transition. New writes continue to write the active organization id.
+
+## Remaining fallback categories
 
 ### Organization feature read paths
 

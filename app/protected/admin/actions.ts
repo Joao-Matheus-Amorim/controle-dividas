@@ -46,10 +46,6 @@ function normalizeAccessModel(value: string) {
   return "basic";
 }
 
-function organizationOrLegacyFilter(organizationId: string) {
-  return `organization_id.eq.${organizationId},organization_id.is.null`;
-}
-
 function getDefaultPermissionForAccessModel(accessModel: string, module: FinanceModuleKey) {
   if (accessModel === "admin") {
     return {
@@ -117,7 +113,7 @@ async function ensureUniqueEmail({
     .from("profiles")
     .select("id")
     .eq("owner_id", ownerId)
-    .or(organizationOrLegacyFilter(organizationId))
+    .eq("organization_id", organizationId)
     .ilike("email", email)
     .maybeSingle();
 
@@ -146,7 +142,7 @@ async function ensureUniqueMemberAccess({
     .from("profiles")
     .select("id")
     .eq("owner_id", ownerId)
-    .or(organizationOrLegacyFilter(organizationId))
+    .eq("organization_id", organizationId)
     .eq("linked_family_member_id", memberId)
     .maybeSingle();
 
@@ -166,7 +162,7 @@ async function ensureMemberBelongsToOrganization(ownerId: string, organizationId
     .select("id, organization_id")
     .eq("id", memberId)
     .eq("owner_id", ownerId)
-    .or(organizationOrLegacyFilter(organizationId))
+    .eq("organization_id", organizationId)
     .maybeSingle();
 
   if (error) {
@@ -185,7 +181,7 @@ async function ensureProfileBelongsToOrganization(ownerId: string, organizationI
     .select("id, organization_id")
     .eq("id", profileId)
     .eq("owner_id", ownerId)
-    .or(organizationOrLegacyFilter(organizationId))
+    .eq("organization_id", organizationId)
     .maybeSingle();
 
   if (error) {
@@ -330,7 +326,7 @@ export async function updateFamilyUser(formData: FormData): Promise<FamilyUserAc
     .select("id, role")
     .eq("id", id)
     .eq("owner_id", adminProfile.owner_id)
-    .or(organizationOrLegacyFilter(organization.id))
+    .eq("organization_id", organization.id)
     .maybeSingle();
 
   if (profileError) return { error: profileError.message };
@@ -362,7 +358,7 @@ export async function updateFamilyUser(formData: FormData): Promise<FamilyUserAc
     .update({ name, email, linked_family_member_id: linkedFamilyMemberId, organization_id: organization.id })
     .eq("id", id)
     .eq("owner_id", adminProfile.owner_id)
-    .or(organizationOrLegacyFilter(organization.id));
+    .eq("organization_id", organization.id);
 
   if (error) return { error: error.message };
 
@@ -391,7 +387,7 @@ export async function syncFamilyUserAuthLink(formData: FormData): Promise<Family
     .select("id, owner_id, email, role")
     .eq("id", id)
     .eq("owner_id", adminProfile.owner_id)
-    .or(organizationOrLegacyFilter(organization.id))
+    .eq("organization_id", organization.id)
     .maybeSingle();
 
   if (profileError) return { error: profileError.message };
@@ -406,7 +402,7 @@ export async function syncFamilyUserAuthLink(formData: FormData): Promise<Family
     .from("profiles")
     .update({ auth_user_id: null })
     .eq("owner_id", adminProfile.owner_id)
-    .or(organizationOrLegacyFilter(organization.id))
+    .eq("organization_id", organization.id)
     .eq("auth_user_id", authUserId);
 
   if (clearLinkError) return { error: clearLinkError.message };
@@ -416,7 +412,7 @@ export async function syncFamilyUserAuthLink(formData: FormData): Promise<Family
     .update({ auth_user_id: authUserId, organization_id: organization.id })
     .eq("id", profile.id)
     .eq("owner_id", adminProfile.owner_id)
-    .or(organizationOrLegacyFilter(organization.id));
+    .eq("organization_id", organization.id);
 
   if (linkError) return { error: linkError.message };
 
@@ -445,7 +441,7 @@ export async function deleteFamilyUser(formData: FormData): Promise<FamilyUserAc
     .select("id, role")
     .eq("id", id)
     .eq("owner_id", adminProfile.owner_id)
-    .or(organizationOrLegacyFilter(organization.id))
+    .eq("organization_id", organization.id)
     .maybeSingle();
 
   if (profileError) return { error: profileError.message };
@@ -457,7 +453,7 @@ export async function deleteFamilyUser(formData: FormData): Promise<FamilyUserAc
     .delete()
     .eq("id", id)
     .eq("owner_id", adminProfile.owner_id)
-    .or(organizationOrLegacyFilter(organization.id));
+    .eq("organization_id", organization.id);
 
   if (error) return { error: error.message };
 
@@ -487,7 +483,7 @@ export async function toggleFamilyUserStatus(formData: FormData): Promise<Family
     .select("id, role")
     .eq("id", id)
     .eq("owner_id", adminProfile.owner_id)
-    .or(organizationOrLegacyFilter(organization.id))
+    .eq("organization_id", organization.id)
     .maybeSingle();
 
   if (profileError) return { error: profileError.message };
@@ -499,7 +495,7 @@ export async function toggleFamilyUserStatus(formData: FormData): Promise<Family
     .update({ is_active: !isActive, organization_id: organization.id })
     .eq("id", id)
     .eq("owner_id", adminProfile.owner_id)
-    .or(organizationOrLegacyFilter(organization.id));
+    .eq("organization_id", organization.id);
 
   if (error) return { error: error.message };
 
