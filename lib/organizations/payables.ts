@@ -23,10 +23,6 @@ function normalizePayableBill(bill: RawPayableBill): DbPayableBill {
   };
 }
 
-function organizationOrLegacyFilter(organizationId: string) {
-  return `organization_id.eq.${organizationId},organization_id.is.null`;
-}
-
 export async function getOrganizationPayableBills() {
   const supabase = await createClient();
   const profile = await getCurrentProfile();
@@ -43,7 +39,7 @@ export async function getOrganizationPayableBills() {
       "id, owner_id, name, category, amount, due_date, responsible_member_id, status, bill_type, bank_used, recurrence, notes, created_at, family_members(id, name)",
     )
     .eq("owner_id", profile.owner_id)
-    .or(organizationOrLegacyFilter(organization.id))
+    .eq("organization_id", organization.id)
     .in("responsible_member_id", accessibleMemberIds)
     .order("due_date", { ascending: true })
     .order("created_at", { ascending: false });
@@ -65,7 +61,7 @@ export async function getOrganizationPayableBillsDashboardData() {
     .from("family_members")
     .select("id, owner_id, name, role, monthly_limit, currency, is_active, created_at")
     .eq("owner_id", profile.owner_id)
-    .or(organizationOrLegacyFilter(organization.id))
+    .eq("organization_id", organization.id)
     .order("created_at", { ascending: true });
 
   if (membersError) {
