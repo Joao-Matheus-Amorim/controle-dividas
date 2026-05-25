@@ -2,27 +2,36 @@
 
 Issue: #641
 
+Related issues: #643, #645
+
 ## Purpose
 
 Document the current readiness state for removing the legacy organization fallback from runtime reads and write-validation paths.
 
-This PR is a documentation-only readiness audit with a static guard. It does not remove runtime fallback, does not change schema, does not change RLS policies, does not change UI, does not change billing, and does not add E2E coverage.
+This document is a control/status record for the fallback-removal sequence. It must not be used to justify broad fallback removal in one PR.
 
 ## Current finding
 
-Legacy fallback removal is not ready to happen in this PR.
+Legacy fallback removal is partially complete and must continue one surface at a time.
 
-The schema hardening sequence has moved the critical tenant-scoped tables to `organization_id NOT NULL`, but runtime code still contains transitional helpers that accept the active organization or a legacy null organization scope. Removing that behavior must be a later scoped runtime PR after this inventory is reviewed.
+Completed scoped removals:
+
+```txt
+#643 runtime permission reads in lib/finance/access-control.ts
+#645 admin dashboard reads in lib/finance/admin-server.ts
+```
+
+The remaining legacy fallback surfaces must stay scoped to later PRs. Do not remove fallback broadly across runtime, admin validation, organization helpers, schema, RLS, UI, billing, or E2E in the same change.
 
 ## Fallback pattern still present
 
-The current runtime fallback pattern is represented by helpers named `organizationOrLegacyFilter` and by query filters equivalent to:
+The remaining transitional fallback pattern is represented by helpers named `organizationOrLegacyFilter` and by query filters equivalent to:
 
 ```txt
 organization_id.eq.<active organization id>,organization_id.is.null
 ```
 
-This audit does not remove that pattern. It only records where it still exists and what a later removal PR must prove.
+This pattern is still allowed only in surfaces that have not yet been removed by a dedicated scoped PR.
 
 ## Reviewed source inventory
 
@@ -46,11 +55,13 @@ app/protected/contas-a-receber/actions.ts
 app/protected/bancos/actions.ts
 ```
 
-## Current fallback categories
+## Removed fallback surfaces
 
 ### Runtime permission reads
 
-`lib/finance/access-control.ts` still accepts legacy null organization rows when reading:
+lib/finance/access-control.ts no longer accepts legacy null organization rows when reading runtime permission data.
+
+The removed surface includes:
 
 - active family members for permission scope expansion;
 - module permissions;
@@ -59,16 +70,22 @@ app/protected/bancos/actions.ts
 
 ### Admin dashboard reads
 
-`lib/finance/admin-server.ts` still accepts legacy null organization rows when reading:
+lib/finance/admin-server.ts no longer accepts legacy null organization rows when reading admin dashboard data.
+
+The removed surface includes:
 
 - family members;
 - profiles;
 - module permissions;
 - feature permissions.
 
+These reads now require active organization scope and keep owner checks where still needed during the transition.
+
+## Remaining fallback categories
+
 ### Admin write validation and deletion boundaries
 
-`app/protected/admin/actions.ts` still accepts legacy null organization rows while validating or targeting existing records for:
+app/protected/admin/actions.ts still accepts legacy null organization rows while validating or targeting existing records for:
 
 - unique email checks;
 - unique linked member checks;
@@ -86,7 +103,7 @@ The organization helper files still use active organization or legacy null organ
 
 ## Required next step
 
-The next safe step is a separate scoped runtime PR that removes one fallback surface at a time and proves the target code path no longer accepts legacy null organization rows.
+The next safe step is a separate scoped runtime PR that removes one remaining fallback surface at a time and proves the target code path no longer accepts legacy null organization rows.
 
 That later PR must:
 
@@ -105,11 +122,10 @@ Do not remove legacy fallback if any of the following is true:
 - a test only removes a string assertion without proving the target behavior;
 - the PR mixes fallback removal with unrelated schema, RLS, billing, UI, or E2E work.
 
-## Out of scope
+## Out of scope for the scoped fallback-removal sequence
 
-This audit does not change:
+The fallback-removal sequence does not change by itself:
 
-- runtime behavior;
 - schema;
 - data;
 - migrations;
@@ -117,4 +133,4 @@ This audit does not change:
 - UI;
 - billing;
 - E2E;
-- legacy fallback itself.
+- legacy owner fallback.

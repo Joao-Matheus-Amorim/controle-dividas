@@ -78,10 +78,12 @@ describe("user module permissions organization scope readiness", () => {
     expect(saveProfilePermissionsBody).toContain(".upsert(rows");
   });
 
-  it("keeps module permission reads scoped by owner and transitional organization filter", () => {
+  it("keeps admin module permission reads scoped by owner and active organization only", () => {
     expect(getFamilyPermissionsBody).toContain('from("user_module_permissions")');
     expect(getFamilyPermissionsBody).toContain(".eq(\"owner_id\", adminprofile.owner_id)");
-    expect(getFamilyPermissionsBody).toContain("organizationorlegacyfilter(organizationid)");
+    expect(getFamilyPermissionsBody).toContain(".eq(\"organization_id\", organizationid)");
+    expect(getFamilyPermissionsBody).not.toContain("organizationorlegacyfilter(organizationid)");
+    expect(getFamilyPermissionsBody).not.toContain("organization_id.is.null");
   });
 
   it("keeps the audit as readiness-only, not a hardening migration", () => {
