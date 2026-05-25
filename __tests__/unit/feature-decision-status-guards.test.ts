@@ -9,6 +9,7 @@ function read(path: string) {
 
 describe("feature decision status", () => {
   const status = read("docs/audits/FEATURE_DECISION_STATUS.md");
+  const readiness = read("docs/audits/USER_FEATURE_PERMISSIONS_ORGANIZATION_SCOPE_READINESS.md");
 
   it("records that feature permissions will be used while hardening remains blocked", () => {
     expect(status).toContain("decision status: use feature permissions");
@@ -31,5 +32,13 @@ describe("feature decision status", () => {
     expect(status).toContain("no rls change");
     expect(status).toContain("no billing change");
     expect(status).toContain("no e2e change");
+  });
+
+  it("records readiness for the next evidence step only", () => {
+    expect(readiness).toContain("ready for read-only preflight and dry-run");
+    expect(readiness).toContain("should not be hardened in this pr");
+    expect(readiness).toContain("fresh null-organization preflight evidence");
+    expect(readiness).toContain("fresh deterministic dry-run evidence");
+    expect(readiness).toContain("no table-specific preflight/dry-run sql exists yet");
   });
 });
