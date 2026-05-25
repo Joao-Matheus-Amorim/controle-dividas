@@ -59,7 +59,7 @@ app/protected/bancos/actions.ts
 
 ### Runtime permission reads
 
-`lib/finance/access-control.ts` no longer accepts legacy null organization rows when reading runtime permission data.
+lib/finance/access-control.ts no longer accepts legacy null organization rows when reading runtime permission data.
 
 The removed surface includes:
 
@@ -70,7 +70,7 @@ The removed surface includes:
 
 ### Admin dashboard reads
 
-`lib/finance/admin-server.ts` no longer accepts legacy null organization rows when reading admin dashboard data.
+lib/finance/admin-server.ts no longer accepts legacy null organization rows when reading admin dashboard data.
 
 The removed surface includes:
 
@@ -85,7 +85,7 @@ These reads now require active organization scope and keep owner checks where st
 
 ### Admin write validation and deletion boundaries
 
-`app/protected/admin/actions.ts` still accepts legacy null organization rows while validating or targeting existing records for:
+app/protected/admin/actions.ts still accepts legacy null organization rows while validating or targeting existing records for:
 
 - unique email checks;
 - unique linked member checks;
