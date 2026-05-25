@@ -32,7 +32,7 @@ The following safety chain exists:
 | `banks` | hardened | `025_banks_organization_scope_hardening.sql` applies `organization_id NOT NULL` after banks-specific readiness, preflight, dry-run and migration-local preflight guard |
 | `user_module_permissions` | hardened | `026_user_module_permissions_organization_scope_hardening.sql` applies `organization_id NOT NULL` after module permissions-specific readiness, preflight, dry-run and migration-local preflight guard |
 | `user_feature_permissions` | hardened | `027_user_feature_permissions_organization_scope_hardening.sql` follows feature-specific readiness, read-only evidence review and migration-local preflight guard |
-| `profiles` | special handling required | `docs/audits/PROFILES_READINESS.md` references profiles read-only checks; hardening still requires target-environment evidence review before any migration |
+| `profiles` | hardened | `028_profiles_organization_scope_hardening.sql` applies `organization_id NOT NULL` after profiles-specific assignment audit, read-only evidence review and migration-local preflight guard |
 
 ## Required pre-migration evidence
 
@@ -71,6 +71,7 @@ Already completed in this sequence:
 6. `banks`.
 7. `user_module_permissions`.
 8. `user_feature_permissions`.
+9. `profiles`.
 
 ## Stop criteria
 
@@ -97,17 +98,16 @@ A rollback plan must include:
 
 A rollback plan that only says "revert the PR" is not enough.
 
-## Profiles blocker
+## Profiles note
 
-`profiles` requires special treatment because bootstrap/admin profile creation has historically allowed a profile to exist before organization onboarding assigns the organization scope.
+`profiles` required special treatment because bootstrap/admin profile creation historically could happen before organization onboarding assigned organization scope.
 
-Before hardening `profiles`, the project must prove one of these paths:
+The hardening sequence now records:
 
-1. bootstrap/admin creation assigns organization scope before profile creation; or
-2. onboarding creates organization scope atomically with the profile; or
-3. `profiles` remains transitional while dependent tables are hardened first.
-
-Until that is resolved, `profiles` must not be hardened together with lower-risk finance tables.
+1. assignment-path audit;
+2. target-environment read-only evidence;
+3. schema-only migration with a local preflight guard;
+4. documented rollback.
 
 ## Out of scope
 

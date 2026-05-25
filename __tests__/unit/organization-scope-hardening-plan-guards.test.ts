@@ -44,11 +44,14 @@ describe("organization scope hardening plan", () => {
     expect(plan).toContain("zero ambiguous rows");
   });
 
-  it("keeps profiles as a special-case blocker until bootstrap organization assignment is resolved", () => {
-    expect(plan).toContain("profiles blocker");
+  it("records profiles special handling and completed hardening path", () => {
+    expect(plan).toContain("profiles note");
     expect(plan).toContain("bootstrap/admin profile creation");
-    expect(plan).toContain("before hardening `profiles`");
-    expect(plan).toContain("profiles` remains transitional");
+    expect(plan).toContain("assignment-path audit");
+    expect(plan).toContain("target-environment read-only evidence");
+    expect(plan).toContain("schema-only migration with a local preflight guard");
+    expect(plan).toContain("`profiles` | hardened");
+    expect(plan).toContain("028_profiles_organization_scope_hardening.sql");
   });
 
   it("requires rollback planning for the future schema migration", () => {
