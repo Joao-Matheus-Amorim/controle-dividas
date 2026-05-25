@@ -2,7 +2,7 @@
 
 Issue: #641
 
-Related issues: #643, #645, #647
+Related issues: #643, #645, #647, #648
 
 ## Purpose
 
@@ -20,9 +20,10 @@ Completed scoped removals:
 #643 runtime permission reads in lib/finance/access-control.ts
 #645 admin dashboard reads in lib/finance/admin-server.ts
 #647 admin write validation and deletion boundaries in app/protected/admin/actions.ts
+#648 bank organization helper reads in lib/organizations/banks.ts
 ```
 
-The remaining legacy fallback surfaces must stay scoped to later PRs. Do not remove fallback broadly across runtime, organization helpers, schema, RLS, UI, billing, or E2E in the same change.
+The remaining legacy fallback surfaces must stay scoped to later PRs. Do not remove fallback broadly across runtime, organization helpers, schema, RLS, UI, or E2E in the same change.
 
 ## Fallback pattern still present
 
@@ -98,11 +99,32 @@ The removed surface includes:
 
 These paths now require active organization scope and keep owner checks where still needed during the transition. New writes continue to write the active organization id.
 
+### Bank organization helper reads
+
+lib/organizations/banks.ts no longer accepts legacy null organization rows when reading bank organization helper data.
+
+The removed surface includes:
+
+- bank dashboard member reads from `family_members`;
+- bank account reads from `banks`.
+
+These reads now require active organization scope and keep owner checks where still needed during the transition. Historical bank account visibility for inactive members remains preserved without accepting null organization rows.
+
 ## Remaining fallback categories
 
 ### Organization feature read paths
 
-The organization helper files still use active organization or legacy null organization filtering while reading hardened financial records and related members. This is transitional runtime compatibility, not schema readiness.
+The remaining organization helper files still use active organization or legacy null organization filtering while reading hardened financial records and related members. This is transitional runtime compatibility, not schema readiness.
+
+Remaining helper surfaces include:
+
+```txt
+lib/organizations/categories.ts
+lib/organizations/expenses.ts
+lib/organizations/payables.ts
+lib/organizations/receivables.ts
+lib/organizations/people.ts
+```
 
 ## Required next step
 
@@ -114,7 +136,7 @@ That later PR must:
 - keep active organization filtering explicit;
 - keep owner checks where still needed during the transition;
 - update tests for the exact path being changed;
-- avoid schema, RLS, billing, UI, and E2E mixing unless a separate issue explicitly scopes them.
+- avoid schema, RLS, UI, and E2E mixing unless a separate issue explicitly scopes them.
 
 ## Stop criteria
 
@@ -123,7 +145,7 @@ Do not remove legacy fallback if any of the following is true:
 - a read path still depends on legacy null organization rows for valid active data;
 - an admin validation path would stop finding an existing valid record without a migration/remediation plan;
 - a test only removes a string assertion without proving the target behavior;
-- the PR mixes fallback removal with unrelated schema, RLS, billing, UI, or E2E work.
+- the PR mixes fallback removal with unrelated schema, RLS, UI, or E2E work.
 
 ## Out of scope for the scoped fallback-removal sequence
 
@@ -134,6 +156,5 @@ The fallback-removal sequence does not change by itself:
 - migrations;
 - RLS policies;
 - UI;
-- billing;
 - E2E;
 - legacy owner fallback.
