@@ -62,10 +62,6 @@ function isConfiguredAdminEmail(email: string | null) {
   return Boolean(adminEmail && email && email.toLowerCase() === adminEmail);
 }
 
-function organizationOrLegacyFilter(organizationId: string) {
-  return `organization_id.eq.${organizationId},organization_id.is.null`;
-}
-
 async function getProfileByAuthUserId(authUserId: string) {
   const supabase = await createClient();
 
@@ -139,7 +135,7 @@ async function getAdminFamilyMembers(adminProfile: DbProfile, organizationId: st
     .from("family_members")
     .select("id, owner_id, name, role, monthly_limit, currency, is_active, created_at")
     .eq("owner_id", adminProfile.owner_id)
-    .or(organizationOrLegacyFilter(organizationId))
+    .eq("organization_id", organizationId)
     .order("created_at", { ascending: true });
 
   if (error) {
@@ -158,7 +154,7 @@ export async function getFamilyProfiles(adminProfileParam?: DbProfile, organizat
     .from("profiles")
     .select("id, owner_id, organization_id, auth_user_id, linked_family_member_id, name, email, role, is_active, created_at, family_members(id, name)")
     .eq("owner_id", adminProfile.owner_id)
-    .or(organizationOrLegacyFilter(organizationId))
+    .eq("organization_id", organizationId)
     .order("role", { ascending: true })
     .order("created_at", { ascending: true });
 
@@ -178,7 +174,7 @@ export async function getFamilyPermissions(adminProfileParam?: DbProfile, organi
     .from("user_module_permissions")
     .select("id, owner_id, organization_id, profile_id, module, can_view, can_create, can_edit, can_delete, scope, allowed_member_ids, granted_by, created_at")
     .eq("owner_id", adminProfile.owner_id)
-    .or(organizationOrLegacyFilter(organizationId));
+    .eq("organization_id", organizationId);
 
   if (error) {
     throw new Error(error.message);
@@ -200,7 +196,7 @@ export async function getFamilyFeaturePermissions(adminProfileParam?: DbProfile,
     .from("user_feature_permissions")
     .select("id, owner_id, organization_id, profile_id, feature_key, is_enabled, granted_by, created_at")
     .eq("owner_id", adminProfile.owner_id)
-    .or(organizationOrLegacyFilter(organizationId));
+    .eq("organization_id", organizationId);
 
   if (error) {
     // The table is created by migration 004. Returning an empty list keeps older local databases usable until migration is applied.
@@ -216,5 +212,10 @@ export async function getFamilyFeaturePermissions(adminProfileParam?: DbProfile,
 
 export async function getPermissionsByProfile(profileId: string) {
   const permissions = await getFamilyPermissions();
+  return permissions.filter((permission) => permission.profile_id === profileId);
+}
+
+export async function getFeaturePermissionsByProfile(profileId: string) {
+  const permissions = await getFamilyFeaturePermissions();
   return permissions.filter((permission) => permission.profile_id === profileId);
 }
