@@ -41,18 +41,19 @@ describe("admin permissions ownership guards", () => {
     expect(source).not.toContain(".or(organizationOrLegacyFilter(organizationId))");
   });
 
-  it("keeps admin user and permission writes tied to the active organization", () => {
+  it("keeps admin user and permission writes tied to the active organization without legacy rows", () => {
     const source = readSource("app/protected/admin/actions.ts");
 
     expect(source).toContain("@/lib/organizations/server");
     expect(source).toContain("requireOrganizationAccess");
-    expect(source).toContain("function organizationOrLegacyFilter");
+    expect(source).not.toContain("function organizationOrLegacyFilter");
+    expect(source).not.toContain("organization_id.eq.${organizationId}");
+    expect(source).not.toContain("organization_id.is.null");
     expect(source).toContain("async function ensureMemberBelongsToOrganization");
     expect(source).toContain("async function ensureProfileBelongsToOrganization");
-    expect(source).toContain("organization_id.eq.${organizationId}");
-    expect(source).toContain("organization_id.is.null");
     expect(source).toContain("organization_id: organization.id");
-    expect(source).toContain(".or(organizationOrLegacyFilter(organization.id))");
+    expect(source).toContain('.eq("organization_id", organization.id)');
+    expect(source).not.toContain(".or(organizationOrLegacyFilter(organization.id))");
   });
 
   it("keeps feature permission writes scoped to the active organization", () => {
