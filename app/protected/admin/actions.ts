@@ -3,7 +3,13 @@
 import { revalidatePath } from "next/cache";
 
 import { ensureAdminProfile, type PermissionFormState, type ProfileFormState } from "@/lib/finance/admin-server";
-import { FINANCE_MODULES, type FinanceModuleKey, type PermissionScope } from "@/lib/finance/permissions";
+import {
+  FEATURE_PERMISSIONS,
+  FINANCE_MODULES,
+  type FeaturePermissionKey,
+  type FinanceModuleKey,
+  type PermissionScope,
+} from "@/lib/finance/permissions";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -26,6 +32,10 @@ function getAllowedMemberIds(formData: FormData, moduleKey: FinanceModuleKey) {
     .getAll(`${moduleKey}.allowed_member_ids`)
     .map((value) => String(value))
     .filter(Boolean);
+}
+
+function isFeatureEnabled(formData: FormData, featureKey: FeaturePermissionKey) {
+  return formData.get(`${featureKey}.is_enabled`) === "on";
 }
 
 function normalizeAccessModel(value: string) {
@@ -556,4 +566,48 @@ export async function saveProfilePermissions(
   revalidatePath("/protected/admin/permissoes");
 
   return { success: "Permissoes salvas com sucesso." };
+}
+
+export async function saveProfileFeaturePermissions(
+  _prevState: PermissionFormState,
+  formData: FormData,
+): Promise<PermissionFormState> {
+  const profileId = String(formData.get("profile_id") ?? "");
+
+  if (!profileId) return { error: "Selecione um perfil para configurar funcionalidades." };
+
+  const supabase = await createClient();
+  const adminProfile = await ensureAdminProfile();
+  const { organization } = await requireOrganizationAccess();
+
+  try {
+    await ensureProfileBelongsToOrganization(adminProfile.owner_id, organization.id, profileId);
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "Nao foi possivel validar este perfil.",
+    };
+  }
+
+  const rows = FEATURE_PERMISSIONS.map((feature) => ({
+    owner_id: adminProfile.owner_id,
+    organization_id: organization.id,
+    profile_id: profileId,
+    feature_key: feature.key,
+    is_enabled: isFeatureEnabled(formData, feature.key),
+    granted_by: adminProfile.id,
+  }));
+
+  const { error } = await supabase
+    .from("user_feature_permissions")
+    .upsert(rows, { onConflict: "profile_id,feature_key" });
+
+  if (error) return { error: error.message };
+
+  revalidatePath("/protected/admin");
+  revalidatePath("/protected/admin/permissoes");
+
+  return { success: "Funcionalidades salvas com sucesso." };
 }

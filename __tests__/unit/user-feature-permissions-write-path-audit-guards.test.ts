@@ -4,11 +4,6 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const auditPath = "docs/audits/USER_FEATURE_PERMISSIONS_WRITE_PATH_AUDIT.md";
-const auditedSourcePaths = [
-  "lib/finance/admin-server.ts",
-  "lib/finance/access-control.ts",
-  "app/protected/admin/actions.ts",
-] as const;
 
 function read(path: string) {
   return readFileSync(join(process.cwd(), path), "utf8");
@@ -18,25 +13,16 @@ function normalize(text: string) {
   return text.toLowerCase().replace(/\s+/g, " ").trim();
 }
 
-function userFeaturePermissionBlocks(source: string) {
-  const blocks: string[] = [];
-  const marker = '.from("user_feature_permissions")';
-  let index = source.indexOf(marker);
-
-  while (index >= 0) {
-    blocks.push(source.slice(index, index + 500));
-    index = source.indexOf(marker, index + marker.length);
-  }
-
-  return blocks;
-}
-
 describe("user feature permissions write path audit", () => {
   const audit = normalize(read(auditPath));
+  const actions = read("app/protected/admin/actions.ts");
+  const page = read("app/protected/admin/permissoes/page.tsx");
+  const section = read("components/admin/permissions/admin-permissions-form-section.tsx");
+  const form = read("components/finance/feature-permissions-form.tsx");
 
-  it("documents the current blocked hardening decision", () => {
-    expect(audit).toContain("readiness: blocked");
-    expect(audit).toContain("no active application write path was found");
+  it("documents the blocked hardening decision after adding the scoped write path", () => {
+    expect(audit).toContain("readiness: blocked pending readiness, preflight, and dry-run");
+    expect(audit).toContain("write path: scoped server action exists");
     expect(audit).toContain("do not add preflight/dry-run sql or a schema hardening migration");
   });
 
@@ -54,16 +40,14 @@ describe("user feature permissions write path audit", () => {
     expect(audit).not.toContain("next safe step: future dedicated hardening pr");
   });
 
-  it("keeps the audited source surface free of user_feature_permissions writes", () => {
-    for (const sourcePath of auditedSourcePaths) {
-      const blocks = userFeaturePermissionBlocks(read(sourcePath));
-
-      for (const block of blocks) {
-        expect(block).not.toMatch(/\.insert\s*\(/);
-        expect(block).not.toMatch(/\.upsert\s*\(/);
-        expect(block).not.toMatch(/\.update\s*\(/);
-        expect(block).not.toMatch(/\.delete\s*\(/);
-      }
-    }
+  it("keeps the feature permission write path scoped and callable", () => {
+    expect(actions).toContain("saveProfileFeaturePermissions");
+    expect(actions).toContain("ensureProfileBelongsToOrganization");
+    expect(actions).toContain("organization_id: organization.id");
+    expect(actions).toContain("owner_id: adminProfile.owner_id");
+    expect(actions).toContain("granted_by: adminProfile.id");
+    expect(page).toContain("featurePermissions");
+    expect(section).toContain("FeaturePermissionsForm");
+    expect(form).toContain("useActionState(saveProfileFeaturePermissions");
   });
 });
