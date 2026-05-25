@@ -22,7 +22,6 @@ const migratedPages = [
 
 const organizationHelpersWithLegacyFallback = [
   "lib/organizations/people.ts",
-  "lib/organizations/categories.ts",
   "lib/organizations/payables.ts",
   "lib/organizations/receivables.ts",
   "lib/organizations/expenses.ts",
@@ -85,6 +84,15 @@ describe("organization-aware query guards", () => {
     const source = readSource("lib/organizations/banks.ts");
 
     expect(source).toContain('.eq("organization_id", organization.id)');
+    expect(source).not.toContain("organization_id.eq.${organizationId}");
+    expect(source).not.toContain("organization_id.is.null");
+  });
+
+  it("keeps category helper reads on active organization equality after scoped fallback removal", () => {
+    const source = readSource("lib/organizations/categories.ts");
+
+    expect(source).toContain('.eq("organization_id", organization.id)');
+    expect(source).not.toContain("organizationOrLegacyFilter");
     expect(source).not.toContain("organization_id.eq.${organizationId}");
     expect(source).not.toContain("organization_id.is.null");
   });
