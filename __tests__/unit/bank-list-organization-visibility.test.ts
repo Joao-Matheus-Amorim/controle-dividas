@@ -16,6 +16,7 @@ const mockState = vi.hoisted(() => ({
     {
       id: "inactive-member",
       owner_id: "owner-1",
+      organization_id: "org-1",
       name: "Membro historico",
       role: "adult",
       monthly_limit: 0,
@@ -28,6 +29,7 @@ const mockState = vi.hoisted(() => ({
     {
       id: "bank-1",
       owner_id: "owner-1",
+      organization_id: "org-1",
       family_member_id: "inactive-member",
       bank_name: "Banco Historico",
       account_type: "corrente",
@@ -113,7 +115,7 @@ describe("organization bank listing", () => {
     expect(result.totalAccounts).toBe(1);
   });
 
-  it("does not filter organization bank members by active status", async () => {
+  it("keeps bank helper member reads scoped to active organization without active status filtering", async () => {
     const { getOrganizationBanksDashboardData } = await import("@/lib/organizations/banks");
 
     await getOrganizationBanksDashboardData();
@@ -123,10 +125,26 @@ describe("organization bank listing", () => {
     expect(memberQueries).not.toHaveLength(0);
     expect(memberQueries.at(-1)).toEqual({
       table: "family_members",
-      eq: { owner_id: "owner-1" },
+      eq: { owner_id: "owner-1", organization_id: "org-1" },
       in: { id: ["inactive-member"] },
-      or: "organization_id.eq.org-1,organization_id.is.null",
+      or: undefined,
     });
     expect(memberQueries.at(-1)?.eq).not.toHaveProperty("is_active");
+  });
+
+  it("keeps bank account reads scoped to active organization without legacy fallback", async () => {
+    const { getOrganizationBanksDashboardData } = await import("@/lib/organizations/banks");
+
+    await getOrganizationBanksDashboardData();
+
+    const bankQueries = mockState.queryRecords.filter((record) => record.table === "banks");
+
+    expect(bankQueries).not.toHaveLength(0);
+    expect(bankQueries.at(-1)).toEqual({
+      table: "banks",
+      eq: { owner_id: "owner-1", organization_id: "org-1" },
+      in: { family_member_id: ["inactive-member"] },
+      or: undefined,
+    });
   });
 });
