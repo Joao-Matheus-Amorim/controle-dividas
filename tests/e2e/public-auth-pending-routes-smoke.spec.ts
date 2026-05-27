@@ -28,7 +28,7 @@ test.describe("pending public and auth routes smoke", () => {
     await expect(
       page.getByRole("heading", { name: "Sorry, something went wrong." }),
     ).toBeVisible();
-    await expect(page.getByText("Code error: smoke-test-error")).toBeVisible();
+    await expect(page.getByText("Code error: smoke-test-error").first()).toBeVisible();
   });
 
   test("redirects auth confirm without callback params to auth error", async ({ page }) => {
