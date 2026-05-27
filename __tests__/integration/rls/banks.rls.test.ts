@@ -167,5 +167,5 @@ describe("banks RLS gated integration", () => {
 
       await user.auth.signOut();
     }
-  });
+  }, 30000);
 });

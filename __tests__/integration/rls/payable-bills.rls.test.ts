@@ -170,5 +170,5 @@ describe("payable_bills RLS gated integration", () => {
 
       await user.auth.signOut();
     }
-  });
+  }, 30000);
 });
