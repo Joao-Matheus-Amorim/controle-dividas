@@ -25,6 +25,7 @@ Completed scoped removals:
 #652 payable organization helper reads in lib/organizations/payables.ts
 #654 expense organization helper reads in lib/organizations/expenses.ts
 #641 receivable organization helper reads in lib/organizations/receivables.ts
+#641 people organization helper reads in lib/organizations/people.ts
 ```
 
 The remaining legacy fallback surfaces must stay scoped to later PRs. Do not remove fallback broadly across runtime, organization helpers, schema, RLS, UI, or E2E in the same change.
@@ -157,16 +158,31 @@ The removed surface includes:
 
 These reads now require active organization scope and keep owner checks where still needed during the transition. Existing module permission/member filtering remains preserved without accepting null organization rows.
 
+### People organization helper reads
+
+lib/organizations/people.ts no longer accepts legacy null organization rows when reading people organization helper data.
+
+The removed surface includes:
+
+- people reads from `family_members`.
+
+These reads now require active organization scope and keep owner checks where still needed during the transition.
+
 ## Remaining fallback categories
 
-### Organization feature read paths
+### Server action read and write-validation paths
 
-The remaining organization helper files still use active organization or legacy null organization filtering while reading hardened financial records and related members. This is transitional runtime compatibility, not schema readiness.
+The organization helper files no longer use active organization or legacy null organization filtering. The remaining fallback surfaces are server action read and write-validation paths that still support transitional legacy null organization rows. This is transitional runtime compatibility, not schema readiness.
 
-Remaining helper surfaces include:
+Remaining action surfaces include:
 
 ```txt
-lib/organizations/people.ts
+app/protected/configuracoes/actions.ts
+app/protected/pessoas/actions.ts
+app/protected/gastos/actions.ts
+app/protected/contas-a-pagar/actions.ts
+app/protected/contas-a-receber/actions.ts
+app/protected/bancos/actions.ts
 ```
 
 ## Required next step

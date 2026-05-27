@@ -81,6 +81,16 @@ describe("legacy organization fallback removal readiness", () => {
     expect(source).not.toContain("organization_id.is.null");
   });
 
+  it("keeps people organization helper reads scoped to active organization equality", () => {
+    const source = readSource("lib/organizations/people.ts");
+
+    expect(source).toContain("requireorganizationaccess");
+    expect(source).toContain('.eq("owner_id", profile.owner_id)');
+    expect(source).toContain('.eq("organization_id", organization.id)');
+    expect(source).not.toContain("organizationorlegacyfilter");
+    expect(source).not.toContain("organization_id.is.null");
+  });
+
   it("records completed scoped fallback removals", () => {
     const audit = readSource("docs/audits/LEGACY_ORGANIZATION_FALLBACK_REMOVAL_READINESS.md");
 
@@ -103,6 +113,9 @@ describe("legacy organization fallback removal readiness", () => {
     expect(audit).toContain("lib/organizations/receivables.ts no longer accepts legacy null organization rows");
     expect(audit).toContain("receivable income reads from `receivable_incomes`");
     expect(audit).toContain("receivable dashboard member reads from `family_members`");
+    expect(audit).toContain("people organization helper reads in lib/organizations/people.ts");
+    expect(audit).toContain("lib/organizations/people.ts no longer accepts legacy null organization rows");
+    expect(audit).toContain("people reads from `family_members`");
     expect(audit).not.toContain("app/protected/admin/actions.ts still accepts legacy null organization rows");
   });
 
@@ -112,11 +125,14 @@ describe("legacy organization fallback removal readiness", () => {
 
     expect(audit).toContain("must continue one surface at a time");
     expect(audit).toContain("organization_id.eq.<active organization id>,organization_id.is.null");
-    expect(remainingSection).toContain("the remaining organization helper files still use active organization or legacy null organization filtering");
+    expect(remainingSection).toContain("the organization helper files no longer use active organization or legacy null organization filtering");
+    expect(remainingSection).toContain("the remaining fallback surfaces are server action read and write-validation paths");
     expect(remainingSection).not.toContain("lib/organizations/expenses.ts");
     expect(remainingSection).not.toContain("lib/organizations/receivables.ts");
-    expect(remainingSection).toContain("lib/organizations/people.ts");
+    expect(remainingSection).not.toContain("lib/organizations/people.ts");
     expect(remainingSection).not.toContain("lib/organizations/payables.ts");
+    expect(remainingSection).toContain("app/protected/configuracoes/actions.ts");
+    expect(remainingSection).toContain("app/protected/pessoas/actions.ts");
     expect(audit).toContain("avoid schema, rls, ui, and e2e mixing");
   });
 });
