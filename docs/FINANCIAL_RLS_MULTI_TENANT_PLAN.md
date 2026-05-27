@@ -16,6 +16,11 @@ O objetivo e reduzir risco antes de qualquer migration futura, deixando claro:
 - rollback;
 - matriz de testes necessaria.
 
+Readiness atual do Gate 4:
+
+- `docs/audits/CURRENT_RLS_POLICIES_INVENTORY.md` inventaria as policies existentes;
+- `docs/audits/FINANCIAL_RLS_GATE4_READINESS.md` registra pre-condicoes, helpers, alvo inicial recomendado e criterio para o primeiro PR de migration.
+
 ## 2. Estado atual confirmado
 
 ### 2.1 Migration 006
