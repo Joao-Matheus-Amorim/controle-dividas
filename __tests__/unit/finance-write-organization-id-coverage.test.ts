@@ -54,14 +54,14 @@ const writeExpectations: FunctionExpectation[] = [
     table: "expense_categories",
     operation: "update",
     requiresOrganizationId: true,
-    requiresOrganizationFilter: true,
+    requiresActiveOrganizationFilter: true,
   },
   {
     file: "app/protected/configuracoes/actions.ts",
     functionName: "deleteExpenseCategory",
     table: "expense_categories",
     operation: "delete",
-    requiresOrganizationFilter: true,
+    requiresActiveOrganizationFilter: true,
   },
   {
     file: "app/protected/configuracoes/actions.ts",
@@ -69,7 +69,7 @@ const writeExpectations: FunctionExpectation[] = [
     table: "family_members",
     operation: "update",
     requiresOrganizationId: true,
-    requiresOrganizationFilter: true,
+    requiresActiveOrganizationFilter: true,
   },
   {
     file: "app/protected/gastos/actions.ts",

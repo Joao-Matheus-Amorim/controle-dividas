@@ -27,10 +27,6 @@ async function getCurrentUserId() {
   return String(data.claims.sub);
 }
 
-function organizationOrLegacyFilter(organizationId: string) {
-  return `organization_id.eq.${organizationId},organization_id.is.null`;
-}
-
 function parseExpenseCategoryForm(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
@@ -108,7 +104,7 @@ export async function updateExpenseCategory(
     .select("id, is_default")
     .eq("id", id)
     .eq("owner_id", ownerId)
-    .or(organizationOrLegacyFilter(organization.id))
+    .eq("organization_id", organization.id)
     .maybeSingle();
 
   if (fetchError) {
@@ -132,7 +128,7 @@ export async function updateExpenseCategory(
     })
     .eq("id", id)
     .eq("owner_id", ownerId)
-    .or(organizationOrLegacyFilter(organization.id));
+    .eq("organization_id", organization.id);
 
   if (error) {
     return { error: error.message };
@@ -164,7 +160,7 @@ export async function deleteExpenseCategory(
     .eq("id", id)
     .eq("owner_id", ownerId)
     .eq("is_default", false)
-    .or(organizationOrLegacyFilter(organization.id));
+    .eq("organization_id", organization.id);
 
   if (error) {
     return { error: error.message };
@@ -214,7 +210,7 @@ export async function updateFamilyMemberLimit(
     })
     .eq("id", id)
     .eq("owner_id", ownerId)
-    .or(organizationOrLegacyFilter(organization.id));
+    .eq("organization_id", organization.id);
 
   if (error) {
     return { error: error.message };
