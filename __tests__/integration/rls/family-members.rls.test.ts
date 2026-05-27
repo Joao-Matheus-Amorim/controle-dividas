@@ -12,7 +12,7 @@ describe("family_members RLS gated integration", () => {
     expect(runRlsTests ? config.missingVariables : []).toEqual([]);
   });
 
-  rlsIt("hides members from another organization when owner_id is the same", async () => {
+  rlsIt("hides members from organizations without active membership when owner_id is the same", async () => {
     const fixture = createExpenseCategoryFixtureSet();
     const admin = createClient(config.supabaseUrl!, config.serviceRoleKey!, { auth: { autoRefreshToken: false, persistSession: false } });
     const user = createClient(config.supabaseUrl!, config.anonKey!, { auth: { autoRefreshToken: false, persistSession: false } });
@@ -24,8 +24,8 @@ describe("family_members RLS gated integration", () => {
     const orgB = fixture.organizations.organizationB;
     const memberAId = crypto.randomUUID();
     const memberBId = crypto.randomUUID();
-    const legacyMemberId = crypto.randomUUID();
-    const memberIds = [memberAId, memberBId, legacyMemberId];
+    const secondMemberAId = crypto.randomUUID();
+    const memberIds = [memberAId, memberBId, secondMemberAId];
     const orgIds = [orgA.id, orgB.id];
 
     try {
@@ -41,14 +41,14 @@ describe("family_members RLS gated integration", () => {
       const memberResult = await admin.from("family_members").insert([
         { id: memberAId, owner_id: ownerId, organization_id: orgA.id, name: `${fixture.prefix} Member A`, role: "adult", monthly_limit: 100, currency: "EUR", is_active: true },
         { id: memberBId, owner_id: ownerId, organization_id: orgB.id, name: `${fixture.prefix} Member B`, role: "adult", monthly_limit: 100, currency: "EUR", is_active: true },
-        { id: legacyMemberId, owner_id: ownerId, organization_id: null, name: `${fixture.prefix} Legacy Member`, role: "adult", monthly_limit: 100, currency: "EUR", is_active: true },
+        { id: secondMemberAId, owner_id: ownerId, organization_id: orgA.id, name: `${fixture.prefix} Member A2`, role: "adult", monthly_limit: 100, currency: "EUR", is_active: true },
       ]);
       if (memberResult.error) throw memberResult.error;
 
       const result = await user.from("family_members").select("id").in("id", memberIds);
       if (result.error) throw result.error;
 
-      expect(result.data?.map((row) => row.id).sort()).toEqual([memberAId, legacyMemberId].sort());
+      expect(result.data?.map((row) => row.id).sort()).toEqual([memberAId, secondMemberAId].sort());
     } finally {
       await admin.from("family_members").delete().in("id", memberIds);
       await admin.from("organization_memberships").delete().in("organization_id", orgIds);

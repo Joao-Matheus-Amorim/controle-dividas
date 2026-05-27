@@ -66,13 +66,13 @@ const rlsCoverage: RlsTableExpectation[] = [
   },
   {
     table: "family_members",
-    rlsFiles: ["010_family_members_organization_rls.sql"],
-    status: "transitional",
+    rlsFiles: ["031_family_members_rls_remove_legacy_fallback.sql"],
+    status: "covered",
     policies: [
-      { file: "010_family_members_organization_rls.sql", name: "family_members_select_organization_or_legacy", operation: "select" },
-      { file: "010_family_members_organization_rls.sql", name: "family_members_insert_owner_organization_or_legacy", operation: "insert" },
-      { file: "010_family_members_organization_rls.sql", name: "family_members_update_owner_organization_or_legacy", operation: "update" },
-      { file: "010_family_members_organization_rls.sql", name: "family_members_delete_owner_organization_or_legacy", operation: "delete" },
+      { file: "031_family_members_rls_remove_legacy_fallback.sql", name: "family_members_select_organization", operation: "select" },
+      { file: "031_family_members_rls_remove_legacy_fallback.sql", name: "family_members_insert_owner_organization", operation: "insert" },
+      { file: "031_family_members_rls_remove_legacy_fallback.sql", name: "family_members_update_owner_organization", operation: "update" },
+      { file: "031_family_members_rls_remove_legacy_fallback.sql", name: "family_members_delete_owner_organization", operation: "delete" },
     ],
   },
   {
@@ -300,7 +300,6 @@ describe("RLS coverage inventory", () => {
       [
         "banks",
         "expenses",
-        "family_members",
         "payable_bills",
         "profiles",
         "receivable_incomes",

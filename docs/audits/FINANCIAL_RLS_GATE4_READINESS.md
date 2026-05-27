@@ -98,6 +98,7 @@ Racional:
 Status do primeiro corte:
 
 - migration `030_expense_categories_rls_remove_legacy_fallback.sql` remove o fallback `organization_id IS NULL` de `expense_categories`;
+- migration `031_family_members_rls_remove_legacy_fallback.sql` remove o fallback `organization_id IS NULL` de `family_members`;
 - as policies passam a depender de `public.is_organization_member(organization_id)`;
 - update/delete continuam owner-scoped durante a transicao.
 
