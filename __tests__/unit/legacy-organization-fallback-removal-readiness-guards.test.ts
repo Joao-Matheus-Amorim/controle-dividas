@@ -91,6 +91,23 @@ describe("legacy organization fallback removal readiness", () => {
     expect(source).not.toContain("organization_id.is.null");
   });
 
+  it("keeps people page and action paths scoped to active organization equality", () => {
+    const pageSource = readSource("app/protected/pessoas/page.tsx");
+    const actionSource = readSource("app/protected/pessoas/actions.ts");
+
+    expect(pageSource).toContain("requireorganizationaccess");
+    expect(pageSource).toContain('.eq("owner_id", ownerid)');
+    expect(pageSource).toContain('.eq("organization_id", organizationid)');
+    expect(pageSource).not.toContain("organizationorlegacyfilter");
+    expect(pageSource).not.toContain("organization_id.is.null");
+
+    expect(actionSource).toContain("requireorganizationaccess");
+    expect(actionSource).toContain('.eq("owner_id", profile.owner_id)');
+    expect(actionSource).toContain('.eq("organization_id", organization.id)');
+    expect(actionSource).not.toContain("organizationorlegacyfilter");
+    expect(actionSource).not.toContain("organization_id.is.null");
+  });
+
   it("records completed scoped fallback removals", () => {
     const audit = readSource("docs/audits/LEGACY_ORGANIZATION_FALLBACK_REMOVAL_READINESS.md");
 
@@ -116,6 +133,11 @@ describe("legacy organization fallback removal readiness", () => {
     expect(audit).toContain("people organization helper reads in lib/organizations/people.ts");
     expect(audit).toContain("lib/organizations/people.ts no longer accepts legacy null organization rows");
     expect(audit).toContain("people reads from `family_members`");
+    expect(audit).toContain("people page and action paths in app/protected/pessoas");
+    expect(audit).toContain("app/protected/pessoas no longer accepts legacy null organization rows");
+    expect(audit).toContain("linked profile reads from `profiles`");
+    expect(audit).toContain("family member update validation and writes");
+    expect(audit).toContain("family member status validation and writes");
     expect(audit).not.toContain("app/protected/admin/actions.ts still accepts legacy null organization rows");
   });
 
@@ -132,7 +154,7 @@ describe("legacy organization fallback removal readiness", () => {
     expect(remainingSection).not.toContain("lib/organizations/people.ts");
     expect(remainingSection).not.toContain("lib/organizations/payables.ts");
     expect(remainingSection).toContain("app/protected/configuracoes/actions.ts");
-    expect(remainingSection).toContain("app/protected/pessoas/actions.ts");
+    expect(remainingSection).not.toContain("app/protected/pessoas/actions.ts");
     expect(audit).toContain("avoid schema, rls, ui, and e2e mixing");
   });
 });

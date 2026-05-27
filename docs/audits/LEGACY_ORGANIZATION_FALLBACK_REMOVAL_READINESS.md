@@ -26,6 +26,7 @@ Completed scoped removals:
 #654 expense organization helper reads in lib/organizations/expenses.ts
 #641 receivable organization helper reads in lib/organizations/receivables.ts
 #641 people organization helper reads in lib/organizations/people.ts
+#641 people page and action paths in app/protected/pessoas
 ```
 
 The remaining legacy fallback surfaces must stay scoped to later PRs. Do not remove fallback broadly across runtime, organization helpers, schema, RLS, UI, or E2E in the same change.
@@ -168,6 +169,18 @@ The removed surface includes:
 
 These reads now require active organization scope and keep owner checks where still needed during the transition.
 
+### People page and action paths
+
+app/protected/pessoas no longer accepts legacy null organization rows when reading linked access profiles or mutating family members.
+
+The removed surface includes:
+
+- linked profile reads from `profiles`;
+- family member update validation and writes;
+- family member status validation and writes.
+
+These paths now require active organization scope and keep owner checks where still needed during the transition. New and updated writes continue to write the active organization id.
+
 ## Remaining fallback categories
 
 ### Server action read and write-validation paths
@@ -178,7 +191,6 @@ Remaining action surfaces include:
 
 ```txt
 app/protected/configuracoes/actions.ts
-app/protected/pessoas/actions.ts
 app/protected/gastos/actions.ts
 app/protected/contas-a-pagar/actions.ts
 app/protected/contas-a-receber/actions.ts

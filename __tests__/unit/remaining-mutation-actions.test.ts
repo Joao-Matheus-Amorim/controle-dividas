@@ -65,6 +65,11 @@ function makeQuery(table: string) {
     },
     eq(key: string, value: unknown) {
       filters[key] = value;
+
+      if (updatePayload && key === "organization_id") {
+        return finishMutation();
+      }
+
       return query;
     },
     or(expression: string) {

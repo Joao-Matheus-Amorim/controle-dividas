@@ -31,7 +31,7 @@ const writeExpectations: FunctionExpectation[] = [
     table: "family_members",
     operation: "update",
     requiresOrganizationId: true,
-    requiresOrganizationFilter: true,
+    requiresActiveOrganizationFilter: true,
   },
   {
     file: "app/protected/pessoas/actions.ts",
@@ -39,7 +39,7 @@ const writeExpectations: FunctionExpectation[] = [
     table: "family_members",
     operation: "update",
     requiresOrganizationId: true,
-    requiresOrganizationFilter: true,
+    requiresActiveOrganizationFilter: true,
   },
   {
     file: "app/protected/configuracoes/actions.ts",
