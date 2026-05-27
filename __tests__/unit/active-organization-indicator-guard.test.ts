@@ -17,7 +17,8 @@ describe("active organization indicator guard", () => {
     expect(source).toContain("ActiveOrganizationIndicator");
     expect(source).toContain("@/lib/organizations/server");
     expect(source).toContain("getCurrentOrganization");
-    expect(source).toContain("currentOrganization");
+    expect(source).toContain("getUserOrganizations");
+    expect(source).toContain("organizationOptions");
     expect(source).toContain("organization={currentOrganization}");
   });
 
@@ -31,7 +32,7 @@ describe("active organization indicator guard", () => {
     expect(source).toContain("hidden bg-white/5 md:block");
   });
 
-  it("keeps the protected layout visual hierarchy SaaS-ready", () => {
+  it("keeps the layout hierarchy SaaS-ready", () => {
     const source = readSource("app/protected/layout.tsx");
 
     expect(source).toContain("FF");
@@ -41,18 +42,20 @@ describe("active organization indicator guard", () => {
     expect(source).toContain("border-white/10");
   });
 
-  it("keeps the indicator as display-only without organization switching behavior", () => {
+  it("keeps active organization indicator with explicit organization switch control", () => {
     const source = readSource("components/app/active-organization-indicator.tsx");
 
     expect(source).toContain("type ActiveOrganizationIndicatorProps");
     expect(source).toContain("organization:");
-    expect(source).toContain("Organização");
-    expect(source).toContain("não selecionada");
+    expect(source).toContain("organizationOptions:");
+    expect(source).toContain("Organizacao");
+    expect(source).toContain("Nao selecionada");
     expect(source).toContain("organization.name");
     expect(source).toContain("organization.slug");
-    expect(source).not.toContain("onClick");
-    expect(source).not.toContain("router.push");
+    expect(source).toContain("setActiveOrganization");
+    expect(source).toContain("action={setActiveOrganization}");
+    expect(source).toContain("<form");
+    expect(source).toContain("organization_id");
     expect(source).not.toContain("useRouter");
-    expect(source).not.toContain("select");
   });
 });

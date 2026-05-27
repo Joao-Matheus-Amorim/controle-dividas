@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 
 import { createClient } from "@/lib/supabase/server";
 import type { Organization, OrganizationContext, OrganizationMembership } from "./types";
@@ -7,6 +8,8 @@ type CurrentUser = {
   id: string;
   email: string | null;
 };
+
+export const ACTIVE_ORGANIZATION_COOKIE_NAME = "ff_active_organization_id";
 
 type OrganizationRow = Organization & {
   stripe_customer_id?: string | null;
@@ -40,7 +43,7 @@ function normalizeOrganization(row: OrganizationRow): Organization {
   };
 }
 
-function getDefaultOrganizationContext(contexts: OrganizationContext[]) {
+export function getDefaultOrganizationContext(contexts: OrganizationContext[]) {
   if (contexts.length === 0) {
     return null;
   }
@@ -52,6 +55,50 @@ function getDefaultOrganizationContext(contexts: OrganizationContext[]) {
   }
 
   return contexts[0] ?? null;
+}
+
+async function getPreferredOrganizationId() {
+  const cookieStore = await cookies();
+  const value = cookieStore.get(ACTIVE_ORGANIZATION_COOKIE_NAME)?.value ?? null;
+
+  return value && value.trim().length > 0 ? value : null;
+}
+
+async function getActiveOrganizationContext(contexts: OrganizationContext[]) {
+  const preferredOrganizationId = await getPreferredOrganizationId();
+  if (!preferredOrganizationId) {
+    return getDefaultOrganizationContext(contexts);
+  }
+
+  const preferredContext = contexts.find(
+    (context) => context.organization.id === preferredOrganizationId,
+  );
+
+  return preferredContext ?? getDefaultOrganizationContext(contexts);
+}
+
+function getOrganizationContextBySlug(
+  contexts: OrganizationContext[],
+  orgSlug: string,
+) {
+  return contexts.find((context) => context.organization.slug === orgSlug) ?? null;
+}
+
+export async function getCurrentOrganizationContext(
+  organizationIdOrSlug?: string,
+): Promise<OrganizationContext | null> {
+  const contexts = await getUserOrganizations();
+
+  if (!organizationIdOrSlug) {
+    return getActiveOrganizationContext(contexts);
+  }
+
+  const bySlug = getOrganizationContextBySlug(contexts, organizationIdOrSlug);
+  if (bySlug) {
+    return bySlug;
+  }
+
+  return contexts.find((context) => context.organization.id === organizationIdOrSlug) ?? null;
 }
 
 export async function getUserOrganizations(): Promise<OrganizationContext[]> {
@@ -108,13 +155,7 @@ export async function getUserOrganizations(): Promise<OrganizationContext[]> {
 }
 
 export async function getCurrentOrganization(orgSlug?: string) {
-  const contexts = await getUserOrganizations();
-
-  if (orgSlug) {
-    return contexts.find((context) => context.organization.slug === orgSlug)?.organization ?? null;
-  }
-
-  return getDefaultOrganizationContext(contexts)?.organization ?? null;
+  return (await getCurrentOrganizationContext(orgSlug))?.organization ?? null;
 }
 
 export async function getCurrentMembership(organizationId?: string) {
@@ -124,14 +165,11 @@ export async function getCurrentMembership(organizationId?: string) {
     return contexts.find((context) => context.membership.organization_id === organizationId)?.membership ?? null;
   }
 
-  return getDefaultOrganizationContext(contexts)?.membership ?? null;
+  return (await getActiveOrganizationContext(contexts))?.membership ?? null;
 }
 
 export async function requireOrganizationAccess(orgSlug?: string) {
-  const contexts = await getUserOrganizations();
-  const context = orgSlug
-    ? contexts.find((item) => item.organization.slug === orgSlug)
-    : getDefaultOrganizationContext(contexts);
+  const context = await getCurrentOrganizationContext(orgSlug);
 
   if (!context) {
     throw new Error("Voce nao tem acesso a esta organizacao.");
