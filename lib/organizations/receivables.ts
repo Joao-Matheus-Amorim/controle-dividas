@@ -20,10 +20,6 @@ function normalizeReceivableIncome(income: RawReceivableIncome): DbReceivableInc
   };
 }
 
-function organizationOrLegacyFilter(organizationId: string) {
-  return `organization_id.eq.${organizationId},organization_id.is.null`;
-}
-
 export async function getOrganizationReceivableIncomes() {
   const supabase = await createClient();
   const profile = await getCurrentProfile();
@@ -40,7 +36,7 @@ export async function getOrganizationReceivableIncomes() {
       "id, owner_id, receiver_member_id, source, income_type, amount, expected_date, status, receiving_bank, notes, created_at, family_members(id, name)",
     )
     .eq("owner_id", profile.owner_id)
-    .or(organizationOrLegacyFilter(organization.id))
+    .eq("organization_id", organization.id)
     .in("receiver_member_id", accessibleMemberIds)
     .order("expected_date", { ascending: true })
     .order("created_at", { ascending: false });
@@ -63,7 +59,7 @@ export async function getOrganizationReceivableIncomesDashboardData() {
     .select("id, owner_id, name, role, monthly_limit, currency, is_active, created_at")
     .eq("owner_id", profile.owner_id)
     .eq("is_active", true)
-    .or(organizationOrLegacyFilter(organization.id))
+    .eq("organization_id", organization.id)
     .order("created_at", { ascending: true });
 
   if (membersError) {

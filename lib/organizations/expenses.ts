@@ -22,10 +22,6 @@ function normalizeExpense(expense: RawExpense): DbExpense {
   };
 }
 
-function organizationOrLegacyFilter(organizationId: string) {
-  return `organization_id.eq.${organizationId},organization_id.is.null`;
-}
-
 async function getOrganizationAccessibleMembers() {
   const supabase = await createClient();
   const profile = await getCurrentProfile();
@@ -40,7 +36,7 @@ async function getOrganizationAccessibleMembers() {
     .from("family_members")
     .select("id, owner_id, name, role, monthly_limit, currency, is_active, created_at")
     .eq("owner_id", profile.owner_id)
-    .or(organizationOrLegacyFilter(organization.id))
+    .eq("organization_id", organization.id)
     .in("id", accessibleMemberIds)
     .order("created_at", { ascending: true });
 
@@ -60,7 +56,7 @@ export async function getOrganizationExpenseCategories() {
     .from("expense_categories")
     .select("id, owner_id, name, description, is_default, created_at")
     .eq("owner_id", profile.owner_id)
-    .or(organizationOrLegacyFilter(organization.id))
+    .eq("organization_id", organization.id)
     .order("name", { ascending: true });
 
   if (error) {
@@ -87,7 +83,7 @@ export async function getOrganizationExpenses() {
       "id, owner_id, family_member_id, category_id, expense_date, description, purchase_location, amount, payment_method, bank_or_card, notes, created_at, family_members(id, name, monthly_limit), expense_categories(id, name)",
     )
     .eq("owner_id", profile.owner_id)
-    .or(organizationOrLegacyFilter(organization.id))
+    .eq("organization_id", organization.id)
     .in("family_member_id", scopedMemberIds)
     .order("expense_date", { ascending: false })
     .order("created_at", { ascending: false });

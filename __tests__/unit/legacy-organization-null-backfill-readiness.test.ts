@@ -26,9 +26,7 @@ function compact(sql: string) {
 function stripSqlComments(sql: string) {
   return sql
     .replace(/\/\*[\s\S]*?\*\//g, "")
-    .split("\n")
-    .map((line) => line.replace(/--.*$/g, ""))
-    .join("\n");
+    .replace(/--[^\r\n]*/g, "");
 }
 
 describe("legacy organization_id null backfill readiness", () => {
