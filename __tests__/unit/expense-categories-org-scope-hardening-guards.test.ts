@@ -14,9 +14,7 @@ function read(path: string) {
 function stripSqlComments(sql: string) {
   return sql
     .replace(/\/\*[\s\S]*?\*\//g, "")
-    .split("\n")
-    .map((line) => line.replace(/--.*$/g, ""))
-    .join("\n");
+    .replace(/--[^\r\n]*/g, "");
 }
 
 function compact(value: string) {

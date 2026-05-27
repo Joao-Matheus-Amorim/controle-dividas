@@ -24,6 +24,7 @@ Completed scoped removals:
 #650 category organization helper reads in lib/organizations/categories.ts
 #652 payable organization helper reads in lib/organizations/payables.ts
 #654 expense organization helper reads in lib/organizations/expenses.ts
+#641 receivable organization helper reads in lib/organizations/receivables.ts
 ```
 
 The remaining legacy fallback surfaces must stay scoped to later PRs. Do not remove fallback broadly across runtime, organization helpers, schema, RLS, UI, or E2E in the same change.
@@ -144,6 +145,18 @@ The removed surface includes:
 - expense reads from `expenses`.
 
 These reads now require active organization scope and keep owner checks where still needed during the transition. Existing module permission/member filtering remains preserved without accepting null organization rows.
+
+### Receivable organization helper reads
+
+lib/organizations/receivables.ts no longer accepts legacy null organization rows when reading receivable organization helper data.
+
+The removed surface includes:
+
+- receivable income reads from `receivable_incomes`;
+- receivable dashboard member reads from `family_members`.
+
+These reads now require active organization scope and keep owner checks where still needed during the transition. Existing module permission/member filtering remains preserved without accepting null organization rows.
+
 ## Remaining fallback categories
 
 ### Organization feature read paths
@@ -153,7 +166,6 @@ The remaining organization helper files still use active organization or legacy 
 Remaining helper surfaces include:
 
 ```txt
-lib/organizations/receivables.ts
 lib/organizations/people.ts
 ```
 
