@@ -30,6 +30,7 @@ O FamilyFinance nasceu como uma aplicacao financeira familiar privada. Essa fase
 - relatorios;
 - configuracoes;
 - admin familiar;
+- ux de organizacao ativa com seletor (org cookie + troca explícita);
 - permissoes por modulo e acao;
 - escopos de dados;
 - PWA/mobile-first;
@@ -394,7 +395,7 @@ Riscos pendentes:
 - `organization_id` ainda e nullable;
 - `owner_id` segue ativo por compatibilidade;
 - rotas ainda nao usam `orgSlug`;
-- usuario com multiplas organizations ainda precisa de UX explicita para selecao de organization;
+- usuario com multiplas organizations agora pode selecionar a organização ativa diretamente via seletor no layout protegido;
 - billing ainda nao esta implementado;
 - admin e permissions ainda precisam de hardening multi-org pleno;
 - backfill precisa ser validado em todos os ambientes antes de qualquer `NOT NULL`;
@@ -433,8 +434,17 @@ Antes de rotas por `orgSlug`, precisamos decidir:
 - comportamento para usuario em uma organization;
 - comportamento para usuario em multiplas organizations;
 - fallback deterministico;
-- tela/selector de organization;
-- autorizacao visual e server-side alinhadas.
+Concluído:
+
+- comportamento de organização ativa determinado no topo protegido;
+- fallback determinístico para dono no caso de ausência de seleção;
+- seletor explícito para troca de organização em contextos com múltiplas memberships;
+- autorização server-side alinhada para organização ativa e validação por acesso.
+
+Próximos passos antes de rotas:
+
+- validar UX em fluxo real por usuário com >1 organização;
+- padronizar cópias para o usuário final.
 
 ### Gate 6 - Rotas por `orgSlug`
 
