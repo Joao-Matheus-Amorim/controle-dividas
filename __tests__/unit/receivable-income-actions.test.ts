@@ -52,6 +52,15 @@ function makeQuery(table: string) {
     eq(key: string, value: unknown) {
       filters[key] = value;
 
+      if (updatePayload && key === "organization_id") {
+        mockState.updatedPayloads.push({ ...updatePayload, filters: { ...filters } });
+        return Promise.resolve({ error: mockState.updateError });
+      }
+
+      if (deleteMode && key === "organization_id") {
+        return Promise.resolve({ error: mockState.deleteError });
+      }
+
       if (deleteMode && key === "id") {
         mockState.deletedIds.push(String(value));
       }

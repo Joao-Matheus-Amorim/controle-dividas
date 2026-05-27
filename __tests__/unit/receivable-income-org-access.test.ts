@@ -3,7 +3,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 type QueryRecord = {
   table: string;
   eq: Record<string, unknown>;
-  or?: string;
 };
 
 const mockState = vi.hoisted(() => ({
@@ -39,8 +38,7 @@ function expectMemberLookupFilters(id: string) {
   const record = mockState.queryRecords.filter((item) => item.table === "family_members").at(-1);
   expect(record).toEqual({
     table: "family_members",
-    eq: { id, owner_id: "owner-1" },
-    or: "organization_id.eq.org-1,organization_id.is.null",
+    eq: { id, owner_id: "owner-1", organization_id: "org-1" },
   });
 }
 
@@ -49,9 +47,8 @@ function makeQuery(table: string) {
   const query = {
     select() { return query; },
     eq(key: string, value: unknown) { record.eq[key] = value; return query; },
-    or(expression: string) { record.or = expression; return query; },
     maybeSingle() {
-      mockState.queryRecords.push({ table: record.table, eq: { ...record.eq }, or: record.or });
+      mockState.queryRecords.push({ table: record.table, eq: { ...record.eq } });
       return Promise.resolve({ data: table === "family_members" ? mockState.memberLookup : null, error: null });
     },
     insert(payload: Record<string, unknown>) {
@@ -107,22 +104,14 @@ describe("receivable income organization access actions", () => {
     expect(mockState.insertedPayloads).toHaveLength(0);
   });
 
-  it("keeps a legacy receiver member compatible while writing the active organization id", async () => {
+  it("blocks a legacy receiver member while keeping active organization writes explicit", async () => {
     const { createReceivableIncome } = await import("@/app/protected/contas-a-receber/actions");
-    mockState.memberLookup = { id: "legacy-member", organization_id: null };
+    mockState.memberLookup = null;
 
     const result = await createReceivableIncome({}, validReceivableIncomeForm({ receiver_member_id: "legacy-member" }));
 
-    expect(result).toEqual({ success: "Conta a receber cadastrada com sucesso." });
+    expect(result).toEqual({ error: "Pessoa recebedora nao pertence a esta organizacao." });
     expectMemberLookupFilters("legacy-member");
-    expect(mockState.insertedPayloads).toEqual([
-      expect.objectContaining({
-        owner_id: "owner-1",
-        organization_id: "org-1",
-        receiver_member_id: "legacy-member",
-        amount: 2500.75,
-        income_type: "fixa",
-      }),
-    ]);
+    expect(mockState.insertedPayloads).toHaveLength(0);
   });
 });
