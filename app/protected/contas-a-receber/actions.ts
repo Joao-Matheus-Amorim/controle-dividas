@@ -19,10 +19,6 @@ export type ReceivableIncomeActionState = {
   success?: string;
 };
 
-function organizationOrLegacyFilter(organizationId: string) {
-  return `organization_id.eq.${organizationId},organization_id.is.null`;
-}
-
 async function assertReceiverMemberBelongsToOrganization(
   ownerId: string,
   organizationId: string,
@@ -35,7 +31,7 @@ async function assertReceiverMemberBelongsToOrganization(
     .select("id, organization_id")
     .eq("id", receiverMemberId)
     .eq("owner_id", ownerId)
-    .or(organizationOrLegacyFilter(organizationId))
+    .eq("organization_id", organizationId)
     .maybeSingle();
 
   if (error) {
@@ -62,7 +58,7 @@ async function assertCanManageReceivableIncome(
     .select("id, owner_id, receiver_member_id")
     .eq("id", incomeId)
     .eq("owner_id", profile.owner_id)
-    .or(organizationOrLegacyFilter(organization.id))
+    .eq("organization_id", organization.id)
     .maybeSingle();
 
   if (error) {
@@ -238,7 +234,7 @@ export async function updateReceivableIncome(
       })
       .eq("id", id)
       .eq("owner_id", profile.owner_id)
-      .or(organizationOrLegacyFilter(organization.id));
+      .eq("organization_id", organization.id);
 
     if (error) {
       return { error: error.message };
@@ -284,7 +280,7 @@ export async function updateReceivableIncomeStatus(
       })
       .eq("id", id)
       .eq("owner_id", profile.owner_id)
-      .or(organizationOrLegacyFilter(organization.id));
+      .eq("organization_id", organization.id);
 
     if (error) {
       return { error: error.message };
@@ -333,7 +329,7 @@ export async function deleteReceivableIncome(
       .delete()
       .eq("id", id)
       .eq("owner_id", profile.owner_id)
-      .or(organizationOrLegacyFilter(organization.id));
+      .eq("organization_id", organization.id);
 
     if (error) {
       return { error: error.message };

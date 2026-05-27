@@ -166,7 +166,7 @@ const writeExpectations: FunctionExpectation[] = [
     table: "receivable_incomes",
     operation: "update",
     requiresOrganizationId: true,
-    requiresOrganizationFilter: true,
+    requiresActiveOrganizationFilter: true,
   },
   {
     file: "app/protected/contas-a-receber/actions.ts",
@@ -174,14 +174,14 @@ const writeExpectations: FunctionExpectation[] = [
     table: "receivable_incomes",
     operation: "update",
     requiresOrganizationId: true,
-    requiresOrganizationFilter: true,
+    requiresActiveOrganizationFilter: true,
   },
   {
     file: "app/protected/contas-a-receber/actions.ts",
     functionName: "deleteReceivableIncome",
     table: "receivable_incomes",
     operation: "delete",
-    requiresOrganizationFilter: true,
+    requiresActiveOrganizationFilter: true,
   },
   {
     file: "app/protected/admin/actions.ts",

@@ -84,26 +84,26 @@ describe("receivable incomes organization scope readiness", () => {
   it("keeps updateReceivableIncome preserving organization scope", () => {
     expect(updateReceivableIncomeBody).toContain("assertcanmanagereceivableincome");
     expect(updateReceivableIncomeBody).toContain("organization_id: organization.id");
-    expect(updateReceivableIncomeBody).toContain("organizationorlegacyfilter(organization.id)");
+    expect(updateReceivableIncomeBody).toContain(".eq(\"organization_id\", organization.id)");
   });
 
   it("keeps updateReceivableIncomeStatus preserving organization scope", () => {
     expect(updateReceivableIncomeStatusBody).toContain("assertcanmanagereceivableincome");
     expect(updateReceivableIncomeStatusBody).toContain("organization_id: organization.id");
-    expect(updateReceivableIncomeStatusBody).toContain("organizationorlegacyfilter(organization.id)");
+    expect(updateReceivableIncomeStatusBody).toContain(".eq(\"organization_id\", organization.id)");
   });
 
-  it("keeps manage path scoped by owner and transitional organization filter", () => {
+  it("keeps manage path scoped by owner and active organization", () => {
     expect(assertCanManageReceivableIncomeBody).toContain(".eq(\"owner_id\", profile.owner_id)");
-    expect(assertCanManageReceivableIncomeBody).toContain("organizationorlegacyfilter(organization.id)");
+    expect(assertCanManageReceivableIncomeBody).toContain(".eq(\"organization_id\", organization.id)");
     expect(assertCanManageReceivableIncomeBody).toContain("assertreceivermemberbelongstoorganization");
     expect(assertCanManageReceivableIncomeBody).toContain("assertcanaccessmember");
   });
 
-  it("keeps delete path scoped by owner and transitional organization filter", () => {
+  it("keeps delete path scoped by owner and active organization", () => {
     expect(deleteReceivableIncomeBody).toContain("assertcanmanagereceivableincome");
     expect(deleteReceivableIncomeBody).toContain(".eq(\"owner_id\", profile.owner_id)");
-    expect(deleteReceivableIncomeBody).toContain("organizationorlegacyfilter(organization.id)");
+    expect(deleteReceivableIncomeBody).toContain(".eq(\"organization_id\", organization.id)");
   });
 
   it("records that the read path remains transitional", () => {
