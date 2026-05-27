@@ -31,6 +31,7 @@ Completed scoped removals:
 #641 expense action paths in app/protected/gastos/actions.ts
 #641 payable action paths in app/protected/contas-a-pagar/actions.ts
 #641 receivable action paths in app/protected/contas-a-receber/actions.ts
+#641 bank action paths in app/protected/bancos/actions.ts
 ```
 
 The remaining legacy fallback surfaces must stay scoped to later PRs. Do not remove fallback broadly across runtime, organization helpers, schema, RLS, UI, or E2E in the same change.
@@ -240,17 +241,27 @@ The removed surface includes:
 
 These paths now require active organization scope and keep owner checks where still needed during the transition. New and updated writes continue to write the active organization id.
 
+### Bank action paths
+
+app/protected/bancos/actions.ts no longer accepts legacy null organization rows when validating, updating, or deleting bank records.
+
+The removed surface includes:
+
+- bank selected member validation reads from `family_members`;
+- bank edit/delete validation reads from `banks`;
+- bank update writes;
+- bank balance update writes;
+- bank delete writes.
+
+These paths now require active organization scope and keep owner checks where still needed during the transition. New and updated writes continue to write the active organization id.
+
 ## Remaining fallback categories
 
 ### Server action read and write-validation paths
 
 The organization helper files no longer use active organization or legacy null organization filtering. The remaining fallback surfaces are server action read and write-validation paths that still support transitional legacy null organization rows. This is transitional runtime compatibility, not schema readiness.
 
-Remaining action surfaces include:
-
-```txt
-app/protected/bancos/actions.ts
-```
+Remaining action surfaces: none in the reviewed inventory.
 
 ## Required next step
 
