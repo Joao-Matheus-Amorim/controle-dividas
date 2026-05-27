@@ -30,7 +30,7 @@ import type {
   DbExpense,
   DbExpenseCategory,
   DbFamilyMember,
-} from "@/lib/finance/server";
+} from "@/lib/finance/types";
 
 const initialDeleteState: ExpenseActionState = {};
 

@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { DbExpenseCategory, DbFamilyMember } from "@/lib/finance/server";
+import type { DbExpenseCategory, DbFamilyMember } from "@/lib/finance/types";
 
 export type ExpenseFilters = {
   memberId: string;

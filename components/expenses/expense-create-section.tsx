@@ -1,5 +1,5 @@
 import { ExpenseFormDialog } from "@/components/finance/expense-form-dialog";
-import type { DbExpenseCategory, DbFamilyMember } from "@/lib/finance/server";
+import type { DbExpenseCategory, DbFamilyMember } from "@/lib/finance/types";
 
 interface ExpenseCreateSectionProps {
   canCreate: boolean;

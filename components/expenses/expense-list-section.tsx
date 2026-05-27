@@ -1,5 +1,5 @@
 import { ExpenseListClient } from "@/components/finance/expense-list-client";
-import type { DbExpense, DbExpenseCategory, DbFamilyMember } from "@/lib/finance/server";
+import type { DbExpense, DbExpenseCategory, DbFamilyMember } from "@/lib/finance/types";
 
 interface ExpenseListSectionProps {
   expenses: DbExpense[];

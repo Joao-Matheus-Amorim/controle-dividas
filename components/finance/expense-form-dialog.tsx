@@ -4,7 +4,7 @@ import { Plus } from "lucide-react";
 
 import { AppFormSheet } from "@/components/app/app-form-sheet";
 import { ExpenseForm } from "@/components/finance/expense-form";
-import type { DbExpenseCategory, DbFamilyMember } from "@/lib/finance/server";
+import type { DbExpenseCategory, DbFamilyMember } from "@/lib/finance/types";
 
 export function ExpenseFormDialog({
   members,

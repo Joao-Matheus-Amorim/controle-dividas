@@ -1,5 +1,5 @@
 import { ReceivableIncomeFormDialog } from "@/components/finance/receivable-income-form-dialog";
-import type { DbFamilyMember } from "@/lib/finance/server";
+import type { DbFamilyMember } from "@/lib/finance/types";
 
 interface ReceivableCreateSectionProps {
   canCreate: boolean;
