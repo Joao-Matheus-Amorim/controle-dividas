@@ -2,7 +2,7 @@
 
 Issue: #641
 
-Related issues: #643, #645, #647, #648, #650, #652
+Related issues: #643, #645, #647, #648, #650, #652, #654
 
 ## Purpose
 
@@ -23,6 +23,7 @@ Completed scoped removals:
 #648 bank organization helper reads in lib/organizations/banks.ts
 #650 category organization helper reads in lib/organizations/categories.ts
 #652 payable organization helper reads in lib/organizations/payables.ts
+#654 expense organization helper reads in lib/organizations/expenses.ts
 ```
 
 The remaining legacy fallback surfaces must stay scoped to later PRs. Do not remove fallback broadly across runtime, organization helpers, schema, RLS, UI, or E2E in the same change.
@@ -47,7 +48,6 @@ lib/finance/admin-server.ts
 app/protected/admin/actions.ts
 lib/organizations/banks.ts
 lib/organizations/categories.ts
-lib/organizations/expenses.ts
 lib/organizations/payables.ts
 lib/organizations/receivables.ts
 lib/organizations/people.ts
@@ -133,6 +133,17 @@ The removed surface includes:
 
 These reads now require active organization scope and keep owner checks where still needed during the transition. Existing module permission/member filtering remains preserved without accepting null organization rows.
 
+### Expense organization helper reads
+
+lib/organizations/expenses.ts no longer accepts legacy null organization rows when reading expense organization helper data.
+
+The removed surface includes:
+
+- expense member reads from `family_members`;
+- expense category reads from `expense_categories`;
+- expense reads from `expenses`.
+
+These reads now require active organization scope and keep owner checks where still needed during the transition. Existing module permission/member filtering remains preserved without accepting null organization rows.
 ## Remaining fallback categories
 
 ### Organization feature read paths
@@ -142,7 +153,6 @@ The remaining organization helper files still use active organization or legacy 
 Remaining helper surfaces include:
 
 ```txt
-lib/organizations/expenses.ts
 lib/organizations/receivables.ts
 lib/organizations/people.ts
 ```
