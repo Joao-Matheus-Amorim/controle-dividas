@@ -7,8 +7,8 @@ import { AppActionFeedback } from "@/components/app/app-action-feedback";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { ProfileFormState } from "@/lib/finance/admin-server";
-import type { DbFamilyMember } from "@/lib/finance/server";
+import type { DbFamilyMember } from "@/lib/finance/types";
+import type { ProfileFormState } from "@/lib/finance/admin-types";
 
 const initialState: ProfileFormState = {};
 

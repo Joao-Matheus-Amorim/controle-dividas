@@ -1,5 +1,5 @@
 import { FamilyUserFormDialog } from "@/components/finance/family-user-form-dialog";
-import type { DbFamilyMember } from "@/lib/finance/server";
+import type { DbFamilyMember } from "@/lib/finance/types";
 
 interface AdminUsersCreateSectionProps {
   members: DbFamilyMember[];

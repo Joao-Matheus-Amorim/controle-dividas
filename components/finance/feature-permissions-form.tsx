@@ -6,7 +6,7 @@ import { Check, Sparkles, UserRound } from "lucide-react";
 import { saveProfileFeaturePermissions } from "@/app/protected/admin/actions";
 import { AppActionFeedback } from "@/components/app/app-action-feedback";
 import { Button } from "@/components/ui/button";
-import type { DbFeaturePermission, DbProfile, PermissionFormState } from "@/lib/finance/admin-server";
+import type { DbFeaturePermission, DbProfile, PermissionFormState } from "@/lib/finance/admin-types";
 import { FEATURE_PERMISSIONS } from "@/lib/finance/permissions";
 import { cn } from "@/lib/utils";
 

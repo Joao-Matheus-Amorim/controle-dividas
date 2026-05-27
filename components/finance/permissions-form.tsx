@@ -6,12 +6,8 @@ import { Check, KeyRound, ShieldCheck, SlidersHorizontal, UserRound, UsersRound 
 import { saveProfilePermissions } from "@/app/protected/admin/actions";
 import { AppActionFeedback } from "@/components/app/app-action-feedback";
 import { Button } from "@/components/ui/button";
-import type {
-  DbModulePermission,
-  DbProfile,
-  PermissionFormState,
-} from "@/lib/finance/admin-server";
-import type { DbFamilyMember } from "@/lib/finance/server";
+import type { DbFamilyMember } from "@/lib/finance/types";
+import type { DbModulePermission, DbProfile, PermissionFormState } from "@/lib/finance/admin-types";
 import { FINANCE_MODULES, PERMISSION_ACTIONS, PERMISSION_SCOPES } from "@/lib/finance/permissions";
 import { cn } from "@/lib/utils";
 

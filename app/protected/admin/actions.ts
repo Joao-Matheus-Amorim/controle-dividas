@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 
-import { ensureAdminProfile, type PermissionFormState, type ProfileFormState } from "@/lib/finance/admin-server";
+import { ensureAdminProfile } from "@/lib/finance/admin-server";
+import type { PermissionFormState, ProfileFormState } from "@/lib/finance/admin-types";
 import {
   FEATURE_PERMISSIONS,
   FINANCE_MODULES,

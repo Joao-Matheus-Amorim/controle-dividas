@@ -4,7 +4,7 @@ import { UserPlus } from "lucide-react";
 
 import { AppFormSheet } from "@/components/app/app-form-sheet";
 import { FamilyUserForm } from "@/components/finance/family-user-form";
-import type { DbFamilyMember } from "@/lib/finance/server";
+import type { DbFamilyMember } from "@/lib/finance/types";
 
 export function FamilyUserFormDialog({ members }: { members: DbFamilyMember[] }) {
   return (
