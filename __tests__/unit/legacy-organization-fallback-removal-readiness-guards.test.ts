@@ -108,6 +108,16 @@ describe("legacy organization fallback removal readiness", () => {
     expect(actionSource).not.toContain("organization_id.is.null");
   });
 
+  it("keeps settings action paths scoped to active organization equality", () => {
+    const source = readSource("app/protected/configuracoes/actions.ts");
+
+    expect(source).toContain("requireorganizationaccess");
+    expect(source).toContain('.eq("owner_id", ownerid)');
+    expect(source).toContain('.eq("organization_id", organization.id)');
+    expect(source).not.toContain("organizationorlegacyfilter");
+    expect(source).not.toContain("organization_id.is.null");
+  });
+
   it("records completed scoped fallback removals", () => {
     const audit = readSource("docs/audits/LEGACY_ORGANIZATION_FALLBACK_REMOVAL_READINESS.md");
 
@@ -138,6 +148,12 @@ describe("legacy organization fallback removal readiness", () => {
     expect(audit).toContain("linked profile reads from `profiles`");
     expect(audit).toContain("family member update validation and writes");
     expect(audit).toContain("family member status validation and writes");
+    expect(audit).toContain("settings action paths in app/protected/configuracoes/actions.ts");
+    expect(audit).toContain("app/protected/configuracoes/actions.ts no longer accepts legacy null organization rows");
+    expect(audit).toContain("expense category edit validation reads from `expense_categories`");
+    expect(audit).toContain("expense category update writes");
+    expect(audit).toContain("expense category delete writes");
+    expect(audit).toContain("family member monthly limit update writes");
     expect(audit).not.toContain("app/protected/admin/actions.ts still accepts legacy null organization rows");
   });
 
@@ -153,7 +169,7 @@ describe("legacy organization fallback removal readiness", () => {
     expect(remainingSection).not.toContain("lib/organizations/receivables.ts");
     expect(remainingSection).not.toContain("lib/organizations/people.ts");
     expect(remainingSection).not.toContain("lib/organizations/payables.ts");
-    expect(remainingSection).toContain("app/protected/configuracoes/actions.ts");
+    expect(remainingSection).not.toContain("app/protected/configuracoes/actions.ts");
     expect(remainingSection).not.toContain("app/protected/pessoas/actions.ts");
     expect(audit).toContain("avoid schema, rls, ui, and e2e mixing");
   });
