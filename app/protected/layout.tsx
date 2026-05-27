@@ -4,7 +4,7 @@ import { EnvVarWarning } from "@/components/env-var-warning";
 import { Separator } from "@/components/ui/separator";
 import { getVisibleModuleKeys } from "@/lib/finance/access-control";
 import type { FinanceModuleKey } from "@/lib/finance/permissions";
-import { getCurrentOrganization } from "@/lib/organizations/server";
+import { getCurrentOrganization, getUserOrganizations } from "@/lib/organizations/server";
 import { hasEnvVars } from "@/lib/utils";
 import {
   Banknote,
@@ -51,10 +51,12 @@ export default async function ProtectedLayout({
   const modulesToCheck = Array.from(
     new Set([...navigation, ...mobileNavigation].map((item) => item.module)),
   );
-  const [visibleModuleKeys, currentOrganization] = await Promise.all([
+  const [visibleModuleKeys, currentOrganization, organizationContexts] = await Promise.all([
     getVisibleModuleKeys(modulesToCheck),
     getCurrentOrganization(),
+    getUserOrganizations(),
   ]);
+  const organizationOptions = organizationContexts.map((context) => context.organization);
   const visibleModules = new Set(visibleModuleKeys);
   const visibleNavigation = navigation.filter((item) => visibleModules.has(item.module));
   const visibleMobileNavigation = mobileNavigation.filter((item) => visibleModules.has(item.module));
@@ -82,7 +84,10 @@ export default async function ProtectedLayout({
               </Link>
               <Separator orientation="vertical" className="hidden h-8 bg-white/10 lg:block" />
               <div className="hidden min-w-0 lg:block">
-                <ActiveOrganizationIndicator organization={currentOrganization} />
+                <ActiveOrganizationIndicator
+                  organization={currentOrganization}
+                  organizationOptions={organizationOptions}
+                />
               </div>
             </div>
             <div className="flex min-w-0 shrink items-center justify-end gap-3 overflow-hidden">
@@ -96,7 +101,10 @@ export default async function ProtectedLayout({
             </div>
           </div>
           <div className="flex min-w-0 lg:hidden">
-            <ActiveOrganizationIndicator organization={currentOrganization} />
+            <ActiveOrganizationIndicator
+              organization={currentOrganization}
+              organizationOptions={organizationOptions}
+            />
           </div>
           {visibleNavigation.length > 0 ? (
             <>
