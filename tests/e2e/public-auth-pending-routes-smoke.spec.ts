@@ -16,8 +16,8 @@ test.describe("pending public and auth routes smoke", () => {
 
     await expect(page).toHaveURL(/\/auth\/update-password/);
     await expect(page.getByRole("heading", { name: "Atualizar senha" })).toBeVisible();
-    await expect(page.getByLabel("Nova senha")).toBeVisible();
-    await expect(page.getByLabel("Repetir nova senha")).toBeVisible();
+    await expect(page.getByRole("textbox", { name: "Nova senha", exact: true })).toBeVisible();
+    await expect(page.getByRole("textbox", { name: "Repetir nova senha" })).toBeVisible();
     await expect(page.getByRole("button", { name: /salvar nova senha/i })).toBeVisible();
   });
 
