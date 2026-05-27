@@ -124,7 +124,9 @@ describe("profiles RLS gated integration", () => {
       const userBResult = await userBClient.from("profiles").select("id").in("id", profileIds);
       if (userBResult.error) throw userBResult.error;
 
-      expect(userBResult.data?.map((row) => row.id).sort()).toEqual([profileBId]);
+      expect(userBResult.data?.map((row) => row.id).sort()).toEqual(
+        [profileBId, otherOrgProfileAOwnerId].sort(),
+      );
     } finally {
       await admin.from("profiles").delete().in("id", profileIds);
       await admin.from("organization_memberships").delete().in("organization_id", orgIds);
