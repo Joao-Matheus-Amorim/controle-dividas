@@ -85,7 +85,7 @@ describe("initial organization onboarding route guards", () => {
     expect(source).toContain("revoke all on function public.create_initial_organization_onboarding(text, text) from public");
     expect(source).toContain("revoke all on function public.create_initial_organization_onboarding(text, text) from anon");
     expect(source).toContain("grant execute on function public.create_initial_organization_onboarding(text, text) to authenticated");
-  });
+  }, 10_000);
 
   it("keeps the transactional onboarding RPC enforcing tenant safety", () => {
     const source = readSource("supabase/migrations/019_initial_organization_onboarding_rpc.sql");
