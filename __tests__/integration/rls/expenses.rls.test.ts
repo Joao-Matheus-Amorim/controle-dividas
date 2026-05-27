@@ -50,7 +50,7 @@ describe("expenses RLS gated integration", () => {
     const categoryBId = crypto.randomUUID();
     const expenseAId = crypto.randomUUID();
     const expenseBId = crypto.randomUUID();
-    const legacyExpenseId = crypto.randomUUID();
+    const secondExpenseAId = crypto.randomUUID();
 
     try {
       const orgResult = await admin.from("organizations").insert([
@@ -147,33 +147,33 @@ describe("expenses RLS gated integration", () => {
           amount: 20,
         },
         {
-          id: legacyExpenseId,
+          id: secondExpenseAId,
           owner_id: ownerId,
-          organization_id: null,
+          organization_id: orgA.id,
           family_member_id: memberAId,
           category_id: categoryAId,
           expense_date: "2026-05-17",
-          description: `${fixture.prefix} Legacy Expense`,
+          description: `${fixture.prefix} Expense A2`,
           amount: 30,
         },
       ]);
 
       if (expenseResult.error) throw expenseResult.error;
 
-      const ids = [expenseAId, expenseBId, legacyExpenseId];
+      const ids = [expenseAId, expenseBId, secondExpenseAId];
 
       const result = await user.from("expenses").select("id").in("id", ids);
 
       if (result.error) throw result.error;
 
       expect(result.data?.map((row) => row.id).sort()).toEqual(
-        [expenseAId, legacyExpenseId].sort(),
+        [expenseAId, secondExpenseAId].sort(),
       );
     } finally {
       await admin
         .from("expenses")
         .delete()
-        .in("id", [expenseAId, expenseBId, legacyExpenseId]);
+        .in("id", [expenseAId, expenseBId, secondExpenseAId]);
 
       await admin
         .from("expense_categories")

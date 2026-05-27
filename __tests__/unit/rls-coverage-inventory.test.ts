@@ -77,13 +77,13 @@ const rlsCoverage: RlsTableExpectation[] = [
   },
   {
     table: "expenses",
-    rlsFiles: ["011_expenses_organization_rls.sql"],
-    status: "transitional",
+    rlsFiles: ["032_expenses_rls_remove_legacy_fallback.sql"],
+    status: "covered",
     policies: [
-      { file: "011_expenses_organization_rls.sql", name: "expenses_select_organization_or_legacy", operation: "select" },
-      { file: "011_expenses_organization_rls.sql", name: "expenses_insert_owner_organization_or_legacy", operation: "insert" },
-      { file: "011_expenses_organization_rls.sql", name: "expenses_update_owner_organization_or_legacy", operation: "update" },
-      { file: "011_expenses_organization_rls.sql", name: "expenses_delete_owner_organization_or_legacy", operation: "delete" },
+      { file: "032_expenses_rls_remove_legacy_fallback.sql", name: "expenses_select_organization", operation: "select" },
+      { file: "032_expenses_rls_remove_legacy_fallback.sql", name: "expenses_insert_owner_organization", operation: "insert" },
+      { file: "032_expenses_rls_remove_legacy_fallback.sql", name: "expenses_update_owner_organization", operation: "update" },
+      { file: "032_expenses_rls_remove_legacy_fallback.sql", name: "expenses_delete_owner_organization", operation: "delete" },
     ],
   },
   {
@@ -299,7 +299,6 @@ describe("RLS coverage inventory", () => {
     expect(transitionalTables).toEqual(
       [
         "banks",
-        "expenses",
         "payable_bills",
         "profiles",
         "receivable_incomes",
