@@ -122,7 +122,7 @@ describe("expense_categories RLS gated integration", () => {
         {
           id: fixture.categories.legacyCategoryA.id,
           owner_id: userAId,
-          organization_id: null,
+          organization_id: fixture.organizations.organizationA.id,
           name: fixture.categories.legacyCategoryA.name,
           description: fixture.categories.legacyCategoryA.description,
           is_default: fixture.categories.legacyCategoryA.isDefault,

@@ -95,6 +95,12 @@ Racional:
 - tem impacto menor que `expenses`, `payable_bills`, `receivable_incomes` e `banks`;
 - e dependencia importante para gastos, entao serve como prova de padrao para remover fallback RLS legado antes de tabelas de maior impacto.
 
+Status do primeiro corte:
+
+- migration `030_expense_categories_rls_remove_legacy_fallback.sql` remove o fallback `organization_id IS NULL` de `expense_categories`;
+- as policies passam a depender de `public.is_organization_member(organization_id)`;
+- update/delete continuam owner-scoped durante a transicao.
+
 ## 6. Fora de escopo do proximo PR de migration
 
 O proximo PR de migration RLS nao deve incluir:
