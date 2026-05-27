@@ -47,6 +47,7 @@ describe("financial RLS Gate 4 readiness", () => {
     expect(source).toContain("Primeiro alvo recomendado:");
     expect(source).toContain("expense_categories");
     expect(source).toContain("migration `020`");
+    expect(source).toContain("030_expense_categories_rls_remove_legacy_fallback.sql");
     expect(source).toContain("teste RLS gated versionado");
     expect(source).toContain("teste RLS gated especifico");
     expect(source).toContain("migration pequena");

@@ -30,6 +30,7 @@ Arquivos revisados:
 - `supabase/migrations/007_add_organization_id_columns.sql`
 - `supabase/migrations/008_expense_categories_organization_rls.sql`
 - `supabase/migrations/009_expense_categories_owner_write_rls.sql`
+- `supabase/migrations/030_expense_categories_rls_remove_legacy_fallback.sql`
 - `supabase/migrations/010_family_members_organization_rls.sql`
 - `supabase/migrations/011_expenses_organization_rls.sql`
 - `supabase/migrations/012_payable_bills_organization_rls.sql`
@@ -53,7 +54,7 @@ O estado historico inicial era owner-centric nas tabelas financeiras e de permis
 Resumo:
 
 - `organizations` e `organization_memberships` possuem RLS baseado em membership/admin via helpers `SECURITY DEFINER` da migration `006`;
-- tabelas financeiras da migration `001` nasceram owner-centric, mas foram migradas para policies organization-aware transicionais nas migrations `008` a `014`;
+- tabelas financeiras da migration `001` nasceram owner-centric, mas foram migradas para policies organization-aware nas migrations `008` a `014`, com primeiro fallback RLS removido para `expense_categories` na migration `030`;
 - `profiles` e `user_module_permissions` nasceram owner-centric na migration `003`, mas foram migradas para policies organization-aware nas migrations `015` e `016`;
 - `user_feature_permissions` nasceu owner-centric na migration `004`, mas foi migrada para policy organization-aware na migration `017`;
 - migration `007` adicionou `organization_id`, mas nao alterou RLS;
@@ -68,7 +69,7 @@ A auditoria da issue #548 classifica como:
 | `profiles` | transitional | Organization-aware, mas preserva `owner_id` e acesso direto via `auth_user_id`. |
 | `family_members` | transitional | Organization-aware para leitura; writes seguem owner-scoped na transicao. |
 | `expenses` | transitional | Organization-aware para leitura; writes seguem owner-scoped na transicao. |
-| `expense_categories` | transitional | Organization-aware com hotfix owner-scoped para update/delete. |
+| `expense_categories` | covered | Organization-aware sem fallback legado `organization_id IS NULL` apos hardening `NOT NULL`. |
 | `banks` | transitional | Organization-aware; nao depende de membro ativo por preservar historico. |
 | `payable_bills` | transitional | Organization-aware para leitura; writes seguem owner-scoped na transicao. |
 | `receivable_incomes` | transitional | Organization-aware para leitura; writes seguem owner-scoped na transicao. |
@@ -136,11 +137,11 @@ Regra historica:
 select/insert/update/delete por auth.uid() = owner_id
 ```
 
-Lacuna historica fechada pelas migrations `008` e `009`:
+Lacuna historica fechada pelas migrations `008`, `009` e `030`:
 
 - leitura considera membership por `organization_id`;
-- legado `organization_id IS NULL` continua restrito por `owner_id`;
-- escrita preserva owner durante a transicao.
+- escrita preserva owner durante a transicao;
+- fallback legado `organization_id IS NULL` foi removido da RLS depois do hardening `NOT NULL`.
 
 ### 4.3 `expenses`
 
@@ -417,7 +418,7 @@ Tabelas afetadas:
 Implicacao historica:
 
 - schema ja permite escopo por organization;
-- RLS passou a usar esse escopo nas migrations `008` a `017`;
+- RLS passou a usar esse escopo nas migrations `008` a `017`, com remocao inicial de fallback para `expense_categories` na migration `030`;
 - application layer ja foi migrada parcialmente, mas admin/permissoes ainda precisam de hardening futuro.
 
 ## 9. Tabelas ainda em fase transicional
@@ -426,7 +427,6 @@ As seguintes tabelas ja possuem RLS organization-aware transicional, mas ainda d
 
 - `profiles`;
 - `family_members`;
-- `expense_categories`;
 - `expenses`;
 - `payable_bills`;
 - `receivable_incomes`;
@@ -434,13 +434,15 @@ As seguintes tabelas ja possuem RLS organization-aware transicional, mas ainda d
 - `user_module_permissions`;
 - `user_feature_permissions`.
 
-Isso ainda nao e o modelo SaaS final. O proximo hardening deve remover gradualmente fallback legado apenas depois de backfill completo, testes gated e plano de rollback.
+`expense_categories` ja saiu desse grupo de fallback legado em RLS: a coluna foi endurecida como `NOT NULL` e a policy atual depende de membership da organization.
+
+Isso ainda nao e o modelo SaaS final para as demais tabelas. O proximo hardening deve remover gradualmente fallback legado apenas depois de backfill completo, testes gated e plano de rollback.
 
 ## 10. Riscos identificados
 
 ### 10.1 Dependencia transicional de `owner_id`
 
-As policies atuais ainda preservam `owner_id` para escrita e fallback legado.
+As policies atuais ainda preservam `owner_id` para escrita em tabelas financeiras durante a transicao. Nas tabelas ainda transicionais, o fallback legado tambem permanece.
 
 Isso e aceitavel apenas na fase transicional, mas nao e isolamento SaaS final.
 

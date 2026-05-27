@@ -16,7 +16,7 @@ describe("category owner scope", () => {
     expect(runRlsTests ? config.missingVariables : []).toEqual([]);
   });
 
-  rlsIt("returns only rows for the active organization plus legacy rows", async () => {
+  rlsIt("returns only rows for organizations with active membership", async () => {
     const fixture = createExpenseCategoryFixtureSet();
 
     const admin = createClient(config.supabaseUrl!, config.serviceRoleKey!, {
@@ -91,7 +91,7 @@ describe("category owner scope", () => {
         {
           id: legacy.id,
           owner_id: userId,
-          organization_id: null,
+          organization_id: orgA.id,
           name: legacy.name,
           description: legacy.description,
           is_default: false,

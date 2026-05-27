@@ -88,13 +88,13 @@ const rlsCoverage: RlsTableExpectation[] = [
   },
   {
     table: "expense_categories",
-    rlsFiles: ["008_expense_categories_organization_rls.sql", "009_expense_categories_owner_write_rls.sql"],
-    status: "transitional",
+    rlsFiles: ["030_expense_categories_rls_remove_legacy_fallback.sql"],
+    status: "covered",
     policies: [
-      { file: "008_expense_categories_organization_rls.sql", name: "expense_categories_select_organization_or_legacy", operation: "select" },
-      { file: "008_expense_categories_organization_rls.sql", name: "expense_categories_insert_organization_or_legacy", operation: "insert" },
-      { file: "009_expense_categories_owner_write_rls.sql", name: "expense_categories_update_owner_organization_or_legacy", operation: "update" },
-      { file: "009_expense_categories_owner_write_rls.sql", name: "expense_categories_delete_owner_organization_or_legacy", operation: "delete" },
+      { file: "030_expense_categories_rls_remove_legacy_fallback.sql", name: "expense_categories_select_organization", operation: "select" },
+      { file: "030_expense_categories_rls_remove_legacy_fallback.sql", name: "expense_categories_insert_owner_organization", operation: "insert" },
+      { file: "030_expense_categories_rls_remove_legacy_fallback.sql", name: "expense_categories_update_owner_organization", operation: "update" },
+      { file: "030_expense_categories_rls_remove_legacy_fallback.sql", name: "expense_categories_delete_owner_organization", operation: "delete" },
     ],
   },
   {
@@ -299,7 +299,6 @@ describe("RLS coverage inventory", () => {
     expect(transitionalTables).toEqual(
       [
         "banks",
-        "expense_categories",
         "expenses",
         "family_members",
         "payable_bills",
