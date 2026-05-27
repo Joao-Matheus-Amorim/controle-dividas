@@ -1,5 +1,5 @@
 import { PayableBillFormDialog } from "@/components/finance/payable-bill-form-dialog";
-import type { DbFamilyMember } from "@/lib/finance/server";
+import type { DbFamilyMember } from "@/lib/finance/types";
 
 interface PayableCreateSectionProps {
   canCreate: boolean;

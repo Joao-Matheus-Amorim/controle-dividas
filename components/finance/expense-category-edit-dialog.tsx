@@ -12,7 +12,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import type { DbExpenseCategory } from "@/lib/finance/server";
+import type { DbExpenseCategory } from "@/lib/finance/types";
 
 export function ExpenseCategoryEditDialog({ category }: { category: DbExpenseCategory }) {
   return (
