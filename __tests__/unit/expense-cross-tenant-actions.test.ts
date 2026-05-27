@@ -67,8 +67,8 @@ function expectOrganizationLookupFilters(
     eq: {
       id,
       owner_id: "owner-1",
+      organization_id: "org-1",
     },
-    or: "organization_id.eq.org-1,organization_id.is.null",
   });
 }
 
@@ -193,33 +193,17 @@ describe("expense organization access actions", () => {
     expect(mockState.insertedPayloads).toHaveLength(0);
   });
 
-  it("keeps legacy member and category compatible while writing the active organization id", async () => {
+  it("rejects legacy null member rows before writing the active organization id", async () => {
     const { createExpense } = await import("@/app/protected/gastos/actions");
-    mockState.memberLookup = {
-      id: "legacy-member",
-      organization_id: null,
-    };
-    mockState.categoryLookup = {
-      id: "legacy-category",
-      organization_id: null,
-    };
+    mockState.memberLookup = null;
 
     const result = await createExpense({}, validExpenseForm({
       family_member_id: "legacy-member",
       category_id: "legacy-category",
     }));
 
-    expect(result).toEqual({ success: "Gasto cadastrado com sucesso." });
+    expect(result).toEqual({ error: "Pessoa responsavel nao pertence a esta organizacao." });
     expectOrganizationLookupFilters("family_members", "legacy-member");
-    expectOrganizationLookupFilters("expense_categories", "legacy-category");
-    expect(mockState.insertedPayloads).toEqual([
-      expect.objectContaining({
-        owner_id: "owner-1",
-        organization_id: "org-1",
-        family_member_id: "legacy-member",
-        category_id: "legacy-category",
-        amount: 45.9,
-      }),
-    ]);
+    expect(mockState.insertedPayloads).toHaveLength(0);
   });
 });

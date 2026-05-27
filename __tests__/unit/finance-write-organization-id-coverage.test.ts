@@ -84,14 +84,14 @@ const writeExpectations: FunctionExpectation[] = [
     table: "expenses",
     operation: "update",
     requiresOrganizationId: true,
-    requiresOrganizationFilter: true,
+    requiresActiveOrganizationFilter: true,
   },
   {
     file: "app/protected/gastos/actions.ts",
     functionName: "deleteExpense",
     table: "expenses",
     operation: "delete",
-    requiresOrganizationFilter: true,
+    requiresActiveOrganizationFilter: true,
   },
   {
     file: "app/protected/bancos/actions.ts",

@@ -77,20 +77,20 @@ describe("expenses organization scope readiness", () => {
 
   it("keeps updateExpense preserving organization scope", () => {
     expect(updateExpenseBody).toContain("organization_id: organization.id");
-    expect(updateExpenseBody).toContain("organizationorlegacyfilter(organization.id)");
+    expect(updateExpenseBody).toContain(".eq(\"organization_id\", organization.id)");
   });
 
-  it("keeps manage path scoped by owner and transitional organization filter", () => {
+  it("keeps manage path scoped by owner and active organization filter", () => {
     expect(assertCanManageExpenseBody).toContain(".eq(\"owner_id\", profile.owner_id)");
-    expect(assertCanManageExpenseBody).toContain("organizationorlegacyfilter(organization.id)");
+    expect(assertCanManageExpenseBody).toContain(".eq(\"organization_id\", organization.id)");
     expect(assertCanManageExpenseBody).toContain("assertmemberbelongstoorganization");
     expect(assertCanManageExpenseBody).toContain("assertcanaccessmember");
   });
 
-  it("keeps delete path scoped by owner and transitional organization filter", () => {
+  it("keeps delete path scoped by owner and active organization filter", () => {
     expect(deleteExpenseBody).toContain("assertcanmanageexpense");
     expect(deleteExpenseBody).toContain(".eq(\"owner_id\", profile.owner_id)");
-    expect(deleteExpenseBody).toContain("organizationorlegacyfilter(organization.id)");
+    expect(deleteExpenseBody).toContain(".eq(\"organization_id\", organization.id)");
   });
 
   it("records that the read path remains transitional", () => {

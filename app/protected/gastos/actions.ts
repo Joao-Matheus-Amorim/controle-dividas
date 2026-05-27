@@ -16,10 +16,6 @@ export type ExpenseActionState = {
   success?: string;
 };
 
-function organizationOrLegacyFilter(organizationId: string) {
-  return `organization_id.eq.${organizationId},organization_id.is.null`;
-}
-
 async function assertMemberBelongsToOrganization(
   ownerId: string,
   organizationId: string,
@@ -32,7 +28,7 @@ async function assertMemberBelongsToOrganization(
     .select("id, organization_id")
     .eq("id", familyMemberId)
     .eq("owner_id", ownerId)
-    .or(organizationOrLegacyFilter(organizationId))
+    .eq("organization_id", organizationId)
     .maybeSingle();
 
   if (error) {
@@ -62,7 +58,7 @@ async function assertCategoryBelongsToOrganization(
     .select("id, organization_id")
     .eq("id", categoryId)
     .eq("owner_id", ownerId)
-    .or(organizationOrLegacyFilter(organizationId))
+    .eq("organization_id", organizationId)
     .maybeSingle();
 
   if (error) {
@@ -89,7 +85,7 @@ async function assertCanManageExpense(
     .select("id, owner_id, family_member_id")
     .eq("id", expenseId)
     .eq("owner_id", profile.owner_id)
-    .or(organizationOrLegacyFilter(organization.id))
+    .eq("organization_id", organization.id)
     .maybeSingle();
 
   if (error) {
@@ -275,7 +271,7 @@ export async function updateExpense(
       })
       .eq("id", id)
       .eq("owner_id", profile.owner_id)
-      .or(organizationOrLegacyFilter(organization.id));
+      .eq("organization_id", organization.id);
 
     if (error) {
       return { error: error.message };
@@ -321,7 +317,7 @@ export async function deleteExpense(
       .delete()
       .eq("id", id)
       .eq("owner_id", profile.owner_id)
-      .or(organizationOrLegacyFilter(organization.id));
+      .eq("organization_id", organization.id);
 
     if (error) {
       return { error: error.message };
