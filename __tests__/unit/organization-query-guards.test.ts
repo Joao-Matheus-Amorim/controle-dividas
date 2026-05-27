@@ -144,4 +144,13 @@ describe("organization-aware query guards", () => {
     expect(source).not.toContain("organization_id.eq.${organizationId}");
     expect(source).not.toContain("organization_id.is.null");
   });
+
+  it("keeps people protected page profile reads on active organization equality", () => {
+    const source = readSource("app/protected/pessoas/page.tsx");
+
+    expect(source).toContain('.eq("organization_id", organizationId)');
+    expect(source).not.toContain("organizationOrLegacyFilter");
+    expect(source).not.toContain("organization_id.eq.${organizationId}");
+    expect(source).not.toContain("organization_id.is.null");
+  });
 });

@@ -12,10 +12,6 @@ export type FamilyMemberActionState = {
   success?: string;
 };
 
-function organizationOrLegacyFilter(organizationId: string) {
-  return `organization_id.eq.${organizationId},organization_id.is.null`;
-}
-
 export async function createFamilyMember(
   _prevState: FamilyMemberFormState,
   formData: FormData,
@@ -90,7 +86,7 @@ export async function updateFamilyMember(
     })
     .eq("id", id)
     .eq("owner_id", profile.owner_id)
-    .or(organizationOrLegacyFilter(organization.id));
+    .eq("organization_id", organization.id);
 
   if (error) {
     return { error: error.message };
@@ -136,7 +132,7 @@ export async function toggleFamilyMemberStatus(
     })
     .eq("id", id)
     .eq("owner_id", profile.owner_id)
-    .or(organizationOrLegacyFilter(organization.id));
+    .eq("organization_id", organization.id);
 
   if (error) {
     return { error: error.message };
