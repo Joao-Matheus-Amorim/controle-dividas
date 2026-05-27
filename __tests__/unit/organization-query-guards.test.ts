@@ -20,9 +20,16 @@ const migratedPages = [
   "app/protected/relatorios/page.tsx",
 ];
 
-const organizationHelpersWithLegacyFallback = [
+const organizationHelpersWithoutLegacyFallback = [
+  "lib/organizations/banks.ts",
+  "lib/organizations/categories.ts",
+  "lib/organizations/expenses.ts",
+  "lib/organizations/payables.ts",
   "lib/organizations/people.ts",
+  "lib/organizations/receivables.ts",
 ];
+
+const organizationHelpersWithLegacyFallback: string[] = [];
 
 describe("organization-aware query guards", () => {
   it("keeps migrated protected pages away from owner-only finance helpers", () => {
@@ -75,6 +82,14 @@ describe("organization-aware query guards", () => {
       expect(source, `${path} must keep organization filter`).toContain("organization_id.eq.${organizationId}");
       expect(source, `${path} must keep legacy compatibility`).toContain("organization_id.is.null");
     }
+
+    for (const path of organizationHelpersWithoutLegacyFallback) {
+      const source = readSource(path);
+
+      expect(source, `${path} must not keep legacy helper`).not.toContain("organizationOrLegacyFilter");
+      expect(source, `${path} must not keep legacy organization filter`).not.toContain("organization_id.eq.${organizationId}");
+      expect(source, `${path} must not keep null organization fallback`).not.toContain("organization_id.is.null");
+    }
   });
 
   it("keeps bank helper reads on active organization equality after scoped fallback removal", () => {
@@ -114,6 +129,15 @@ describe("organization-aware query guards", () => {
 
   it("keeps receivable helper reads on active organization equality after scoped fallback removal", () => {
     const source = readSource("lib/organizations/receivables.ts");
+
+    expect(source).toContain('.eq("organization_id", organization.id)');
+    expect(source).not.toContain("organizationOrLegacyFilter");
+    expect(source).not.toContain("organization_id.eq.${organizationId}");
+    expect(source).not.toContain("organization_id.is.null");
+  });
+
+  it("keeps people helper reads on active organization equality after scoped fallback removal", () => {
+    const source = readSource("lib/organizations/people.ts");
 
     expect(source).toContain('.eq("organization_id", organization.id)');
     expect(source).not.toContain("organizationOrLegacyFilter");
