@@ -106,7 +106,7 @@ const writeExpectations: FunctionExpectation[] = [
     table: "banks",
     operation: "update",
     requiresOrganizationId: true,
-    requiresOrganizationFilter: true,
+    requiresActiveOrganizationFilter: true,
   },
   {
     file: "app/protected/bancos/actions.ts",
@@ -114,14 +114,14 @@ const writeExpectations: FunctionExpectation[] = [
     table: "banks",
     operation: "update",
     requiresOrganizationId: true,
-    requiresOrganizationFilter: true,
+    requiresActiveOrganizationFilter: true,
   },
   {
     file: "app/protected/bancos/actions.ts",
     functionName: "deleteBankAccount",
     table: "banks",
     operation: "delete",
-    requiresOrganizationFilter: true,
+    requiresActiveOrganizationFilter: true,
   },
   {
     file: "app/protected/contas-a-pagar/actions.ts",

@@ -151,6 +151,17 @@ describe("legacy organization fallback removal readiness", () => {
     expect(source).not.toContain("organization_id.is.null");
   });
 
+  it("keeps bank action paths scoped to active organization equality", () => {
+    const source = readSource("app/protected/bancos/actions.ts");
+
+    expect(source).toContain("requireorganizationaccess");
+    expect(source).toContain('.eq("owner_id", profile.owner_id)');
+    expect(source).toContain('.eq("organization_id", organization.id)');
+    expect(source).toContain('.eq("organization_id", organizationid)');
+    expect(source).not.toContain("organizationorlegacyfilter");
+    expect(source).not.toContain("organization_id.is.null");
+  });
+
   it("records completed scoped fallback removals", () => {
     const audit = readSource("docs/audits/LEGACY_ORGANIZATION_FALLBACK_REMOVAL_READINESS.md");
 
@@ -208,6 +219,13 @@ describe("legacy organization fallback removal readiness", () => {
     expect(audit).toContain("receivable update writes");
     expect(audit).toContain("receivable status update writes");
     expect(audit).toContain("receivable delete writes");
+    expect(audit).toContain("bank action paths in app/protected/bancos/actions.ts");
+    expect(audit).toContain("app/protected/bancos/actions.ts no longer accepts legacy null organization rows");
+    expect(audit).toContain("bank selected member validation reads from `family_members`");
+    expect(audit).toContain("bank edit/delete validation reads from `banks`");
+    expect(audit).toContain("bank update writes");
+    expect(audit).toContain("bank balance update writes");
+    expect(audit).toContain("bank delete writes");
     expect(audit).not.toContain("app/protected/admin/actions.ts still accepts legacy null organization rows");
   });
 
@@ -228,6 +246,7 @@ describe("legacy organization fallback removal readiness", () => {
     expect(remainingSection).not.toContain("app/protected/gastos/actions.ts");
     expect(remainingSection).not.toContain("app/protected/contas-a-pagar/actions.ts");
     expect(remainingSection).not.toContain("app/protected/contas-a-receber/actions.ts");
+    expect(remainingSection).not.toContain("app/protected/bancos/actions.ts");
     expect(audit).toContain("avoid schema, rls, ui, and e2e mixing");
   });
 });

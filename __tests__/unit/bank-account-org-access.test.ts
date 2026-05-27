@@ -3,7 +3,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 type QueryRecord = {
   table: string;
   eq: Record<string, unknown>;
-  or?: string;
 };
 
 const mockState = vi.hoisted(() => ({
@@ -37,8 +36,7 @@ function expectMemberLookupFilters(id: string) {
   const record = mockState.queryRecords.filter((item) => item.table === "family_members").at(-1);
   expect(record).toEqual({
     table: "family_members",
-    eq: { id, owner_id: "owner-1" },
-    or: "organization_id.eq.org-1,organization_id.is.null",
+    eq: { id, owner_id: "owner-1", organization_id: "org-1" },
   });
 }
 
@@ -47,9 +45,8 @@ function makeQuery(table: string) {
   const query = {
     select() { return query; },
     eq(key: string, value: unknown) { record.eq[key] = value; return query; },
-    or(expression: string) { record.or = expression; return query; },
     maybeSingle() {
-      mockState.queryRecords.push({ table: record.table, eq: { ...record.eq }, or: record.or });
+      mockState.queryRecords.push({ table: record.table, eq: { ...record.eq } });
       return Promise.resolve({ data: table === "family_members" ? mockState.memberLookup : null, error: null });
     },
     insert(payload: Record<string, unknown>) {
@@ -105,23 +102,14 @@ describe("bank account organization access actions", () => {
     expect(mockState.insertedPayloads).toHaveLength(0);
   });
 
-  it("keeps a legacy linked member compatible while writing the active organization id", async () => {
+  it("blocks a legacy linked member while keeping active organization writes explicit", async () => {
     const { createBankAccount } = await import("@/app/protected/bancos/actions");
-    mockState.memberLookup = { id: "legacy-member", organization_id: null };
+    mockState.memberLookup = null;
 
     const result = await createBankAccount({}, validBankAccountForm({ family_member_id: "legacy-member" }));
 
-    expect(result).toEqual({ success: "Banco cadastrado com sucesso." });
+    expect(result).toEqual({ error: "Pessoa vinculada nao pertence a esta organizacao." });
     expectMemberLookupFilters("legacy-member");
-    expect(mockState.insertedPayloads).toEqual([
-      expect.objectContaining({
-        owner_id: "owner-1",
-        organization_id: "org-1",
-        family_member_id: "legacy-member",
-        bank_name: "Banco Principal",
-        current_balance: 1500.25,
-        currency: "BRL",
-      }),
-    ]);
+    expect(mockState.insertedPayloads).toHaveLength(0);
   });
 });

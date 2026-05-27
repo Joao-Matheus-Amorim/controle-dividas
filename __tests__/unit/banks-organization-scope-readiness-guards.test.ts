@@ -81,26 +81,26 @@ describe("banks organization scope readiness", () => {
   it("keeps updateBankAccount preserving organization scope", () => {
     expect(updateBankAccountBody).toContain("assertcanmanagebankaccount");
     expect(updateBankAccountBody).toContain("organization_id: organization.id");
-    expect(updateBankAccountBody).toContain("organizationorlegacyfilter(organization.id)");
+    expect(updateBankAccountBody).toContain(".eq(\"organization_id\", organization.id)");
   });
 
   it("keeps updateBankAccountBalance preserving organization scope", () => {
     expect(updateBankAccountBalanceBody).toContain("assertcanmanagebankaccount");
     expect(updateBankAccountBalanceBody).toContain("organization_id: organization.id");
-    expect(updateBankAccountBalanceBody).toContain("organizationorlegacyfilter(organization.id)");
+    expect(updateBankAccountBalanceBody).toContain(".eq(\"organization_id\", organization.id)");
   });
 
-  it("keeps manage path scoped by owner and transitional organization filter", () => {
+  it("keeps manage path scoped by owner and active organization", () => {
     expect(assertCanManageBankAccountBody).toContain(".eq(\"owner_id\", profile.owner_id)");
-    expect(assertCanManageBankAccountBody).toContain("organizationorlegacyfilter(organization.id)");
+    expect(assertCanManageBankAccountBody).toContain(".eq(\"organization_id\", organization.id)");
     expect(assertCanManageBankAccountBody).toContain("assertmemberbelongstoorganization");
     expect(assertCanManageBankAccountBody).toContain("assertcanaccessmember");
   });
 
-  it("keeps delete path scoped by owner and transitional organization filter", () => {
+  it("keeps delete path scoped by owner and active organization", () => {
     expect(deleteBankAccountBody).toContain("assertcanmanagebankaccount");
     expect(deleteBankAccountBody).toContain(".eq(\"owner_id\", profile.owner_id)");
-    expect(deleteBankAccountBody).toContain("organizationorlegacyfilter(organization.id)");
+    expect(deleteBankAccountBody).toContain(".eq(\"organization_id\", organization.id)");
   });
 
   it("records that the read path remains transitional", () => {
