@@ -9,7 +9,7 @@ import {
 import { AppActionFeedback } from "@/components/app/app-action-feedback";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { DbFamilyMember } from "@/lib/finance/server";
+import type { DbFamilyMember } from "@/lib/finance/types";
 
 const initialState: SettingsActionState = {};
 
