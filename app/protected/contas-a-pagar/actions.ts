@@ -19,10 +19,6 @@ export type PayableBillActionState = {
   success?: string;
 };
 
-function organizationOrLegacyFilter(organizationId: string) {
-  return `organization_id.eq.${organizationId},organization_id.is.null`;
-}
-
 async function assertResponsibleMemberBelongsToOrganization(
   ownerId: string,
   organizationId: string,
@@ -35,7 +31,7 @@ async function assertResponsibleMemberBelongsToOrganization(
     .select("id, organization_id")
     .eq("id", responsibleMemberId)
     .eq("owner_id", ownerId)
-    .or(organizationOrLegacyFilter(organizationId))
+    .eq("organization_id", organizationId)
     .maybeSingle();
 
   if (error) {
@@ -62,7 +58,7 @@ async function assertCanManagePayableBill(
     .select("id, owner_id, responsible_member_id")
     .eq("id", billId)
     .eq("owner_id", profile.owner_id)
-    .or(organizationOrLegacyFilter(organization.id))
+    .eq("organization_id", organization.id)
     .maybeSingle();
 
   if (error) {
@@ -248,7 +244,7 @@ export async function updatePayableBill(
       })
       .eq("id", id)
       .eq("owner_id", profile.owner_id)
-      .or(organizationOrLegacyFilter(organization.id));
+      .eq("organization_id", organization.id);
 
     if (error) {
       return { error: error.message };
@@ -295,7 +291,7 @@ export async function updatePayableBillStatus(
       })
       .eq("id", id)
       .eq("owner_id", profile.owner_id)
-      .or(organizationOrLegacyFilter(organization.id));
+      .eq("organization_id", organization.id);
 
     if (error) {
       return { error: error.message };
@@ -339,7 +335,7 @@ export async function deletePayableBill(
       .delete()
       .eq("id", id)
       .eq("owner_id", profile.owner_id)
-      .or(organizationOrLegacyFilter(organization.id));
+      .eq("organization_id", organization.id);
 
     if (error) {
       return { error: error.message };

@@ -84,26 +84,26 @@ describe("payable bills organization scope readiness", () => {
   it("keeps updatePayableBill preserving organization scope", () => {
     expect(updatePayableBillBody).toContain("assertcanmanagepayablebill");
     expect(updatePayableBillBody).toContain("organization_id: organization.id");
-    expect(updatePayableBillBody).toContain("organizationorlegacyfilter(organization.id)");
+    expect(updatePayableBillBody).toContain(".eq(\"organization_id\", organization.id)");
   });
 
   it("keeps updatePayableBillStatus preserving organization scope", () => {
     expect(updatePayableBillStatusBody).toContain("assertcanmanagepayablebill");
     expect(updatePayableBillStatusBody).toContain("organization_id: organization.id");
-    expect(updatePayableBillStatusBody).toContain("organizationorlegacyfilter(organization.id)");
+    expect(updatePayableBillStatusBody).toContain(".eq(\"organization_id\", organization.id)");
   });
 
-  it("keeps manage path scoped by owner and transitional organization filter", () => {
+  it("keeps manage path scoped by owner and active organization", () => {
     expect(assertCanManagePayableBillBody).toContain(".eq(\"owner_id\", profile.owner_id)");
-    expect(assertCanManagePayableBillBody).toContain("organizationorlegacyfilter(organization.id)");
+    expect(assertCanManagePayableBillBody).toContain(".eq(\"organization_id\", organization.id)");
     expect(assertCanManagePayableBillBody).toContain("assertresponsiblememberbelongstoorganization");
     expect(assertCanManagePayableBillBody).toContain("assertcanaccessmember");
   });
 
-  it("keeps delete path scoped by owner and transitional organization filter", () => {
+  it("keeps delete path scoped by owner and active organization", () => {
     expect(deletePayableBillBody).toContain("assertcanmanagepayablebill");
     expect(deletePayableBillBody).toContain(".eq(\"owner_id\", profile.owner_id)");
-    expect(deletePayableBillBody).toContain("organizationorlegacyfilter(organization.id)");
+    expect(deletePayableBillBody).toContain(".eq(\"organization_id\", organization.id)");
   });
 
   it("records that the read path remains transitional", () => {

@@ -136,7 +136,7 @@ const writeExpectations: FunctionExpectation[] = [
     table: "payable_bills",
     operation: "update",
     requiresOrganizationId: true,
-    requiresOrganizationFilter: true,
+    requiresActiveOrganizationFilter: true,
   },
   {
     file: "app/protected/contas-a-pagar/actions.ts",
@@ -144,14 +144,14 @@ const writeExpectations: FunctionExpectation[] = [
     table: "payable_bills",
     operation: "update",
     requiresOrganizationId: true,
-    requiresOrganizationFilter: true,
+    requiresActiveOrganizationFilter: true,
   },
   {
     file: "app/protected/contas-a-pagar/actions.ts",
     functionName: "deletePayableBill",
     table: "payable_bills",
     operation: "delete",
-    requiresOrganizationFilter: true,
+    requiresActiveOrganizationFilter: true,
   },
   {
     file: "app/protected/contas-a-receber/actions.ts",
