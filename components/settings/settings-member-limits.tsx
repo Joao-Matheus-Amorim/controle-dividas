@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import type { DbFamilyMember } from "@/lib/finance/server";
+import type { DbFamilyMember } from "@/lib/finance/types";
 import { SettingsMemberLimitForm } from "./settings-member-limit-form";
 import { compactCurrency } from "./settings-utils";
 
