@@ -21,7 +21,7 @@ describe("banks RLS gated integration", () => {
     expect(runRlsTests).toBe(false);
   });
 
-  rlsIt("hides bank accounts from another organization when owner_id is the same", async () => {
+  rlsIt("returns only bank accounts for the active organization", async () => {
     const fixture = createExpenseCategoryFixtureSet();
 
     const admin = createClient(config.supabaseUrl!, config.serviceRoleKey!, {
@@ -50,7 +50,7 @@ describe("banks RLS gated integration", () => {
 
     const bankAId = crypto.randomUUID();
     const bankBId = crypto.randomUUID();
-    const legacyBankId = crypto.randomUUID();
+    const secondBankAId = crypto.randomUUID();
 
     try {
       const orgResult = await admin.from("organizations").insert([
@@ -128,11 +128,11 @@ describe("banks RLS gated integration", () => {
           currency: "EUR",
         },
         {
-          id: legacyBankId,
+          id: secondBankAId,
           owner_id: ownerId,
-          organization_id: null,
+          organization_id: orgA.id,
           family_member_id: memberAId,
-          bank_name: `${fixture.prefix} Legacy Bank`,
+          bank_name: `${fixture.prefix} Bank A2`,
           account_type: "corrente",
           current_balance: 30,
           currency: "EUR",
@@ -141,20 +141,20 @@ describe("banks RLS gated integration", () => {
 
       if (bankResult.error) throw bankResult.error;
 
-      const ids = [bankAId, bankBId, legacyBankId];
+      const ids = [bankAId, bankBId, secondBankAId];
 
       const result = await user.from("banks").select("id").in("id", ids);
 
       if (result.error) throw result.error;
 
       expect(result.data?.map((row) => row.id).sort()).toEqual(
-        [bankAId, legacyBankId].sort(),
+        [bankAId, secondBankAId].sort(),
       );
     } finally {
       await admin
         .from("banks")
         .delete()
-        .in("id", [bankAId, bankBId, legacyBankId]);
+        .in("id", [bankAId, bankBId, secondBankAId]);
 
       await admin.from("family_members").delete().in("id", [memberAId, memberBId]);
 

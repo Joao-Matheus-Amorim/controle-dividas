@@ -55,13 +55,13 @@ const rlsCoverage: RlsTableExpectation[] = [
   },
   {
     table: "profiles",
-    rlsFiles: ["015_profiles_organization_rls.sql"],
-    status: "transitional",
+    rlsFiles: ["036_profiles_rls_remove_legacy_fallback.sql"],
+    status: "covered",
     policies: [
-      { file: "015_profiles_organization_rls.sql", name: "profiles_select_organization_or_legacy", operation: "select" },
-      { file: "015_profiles_organization_rls.sql", name: "profiles_insert_owner_organization_or_legacy", operation: "insert" },
-      { file: "015_profiles_organization_rls.sql", name: "profiles_update_owner_organization_or_legacy", operation: "update" },
-      { file: "015_profiles_organization_rls.sql", name: "profiles_delete_owner_organization_or_legacy", operation: "delete" },
+      { file: "036_profiles_rls_remove_legacy_fallback.sql", name: "profiles_select_organization", operation: "select" },
+      { file: "036_profiles_rls_remove_legacy_fallback.sql", name: "profiles_insert_owner_organization", operation: "insert" },
+      { file: "036_profiles_rls_remove_legacy_fallback.sql", name: "profiles_update_owner_organization", operation: "update" },
+      { file: "036_profiles_rls_remove_legacy_fallback.sql", name: "profiles_delete_owner_organization", operation: "delete" },
     ],
   },
   {
@@ -99,57 +99,57 @@ const rlsCoverage: RlsTableExpectation[] = [
   },
   {
     table: "banks",
-    rlsFiles: ["014_banks_organization_rls.sql"],
-    status: "transitional",
+    rlsFiles: ["035_banks_rls_remove_legacy_fallback.sql"],
+    status: "covered",
     policies: [
-      { file: "014_banks_organization_rls.sql", name: "banks_select_organization_or_legacy", operation: "select" },
-      { file: "014_banks_organization_rls.sql", name: "banks_insert_owner_organization_or_legacy", operation: "insert" },
-      { file: "014_banks_organization_rls.sql", name: "banks_update_owner_organization_or_legacy", operation: "update" },
-      { file: "014_banks_organization_rls.sql", name: "banks_delete_owner_organization_or_legacy", operation: "delete" },
+      { file: "035_banks_rls_remove_legacy_fallback.sql", name: "banks_select_organization", operation: "select" },
+      { file: "035_banks_rls_remove_legacy_fallback.sql", name: "banks_insert_owner_organization", operation: "insert" },
+      { file: "035_banks_rls_remove_legacy_fallback.sql", name: "banks_update_owner_organization", operation: "update" },
+      { file: "035_banks_rls_remove_legacy_fallback.sql", name: "banks_delete_owner_organization", operation: "delete" },
     ],
   },
   {
     table: "payable_bills",
-    rlsFiles: ["012_payable_bills_organization_rls.sql"],
-    status: "transitional",
+    rlsFiles: ["033_payable_bills_rls_remove_legacy_fallback.sql"],
+    status: "covered",
     policies: [
-      { file: "012_payable_bills_organization_rls.sql", name: "payable_bills_select_organization_or_legacy", operation: "select" },
-      { file: "012_payable_bills_organization_rls.sql", name: "payable_bills_insert_owner_organization_or_legacy", operation: "insert" },
-      { file: "012_payable_bills_organization_rls.sql", name: "payable_bills_update_owner_organization_or_legacy", operation: "update" },
-      { file: "012_payable_bills_organization_rls.sql", name: "payable_bills_delete_owner_organization_or_legacy", operation: "delete" },
+      { file: "033_payable_bills_rls_remove_legacy_fallback.sql", name: "payable_bills_select_organization", operation: "select" },
+      { file: "033_payable_bills_rls_remove_legacy_fallback.sql", name: "payable_bills_insert_owner_organization", operation: "insert" },
+      { file: "033_payable_bills_rls_remove_legacy_fallback.sql", name: "payable_bills_update_owner_organization", operation: "update" },
+      { file: "033_payable_bills_rls_remove_legacy_fallback.sql", name: "payable_bills_delete_owner_organization", operation: "delete" },
     ],
   },
   {
     table: "receivable_incomes",
-    rlsFiles: ["013_receivable_incomes_organization_rls.sql"],
-    status: "transitional",
+    rlsFiles: ["034_receivable_incomes_rls_remove_legacy_fallback.sql"],
+    status: "covered",
     policies: [
-      { file: "013_receivable_incomes_organization_rls.sql", name: "receivable_incomes_select_organization_or_legacy", operation: "select" },
-      { file: "013_receivable_incomes_organization_rls.sql", name: "receivable_incomes_insert_owner_organization_or_legacy", operation: "insert" },
-      { file: "013_receivable_incomes_organization_rls.sql", name: "receivable_incomes_update_owner_organization_or_legacy", operation: "update" },
-      { file: "013_receivable_incomes_organization_rls.sql", name: "receivable_incomes_delete_owner_organization_or_legacy", operation: "delete" },
+      { file: "034_receivable_incomes_rls_remove_legacy_fallback.sql", name: "receivable_incomes_select_organization", operation: "select" },
+      { file: "034_receivable_incomes_rls_remove_legacy_fallback.sql", name: "receivable_incomes_insert_owner_organization", operation: "insert" },
+      { file: "034_receivable_incomes_rls_remove_legacy_fallback.sql", name: "receivable_incomes_update_owner_organization", operation: "update" },
+      { file: "034_receivable_incomes_rls_remove_legacy_fallback.sql", name: "receivable_incomes_delete_owner_organization", operation: "delete" },
     ],
   },
   {
     table: "user_module_permissions",
-    rlsFiles: ["016_user_module_permissions_organization_rls.sql"],
-    status: "transitional",
+    rlsFiles: ["037_user_module_permissions_rls_remove_legacy_fallback.sql"],
+    status: "covered",
     policies: [
-      { file: "016_user_module_permissions_organization_rls.sql", name: "module_permissions_select_organization_or_legacy", operation: "select" },
-      { file: "016_user_module_permissions_organization_rls.sql", name: "module_permissions_insert_owner_organization_or_legacy", operation: "insert" },
-      { file: "016_user_module_permissions_organization_rls.sql", name: "module_permissions_update_owner_organization_or_legacy", operation: "update" },
-      { file: "016_user_module_permissions_organization_rls.sql", name: "module_permissions_delete_owner_organization_or_legacy", operation: "delete" },
+      { file: "037_user_module_permissions_rls_remove_legacy_fallback.sql", name: "module_permissions_select_organization", operation: "select" },
+      { file: "037_user_module_permissions_rls_remove_legacy_fallback.sql", name: "module_permissions_insert_owner_organization", operation: "insert" },
+      { file: "037_user_module_permissions_rls_remove_legacy_fallback.sql", name: "module_permissions_update_owner_organization", operation: "update" },
+      { file: "037_user_module_permissions_rls_remove_legacy_fallback.sql", name: "module_permissions_delete_owner_organization", operation: "delete" },
     ],
   },
   {
     table: "user_feature_permissions",
-    rlsFiles: ["017_user_feature_permissions_organization_rls.sql"],
-    status: "transitional",
+    rlsFiles: ["038_user_feature_permissions_rls_remove_legacy_fallback.sql"],
+    status: "covered",
     policies: [
-      { file: "017_user_feature_permissions_organization_rls.sql", name: "feature_permissions_select_organization_or_legacy", operation: "select" },
-      { file: "017_user_feature_permissions_organization_rls.sql", name: "feature_permissions_insert_owner_organization_or_legacy", operation: "insert" },
-      { file: "017_user_feature_permissions_organization_rls.sql", name: "feature_permissions_update_owner_organization_or_legacy", operation: "update" },
-      { file: "017_user_feature_permissions_organization_rls.sql", name: "feature_permissions_delete_owner_organization_or_legacy", operation: "delete" },
+      { file: "038_user_feature_permissions_rls_remove_legacy_fallback.sql", name: "feature_permissions_select_organization", operation: "select" },
+      { file: "038_user_feature_permissions_rls_remove_legacy_fallback.sql", name: "feature_permissions_insert_owner_organization", operation: "insert" },
+      { file: "038_user_feature_permissions_rls_remove_legacy_fallback.sql", name: "feature_permissions_update_owner_organization", operation: "update" },
+      { file: "038_user_feature_permissions_rls_remove_legacy_fallback.sql", name: "feature_permissions_delete_owner_organization", operation: "delete" },
     ],
   },
 ];
@@ -290,21 +290,12 @@ describe("RLS coverage inventory", () => {
     });
   });
 
-  it("marks nullable organization_id tables as transitional rather than final SaaS coverage", () => {
+  it("has no remaining transitional RLS fallback tables", () => {
     const transitionalTables = rlsCoverage
       .filter((entry) => entry.status === "transitional")
       .map((entry) => entry.table)
       .sort();
 
-    expect(transitionalTables).toEqual(
-      [
-        "banks",
-        "payable_bills",
-        "profiles",
-        "receivable_incomes",
-        "user_feature_permissions",
-        "user_module_permissions",
-      ].sort(),
-    );
+    expect(transitionalTables).toEqual([]);
   });
 });

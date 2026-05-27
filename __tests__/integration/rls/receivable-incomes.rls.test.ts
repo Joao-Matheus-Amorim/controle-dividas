@@ -21,7 +21,7 @@ describe("receivable_incomes RLS gated integration", () => {
     expect(runRlsTests).toBe(false);
   });
 
-  rlsIt("hides incomes from another organization when owner_id is the same", async () => {
+  rlsIt("returns only incomes for the active organization", async () => {
     const fixture = createExpenseCategoryFixtureSet();
 
     const admin = createClient(config.supabaseUrl!, config.serviceRoleKey!, {
@@ -50,7 +50,7 @@ describe("receivable_incomes RLS gated integration", () => {
 
     const incomeAId = crypto.randomUUID();
     const incomeBId = crypto.randomUUID();
-    const legacyIncomeId = crypto.randomUUID();
+    const secondIncomeAId = crypto.randomUUID();
 
     try {
       const orgResult = await admin.from("organizations").insert([
@@ -130,11 +130,11 @@ describe("receivable_incomes RLS gated integration", () => {
           status: "previsto",
         },
         {
-          id: legacyIncomeId,
+          id: secondIncomeAId,
           owner_id: ownerId,
-          organization_id: null,
+          organization_id: orgA.id,
           receiver_member_id: memberAId,
-          source: `${fixture.prefix} Legacy Income`,
+          source: `${fixture.prefix} Income A2`,
           income_type: "fixa",
           amount: 30,
           expected_date: "2026-05-17",
@@ -144,7 +144,7 @@ describe("receivable_incomes RLS gated integration", () => {
 
       if (incomeResult.error) throw incomeResult.error;
 
-      const ids = [incomeAId, incomeBId, legacyIncomeId];
+      const ids = [incomeAId, incomeBId, secondIncomeAId];
 
       const result = await user
         .from("receivable_incomes")
@@ -154,13 +154,13 @@ describe("receivable_incomes RLS gated integration", () => {
       if (result.error) throw result.error;
 
       expect(result.data?.map((row) => row.id).sort()).toEqual(
-        [incomeAId, legacyIncomeId].sort(),
+        [incomeAId, secondIncomeAId].sort(),
       );
     } finally {
       await admin
         .from("receivable_incomes")
         .delete()
-        .in("id", [incomeAId, incomeBId, legacyIncomeId]);
+        .in("id", [incomeAId, incomeBId, secondIncomeAId]);
 
       await admin.from("family_members").delete().in("id", [memberAId, memberBId]);
 

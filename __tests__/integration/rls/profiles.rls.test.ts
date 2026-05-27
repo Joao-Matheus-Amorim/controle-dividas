@@ -16,7 +16,7 @@ describe("profiles RLS gated integration", () => {
     expect(runRlsTests ? config.missingVariables : []).toEqual([]);
   });
 
-  rlsIt("returns only profiles for the active organization plus legacy rows", async () => {
+  rlsIt("returns only profiles for the active organization plus the signed-in user profile", async () => {
     const fixture = createExpenseCategoryFixtureSet();
 
     const admin = createClient(config.supabaseUrl!, config.serviceRoleKey!, {
@@ -57,8 +57,8 @@ describe("profiles RLS gated integration", () => {
     const profileAId = crypto.randomUUID();
     const profileBId = crypto.randomUUID();
     const otherOrgProfileAOwnerId = crypto.randomUUID();
-    const legacyProfileAId = crypto.randomUUID();
-    const profileIds = [profileAId, profileBId, otherOrgProfileAOwnerId, legacyProfileAId];
+    const secondProfileAId = crypto.randomUUID();
+    const profileIds = [profileAId, profileBId, otherOrgProfileAOwnerId, secondProfileAId];
     const orgIds = [orgA.id, orgB.id];
 
     try {
@@ -103,11 +103,11 @@ describe("profiles RLS gated integration", () => {
           is_active: true,
         },
         {
-          id: legacyProfileAId,
+          id: secondProfileAId,
           owner_id: userAId,
-          organization_id: null,
-          name: `${fixture.prefix} Legacy Profile A`,
-          email: `${fixture.slugPrefix}+legacy-profile-a@example.com`,
+          organization_id: orgA.id,
+          name: `${fixture.prefix} Profile A2`,
+          email: `${fixture.slugPrefix}+profile-a2@example.com`,
           role: "user",
           is_active: true,
         },
@@ -118,7 +118,7 @@ describe("profiles RLS gated integration", () => {
       if (userAResult.error) throw userAResult.error;
 
       expect(userAResult.data?.map((row) => row.id).sort()).toEqual(
-        [profileAId, legacyProfileAId].sort(),
+        [profileAId, secondProfileAId].sort(),
       );
 
       const userBResult = await userBClient.from("profiles").select("id").in("id", profileIds);

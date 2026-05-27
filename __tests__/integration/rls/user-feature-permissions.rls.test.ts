@@ -17,7 +17,7 @@ describe("user_feature_permissions RLS gated integration", () => {
   });
 
   rlsIt(
-    "returns only feature permissions for the active organization plus legacy rows",
+    "returns only feature permissions for the active organization",
     async () => {
       const fixture = createExpenseCategoryFixtureSet();
 
@@ -44,14 +44,14 @@ describe("user_feature_permissions RLS gated integration", () => {
 
       const profileAId = crypto.randomUUID();
       const profileBId = crypto.randomUUID();
-      const legacyProfileId = crypto.randomUUID();
+      const secondProfileAId = crypto.randomUUID();
 
       const permissionAId = crypto.randomUUID();
       const permissionBId = crypto.randomUUID();
-      const legacyPermissionId = crypto.randomUUID();
+      const secondPermissionAId = crypto.randomUUID();
 
-      const profileIds = [profileAId, profileBId, legacyProfileId];
-      const permissionIds = [permissionAId, permissionBId, legacyPermissionId];
+      const profileIds = [profileAId, profileBId, secondProfileAId];
+      const permissionIds = [permissionAId, permissionBId, secondPermissionAId];
       const orgIds = [orgA.id, orgB.id];
 
       try {
@@ -103,11 +103,11 @@ describe("user_feature_permissions RLS gated integration", () => {
             is_active: true,
           },
           {
-            id: legacyProfileId,
+            id: secondProfileAId,
             owner_id: ownerId,
-            organization_id: null,
-            name: `${fixture.prefix} Legacy Feature Profile`,
-            email: `${fixture.slugPrefix}+legacy-feature-profile@example.com`,
+            organization_id: orgA.id,
+            name: `${fixture.prefix} Feature Profile A2`,
+            email: `${fixture.slugPrefix}+feature-profile-a2@example.com`,
             role: "user",
             is_active: true,
           },
@@ -135,10 +135,10 @@ describe("user_feature_permissions RLS gated integration", () => {
               is_enabled: true,
             },
             {
-              id: legacyPermissionId,
+              id: secondPermissionAId,
               owner_id: ownerId,
-              organization_id: null,
-              profile_id: legacyProfileId,
+              organization_id: orgA.id,
+              profile_id: secondProfileAId,
               feature_key: "view_reports",
               is_enabled: true,
             },
@@ -154,7 +154,7 @@ describe("user_feature_permissions RLS gated integration", () => {
         if (result.error) throw result.error;
 
         expect(result.data?.map((row) => row.id).sort()).toEqual(
-          [permissionAId, legacyPermissionId].sort(),
+          [permissionAId, secondPermissionAId].sort(),
         );
       } finally {
         await admin
