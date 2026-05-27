@@ -21,7 +21,7 @@ describe("payable_bills RLS gated integration", () => {
     expect(runRlsTests).toBe(false);
   });
 
-  rlsIt("hides bills from another organization when owner_id is the same", async () => {
+  rlsIt("returns only bills for the active organization", async () => {
     const fixture = createExpenseCategoryFixtureSet();
 
     const admin = createClient(config.supabaseUrl!, config.serviceRoleKey!, {
@@ -50,7 +50,7 @@ describe("payable_bills RLS gated integration", () => {
 
     const billAId = crypto.randomUUID();
     const billBId = crypto.randomUUID();
-    const legacyBillId = crypto.randomUUID();
+    const secondBillAId = crypto.randomUUID();
 
     try {
       const orgResult = await admin.from("organizations").insert([
@@ -130,10 +130,10 @@ describe("payable_bills RLS gated integration", () => {
           bill_type: "avulsa",
         },
         {
-          id: legacyBillId,
+          id: secondBillAId,
           owner_id: ownerId,
-          organization_id: null,
-          name: `${fixture.prefix} Legacy Bill`,
+          organization_id: orgA.id,
+          name: `${fixture.prefix} Bill A2`,
           amount: 30,
           due_date: "2026-05-17",
           responsible_member_id: memberAId,
@@ -144,20 +144,20 @@ describe("payable_bills RLS gated integration", () => {
 
       if (billResult.error) throw billResult.error;
 
-      const ids = [billAId, billBId, legacyBillId];
+      const ids = [billAId, billBId, secondBillAId];
 
       const result = await user.from("payable_bills").select("id").in("id", ids);
 
       if (result.error) throw result.error;
 
       expect(result.data?.map((row) => row.id).sort()).toEqual(
-        [billAId, legacyBillId].sort(),
+        [billAId, secondBillAId].sort(),
       );
     } finally {
       await admin
         .from("payable_bills")
         .delete()
-        .in("id", [billAId, billBId, legacyBillId]);
+        .in("id", [billAId, billBId, secondBillAId]);
 
       await admin.from("family_members").delete().in("id", [memberAId, memberBId]);
 
