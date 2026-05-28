@@ -149,10 +149,16 @@ Resultado atual:
 
 `organizations` possui campos como `plan` e `stripe_customer_id`, mas nao ha implementacao Stripe/checkout/subscription.
 
+Contrato local de planos:
+
+- `lib/billing/plans.ts`;
+- ADR 0008;
+- alinhado com a constraint de `organizations.plan` da migration `006`.
+
 Resultado esperado:
 
-- decidir modelo de plano por organization;
-- criar integration plan;
+- registrar evidencia externa pendente ou decidir deferimento explicito;
+- definir UI/fluxo de assinatura;
 - implementar billing somente depois de RLS Live Gate, orgSlug e UX multi-org estarem estaveis.
 
 ### GAP-004 - Remocao futura de `owner_id`

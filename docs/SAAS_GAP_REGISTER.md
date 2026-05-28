@@ -34,7 +34,7 @@ A gap is not solved until a small PR is merged with green CI and the related doc
 | ID | Area | Current gap | Next safe action |
 | --- | --- | --- | --- |
 | GAP-005 | Compatibility | `owner_id` remains part of the transitional model. | Keep compatibility until the organization-only model is proven. |
-| GAP-006 | Billing | Billing is not implemented. | Define billing after organization context, RLS, and route strategy are stable. |
+| GAP-006 | Billing | Billing has a local plan contract, but Stripe checkout, portal, webhook, subscriptions, and commercial enforcement are not implemented. | Implement Stripe only after evidence gates are handled or explicitly deferred. |
 | GAP-007 | Admin bootstrap | `ADMIN_EMAIL` remains a bootstrap mechanism. | Plan a final organization admin and invitation model. |
 | GAP-010 | Documentation freshness | Audits can become stale after implementation PRs. | Reconcile docs after each merged implementation PR. |
 | GAP-011 | UI contracts | Critical finance UI components do not yet have explicit contract or snapshot-style coverage. | Start with one representative critical component and add non-brittle contract coverage before broad expansion. |

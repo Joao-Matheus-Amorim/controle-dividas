@@ -98,11 +98,27 @@ describe("SaaS hardening status docs", () => {
     expect(gapRegister).toContain("gap-002 | routes | adr 0007");
     expect(gapRegister).toContain("gap-008 | multi-org tests");
     expect(gapRegister).toContain("gap-006 is the next product implementation risk");
+    expect(gapRegister).toContain("billing has a local plan contract");
     expect(gapRegister).not.toContain("protected routes still use `/protected` instead of explicit organization routes");
     expect(gapRegister).not.toContain("switching between organizations has no dedicated tests");
 
     expect(e2eRoadmap).toContain("orgslug route contract");
     expect(e2eRoadmap).toContain("/org/[orgslug]");
     expect(e2eRoadmap).toContain("inaccessible slug");
+  });
+
+  it("keeps the billing plan contract documented as pre-Stripe work", () => {
+    const adrIndex = read("docs/adr/README.md");
+    const billingAdr = read("docs/adr/0008-billing-plan-contract-before-stripe.md");
+
+    expect(adrIndex).toContain("0008-billing-plan-contract-before-stripe.md");
+    expect(billingAdr).toContain("lib/billing/plans.ts");
+    expect(billingAdr).toContain("free");
+    expect(billingAdr).toContain("family_basic");
+    expect(billingAdr).toContain("family_plus");
+    expect(billingAdr).toContain("family_pro");
+    expect(billingAdr).toContain("nao implementa");
+    expect(billingAdr).toContain("stripe sdk");
+    expect(billingAdr).toContain("webhooks");
   });
 });
