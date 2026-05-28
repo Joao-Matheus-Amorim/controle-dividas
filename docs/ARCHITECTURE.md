@@ -147,6 +147,14 @@ Rotas protegidas atuais:
 
 Ainda nao existem rotas `[orgSlug]`.
 
+O contrato aceito para rotas organization-aware futuras esta no ADR 0007:
+
+```txt
+/org/[orgSlug]
+```
+
+`/protected` permanece como rota compativel durante a transicao.
+
 ### Server Components e Server Actions
 
 Server Components carregam dados no servidor, chamam helpers de permissao e montam a visao conforme profile/organizacao ativa.
@@ -360,7 +368,7 @@ Curto prazo:
 
 Medio prazo:
 
-- planejar e implementar rotas por `orgSlug`;
+- implementar rotas por `orgSlug` seguindo ADR 0007 (`/org/[orgSlug]`);
 - evoluir filtros/relatorios e periodo dinamico;
 - ampliar cobertura E2E de perfis e modulos.
 

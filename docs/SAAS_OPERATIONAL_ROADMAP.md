@@ -122,14 +122,23 @@ Resultado atual:
 
 ### GAP-004 - Rotas por `orgSlug`
 
-As rotas atuais ainda usam `/protected`. Helpers ja aceitam `orgSlug` opcional, mas nao ha estrutura de rota `[orgSlug]` no App Router.
+As rotas atuais ainda usam `/protected`. Helpers ja aceitam `orgSlug` opcional, mas nao ha estrutura de rota organization-aware no App Router.
+
+O contrato de roteamento foi definido no ADR 0007:
+
+```txt
+/org/[orgSlug]
+```
+
+`/protected` permanece como compatibilidade transicional ate a migracao ser concluida.
 
 Resultado esperado:
 
-- ADR ou plano de roteamento;
-- redirect/fallback definidos;
-- validacao server-side de acesso ao slug;
-- cobertura E2E de slug valido, slug sem acesso e troca de contexto.
+- helpers centralizados de path para `/org/[orgSlug]`;
+- primeira rota `/org/[orgSlug]` para dashboard sem remover `/protected`;
+- validacao server-side de acesso ao slug recebido na URL;
+- redirects/fallbacks definidos sem quebrar `/protected`;
+- cobertura E2E de slug valido, slug sem acesso e compatibilidade `/protected`.
 
 ### GAP-005 - Billing
 
@@ -166,7 +175,8 @@ Resultado esperado:
    - Registrar evidencia depois de uma execucao real verde.
 
 3. **Plano e PR base de `orgSlug`**
-   - Planejar rota, autorizacao, redirects e compatibilidade.
+   - ADR 0007 define `/org/[orgSlug]` e compatibilidade `/protected`.
+   - Proximo PR deve criar helpers centralizados de path e primeira rota dashboard.
    - Implementar sem billing.
 
 4. **Billing design**
