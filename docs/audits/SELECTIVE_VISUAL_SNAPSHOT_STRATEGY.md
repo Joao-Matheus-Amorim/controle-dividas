@@ -62,6 +62,7 @@ Ele deve complementar:
 - `docs/audits/DASHBOARD_UI_CONTRACT.md`;
 - `docs/audits/FINANCE_LIST_UI_CONTRACT.md`;
 - `docs/audits/FINANCE_FORM_UI_CONTRACT.md`;
+- `docs/audits/DASHBOARD_SUMMARY_VISUAL_FIXTURE.md`;
 - `docs/design/VISUAL_TOKENS_AND_COMPONENT_CONVENTIONS.md`;
 - ADR 0003.
 
@@ -86,3 +87,25 @@ Recomendacao inicial:
 ```txt
 dashboard summary acima da dobra com fixture local deterministica
 ```
+
+## Status da fixture inicial
+
+A fixture local deterministica definida para a primeira superficie esta em:
+
+```txt
+__tests__/fixtures/dashboard-summary-visual-snapshot.ts
+```
+
+Contrato documental:
+
+```txt
+docs/audits/DASHBOARD_SUMMARY_VISUAL_FIXTURE.md
+```
+
+Estado atual:
+
+- fixture local deterministica definida;
+- viewport inicial unico definido;
+- criterio de atualizacao e rollback definidos;
+- nenhum Playwright screenshot implementado neste passo;
+- nenhum snapshot visual amplo implementado.
