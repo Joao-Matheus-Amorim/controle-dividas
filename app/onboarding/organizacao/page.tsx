@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 import { OrganizationOnboardingForm } from "@/components/onboarding/organization-onboarding-form";
 
 export default function InitialOrganizationOnboardingPage() {
@@ -35,12 +33,12 @@ export default function InitialOrganizationOnboardingPage() {
           acesso inicial de owner.
         </div>
 
-        <Link
+        <a
           href="/protected"
           className="text-center text-sm font-semibold text-white/45 transition hover:text-white"
         >
           Voltar para o app
-        </Link>
+        </a>
       </section>
     </main>
   );

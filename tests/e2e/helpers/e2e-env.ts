@@ -3,6 +3,8 @@ type Env = Partial<Record<string, string | undefined>>;
 const requiredOnboardingVariables = [
   "E2E_ONBOARDING_EMAIL",
   "E2E_ONBOARDING_PASSWORD",
+  "NEXT_PUBLIC_SUPABASE_URL",
+  "SUPABASE_SERVICE_ROLE_KEY",
 ] as const;
 
 const requiredActiveOrganizationVariables = [
@@ -42,6 +44,8 @@ export function getOnboardingE2eConfig(env: Env = process.env) {
     missingVariables,
     email: env.E2E_ONBOARDING_EMAIL,
     password: env.E2E_ONBOARDING_PASSWORD,
+    supabaseUrl: env.NEXT_PUBLIC_SUPABASE_URL,
+    serviceRoleKey: env.SUPABASE_SERVICE_ROLE_KEY,
   };
 }
 
