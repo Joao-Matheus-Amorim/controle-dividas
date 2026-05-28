@@ -81,3 +81,5 @@ Depois deste contrato, a cobertura de UI deve ser expandida em PRs pequenos para
 2. formularios data-changing;
 3. estados vazios e erro;
 4. futuros graficos do dashboard quando GAP-018 for implementado.
+
+Status: listas financeiras primarias agora possuem contrato proprio em `docs/audits/FINANCE_LIST_UI_CONTRACT.md`.

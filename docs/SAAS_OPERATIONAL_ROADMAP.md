@@ -18,6 +18,7 @@ Fontes cruzadas nesta revisao:
 - `docs/audits/CURRENT_RLS_POLICIES_INVENTORY.md`
 - `docs/audits/ORGANIZATION_SCOPE_HARDENING_PLAN.md`
 - `docs/audits/DASHBOARD_UI_CONTRACT.md`
+- `docs/audits/FINANCE_LIST_UI_CONTRACT.md`
 - `docs/rls/RLS_LIVE_GATE.md`
 - `.github/workflows/rls-live-gate.yml`
 
@@ -78,6 +79,7 @@ A limpeza final de policies antigas owner/family foi versionada em:
 - Troca de organizacao ativa tem contrato Playwright gated cleanup-backed em `tests/e2e/multi-org-switch-authenticated-gated.spec.ts`.
 - Rotas `orgSlug` tem contrato Playwright gated cleanup-backed em `tests/e2e/orgslug-authenticated-gated.spec.ts`.
 - O dashboard possui contrato de UI nao fragil em `docs/audits/DASHBOARD_UI_CONTRACT.md` e guard dedicado para preservar textos, secoes, permissao e rotas compartilhadas.
+- As listas financeiras primarias possuem contrato de UI nao fragil em `docs/audits/FINANCE_LIST_UI_CONTRACT.md` e guard dedicado para preservar estrutura, estados vazios/filtros e acoes condicionadas por permissao.
 - RLS Live Gate existe em `.github/workflows/rls-live-gate.yml` e ja gera GitHub Step Summary + artifact `rls-live-gate-evidence-*`, mas ainda precisa de vars/secrets e execucao dedicada para virar evidencia verde de CI.
 
 ## 3. Estado de fechamento e gaps reais antes de declarar 100% coerente
@@ -170,18 +172,19 @@ O primeiro contrato de UI critica foi registrado para o dashboard.
 Resultado atual:
 
 - `docs/audits/DASHBOARD_UI_CONTRACT.md`;
+- `docs/audits/FINANCE_LIST_UI_CONTRACT.md`;
 - guard dedicado para `features/protected-pages/dashboard-page.tsx`;
 - guard dedicado para `components/dashboard/**`;
+- guard dedicado para listas primarias em `components/expenses`, `components/payables`, `components/receivables`, `components/banks` e `components/people`;
 - preservacao explicita do heading `Visão do mês`;
-- garantia documental de que nao ha snapshot amplo nem redesign neste passo.
+- garantia documental de que nao ha snapshot amplo nem redesign nestes passos.
 
 Resultado esperado:
 
-- expandir a cobertura para listas financeiras criticas;
 - expandir a cobertura para formularios data-changing;
 - manter cada expansao como PR pequeno antes de qualquer redesign visual amplo.
 
-### GAP-004 - Remocao futura de `owner_id`
+### GAP-005 - Remocao futura de `owner_id`
 
 `owner_id` ainda e parte do contrato atual. Remover agora seria prematuro.
 
@@ -215,7 +218,7 @@ Resultado esperado:
    - Planejar Stripe sem misturar com RLS/rotas.
 
 5. **Expandir contratos de UI financeira**
-   - Comecar por listas e formularios criticos.
+   - Avancar para formularios data-changing criticos.
    - Manter guards nao frageis.
    - Evitar snapshot amplo sem contrato visual claro.
 

@@ -81,8 +81,12 @@ describe("SaaS hardening status docs", () => {
     expect(roadmap).toContain("wrappers `app/org/[orgslug]`");
     expect(roadmap).toContain("dashboard possui contrato de ui");
     expect(roadmap).toContain("docs/audits/dashboard_ui_contract.md");
+    expect(roadmap).toContain("listas financeiras primarias possuem contrato de ui");
+    expect(roadmap).toContain("docs/audits/finance_list_ui_contract.md");
     expect(roadmap).toContain("gap-011 - contratos de ui financeira");
     expect(roadmap).not.toContain("gap-005 - contratos de ui financeira");
+    expect(roadmap).toContain("gap-005 - remocao futura de `owner_id`");
+    expect(roadmap).not.toContain("gap-004 - remocao futura de `owner_id`");
     expect(roadmap).toContain("billing");
     expect(roadmap).toContain("owner_id retirement plan");
   });
@@ -103,7 +107,7 @@ describe("SaaS hardening status docs", () => {
     expect(gapRegister).toContain("gap-008 | multi-org tests");
     expect(gapRegister).toContain("gap-006 is the next product implementation risk");
     expect(gapRegister).toContain("billing has a local plan contract");
-    expect(gapRegister).toContain("the dashboard now has a first non-brittle ui contract");
+    expect(gapRegister).toContain("the dashboard and primary finance lists now have non-brittle ui contracts");
     expect(gapRegister).not.toContain("protected routes still use `/protected` instead of explicit organization routes");
     expect(gapRegister).not.toContain("switching between organizations has no dedicated tests");
 
