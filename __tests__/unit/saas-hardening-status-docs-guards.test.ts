@@ -16,6 +16,8 @@ describe("SaaS hardening status docs", () => {
   const hardeningPlan = read("docs/audits/ORGANIZATION_SCOPE_HARDENING_PLAN.md");
   const roadmap = read("docs/SAAS_OPERATIONAL_ROADMAP.md");
   const inventory = read("docs/audits/CURRENT_RLS_POLICIES_INVENTORY.md");
+  const gapRegister = read("docs/SAAS_GAP_REGISTER.md");
+  const e2eRoadmap = read("docs/e2e/PLAYWRIGHT_COVERAGE_ROADMAP.md");
 
   it("keeps README aligned with completed organization scope hardening and RLS fallback removal", () => {
     expect(readme).toContain("020_expense_categories_organization_scope_hardening.sql");
@@ -89,5 +91,18 @@ describe("SaaS hardening status docs", () => {
     expect(inventory).toContain("user_feature_permissions");
     expect(inventory).toContain("gap operacional fechado na cadeia de migrations");
     expect(inventory).toContain("`owner_id` ainda e transicional");
+  });
+
+  it("keeps the gap register and E2E roadmap aligned with completed orgSlug work", () => {
+    expect(gapRegister).toContain("explicit organization routes `/org/[orgslug]`");
+    expect(gapRegister).toContain("gap-002 | routes | adr 0007");
+    expect(gapRegister).toContain("gap-008 | multi-org tests");
+    expect(gapRegister).toContain("gap-006 is the next product implementation risk");
+    expect(gapRegister).not.toContain("protected routes still use `/protected` instead of explicit organization routes");
+    expect(gapRegister).not.toContain("switching between organizations has no dedicated tests");
+
+    expect(e2eRoadmap).toContain("orgslug route contract");
+    expect(e2eRoadmap).toContain("/org/[orgslug]");
+    expect(e2eRoadmap).toContain("inaccessible slug");
   });
 });

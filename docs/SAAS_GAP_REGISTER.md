@@ -20,27 +20,25 @@ A gap is not solved until a small PR is merged with green CI and the related doc
 | --- | --- |
 | Public/auth smoke E2E | Covered |
 | Protected route smoke E2E | Covered |
+| Active organization UX and switch | Gated cleanup-backed covered |
+| Explicit organization routes `/org/[orgSlug]` | Implemented with `/protected` compatibility |
+| OrgSlug route E2E | Gated cleanup-backed covered |
 | Permission-sensitive E2E | Gated covered |
 | Data-changing E2E | Gated cleanup-backed covered |
 | Admin and permissions documentation reconciliation | Covered |
 | Supabase proxy and client boundary guards | Covered |
+| RLS fallback removal and legacy owner/family policy cleanup | Covered by migrations `030` to `039` |
 
 ## Open gaps
 
 | ID | Area | Current gap | Next safe action |
 | --- | --- | --- | --- |
-| GAP-001 | Organization UX | Multiple-organization behavior is not yet defined as a product and access contract. | Define the active-organization UX contract before route or billing work. |
-| GAP-002 | Routes | Protected routes still use `/protected` instead of explicit organization routes. | Plan route migration only after GAP-001. |
-| GAP-003 | RLS | Final finance RLS hardening is not complete. | Continue with small planning and test PRs before any broad policy rollout. |
-| GAP-004 | Legacy data | Legacy `organization_id IS NULL` fallback still exists. | Validate backfill and removal criteria before any cleanup. |
 | GAP-005 | Compatibility | `owner_id` remains part of the transitional model. | Keep compatibility until the organization-only model is proven. |
 | GAP-006 | Billing | Billing is not implemented. | Define billing after organization context, RLS, and route strategy are stable. |
 | GAP-007 | Admin bootstrap | `ADMIN_EMAIL` remains a bootstrap mechanism. | Plan a final organization admin and invitation model. |
-| GAP-008 | Multi-org tests | Switching between organizations has no dedicated tests because the UX contract is not defined. | Define behavior first, then add tests. |
-| GAP-009 | Schema hardening | `organization_id NOT NULL` is not safe yet. | Prove backfill, inserts, RLS readiness, and rollback first. |
 | GAP-010 | Documentation freshness | Audits can become stale after implementation PRs. | Reconcile docs after each merged implementation PR. |
 | GAP-011 | UI contracts | Critical finance UI components do not yet have explicit contract or snapshot-style coverage. | Start with one representative critical component and add non-brittle contract coverage before broad expansion. |
-| GAP-014 | One active membership | The current one-active-membership model limits multi-organization use cases and must be explicit as product behavior. | Define the active organization UX/product contract before changing membership rules. |
+| GAP-014 | Membership lifecycle | The one-active-membership database limit was removed, but final invitation/admin membership behavior still needs a dedicated decision. | Define final invitation/admin membership behavior before removing transitional bootstrap assumptions. |
 | GAP-015 | Sensitive operation controls | Rate limiting, sensitive-action audit logging, and data retention policies are not yet documented as implemented controls. | Create planning issues for rate limits, audit events, and retention policy before runtime work. |
 | GAP-016 | Onboarding terminology | The onboarding path and wording expose organization terminology that can feel abstract for personal/family finance users. | Define product copy and UX contract before UI changes. |
 | GAP-017 | Notifications | Due-date alerts and notification channels are not implemented. | Define notification scope, channel, and opt-in model before implementation. |
@@ -51,12 +49,18 @@ A gap is not solved until a small PR is merged with green CI and the related doc
 
 | ID | Area | Closed by | Notes |
 | --- | --- | --- | --- |
-| GAP-012 | Supabase proxy coverage | #488, #489, #490, #493, #494 | Covered by proxy entrypoint guard and Supabase client factory boundary guard. This does not claim final RLS hardening or final tenant-isolation readiness. |
-| GAP-013 | Finance server size | #496, #500, #518, #520, #522, #524, #526, #528, #530, #532, #534 | Resolved by extracting relation, seed, read-helper, and dashboard aggregation boundaries; adding failure-path coverage; documenting ADR 0006; and protecting `lib/finance/server.ts` as an intentional compatibility façade/orchestrator with guard coverage. |
+| GAP-001 | Organization UX | ADR 0002, active organization indicator, switch action, and gated multi-org switch E2E | Active organization UX is implemented and covered as a transitional contract. |
+| GAP-002 | Routes | ADR 0007, `/org/[orgSlug]` routes, shared protected page implementations, and gated orgSlug E2E | `/protected` remains as compatibility, not as the only protected route family. |
+| GAP-003 | RLS | Migrations `030` to `039` and RLS gated suites | Final fallback removal and legacy owner/family policy cleanup are versioned; CI evidence still depends on the manual RLS Live Gate. |
+| GAP-004 | Legacy data | Hardening migrations `020` to `028` plus fallback-removal migrations `030` to `038` | Legacy `organization_id IS NULL` fallback is no longer the runtime/RLS contract. |
+| GAP-008 | Multi-org tests | `tests/e2e/multi-org-switch-authenticated-gated.spec.ts` | Switching between organizations has cleanup-backed gated coverage. |
+| GAP-009 | Schema hardening | Migrations `020` to `028` | `organization_id NOT NULL` hardening is versioned for tenant-scoped tables. |
+| GAP-012 | Supabase proxy coverage | #488, #489, #490, #493, #494 | Covered by proxy entrypoint guard and Supabase client factory boundary guard. |
+| GAP-013 | Finance server size | #496, #500, #518, #520, #522, #524, #526, #528, #530, #532, #534 | Resolved by extracting relation, seed, read-helper, and dashboard aggregation boundaries; ADR 0006 protects `lib/finance/server.ts` as an intentional compatibility facade/orchestrator. |
 
 ## Next recommended risk
 
-GAP-001 is the next recommended risk: define active organization and multiple-organization UX behavior.
+GAP-006 is the next product implementation risk after evidence gates: billing is still not implemented.
 
 GAP-011 is also a product-quality risk and should be handled as a focused test-hardening track before major UI redesigns.
 
@@ -64,10 +68,8 @@ GAP-014 through GAP-019 came from external review and must be handled as separat
 
 Reason:
 
-- GAP-001 must come before explicit organization routes;
-- GAP-001 informs permission behavior;
-- GAP-001 prevents tests around undefined behavior;
-- GAP-001 avoids designing billing around ambiguous organization context;
+- RLS Live Gate evidence and orgSlug E2E evidence still need dedicated environment runs before claiming full external proof;
+- billing should not start until those evidence gates are intentionally handled or explicitly deferred;
 - GAP-011 prevents critical finance UI regressions from passing unnoticed during redesigns/refactors;
 - GAP-015 tracks controls expected by users handling sensitive financial data.
 
