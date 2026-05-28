@@ -42,7 +42,14 @@ jobs:
         id: validate_rls_env
         shell: bash
         run: |
+          set -euo pipefail
           missing=0
+
+          set_output_status() {
+            local name="$1"
+            local status="$2"
+            echo "${name}=${status}" >> "$GITHUB_OUTPUT"
+          }
 
           require_env() {
             local name="$1"
@@ -50,6 +57,14 @@ jobs:
 
             if [ -z "$value" ]; then
               echo "::error title=Missing RLS live gate environment::$name must be configured for the dedicated RLS Supabase test environment."
+              status="missing"
+            else
+              status="present"
+            fi
+
+            set_output_status "$name" "$status"
+
+            if [ "$status" = "missing" ]; then
               missing=1
             fi
           }
@@ -65,6 +80,15 @@ jobs:
           if [ "$RUN_RLS_TESTS" != "true" ]; then
             echo "::error title=Invalid RLS flag::RUN_RLS_TESTS must be true inside the dedicated RLS Live Gate."
             missing=1
+            echo "RUN_RLS_TESTS=missing" >> "$GITHUB_OUTPUT"
+          else
+            echo "RUN_RLS_TESTS=present" >> "$GITHUB_OUTPUT"
+          fi
+
+          if [ "$missing" -eq 0 ]; then
+            echo "validation_status=passed" >> "$GITHUB_OUTPUT"
+          else
+            echo "validation_status=failed" >> "$GITHUB_OUTPUT"
           fi
 
           if [ "$missing" -ne 0 ]; then
@@ -75,6 +99,7 @@ jobs:
         run: npm ci
 
       - name: Run RLS gated tests
+        id: run_rls_tests
         run: npm run test
 
       - name: Write RLS live gate evidence summary
@@ -82,6 +107,7 @@ jobs:
         shell: bash
         env:
           RLS_ENV_VALIDATION_OUTCOME: ${{ steps.validate_rls_env.outcome }}
+          RLS_TESTS_OUTCOME: ${{ steps.run_rls_tests.outcome }}
         run: |
           mkdir -p rls-live-gate-evidence
 
@@ -99,18 +125,23 @@ jobs:
             echo "| Event | ${GITHUB_EVENT_NAME} |"
             echo "| APP_ENV | ${APP_ENV} |"
             echo "| RUN_RLS_TESTS | ${RUN_RLS_TESTS} |"
-            echo "| Environment validation outcome | ${RLS_ENV_VALIDATION_OUTCOME} |"
-            echo "| Test command when validation passes | npm run test |"
+            echo "| Environment validation outcome | ${{ steps.validate_rls_env.outputs.validation_status }} |"
+            echo "| Validation step outcome | ${RLS_ENV_VALIDATION_OUTCOME} |"
+            echo "| Test step outcome | ${RLS_TESTS_OUTCOME} |"
+            echo "| Test command | npm run test |"
             echo
-            echo "## Environment contract"
+            echo "## Environment contract status (runtime check during this run)"
             echo
-            echo "- RLS_TEST_SUPABASE_URL: required repository variable"
-            echo "- RLS_TEST_SUPABASE_ANON_KEY: required secret"
-            echo "- RLS_TEST_SUPABASE_SERVICE_ROLE_KEY: required secret"
-            echo "- RLS_TEST_USER_A_EMAIL: required secret"
-            echo "- RLS_TEST_USER_A_PASSWORD: required secret"
-            echo "- RLS_TEST_USER_B_EMAIL: required secret"
-            echo "- RLS_TEST_USER_B_PASSWORD: required secret"
+            echo "| Contract entry | Check status |"
+            echo "| --- | --- |"
+            echo "| RLS_TEST_SUPABASE_URL | ${{ steps.validate_rls_env.outputs.RLS_TEST_SUPABASE_URL }} |"
+            echo "| RLS_TEST_SUPABASE_ANON_KEY | ${{ steps.validate_rls_env.outputs.RLS_TEST_SUPABASE_ANON_KEY }} |"
+            echo "| RLS_TEST_SUPABASE_SERVICE_ROLE_KEY | ${{ steps.validate_rls_env.outputs.RLS_TEST_SUPABASE_SERVICE_ROLE_KEY }} |"
+            echo "| RLS_TEST_USER_A_EMAIL | ${{ steps.validate_rls_env.outputs.RLS_TEST_USER_A_EMAIL }} |"
+            echo "| RLS_TEST_USER_A_PASSWORD | ${{ steps.validate_rls_env.outputs.RLS_TEST_USER_A_PASSWORD }} |"
+            echo "| RLS_TEST_USER_B_EMAIL | ${{ steps.validate_rls_env.outputs.RLS_TEST_USER_B_EMAIL }} |"
+            echo "| RLS_TEST_USER_B_PASSWORD | ${{ steps.validate_rls_env.outputs.RLS_TEST_USER_B_PASSWORD }} |"
+            echo "| RUN_RLS_TESTS=${RUN_RLS_TESTS} | ${{ steps.validate_rls_env.outputs.RUN_RLS_TESTS }} |"
             echo
             echo "Secret values are intentionally not printed."
           } > rls-live-gate-evidence/summary.md
