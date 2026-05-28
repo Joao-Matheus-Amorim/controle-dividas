@@ -25,6 +25,7 @@ Fontes cruzadas nesta revisao:
 - `docs/audits/BILLING_SETTINGS_STATUS_CONTRACT.md`
 - `docs/audits/BILLING_SUBSCRIPTION_FLOW_CONTRACT.md`
 - `docs/audits/BILLING_STRIPE_CONFIGURATION_BOUNDARY.md`
+- `docs/audits/SENSITIVE_OPERATION_CONTROLS_CONTRACT.md`
 - `docs/runbooks/BILLING_STRIPE_TEST_ACCOUNT_RUNBOOK.md`
 - `docs/rls/RLS_LIVE_GATE.md`
 - `.github/workflows/rls-live-gate.yml`
@@ -96,6 +97,7 @@ A limpeza final de policies antigas owner/family foi versionada em:
 - O runbook de conta Stripe de teste esta em `docs/runbooks/BILLING_STRIPE_TEST_ACCOUNT_RUNBOOK.md`.
 - Checkout runtime esta implementado em `lib/billing/stripe-checkout.ts` e `app/protected/configuracoes/billing-actions.ts`, sem webhook, portal ou enforcement comercial.
 - Evidencia real de checkout Stripe ainda esta pendente porque nao ha conta Stripe de teste/credenciais configuradas.
+- O contrato de planejamento para GAP-015 esta documentado em `docs/audits/SENSITIVE_OPERATION_CONTROLS_CONTRACT.md`; rate limiting, sensitive-action audit logging e data retention ainda nao tem runtime implementado.
 - RLS Live Gate existe em `.github/workflows/rls-live-gate.yml` e ja gera GitHub Step Summary + artifact `rls-live-gate-evidence-*`, mas ainda precisa de vars/secrets e execucao dedicada para virar evidencia verde de CI.
 
 ## 3. Estado de fechamento e gaps reais antes de declarar 100% coerente
@@ -213,6 +215,25 @@ Resultado esperado:
 
 - validar o primeiro screenshot gated usando a fixture deterministica do dashboard summary acima da dobra.
 
+### GAP-015 - Controles de operacoes sensiveis
+
+O contrato de planejamento esta registrado em `docs/audits/SENSITIVE_OPERATION_CONTROLS_CONTRACT.md`.
+
+Resultado atual:
+
+- escopo documentado para rate limiting, sensitive-action audit logging e data retention policy;
+- inventario inicial de operacoes sensiveis documentado;
+- limites explicitos: planning only, sem runtime, schema, RLS, UI, billing ou E2E neste passo;
+- sequenciamento definido para issues/PRs dedicados antes de qualquer implementacao.
+
+Resultado esperado:
+
+- criar issues separadas para rate limits, audit events e retention policy;
+- definir schema/redaction de audit events em PR proprio;
+- implementar rate limits por uma fronteira server-side por vez;
+- implementar audit logging por uma familia de operacoes sensiveis por vez;
+- definir retention policy antes de qualquer automacao destrutiva.
+
 ### GAP-005 - Remocao futura de `owner_id`
 
 `owner_id` ainda e parte do contrato atual. Remover agora seria prematuro.
@@ -258,7 +279,12 @@ Resultado esperado:
    - Rodar `tests/e2e/dashboard-summary-visual-snapshot-gated.spec.ts` com `RUN_DASHBOARD_SUMMARY_VISUAL_SNAPSHOT=true`.
    - Evitar snapshot amplo sem contrato visual claro.
 
-6. **Owner_id retirement plan**
+6. **Sensitive operation controls**
+   - Usar `docs/audits/SENSITIVE_OPERATION_CONTROLS_CONTRACT.md`.
+   - Criar issues separadas para rate limiting, sensitive-action audit logging e data retention.
+   - Nao implementar runtime, schema, RLS, billing ou UI sem PR dedicado, validacao e rollback.
+
+7. **Owner_id retirement plan**
    - Apenas depois dos passos anteriores.
 
 ## 5. Nao fazer agora
@@ -267,4 +293,5 @@ Resultado esperado:
 - Nao misturar billing com `orgSlug`.
 - Nao rodar RLS Live Gate contra producao real.
 - Nao criar tests data-changing sem cleanup.
+- Nao declarar GAP-015 como implementado apenas por contrato documental.
 - Nao tratar documentos PMBOK historicos como fonte mais atual que `README.md`, `docs/SAAS_RLS_LIVE_STATUS.md`, este roadmap e `docs/audits/CURRENT_RLS_POLICIES_INVENTORY.md`.

@@ -39,7 +39,7 @@ A gap is not solved until a small PR is merged with green CI and the related doc
 | GAP-010 | Documentation freshness | Audits can become stale after implementation PRs. | Reconcile docs after each merged implementation PR. |
 | GAP-011 | UI contracts | Dashboard, primary finance lists, primary data-changing forms, selective visual snapshot strategy, dashboard summary deterministic fixture, and gated dashboard summary screenshot are documented. | Validate the first gated screenshot with the dashboard summary fixture before adding any broader visual coverage. |
 | GAP-014 | Membership lifecycle | The one-active-membership database limit was removed, but final invitation/admin membership behavior still needs a dedicated decision. | Define final invitation/admin membership behavior before removing transitional bootstrap assumptions. |
-| GAP-015 | Sensitive operation controls | Rate limiting, sensitive-action audit logging, and data retention policies are not yet documented as implemented controls. | Create planning issues for rate limits, audit events, and retention policy before runtime work. |
+| GAP-015 | Sensitive operation controls | Planning contract exists in `docs/audits/SENSITIVE_OPERATION_CONTROLS_CONTRACT.md`. Rate limiting, sensitive-action audit logging, and data retention runtime controls are not implemented. | Create dedicated issues/PRs for rate limits, audit events, and retention policy before runtime work. |
 | GAP-016 | Onboarding terminology | The onboarding path and wording expose organization terminology that can feel abstract for personal/family finance users. | Define product copy and UX contract before UI changes. |
 | GAP-017 | Notifications | Due-date alerts and notification channels are not implemented. | Define notification scope, channel, and opt-in model before implementation. |
 | GAP-018 | Dashboard visualization | Dashboard chart/time-series visualization is not explicitly covered as a product capability. | Define dashboard insight requirements before adding charting dependencies. |
@@ -64,14 +64,14 @@ GAP-006 remains a product implementation risk after evidence gates: billing stat
 
 GAP-011 is also a product-quality risk and should be handled as a focused test-hardening track before major UI redesigns.
 
-GAP-014 through GAP-019 came from external review and must be handled as separate issue/PR cycles before implementation.
+GAP-014 through GAP-019 came from external review and must be handled as separate issue/PR cycles before implementation. GAP-015 now has a planning contract, but it remains open until rate limiting, sensitive-action audit logging, and data retention controls are implemented in dedicated PRs.
 
 Reason:
 
 - RLS Live Gate evidence and orgSlug E2E evidence still need dedicated environment runs before claiming full external proof;
 - billing should not start until those evidence gates are intentionally handled or explicitly deferred;
 - GAP-011 is reduced by dashboard, finance list, finance form, selective visual snapshot, dashboard summary deterministic fixture, and gated screenshot contracts; broad visual redesign still needs explicit evidence before any wider visual coverage;
-- GAP-015 tracks controls expected by users handling sensitive financial data.
+- GAP-015 tracks controls expected by users handling sensitive financial data; the current contract is planning-only and does not implement runtime controls.
 
 ## Boundaries
 
