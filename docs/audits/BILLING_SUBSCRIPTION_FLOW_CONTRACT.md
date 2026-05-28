@@ -10,6 +10,12 @@ Checkout runtime implementado neste passo: server action em Configuracoes cria u
 
 Evidencia real pendente: ainda nao ha conta Stripe de teste/credenciais configuradas para validar o checkout contra Stripe. Enquanto isso, `ENABLE_STRIPE_CHECKOUT=false` deve permanecer como padrao operacional.
 
+Runbook operacional:
+
+```txt
+docs/runbooks/BILLING_STRIPE_TEST_ACCOUNT_RUNBOOK.md
+```
+
 ## Fluxo aprovado
 
 ### 1. Entrada de checkout

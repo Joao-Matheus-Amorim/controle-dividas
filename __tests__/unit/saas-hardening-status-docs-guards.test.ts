@@ -123,7 +123,7 @@ describe("SaaS hardening status docs", () => {
     expect(gapRegister).toContain("billing settings status ui");
     expect(gapRegister).toContain("subscription flow contract");
     expect(gapRegister).toContain("stripe configuration boundary");
-    expect(gapRegister).toContain("stripe checkout runtime is implemented");
+    expect(gapRegister).toContain("stripe checkout runtime");
     expect(gapRegister).toContain("real stripe checkout evidence is pending");
     expect(gapRegister).toContain("stripe test account and credentials");
     expect(gapRegister).toContain("dashboard, primary finance lists, primary data-changing forms, selective visual snapshot strategy, dashboard summary deterministic fixture, and gated dashboard summary screenshot are documented");

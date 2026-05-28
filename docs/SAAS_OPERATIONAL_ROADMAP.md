@@ -25,6 +25,7 @@ Fontes cruzadas nesta revisao:
 - `docs/audits/BILLING_SETTINGS_STATUS_CONTRACT.md`
 - `docs/audits/BILLING_SUBSCRIPTION_FLOW_CONTRACT.md`
 - `docs/audits/BILLING_STRIPE_CONFIGURATION_BOUNDARY.md`
+- `docs/runbooks/BILLING_STRIPE_TEST_ACCOUNT_RUNBOOK.md`
 - `docs/rls/RLS_LIVE_GATE.md`
 - `.github/workflows/rls-live-gate.yml`
 
@@ -92,6 +93,7 @@ A limpeza final de policies antigas owner/family foi versionada em:
 - O status de billing em Configuracoes mostra o plano atual da organizacao usando `lib/billing/plans.ts` e expõe entrada de checkout controlada por `ENABLE_STRIPE_CHECKOUT`, documentado em `docs/audits/BILLING_SETTINGS_STATUS_CONTRACT.md`.
 - O contrato de fluxo de assinatura esta documentado em `docs/audits/BILLING_SUBSCRIPTION_FLOW_CONTRACT.md`, cobrindo checkout, portal, webhook idempotente, secrets e rollback antes de runtime Stripe.
 - A fronteira de configuracao Stripe esta implementada em `lib/billing/stripe-config.ts` e documentada em `docs/audits/BILLING_STRIPE_CONFIGURATION_BOUNDARY.md`.
+- O runbook de conta Stripe de teste esta em `docs/runbooks/BILLING_STRIPE_TEST_ACCOUNT_RUNBOOK.md`.
 - Checkout runtime esta implementado em `lib/billing/stripe-checkout.ts` e `app/protected/configuracoes/billing-actions.ts`, sem webhook, portal ou enforcement comercial.
 - Evidencia real de checkout Stripe ainda esta pendente porque nao ha conta Stripe de teste/credenciais configuradas.
 - RLS Live Gate existe em `.github/workflows/rls-live-gate.yml` e ja gera GitHub Step Summary + artifact `rls-live-gate-evidence-*`, mas ainda precisa de vars/secrets e execucao dedicada para virar evidencia verde de CI.
@@ -175,6 +177,7 @@ Contrato local de planos:
 - status e entrada de checkout em Configuracoes documentados em `docs/audits/BILLING_SETTINGS_STATUS_CONTRACT.md`.
 - contrato de fluxo de assinatura documentado em `docs/audits/BILLING_SUBSCRIPTION_FLOW_CONTRACT.md`.
 - fronteira de configuracao Stripe documentada em `docs/audits/BILLING_STRIPE_CONFIGURATION_BOUNDARY.md` e implementada em `lib/billing/stripe-config.ts`.
+- runbook de conta Stripe de teste documentado em `docs/runbooks/BILLING_STRIPE_TEST_ACCOUNT_RUNBOOK.md`.
 
 Resultado esperado:
 
@@ -243,6 +246,7 @@ Resultado esperado:
    - Usar `docs/audits/BILLING_SETTINGS_STATUS_CONTRACT.md`.
    - Usar `docs/audits/BILLING_SUBSCRIPTION_FLOW_CONTRACT.md`.
    - Usar `docs/audits/BILLING_STRIPE_CONFIGURATION_BOUNDARY.md`.
+   - Usar `docs/runbooks/BILLING_STRIPE_TEST_ACCOUNT_RUNBOOK.md`.
    - Criar/configurar conta Stripe de teste e credenciais.
    - Validar checkout runtime com Stripe de teste.
    - Implementar webhook e portal em PRs proprios.

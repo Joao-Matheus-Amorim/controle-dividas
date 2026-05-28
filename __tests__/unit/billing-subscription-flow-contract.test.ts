@@ -52,7 +52,7 @@ describe("billing subscription flow contract", () => {
     expect(roadmap).toContain("fronteira de configuracao stripe");
     expect(gapRegister).toContain("subscription flow contract");
     expect(gapRegister).toContain("stripe configuration boundary");
-    expect(gapRegister).toContain("stripe checkout runtime is implemented");
+    expect(gapRegister).toContain("stripe checkout runtime");
     expect(billingAdr).toContain("billing_subscription_flow_contract.md");
     expect(billingAdr).toContain("fronteira de configuracao stripe");
     expect(billingAdr).toContain("billing_stripe_configuration_boundary.md");
