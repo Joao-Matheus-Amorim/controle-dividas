@@ -163,7 +163,7 @@ Resultado esperado:
 - definir UI/fluxo de assinatura;
 - implementar billing somente depois de RLS Live Gate, orgSlug e UX multi-org estarem estaveis.
 
-### GAP-005 - Contratos de UI financeira
+### GAP-011 - Contratos de UI financeira
 
 O primeiro contrato de UI critica foi registrado para o dashboard.
 
