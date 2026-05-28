@@ -27,6 +27,16 @@ describe("billing checkout runtime contract", () => {
     expect(checkoutHelper).toContain("requested_plan");
   });
 
+  it("keeps checkout buttons disabled for non-admin viewers before form submit", () => {
+    const settingsPage = read("features/protected-pages/configuracoes-page.tsx");
+
+    expect(settingsPage).toContain("requireorganizationaccess(orgslug)");
+    expect(settingsPage).toContain('["owner", "admin"].includes');
+    expect(component).toContain("canmanagebilling");
+    expect(component).toContain("const checkoutavailable = canmanagebilling && checkoutenabled && checkoutready");
+    expect(component).toContain("apenas owner/admin");
+  });
+
   it("keeps checkout behind the Stripe flag and price env vars", () => {
     expect(checkoutHelper).toContain("assertstripeconfigurationboundary");
     expect(checkoutHelper).toContain("checkout_disabled");

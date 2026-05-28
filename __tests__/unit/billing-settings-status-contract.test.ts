@@ -22,10 +22,11 @@ describe("billing settings status contract", () => {
     expect(component).toContain("plano da organizacao");
     expect(component).toContain("iniciar checkout");
     expect(component).toContain("checkoutenabled");
-    expect(settingsPage).toContain("getcurrentorganization(orgslug)");
+    expect(settingsPage).toContain("requireorganizationaccess(orgslug)");
     expect(settingsPage).toContain("settingsbillingplanstatus");
-    expect(settingsPage).toContain("organization.plan");
-    expect(settingsPage).toContain("organization.trial_ends_at");
+    expect(settingsPage).toContain("organization.organization.plan");
+    expect(settingsPage).toContain("organization.organization.trial_ends_at");
+    expect(settingsPage).toContain("canmanagebilling");
   });
 
   it("keeps checkout separated from portal, webhook, and commercial enforcement", () => {

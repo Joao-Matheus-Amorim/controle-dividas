@@ -14,6 +14,7 @@ interface SettingsBillingPlanStatusProps {
   plan: BillingPlanKey;
   status: string;
   trialEndsAt: string | null;
+  canManageBilling: boolean;
   checkoutEnabled: boolean;
   checkoutReady: boolean;
   checkoutStatus?: string;
@@ -56,6 +57,7 @@ export function SettingsBillingPlanStatus({
   plan,
   status,
   trialEndsAt,
+  canManageBilling,
   checkoutEnabled,
   checkoutReady,
   checkoutStatus,
@@ -67,7 +69,7 @@ export function SettingsBillingPlanStatus({
     BILLING_PLANS.family_plus,
     BILLING_PLANS.family_pro,
   ];
-  const checkoutAvailable = checkoutEnabled && checkoutReady;
+  const checkoutAvailable = canManageBilling && checkoutEnabled && checkoutReady;
   const checkoutStatusMessage = getCheckoutStatusMessage(checkoutStatus);
 
   return (
@@ -155,6 +157,12 @@ export function SettingsBillingPlanStatus({
       {!checkoutEnabled ? (
         <p className="text-sm text-white/40">
           Checkout indisponivel neste ambiente. O app continua funcionando normalmente.
+        </p>
+      ) : null}
+
+      {!canManageBilling ? (
+        <p className="text-sm text-white/40">
+          Apenas owner/admin da organizacao pode iniciar checkout.
         </p>
       ) : null}
 
