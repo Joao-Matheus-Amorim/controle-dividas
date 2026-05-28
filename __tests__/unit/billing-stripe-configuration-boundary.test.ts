@@ -16,8 +16,7 @@ function resetStripeEnv() {
   delete process.env.STRIPE_WEBHOOK_SECRET;
   delete process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
   delete process.env.NEXT_PUBLIC_APP_URL;
-  delete process.env.APP_ENV;
-  process.env.NODE_ENV = "test";
+  process.env.APP_ENV = "local";
 }
 
 afterEach(() => {
@@ -78,11 +77,10 @@ describe("billing stripe configuration boundary", () => {
   it("fails fast in production-like runtime when checkout is enabled and env vars are missing", () => {
     resetStripeEnv();
     process.env.ENABLE_STRIPE_CHECKOUT = "true";
-    process.env.NODE_ENV = "production";
+    process.env.APP_ENV = "production";
 
     expect(() => assertStripeConfigurationBoundary()).toThrow(
       "Stripe runtime environment variables are missing.",
     );
   });
 });
-
