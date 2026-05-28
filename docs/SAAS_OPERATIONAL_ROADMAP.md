@@ -22,6 +22,7 @@ Fontes cruzadas nesta revisao:
 - `docs/audits/FINANCE_FORM_UI_CONTRACT.md`
 - `docs/audits/SELECTIVE_VISUAL_SNAPSHOT_STRATEGY.md`
 - `docs/audits/DASHBOARD_SUMMARY_VISUAL_FIXTURE.md`
+- `docs/audits/BILLING_SETTINGS_STATUS_CONTRACT.md`
 - `docs/rls/RLS_LIVE_GATE.md`
 - `.github/workflows/rls-live-gate.yml`
 
@@ -86,6 +87,7 @@ A limpeza final de policies antigas owner/family foi versionada em:
 - Os formularios financeiros primarios possuem contrato de UI nao fragil em `docs/audits/FINANCE_FORM_UI_CONTRACT.md` e guard dedicado para preservar `useActionState`, feedback, pending state, `AppFormSheet` e campos essenciais.
 - A estrategia de snapshot visual seletivo esta documentada em `docs/audits/SELECTIVE_VISUAL_SNAPSHOT_STRATEGY.md`; nenhum snapshot visual amplo foi implementado neste passo.
 - A fixture deterministica do dashboard summary acima da dobra esta documentada em `docs/audits/DASHBOARD_SUMMARY_VISUAL_FIXTURE.md`, versionada em `__tests__/fixtures/dashboard-summary-visual-snapshot.ts` e coberta por screenshot gated em `tests/e2e/dashboard-summary-visual-snapshot-gated.spec.ts`.
+- O status de billing read-only em Configuracoes mostra o plano atual da organizacao usando `lib/billing/plans.ts`, documentado em `docs/audits/BILLING_SETTINGS_STATUS_CONTRACT.md`, sem Stripe runtime.
 - RLS Live Gate existe em `.github/workflows/rls-live-gate.yml` e ja gera GitHub Step Summary + artifact `rls-live-gate-evidence-*`, mas ainda precisa de vars/secrets e execucao dedicada para virar evidencia verde de CI.
 
 ## 3. Estado de fechamento e gaps reais antes de declarar 100% coerente
@@ -164,12 +166,13 @@ Contrato local de planos:
 - `lib/billing/plans.ts`;
 - ADR 0008;
 - alinhado com a constraint de `organizations.plan` da migration `006`.
+- status read-only em Configuracoes documentado em `docs/audits/BILLING_SETTINGS_STATUS_CONTRACT.md`.
 
 Resultado esperado:
 
 - registrar evidencia externa pendente ou decidir deferimento explicito;
-- definir UI/fluxo de assinatura;
-- implementar billing somente depois de RLS Live Gate, orgSlug e UX multi-org estarem estaveis.
+- definir contrato de fluxo de assinatura antes de Stripe runtime;
+- implementar checkout, portal, webhook e assinatura em PRs separados.
 
 ### GAP-011 - Contratos de UI financeira
 
@@ -228,7 +231,8 @@ Resultado esperado:
    - Registrar evidencia depois de uma execucao real verde.
 
 4. **Billing design**
-   - Definir plano por organization.
+   - Usar `docs/audits/BILLING_SETTINGS_STATUS_CONTRACT.md`.
+   - Definir contrato de fluxo de assinatura.
    - Planejar Stripe sem misturar com RLS/rotas.
 
 5. **Primeiro snapshot visual seletivo**
