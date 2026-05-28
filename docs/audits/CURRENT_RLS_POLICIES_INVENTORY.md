@@ -45,6 +45,7 @@ Arquivos revisados:
 - `supabase/migrations/036_profiles_rls_remove_legacy_fallback.sql`
 - `supabase/migrations/037_user_module_permissions_rls_remove_legacy_fallback.sql`
 - `supabase/migrations/038_user_feature_permissions_rls_remove_legacy_fallback.sql`
+- `supabase/migrations/039_drop_legacy_owner_family_policies.sql`
 
 Busca base:
 
@@ -158,7 +159,7 @@ Durante a validacao no Supabase vivo, as migrations `030` a `038` removeram as p
 
 Essas policies foram removidas manualmente no Supabase vivo validado e o gate RLS focado passou.
 
-Para a migration history ficar 100% reproduzivel, falta versionar essa limpeza de policies antigas `*_own`/`*_family` em uma migration idempotente propria usando `drop policy if exists`. Esse e o primeiro item do roadmap em `docs/SAAS_OPERATIONAL_ROADMAP.md`.
+Para a migration history ficar 100% reproduzivel, a migration `039_drop_legacy_owner_family_policies.sql` versiona essa limpeza de policies antigas `*_own`/`*_family` com `drop policy if exists`.
 
 ## 6. Riscos atuais
 
@@ -168,7 +169,7 @@ Para a migration history ficar 100% reproduzivel, falta versionar essa limpeza d
 
 ### 6.2 Reproducibilidade de migrations
 
-Ambientes que tenham aplicado migrations antigas podem manter policies owner-centric historicas se a limpeza idempotente ainda nao estiver versionada.
+Ambientes que tenham aplicado migrations antigas precisam receber a migration `039_drop_legacy_owner_family_policies.sql` para garantir que policies owner-centric historicas tambem sejam removidas.
 
 ### 6.3 Service role pode mascarar problemas
 
@@ -180,12 +181,11 @@ Qualquer mudanca em `organization_memberships` deve preservar helpers nao recurs
 
 ## 7. Recomendacao de proximo passo
 
-1. Criar migration idempotente para remover policies historicas `*_own`/`*_family`.
-2. Validar com testes RLS gated usando usuario autenticado comum.
-3. Executar RLS Live Gate em CI dedicado quando vars/secrets estiverem configurados.
-4. So depois planejar rotas por `orgSlug`.
-5. Billing apenas depois de isolamento e UX multi-org estarem maduros.
-6. Remover `owner_id` apenas em gate futuro com preflight, rollback e evidencia.
+1. Validar a migration `039_drop_legacy_owner_family_policies.sql` com testes RLS gated usando usuario autenticado comum.
+2. Executar RLS Live Gate em CI dedicado quando vars/secrets estiverem configurados.
+3. So depois planejar rotas por `orgSlug`.
+4. Billing apenas depois de isolamento e UX multi-org estarem maduros.
+5. Remover `owner_id` apenas em gate futuro com preflight, rollback e evidencia.
 
 ## 8. Fora de escopo deste inventario
 

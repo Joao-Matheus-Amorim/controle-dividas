@@ -70,7 +70,7 @@ Implementado:
 Ainda transicional:
 
 - `owner_id` ainda existe por compatibilidade e para write ownership;
-- a migration history ainda deve versionar, em PR proprio, a limpeza idempotente das policies antigas `*_own`/`*_family` que foram removidas no Supabase vivo durante a validacao;
+- a migration `039_drop_legacy_owner_family_policies.sql` versiona a limpeza idempotente das policies antigas `*_own`/`*_family` que foram removidas no Supabase vivo durante a validacao;
 - rotas ainda usam `/protected`;
 - rotas por `orgSlug` ainda nao foram implementadas;
 - billing ainda nao foi implementado;
@@ -112,6 +112,7 @@ Ainda transicional:
 036_profiles_rls_remove_legacy_fallback.sql
 037_user_module_permissions_rls_remove_legacy_fallback.sql
 038_user_feature_permissions_rls_remove_legacy_fallback.sql
+039_drop_legacy_owner_family_policies.sql
 ```
 
 Observacao operacional: a migration `019_initial_organization_onboarding_rpc.sql` precisa estar aplicada no Supabase de cada ambiente antes de depender do onboarding inicial em runtime. As migrations `020` a `028` exigem evidencia recente de preflight/dry-run com zero linhas bloqueadas ou ambiguas para suas tabelas-alvo. As migrations `030` a `038` removem o fallback RLS legado `organization_id IS NULL`.

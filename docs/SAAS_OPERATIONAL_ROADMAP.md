@@ -58,6 +58,10 @@ Fallback RLS legado `organization_id IS NULL` ja foi removido pelas migrations:
 - `037_user_module_permissions_rls_remove_legacy_fallback.sql`;
 - `038_user_feature_permissions_rls_remove_legacy_fallback.sql`.
 
+A limpeza final de policies antigas owner/family foi versionada em:
+
+- `039_drop_legacy_owner_family_policies.sql`.
+
 ### Runtime
 
 - As superficies principais de runtime usam organizacao ativa.
@@ -74,7 +78,7 @@ Fallback RLS legado `organization_id IS NULL` ja foi removido pelas migrations:
 
 ## 3. Gap real antes de declarar 100% coerente
 
-### GAP-001 - Versionar limpeza de policies antigas
+### GAP-001 - Limpeza de policies antigas versionada
 
 O Supabase vivo validado ja teve as policies antigas owner-centric removidas manualmente:
 
@@ -82,11 +86,11 @@ O Supabase vivo validado ja teve as policies antigas owner-centric removidas man
 - `profiles_*_family`;
 - `feature_permissions_*_family`.
 
-Mas a cadeia de migrations ainda precisa de uma migration idempotente propria para reproduzir essa limpeza em qualquer ambiente que tenha aplicado migrations antigas.
+Agora a cadeia de migrations possui a migration idempotente `039_drop_legacy_owner_family_policies.sql` para reproduzir essa limpeza em qualquer ambiente que tenha aplicado migrations antigas.
 
 Resultado esperado:
 
-- migration `039_*` com `drop policy if exists`;
+- migration `039_drop_legacy_owner_family_policies.sql` com `drop policy if exists`;
 - teste/guard conferindo que o arquivo versiona a limpeza;
 - RLS gated focado passando depois da migration aplicada no ambiente alvo.
 
@@ -145,28 +149,24 @@ Resultado esperado:
 
 ## 4. Ordem recomendada dos proximos PRs
 
-1. **Migration 039 - cleanup de policies antigas**
-   - Versionar `drop policy if exists` para `*_own`, `profiles_*_family` e `feature_permissions_*_family`.
-   - Validar com RLS gated focado.
-
-2. **RLS Live Gate evidence**
+1. **RLS Live Gate evidence**
    - Configurar ambiente GitHub dedicado.
    - Rodar workflow manual.
    - Documentar resultado.
 
-3. **E2E multi-org switch**
+2. **E2E multi-org switch**
    - Criar usuario/fixture dedicada.
    - Testar troca de organizacao ativa.
 
-4. **Plano e PR base de `orgSlug`**
+3. **Plano e PR base de `orgSlug`**
    - Planejar rota, autorizacao, redirects e compatibilidade.
    - Implementar sem billing.
 
-5. **Billing design**
+4. **Billing design**
    - Definir plano por organization.
    - Planejar Stripe sem misturar com RLS/rotas.
 
-6. **Owner_id retirement plan**
+5. **Owner_id retirement plan**
    - Apenas depois dos passos anteriores.
 
 ## 5. Nao fazer agora
