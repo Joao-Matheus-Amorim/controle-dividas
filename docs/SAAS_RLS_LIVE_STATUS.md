@@ -4,32 +4,29 @@ Issue: #224
 
 ## 1. Objetivo
 
-Este documento registra o estado vivo atual da transicao SaaS multi-tenant do FamilyFinance apos a conclusao do bloco principal de RLS financeira, do onboarding inicial por RPC transacional, da evolucao da cobertura Playwright/E2E gated e do inicio controlado de hardening `organization_id NOT NULL`.
+Este documento registra o estado vivo atual da transicao SaaS multi-tenant do FamilyFinance depois da conclusao do hardening de `organization_id`, da remocao do fallback RLS legado, do onboarding inicial por RPC transacional e da evolucao da cobertura Playwright/E2E gated.
 
-Ele complementa o `README.md` sem apagar o historico e sem substituir documentos PMBOK ja existentes.
+Ele complementa o `README.md` e aponta para o roadmap operacional em `docs/SAAS_OPERATIONAL_ROADMAP.md`.
 
 ## 2. Estado atual resumido
 
 O projeto esta em modo:
 
 ```txt
-SaaS multi-tenant transicional com RLS financeira principal aplicada, onboarding inicial transacional, cobertura E2E principal gated e hardening parcial de organization scope.
+SaaS multi-tenant transicional endurecido: organization_id e obrigatorio nas tabelas tenant-scoped principais, RLS usa membership por organization, e owner_id ainda existe como compatibilidade/write ownership.
 ```
 
 Isso significa:
 
 - `organizations` e `organization_memberships` existem;
 - `organization_id` existe nas tabelas principais;
-- principais modulos financeiros usam organization-aware queries/actions;
-- RLS financeira principal ja foi migrada para organization-aware com fallback legado;
+- as tabelas tenant-scoped principais foram endurecidas com `organization_id NOT NULL` nas migrations `020` a `028`;
+- os modulos financeiros, Admin, profiles e permissoes usam queries/actions escopadas por organizacao ativa;
+- as policies RLS finais das migrations `030` a `038` removem o fallback `organization_id IS NULL`;
 - o onboarding inicial cria organization, owner membership e profile/link por RPC transacional autenticada;
 - Playwright/E2E possui cobertura versionada para public/auth smoke, rotas protegidas, contratos autenticados gated, permission-sensitive gated e fluxos data-changing com cleanup;
-- `expense_categories.organization_id` ja foi endurecido como `NOT NULL` pela migration `020`;
-- `family_members.organization_id` ja foi endurecido como `NOT NULL` pela migration `021`;
-- `owner_id` ainda existe e continua sendo usado como compatibilidade;
-- `organization_id` ainda e nullable nas demais tabelas tenant-scoped nao endurecidas;
+- `owner_id` ainda existe e continua sendo usado como compatibilidade e write ownership;
 - rotas por `orgSlug` ainda nao existem;
-- selector de organizacao ainda nao existe;
 - billing/Stripe ainda nao foi implementado.
 
 ## 3. Migrations SaaS/RLS/hardening atuais
@@ -53,16 +50,34 @@ As migrations relevantes para SaaS/RLS/hardening ja mergeadas sao:
 019_initial_organization_onboarding_rpc.sql
 020_expense_categories_organization_scope_hardening.sql
 021_family_members_organization_scope_hardening.sql
+022_expenses_organization_scope_hardening.sql
+023_payable_bills_organization_scope_hardening.sql
+024_receivable_incomes_organization_scope_hardening.sql
+025_banks_organization_scope_hardening.sql
+026_user_module_permissions_organization_scope_hardening.sql
+027_user_feature_permissions_organization_scope_hardening.sql
+028_profiles_organization_scope_hardening.sql
+029_drop_one_active_membership_per_user_limit.sql
+030_expense_categories_rls_remove_legacy_fallback.sql
+031_family_members_rls_remove_legacy_fallback.sql
+032_expenses_rls_remove_legacy_fallback.sql
+033_payable_bills_rls_remove_legacy_fallback.sql
+034_receivable_incomes_rls_remove_legacy_fallback.sql
+035_banks_rls_remove_legacy_fallback.sql
+036_profiles_rls_remove_legacy_fallback.sql
+037_user_module_permissions_rls_remove_legacy_fallback.sql
+038_user_feature_permissions_rls_remove_legacy_fallback.sql
 ```
 
 Observacoes operacionais:
 
 ```txt
 A migration 019 precisa estar aplicada no Supabase de cada ambiente antes de depender do onboarding inicial em runtime.
-As migrations 020 e 021 exigem evidencia recente de preflight/dry-run com zero linhas bloqueadas ou ambiguas para suas tabelas-alvo.
+As migrations 020 a 028 exigem evidencia recente de preflight/dry-run com zero linhas bloqueadas ou ambiguas para suas tabelas-alvo.
+As migrations 030 a 038 removem o fallback RLS legado `organization_id IS NULL`.
 ```
 
-## 4. RLS financeira principal
+## 4. RLS atual
 
 Tabelas ja cobertas por RLS organization-aware:
 
@@ -71,10 +86,7 @@ Tabelas ja cobertas por RLS organization-aware:
 - `expenses`;
 - `payable_bills`;
 - `receivable_incomes`;
-- `banks`.
-
-Tabelas de identidade/permissao ja cobertas por RLS organization-aware transicional:
-
+- `banks`;
 - `profiles`;
 - `user_module_permissions`;
 - `user_feature_permissions`.
@@ -83,21 +95,22 @@ Padrao aplicado:
 
 ```txt
 Leitura:
-organization_id com membership
-OU legado organization_id IS NULL + owner_id onde a tabela ainda permite estado legado
+membership ativa por organization_id via public.is_organization_member(organization_id)
 
 Escrita:
-owner/organizacao ativa durante transicao, conforme guardas de write path
+owner_id = auth.uid() e membership ativa na organization
+
+Profiles:
+auth_user_id = auth.uid() OU membership ativa por organization_id
 ```
 
 Observacoes importantes:
 
-- `expense_categories` precisou de hotfix de escrita na migration `009` e depois recebeu hardening `NOT NULL` na migration `020`;
-- `family_members` recebeu hardening `NOT NULL` na migration `021` apos o seed default passar a incluir `organization_id`;
-- `banks` preserva comportamento historico e nao depende de `family_members.is_active` na RLS;
+- `organization_id NOT NULL` ja foi aplicado nas tabelas tenant-scoped listadas acima;
 - nenhuma dessas migrations remove `owner_id`;
-- as demais tabelas tenant-scoped continuam transicionais ate hardening especifico futuro;
-- a migration `019` adiciona RPC transacional de onboarding, mas nao relaxa RLS.
+- `banks` preserva comportamento historico e nao depende de `family_members.is_active` na RLS;
+- a migration `019` adiciona RPC transacional de onboarding, mas nao relaxa RLS;
+- a limpeza manual das policies antigas `*_own`/`*_family` ja foi aplicada no Supabase vivo validado, mas ainda deve ser versionada em migration idempotente propria para manter a cadeia de migrations reproduzivel.
 
 ## 5. Onboarding inicial transacional
 
@@ -158,7 +171,7 @@ No CI comum, sem `RUN_RLS_TESTS=true`, as suites reais ficam desativadas para na
 
 ## 7. Playwright/E2E versionado
 
-A cobertura Playwright/E2E principal ja foi adicionada e documentada em `docs/e2e/PLAYWRIGHT_COVERAGE_ROADMAP.md`.
+A cobertura Playwright/E2E principal esta documentada em `docs/e2e/PLAYWRIGHT_COVERAGE_ROADMAP.md`.
 
 Blocos atualmente cobertos no roadmap:
 
@@ -174,31 +187,13 @@ Observacoes importantes:
 
 - fluxos autenticados e data-changing continuam skipped-by-default;
 - fluxos data-changing dependem de flags explicitas e cleanup documentado;
-- essa cobertura nao significa RLS final, billing, rotas por `orgSlug`, selector de organizacao ou schema final.
+- essa cobertura nao significa billing, rotas por `orgSlug` ou remocao de `owner_id`.
 
 ## 8. Validacao operacional recente
 
-Gates do CI comum:
-
-- validacao de ambiente obrigatorio;
-- `npm ci`;
-- `npm audit --audit-level=moderate`;
-- `npm run lint`;
-- `npm run typecheck`;
-- `npm run build`;
-- `npm run test`.
-
-Validacao recente informada no gate comum:
-
-```txt
-Suites unitarias, integracao, guards arquiteturais e testes RLS reais skipped-by-default rodam no CI comum.
-Suites Playwright autenticadas/data-changing permanecem gated e nao rodam por padrao sem contrato de ambiente.
-```
-
 ### Evidencia operacional de 2026-05-28
 
-No Supabase normal usado para validacao local, as policies RLS finais de remocao
-do fallback legado foram aplicadas para:
+No Supabase normal usado para validacao local, as policies RLS finais de remocao do fallback legado foram aplicadas para:
 
 - `expense_categories`;
 - `family_members`;
@@ -210,8 +205,7 @@ do fallback legado foram aplicadas para:
 - `user_module_permissions`;
 - `user_feature_permissions`.
 
-Tambem foram removidas as policies antigas owner-centric que ainda permitiam
-leitura/escrita por `owner_id` sem membership ativa:
+Tambem foram removidas as policies antigas owner-centric que ainda permitiam leitura/escrita por `owner_id` sem membership ativa:
 
 - policies `*_own` das tabelas financeiras;
 - policies `profiles_*_family`;
@@ -247,20 +241,17 @@ npm run test:e2e
 Observacoes do gate:
 
 - `npm audit --audit-level=moderate`: 0 vulnerabilidades;
-- `npm run lint`: 0 erros e 1 warning conhecido em `components/app/app-data-table.tsx`
-  por `useReactTable` e `react-hooks/incompatible-library`;
+- `npm run lint`: 0 erros e 1 warning conhecido em `components/app/app-data-table.tsx` por `useReactTable` e `react-hooks/incompatible-library`;
 - `npm run test:e2e`: 33 passed, 22 skipped no contrato local reportado.
 
 ## 9. O que ainda nao esta pronto
 
 Ainda nao foi feito:
 
-- RLS Live Gate separado em CI com ambiente Supabase dedicado;
-- admin multi-org pleno;
-- UX de organization ativa com selector;
+- migration idempotente para versionar a limpeza das policies antigas `*_own`/`*_family` removidas manualmente no Supabase vivo;
+- RLS Live Gate separado em CI com ambiente Supabase dedicado e evidencia de execucao;
 - rotas por `orgSlug`;
 - billing/Stripe;
-- `organization_id NOT NULL` nas demais tabelas tenant-scoped transicionais;
 - remocao de `owner_id`;
 - down migrations automatizadas.
 
@@ -268,18 +259,16 @@ Ainda nao foi feito:
 
 Ordem segura:
 
-1. manter CI comum verde com lint, typecheck, build e testes;
-2. continuar reconciliando documentacao quando blocos de E2E/RLS/schema mudarem;
-3. auditar e aposentar helpers owner-only por etapas;
-4. criar RLS Live Gate separado;
-5. continuar hardening `organization_id NOT NULL` por tabela, somente com preflight, dry-run, rollback e guard;
-6. planejar UX de organization ativa;
-7. so depois pensar em rotas por `orgSlug`;
-8. billing apenas depois de isolamento/UX estarem maduros;
-9. remocao de `owner_id` apenas em gate futuro apos schema/read-path final.
+1. criar migration idempotente para remover policies antigas `*_own`/`*_family` da cadeia versionada;
+2. manter CI comum verde com lint, typecheck, build e testes;
+3. executar RLS Live Gate em CI dedicado depois de configurar secrets/vars;
+4. criar E2E especifico para troca de organizacao ativa, se houver usuario multi-org dedicado;
+5. planejar rotas por `orgSlug`;
+6. billing apenas depois de isolamento/UX estarem maduros;
+7. remocao de `owner_id` apenas em gate futuro apos schema/read-path final e rollback.
 
 ## 11. Regra de manutencao
 
-Daqui para frente, o README deve ser atualizado de forma enxuta e apontar para este documento quando o assunto for status SaaS/RLS.
+Daqui para frente, o README deve ser atualizado de forma enxuta e apontar para este documento e para `docs/SAAS_OPERATIONAL_ROADMAP.md` quando o assunto for status SaaS/RLS.
 
 Evitar duplicar longos blocos de plano no README.

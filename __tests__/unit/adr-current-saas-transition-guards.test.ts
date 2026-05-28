@@ -30,8 +30,8 @@ describe("ADR 0006 current SaaS transition architecture", () => {
     expect(adr).toContain("memberships ativas");
     expect(adr).toContain("membership ativa com role owner");
     expect(adr).toContain("primeiro contexto ativo");
-    expect(adr).toContain("ainda nao existem selector");
-    expect(adr).toContain("rotas por orgslug");
+    expect(adr).toContain("indicador e a troca de organizacao ativa ja existem");
+    expect(adr).toContain("rotas por `orgslug`");
     expect(adr).toContain("billing");
   });
 
@@ -41,7 +41,8 @@ describe("ADR 0006 current SaaS transition architecture", () => {
     expect(adr).toContain("compatibilidade transicional");
     expect(adr).toContain("expense_categories");
     expect(adr).toContain("family_members");
-    expect(adr).toContain("demais tabelas tenant-scoped continuam transicionais");
+    expect(adr).toContain("profiles");
+    expect(adr).toContain("fallback rls legado `organization_id is null` foi removido");
   });
 
   it("keeps runtime, schema, RLS, UI, billing, E2E, data, and legacy fallback out of scope", () => {

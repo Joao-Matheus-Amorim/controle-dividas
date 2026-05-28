@@ -14,20 +14,27 @@ describe("SaaS hardening status docs", () => {
   const readme = read("README.md");
   const liveStatus = read("docs/SAAS_RLS_LIVE_STATUS.md");
   const hardeningPlan = read("docs/audits/ORGANIZATION_SCOPE_HARDENING_PLAN.md");
+  const roadmap = read("docs/SAAS_OPERATIONAL_ROADMAP.md");
+  const inventory = read("docs/audits/CURRENT_RLS_POLICIES_INVENTORY.md");
 
-  it("keeps README aligned with completed organization scope hardening migrations", () => {
+  it("keeps README aligned with completed organization scope hardening and RLS fallback removal", () => {
     expect(readme).toContain("020_expense_categories_organization_scope_hardening.sql");
     expect(readme).toContain("021_family_members_organization_scope_hardening.sql");
-    expect(readme).toContain("expense_categories");
-    expect(readme).toContain("family_members");
-    expect(readme).toContain("demais tabelas tenant-scoped seguem transicionais");
+    expect(readme).toContain("028_profiles_organization_scope_hardening.sql");
+    expect(readme).toContain("030_expense_categories_rls_remove_legacy_fallback.sql");
+    expect(readme).toContain("038_user_feature_permissions_rls_remove_legacy_fallback.sql");
+    expect(readme).toContain("fallback `organization_id is null` removido");
+    expect(readme).toContain("limpeza idempotente das policies antigas `*_own`/`*_family`");
   });
 
-  it("keeps live SaaS status aligned with the existing partial hardening summary", () => {
+  it("keeps live SaaS status aligned with the completed hardening summary", () => {
     expect(liveStatus).toContain("020_expense_categories_organization_scope_hardening.sql");
     expect(liveStatus).toContain("021_family_members_organization_scope_hardening.sql");
-    expect(liveStatus).toContain("expense_categories.organization_id");
-    expect(liveStatus).toContain("family_members.organization_id");
+    expect(liveStatus).toContain("028_profiles_organization_scope_hardening.sql");
+    expect(liveStatus).toContain("030_expense_categories_rls_remove_legacy_fallback.sql");
+    expect(liveStatus).toContain("038_user_feature_permissions_rls_remove_legacy_fallback.sql");
+    expect(liveStatus).toContain("organization_id not null");
+    expect(liveStatus).toContain("fallback rls legado `organization_id is null`");
   });
 
   it("records the live Supabase RLS policy application evidence", () => {
@@ -51,5 +58,24 @@ describe("SaaS hardening status docs", () => {
     expect(hardeningPlan).toContain("028_profiles_organization_scope_hardening.sql");
     expect(hardeningPlan).toContain("profiles note");
     expect(hardeningPlan).toContain("already completed in this sequence");
+  });
+
+  it("keeps the operational roadmap focused on the remaining real gaps", () => {
+    expect(roadmap).toContain("saaS operational roadmap".toLowerCase());
+    expect(roadmap).toContain("gap-001 - versionar limpeza de policies antigas");
+    expect(roadmap).toContain("migration `039_*`");
+    expect(roadmap).toContain("rls live gate");
+    expect(roadmap).toContain("e2e multi-org switch");
+    expect(roadmap).toContain("rotas por `orgslug`");
+    expect(roadmap).toContain("billing");
+    expect(roadmap).toContain("owner_id retirement plan");
+  });
+
+  it("keeps the RLS inventory explicit about the migration-history cleanup gap", () => {
+    expect(inventory).toContain("migration history");
+    expect(inventory).toContain("policies antigas `*_own`/`*_family`");
+    expect(inventory).toContain("drop policy if exists");
+    expect(inventory).toContain("user_feature_permissions");
+    expect(inventory).toContain("`owner_id` ainda e transicional");
   });
 });
