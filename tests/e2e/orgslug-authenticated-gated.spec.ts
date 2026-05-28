@@ -250,7 +250,7 @@ test.describe("authenticated orgSlug E2E contract", () => {
         new RegExp(`/org/${fixture.allowedOrganization.slug}(?:\\?|$)`),
         { timeout: 15_000 },
       );
-      await expect(page.getByRole("heading", { name: "VisÃ£o do mÃªs" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Visão do mês" })).toBeVisible();
 
       await page.getByRole("link", { name: "Gastos" }).first().click();
       await expect(page).toHaveURL(
@@ -269,7 +269,7 @@ test.describe("authenticated orgSlug E2E contract", () => {
 
       await page.goto("/protected");
       await expect(page).toHaveURL(/\/protected(?:\?|$)/, { timeout: 15_000 });
-      await expect(page.getByRole("heading", { name: "VisÃ£o do mÃªs" })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Visão do mês" })).toBeVisible();
     } finally {
       await cleanupOrgSlugOrganizations(fixture.userId);
     }

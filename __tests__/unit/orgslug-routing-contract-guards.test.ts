@@ -56,6 +56,8 @@ describe("orgSlug routing contract", () => {
     expect(read("tests/e2e/helpers/e2e-env.ts")).toContain("run_orgslug_e2e");
     expect(read("tests/e2e/orgslug-authenticated-gated.spec.ts")).toContain("runorgsluge2e");
     expect(read("tests/e2e/orgslug-authenticated-gated.spec.ts")).toContain("voce nao tem acesso a esta organizacao.");
+    expect(read("tests/e2e/orgslug-authenticated-gated.spec.ts")).toContain("visao do mes");
+    expect(read("tests/e2e/orgslug-authenticated-gated.spec.ts")).not.toContain("visa£o do maªs");
     expect(revalidation).toContain("revalidateorganizationpaths");
     expect(revalidation).toContain("getorgpathfromprotectedpath");
     expect(revalidation).toContain("revalidatepath(orgpath)");

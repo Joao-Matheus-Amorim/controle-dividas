@@ -26,6 +26,10 @@ describe("SaaS hardening status docs", () => {
     expect(readme).toContain("039_drop_legacy_owner_family_policies.sql");
     expect(readme).toContain("fallback `organization_id is null` removido");
     expect(readme).toContain("versiona a limpeza idempotente das policies antigas `*_own`/`*_family`");
+    expect(readme).toContain("/org/[orgslug]");
+    expect(readme).toContain("run_orgslug_e2e=true");
+    expect(readme).not.toContain("rotas por `orgslug` ainda nao foram implementadas");
+    expect(readme).not.toContain("rotas ainda usam `/protected`");
   });
 
   it("keeps live SaaS status aligned with the completed hardening summary", () => {
