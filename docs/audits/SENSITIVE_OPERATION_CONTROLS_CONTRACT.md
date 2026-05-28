@@ -16,6 +16,7 @@ Related planning documents:
 
 - `docs/audits/SENSITIVE_ACTION_AUDIT_EVENT_SCHEMA_PLAN.md`
 - `docs/audits/SENSITIVE_OPERATION_RATE_LIMIT_PLAN.md`
+- `docs/audits/SENSITIVE_DATA_RETENTION_PLAN.md`
 
 ## Current status
 
@@ -106,7 +107,7 @@ GAP-015 should move in this order:
 2. Define the audit event schema and redaction model using `docs/audits/SENSITIVE_ACTION_AUDIT_EVENT_SCHEMA_PLAN.md`.
 3. Implement rate limits for one server boundary at a time using `docs/audits/SENSITIVE_OPERATION_RATE_LIMIT_PLAN.md`.
 4. Add audit logging for one sensitive operation family at a time.
-5. Define retention policy before any destructive cleanup automation.
+5. Define retention policy before any destructive cleanup automation using `docs/audits/SENSITIVE_DATA_RETENTION_PLAN.md`.
 
 ## Non-goals
 
@@ -128,6 +129,7 @@ A future PR can claim progress on GAP-015 only when it:
 - references this contract;
 - references `docs/audits/SENSITIVE_ACTION_AUDIT_EVENT_SCHEMA_PLAN.md` when changing audit event behavior;
 - references `docs/audits/SENSITIVE_OPERATION_RATE_LIMIT_PLAN.md` when changing rate limit behavior;
+- references `docs/audits/SENSITIVE_DATA_RETENTION_PLAN.md` when changing data retention behavior;
 - targets exactly one control family or one operation surface;
 - includes focused tests or guards;
 - documents validation and rollback;
