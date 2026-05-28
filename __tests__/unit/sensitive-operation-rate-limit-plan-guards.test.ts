@@ -1,0 +1,74 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
+import { describe, expect, it } from "vitest";
+
+function read(path: string) {
+  return readFileSync(join(process.cwd(), path), "utf8")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+describe("sensitive operation rate limit plan guards", () => {
+  const plan = read("docs/audits/SENSITIVE_OPERATION_RATE_LIMIT_PLAN.md");
+  const contract = read("docs/audits/SENSITIVE_OPERATION_CONTROLS_CONTRACT.md");
+  const roadmap = read("docs/SAAS_OPERATIONAL_ROADMAP.md");
+  const liveStatus = read("docs/SAAS_RLS_LIVE_STATUS.md");
+  const gapRegister = read("docs/SAAS_GAP_REGISTER.md");
+
+  it("keeps rate limiting planning-only before runtime", () => {
+    expect(plan).toContain("gap-015");
+    expect(plan).toContain("planning only");
+    expect(plan).toContain("no rate limit runtime");
+    expect(plan).toContain("no storage dependency");
+    expect(plan).toContain("no middleware change");
+    expect(plan).toContain("no server action wrapper");
+    expect(plan).toContain("rate limiting is not implemented yet");
+  });
+
+  it("defines required rate limit implementation decisions", () => {
+    for (const decision of [
+      "operation key",
+      "actor key",
+      "organization key",
+      "target key",
+      "window",
+      "threshold",
+      "response",
+      "storage",
+      "bypass",
+      "rollback",
+    ]) {
+      expect(plan).toContain(decision);
+    }
+
+    expect(plan).toContain("must run on the server boundary");
+    expect(plan).toContain("client-only throttling is not a gap-015 control");
+  });
+
+  it("protects key design, operation tiers, and storage decisions", () => {
+    expect(plan).toContain("billing.checkout.start");
+    expect(plan).toContain("admin mutations");
+    expect(plan).toContain("destructive finance actions");
+    expect(plan).toContain("rate_limit:{operation_key}:{actor_key}:{organization_key}:{target_key?}");
+    expect(plan).toContain("never trust `organization_id` supplied by the client");
+    expect(plan).toContain("database table");
+    expect(plan).toContain("external cache");
+    expect(plan).toContain("platform limiter");
+    expect(plan).toContain("no runtime limiter should be added until the storage model and rollback path are explicit");
+  });
+
+  it("keeps live docs aligned with the rate limit plan", () => {
+    for (const source of [contract, roadmap, liveStatus, gapRegister]) {
+      expect(source).toContain("docs/audits/sensitive_operation_rate_limit_plan.md");
+      expect(source).toContain("rate limit");
+    }
+
+    expect(contract).toContain("when changing rate limit behavior");
+    expect(roadmap).toContain("plano de rate limiting");
+    expect(liveStatus).toContain("plano de rate limiting");
+    expect(gapRegister).toContain("rate limit planning exists");
+    expect(gapRegister).toContain("runtime controls are not implemented");
+  });
+});
