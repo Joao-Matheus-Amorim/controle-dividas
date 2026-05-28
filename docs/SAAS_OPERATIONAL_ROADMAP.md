@@ -93,6 +93,7 @@ A limpeza final de policies antigas owner/family foi versionada em:
 - O contrato de fluxo de assinatura esta documentado em `docs/audits/BILLING_SUBSCRIPTION_FLOW_CONTRACT.md`, cobrindo checkout, portal, webhook idempotente, secrets e rollback antes de runtime Stripe.
 - A fronteira de configuracao Stripe esta implementada em `lib/billing/stripe-config.ts` e documentada em `docs/audits/BILLING_STRIPE_CONFIGURATION_BOUNDARY.md`.
 - Checkout runtime esta implementado em `lib/billing/stripe-checkout.ts` e `app/protected/configuracoes/billing-actions.ts`, sem webhook, portal ou enforcement comercial.
+- Evidencia real de checkout Stripe ainda esta pendente porque nao ha conta Stripe de teste/credenciais configuradas.
 - RLS Live Gate existe em `.github/workflows/rls-live-gate.yml` e ja gera GitHub Step Summary + artifact `rls-live-gate-evidence-*`, mas ainda precisa de vars/secrets e execucao dedicada para virar evidencia verde de CI.
 
 ## 3. Estado de fechamento e gaps reais antes de declarar 100% coerente
@@ -164,7 +165,7 @@ Resultado atual:
 
 ### GAP-003 - Billing
 
-`organizations` possui campos como `plan` e `stripe_customer_id`. Checkout runtime esta implementado; subscription sync, portal, webhook e enforcement comercial ainda nao.
+`organizations` possui campos como `plan` e `stripe_customer_id`. Checkout runtime esta implementado; evidencia real com Stripe de teste, subscription sync, portal, webhook e enforcement comercial ainda nao.
 
 Contrato local de planos:
 
@@ -178,7 +179,8 @@ Contrato local de planos:
 Resultado esperado:
 
 - registrar evidencia externa pendente ou decidir deferimento explicito;
-- validar checkout runtime com ambiente Stripe de teste;
+- criar/configurar conta Stripe de teste e credenciais;
+- validar checkout runtime com ambiente Stripe de teste antes de qualquer webhook/portal;
 - implementar webhook, portal e assinatura em PRs separados.
 
 ### GAP-011 - Contratos de UI financeira
@@ -241,6 +243,7 @@ Resultado esperado:
    - Usar `docs/audits/BILLING_SETTINGS_STATUS_CONTRACT.md`.
    - Usar `docs/audits/BILLING_SUBSCRIPTION_FLOW_CONTRACT.md`.
    - Usar `docs/audits/BILLING_STRIPE_CONFIGURATION_BOUNDARY.md`.
+   - Criar/configurar conta Stripe de teste e credenciais.
    - Validar checkout runtime com Stripe de teste.
    - Implementar webhook e portal em PRs proprios.
    - Planejar Stripe sem misturar com RLS/rotas.

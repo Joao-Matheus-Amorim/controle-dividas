@@ -57,9 +57,13 @@ describe("billing checkout runtime contract", () => {
 
   it("keeps live docs aligned with the dedicated checkout-runtime step", () => {
     expect(flowContract).toContain("checkout runtime implementado");
+    expect(flowContract).toContain("evidencia real pendente");
+    expect(flowContract).toContain("nao ha conta stripe de teste");
     expect(flowContract).toContain("sem webhook runtime");
     expect(flowContract).toContain("sem portal runtime");
     expect(roadmap).toContain("checkout runtime esta implementado");
+    expect(roadmap).toContain("criar/configurar conta stripe de teste");
     expect(gapRegister).toContain("stripe checkout runtime is implemented");
+    expect(gapRegister).toContain("real stripe checkout evidence is pending");
   });
 });
