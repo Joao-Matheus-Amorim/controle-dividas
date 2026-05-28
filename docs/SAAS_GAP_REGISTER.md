@@ -37,7 +37,7 @@ A gap is not solved until a small PR is merged with green CI and the related doc
 | GAP-006 | Billing | Billing has a local plan contract, but Stripe checkout, portal, webhook, subscriptions, and commercial enforcement are not implemented. | Implement Stripe only after evidence gates are handled or explicitly deferred. |
 | GAP-007 | Admin bootstrap | `ADMIN_EMAIL` remains a bootstrap mechanism. | Plan a final organization admin and invitation model. |
 | GAP-010 | Documentation freshness | Audits can become stale after implementation PRs. | Reconcile docs after each merged implementation PR. |
-| GAP-011 | UI contracts | Dashboard, primary finance lists, primary data-changing forms, selective visual snapshot strategy, and dashboard summary deterministic fixture are documented. | Implement the first screenshot test using the dashboard summary fixture. |
+| GAP-011 | UI contracts | Dashboard, primary finance lists, primary data-changing forms, selective visual snapshot strategy, dashboard summary deterministic fixture, and gated dashboard summary screenshot are documented. | Validate the first gated screenshot with the dashboard summary fixture before adding any broader visual coverage. |
 | GAP-014 | Membership lifecycle | The one-active-membership database limit was removed, but final invitation/admin membership behavior still needs a dedicated decision. | Define final invitation/admin membership behavior before removing transitional bootstrap assumptions. |
 | GAP-015 | Sensitive operation controls | Rate limiting, sensitive-action audit logging, and data retention policies are not yet documented as implemented controls. | Create planning issues for rate limits, audit events, and retention policy before runtime work. |
 | GAP-016 | Onboarding terminology | The onboarding path and wording expose organization terminology that can feel abstract for personal/family finance users. | Define product copy and UX contract before UI changes. |
@@ -70,7 +70,7 @@ Reason:
 
 - RLS Live Gate evidence and orgSlug E2E evidence still need dedicated environment runs before claiming full external proof;
 - billing should not start until those evidence gates are intentionally handled or explicitly deferred;
-- GAP-011 is reduced by dashboard, finance list, finance form, selective visual snapshot, and dashboard summary deterministic fixture contracts; broad visual redesign still needs first deterministic visual snapshot evidence;
+- GAP-011 is reduced by dashboard, finance list, finance form, selective visual snapshot, dashboard summary deterministic fixture, and gated screenshot contracts; broad visual redesign still needs explicit evidence before any wider visual coverage;
 - GAP-015 tracks controls expected by users handling sensitive financial data.
 
 ## Boundaries

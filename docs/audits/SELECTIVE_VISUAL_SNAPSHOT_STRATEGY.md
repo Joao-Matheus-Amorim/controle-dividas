@@ -107,5 +107,5 @@ Estado atual:
 - fixture local deterministica definida;
 - viewport inicial unico definido;
 - criterio de atualizacao e rollback definidos;
-- nenhum Playwright screenshot implementado neste passo;
+- Playwright screenshot gated implementado em `tests/e2e/dashboard-summary-visual-snapshot-gated.spec.ts`;
 - nenhum snapshot visual amplo implementado.

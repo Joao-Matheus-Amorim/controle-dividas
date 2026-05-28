@@ -48,9 +48,19 @@ O primeiro alvo visual deve usar um viewport unico:
 
 ## Decisao
 
-A fixture local deterministica definida neste PR prepara o primeiro snapshot, mas nao implementa Playwright screenshot e nao adiciona snapshot visual ainda.
+A fixture local deterministica prepara o primeiro snapshot visual seletivo.
 
-O snapshot real deve ser feito em PR posterior, usando esta fixture como entrada estavel.
+O snapshot real e gated por flag dedicada e usa esta fixture como entrada estavel:
+
+```txt
+tests/e2e/dashboard-summary-visual-snapshot-gated.spec.ts
+```
+
+Por padrao, o teste nao roda no CI comum. Ele exige:
+
+```txt
+RUN_DASHBOARD_SUMMARY_VISUAL_SNAPSHOT=true
+```
 
 ## Regras
 
@@ -64,10 +74,18 @@ O snapshot real deve ser feito em PR posterior, usando esta fixture como entrada
 
 ## Comando local esperado neste passo
 
+PowerShell:
+
 ```txt
-npm run test -- __tests__/unit/dashboard-summary-visual-fixture-guards.test.ts
+$env:RUN_DASHBOARD_SUMMARY_VISUAL_SNAPSHOT="true"; npm run test:e2e -- tests/e2e/dashboard-summary-visual-snapshot-gated.spec.ts --update-snapshots; Remove-Item Env:\RUN_DASHBOARD_SUMMARY_VISUAL_SNAPSHOT
+```
+
+Bash:
+
+```txt
+RUN_DASHBOARD_SUMMARY_VISUAL_SNAPSHOT=true npm run test:e2e -- tests/e2e/dashboard-summary-visual-snapshot-gated.spec.ts --update-snapshots
 ```
 
 ## Proximo passo
 
-Implementar o primeiro screenshot test usando a fixture deterministica do dashboard summary acima da dobra.
+Validar o snapshot gerado localmente e manter o escopo restrito ao dashboard summary acima da dobra.

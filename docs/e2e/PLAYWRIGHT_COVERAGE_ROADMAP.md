@@ -102,6 +102,7 @@ No data-mutating E2E flow before a documented cleanup strategy exists.
 | Create bank account | Gated cleanup-backed covered |
 | Update records | Gated cleanup-backed covered |
 | Remaining record flow | Gated cleanup-backed covered |
+| Dashboard summary visual snapshot | Gated deterministic fixture covered |
 
 ## Protected route matrix
 
@@ -121,6 +122,12 @@ No data-mutating E2E flow before a documented cleanup strategy exists.
 | `/protected/admin/permissoes` | Gated covered | Read-only smoke. |
 | `/org/[orgSlug]` | Gated cleanup-backed covered | Creates allowed and denied temporary organizations, proves allowed dashboard, denied slug handling, and `/protected` compatibility. |
 | `/org/[orgSlug]/gastos` | Gated cleanup-backed covered | Reached through real dashboard navigation while preserving the slug. |
+
+## Visual snapshot matrix
+
+| Surface | Status | Notes |
+| --- | --- | --- |
+| `dashboard-summary-above-fold` | Gated deterministic fixture covered | Uses `RUN_DASHBOARD_SUMMARY_VISUAL_SNAPSHOT=true`, `tests/e2e/dashboard-summary-visual-snapshot-gated.spec.ts`, and `__tests__/fixtures/dashboard-summary-visual-snapshot.ts`. It captures only the contracted dashboard summary surface, not the full protected app. |
 
 ## Public/auth matrix
 
@@ -179,4 +186,5 @@ OrgSlug routing is covered by a cleanup-backed gated contract for allowed slug, 
 Admin and limited-user coverage are blocked only by explicit fixture contracts.
 No data-changing E2E test exists without cleanup strategy.
 The data-changing E2E coverage block has cleanup-backed coverage for create, update, and remaining record lifecycle flows.
+The first visual snapshot is gated, deterministic, and restricted to the dashboard summary above the fold.
 ```
