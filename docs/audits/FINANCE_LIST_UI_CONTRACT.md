@@ -79,3 +79,5 @@ Depois deste contrato, a cobertura de UI deve avancar para formularios data-chan
 3. contas a receber;
 4. bancos;
 5. pessoas e acessos.
+
+Status: formularios financeiros primarios agora possuem contrato proprio em `docs/audits/FINANCE_FORM_UI_CONTRACT.md`.
