@@ -53,6 +53,7 @@ describe("billing settings status contract", () => {
     expect(roadmap).toContain("docs/audits/billing_settings_status_contract.md");
     expect(roadmap).toContain("plano atual da organizacao");
     expect(gapRegister).toContain("billing settings status ui is implemented");
-    expect(gapRegister).toContain("define the subscription flow contract before stripe runtime");
+    expect(gapRegister).toContain("subscription flow contract is documented");
+    expect(gapRegister).toContain("implement the stripe configuration boundary before checkout runtime");
   });
 });

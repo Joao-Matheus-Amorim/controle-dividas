@@ -46,6 +46,14 @@ components/settings/settings-billing-plan-status.tsx
 
 Ela exibe o plano atual da organizacao em Configuracoes usando `lib/billing/plans.ts`, sem checkout, webhook, portal ou cobranca.
 
+O fluxo de assinatura antes do runtime Stripe esta documentado em:
+
+```txt
+docs/audits/BILLING_SUBSCRIPTION_FLOW_CONTRACT.md
+```
+
+Esse contrato define entrada de checkout, retorno, portal, webhook idempotente, secrets e rollback antes da primeira implementacao runtime.
+
 ## Limites
 
 Este ADR nao implementa:
@@ -64,10 +72,12 @@ Este ADR nao implementa:
 2. Exibir status read-only do plano atual da organizacao.
 3. Rodar/registrar os evidence gates externos pendentes.
 4. Definir UI e fluxo de assinatura.
-5. Implementar Stripe em PR proprio com secrets, webhook, testes e rollback separados.
+5. Implementar fronteira de configuracao Stripe.
+6. Implementar Stripe em PR proprio com secrets, webhook, testes e rollback separados.
 
 ## Relacao com docs vivos
 
 - Status vivo: `docs/SAAS_RLS_LIVE_STATUS.md`
 - Roadmap operacional: `docs/SAAS_OPERATIONAL_ROADMAP.md`
 - Gap register: `docs/SAAS_GAP_REGISTER.md`
+- Contrato do fluxo: `docs/audits/BILLING_SUBSCRIPTION_FLOW_CONTRACT.md`

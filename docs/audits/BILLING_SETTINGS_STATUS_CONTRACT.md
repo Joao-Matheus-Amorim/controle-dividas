@@ -36,7 +36,13 @@ Este passo nao implementa:
 
 ## Proximo passo seguro
 
-Antes de implementar Stripe, definir o contrato de fluxo de assinatura:
+O contrato de fluxo de assinatura fica em:
+
+```txt
+docs/audits/BILLING_SUBSCRIPTION_FLOW_CONTRACT.md
+```
+
+Antes de implementar Stripe runtime, esse contrato deve definir:
 
 - entrada de checkout;
 - retorno de sucesso/cancelamento;
