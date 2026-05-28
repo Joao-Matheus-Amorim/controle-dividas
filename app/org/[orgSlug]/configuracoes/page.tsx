@@ -1,10 +1,14 @@
-import { ConfiguracoesPage } from "@/app/protected/configuracoes/page";
+import { ConfiguracoesPage } from "@/features/protected-pages/configuracoes-page";
 
-type OrgPageProps = {
-  params: Promise<{ orgSlug: string }>;
+type OrgRouteParams = {
+  orgSlug: string;
 };
 
-export default async function OrgConfiguracoesPage({ params }: OrgPageProps) {
+type PageProps = {
+  params: Promise<OrgRouteParams>;
+};
+
+export default async function OrgProtectedConfiguracoesPage({ params }: PageProps) {
   const { orgSlug } = await params;
 
   return <ConfiguracoesPage orgSlug={orgSlug} />;

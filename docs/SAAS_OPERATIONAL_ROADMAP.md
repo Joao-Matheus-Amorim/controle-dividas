@@ -136,7 +136,8 @@ O contrato de roteamento foi definido no ADR 0007:
 Resultado atual:
 
 - helpers centralizados de path para `/org/[orgSlug]`;
-- wrappers `app/org/[orgSlug]` para dashboard e modulos protegidos;
+- wrappers `app/org/[orgSlug]` e `/protected` para dashboard e modulos protegidos;
+- implementacoes compartilhadas em `features/protected-pages`;
 - validacao server-side de acesso ao slug recebido na URL;
 - links internos preservam o slug quando a navegacao esta em `/org/[orgSlug]`;
 - `revalidateOrganizationPaths` revalida `/protected` e o caminho equivalente `/org/[orgSlug]`;

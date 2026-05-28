@@ -92,7 +92,7 @@ describe("legacy organization fallback removal readiness", () => {
   });
 
   it("keeps people page and action paths scoped to active organization equality", () => {
-    const pageSource = readSource("app/protected/pessoas/page.tsx");
+    const pageSource = readSource("features/protected-pages/pessoas-page.tsx");
     const actionSource = readSource("app/protected/pessoas/actions.ts");
 
     expect(pageSource).toContain("requireorganizationaccess");

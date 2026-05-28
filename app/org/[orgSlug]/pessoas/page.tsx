@@ -1,10 +1,14 @@
-import { PessoasPage } from "@/app/protected/pessoas/page";
+import { PessoasPage } from "@/features/protected-pages/pessoas-page";
 
-type OrgPageProps = {
-  params: Promise<{ orgSlug: string }>;
+type OrgRouteParams = {
+  orgSlug: string;
 };
 
-export default async function OrgPessoasPage({ params }: OrgPageProps) {
+type PageProps = {
+  params: Promise<OrgRouteParams>;
+};
+
+export default async function OrgProtectedPessoasPage({ params }: PageProps) {
   const { orgSlug } = await params;
 
   return <PessoasPage orgSlug={orgSlug} />;

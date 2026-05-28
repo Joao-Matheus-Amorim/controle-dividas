@@ -10,14 +10,14 @@ function readSource(path: string) {
 }
 
 const migratedPages = [
-  "app/protected/page.tsx",
-  "app/protected/pessoas/page.tsx",
-  "app/protected/configuracoes/page.tsx",
-  "app/protected/contas-a-pagar/page.tsx",
-  "app/protected/contas-a-receber/page.tsx",
-  "app/protected/gastos/page.tsx",
-  "app/protected/bancos/page.tsx",
-  "app/protected/relatorios/page.tsx",
+  "features/protected-pages/dashboard-page.tsx",
+  "features/protected-pages/pessoas-page.tsx",
+  "features/protected-pages/configuracoes-page.tsx",
+  "features/protected-pages/contas-a-pagar-page.tsx",
+  "features/protected-pages/contas-a-receber-page.tsx",
+  "features/protected-pages/gastos-page.tsx",
+  "features/protected-pages/bancos-page.tsx",
+  "features/protected-pages/relatorios-page.tsx",
 ];
 
 const organizationHelpersWithoutLegacyFallback = [
@@ -48,7 +48,7 @@ describe("organization-aware query guards", () => {
   });
 
   it("keeps dashboard wired to organization-aware module data helpers", () => {
-    const source = readSource("app/protected/page.tsx");
+    const source = readSource("features/protected-pages/dashboard-page.tsx");
 
     expect(source).toContain("@/lib/organizations/banks");
     expect(source).toContain("@/lib/organizations/expenses");
@@ -146,7 +146,7 @@ describe("organization-aware query guards", () => {
   });
 
   it("keeps people protected page profile reads on active organization equality", () => {
-    const source = readSource("app/protected/pessoas/page.tsx");
+    const source = readSource("features/protected-pages/pessoas-page.tsx");
 
     expect(source).toContain('.eq("organization_id", organizationId)');
     expect(source).not.toContain("organizationOrLegacyFilter");

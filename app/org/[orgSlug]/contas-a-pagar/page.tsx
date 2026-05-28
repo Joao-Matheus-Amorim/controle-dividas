@@ -1,11 +1,17 @@
-import { ContasAPagarPage } from "@/app/protected/contas-a-pagar/page";
+import { ContasAPagarPage } from "@/features/protected-pages/contas-a-pagar-page";
 
-type OrgPageProps = {
-  params: Promise<{ orgSlug: string }>;
-  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+type OrgRouteParams = {
+  orgSlug: string;
 };
 
-export default async function OrgContasAPagarPage({ params, searchParams }: OrgPageProps) {
+type PageSearchParams = Promise<Record<string, string | string[] | undefined>>;
+
+type PageProps = {
+  params: Promise<OrgRouteParams>;
+  searchParams?: PageSearchParams;
+};
+
+export default async function OrgProtectedContasAPagarPage({ params, searchParams }: PageProps) {
   const { orgSlug } = await params;
 
   return <ContasAPagarPage orgSlug={orgSlug} searchParams={searchParams} />;

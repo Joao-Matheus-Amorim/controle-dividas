@@ -1,11 +1,17 @@
-import { RelatoriosPage } from "@/app/protected/relatorios/page";
+import { RelatoriosPage } from "@/features/protected-pages/relatorios-page";
 
-type OrgPageProps = {
-  params: Promise<{ orgSlug: string }>;
-  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+type OrgRouteParams = {
+  orgSlug: string;
 };
 
-export default async function OrgRelatoriosPage({ params, searchParams }: OrgPageProps) {
+type PageSearchParams = Promise<Record<string, string | string[] | undefined>>;
+
+type PageProps = {
+  params: Promise<OrgRouteParams>;
+  searchParams?: PageSearchParams;
+};
+
+export default async function OrgProtectedRelatoriosPage({ params, searchParams }: PageProps) {
   const { orgSlug } = await params;
 
   return <RelatoriosPage orgSlug={orgSlug} searchParams={searchParams} />;

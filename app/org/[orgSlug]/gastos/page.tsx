@@ -1,11 +1,17 @@
-import { GastosPage } from "@/app/protected/gastos/page";
+import { GastosPage } from "@/features/protected-pages/gastos-page";
 
-type OrgPageProps = {
-  params: Promise<{ orgSlug: string }>;
-  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+type OrgRouteParams = {
+  orgSlug: string;
 };
 
-export default async function OrgGastosPage({ params, searchParams }: OrgPageProps) {
+type PageSearchParams = Promise<Record<string, string | string[] | undefined>>;
+
+type PageProps = {
+  params: Promise<OrgRouteParams>;
+  searchParams?: PageSearchParams;
+};
+
+export default async function OrgProtectedGastosPage({ params, searchParams }: PageProps) {
   const { orgSlug } = await params;
 
   return <GastosPage orgSlug={orgSlug} searchParams={searchParams} />;

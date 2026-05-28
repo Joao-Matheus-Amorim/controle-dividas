@@ -1,10 +1,14 @@
-import { AdminUsuariosPage } from "@/app/protected/admin/usuarios/page";
+import { AdminUsuariosPage } from "@/features/protected-pages/admin-usuarios-page";
 
-type OrgPageProps = {
-  params: Promise<{ orgSlug: string }>;
+type OrgRouteParams = {
+  orgSlug: string;
 };
 
-export default async function OrgAdminUsuariosPage({ params }: OrgPageProps) {
+type PageProps = {
+  params: Promise<OrgRouteParams>;
+};
+
+export default async function OrgProtectedAdminUsuariosPage({ params }: PageProps) {
   const { orgSlug } = await params;
 
   return <AdminUsuariosPage orgSlug={orgSlug} />;

@@ -11,14 +11,18 @@ function readSource(path: string) {
 
 describe("admin permissions ownership guards", () => {
   it("keeps admin dashboard data centralized in getAdminDashboardData", () => {
-    const adminPage = readSource("app/protected/admin/page.tsx");
-    const usersPage = readSource("app/protected/admin/usuarios/page.tsx");
-    const permissionsPage = readSource("app/protected/admin/permissoes/page.tsx");
+    const adminPage = readSource("features/protected-pages/admin-page.tsx");
+    const usersPage = readSource("features/protected-pages/admin-usuarios-page.tsx");
+    const permissionsPage = readSource("features/protected-pages/admin-permissoes-page.tsx");
 
     for (const source of [adminPage, usersPage, permissionsPage]) {
       expect(source).toContain("@/lib/finance/admin-server");
       expect(source).toContain("getAdminDashboardData");
     }
+
+    expect(readSource("app/protected/admin/page.tsx")).toContain("@/features/protected-pages/admin-page");
+    expect(readSource("app/protected/admin/usuarios/page.tsx")).toContain("@/features/protected-pages/admin-usuarios-page");
+    expect(readSource("app/protected/admin/permissoes/page.tsx")).toContain("@/features/protected-pages/admin-permissoes-page");
   });
 
   it("keeps admin profile and permission reads scoped to the active organization without legacy rows", () => {
