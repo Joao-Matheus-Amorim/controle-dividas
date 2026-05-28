@@ -82,9 +82,9 @@ The artifact contains:
 rls-live-gate-evidence/summary.md
 ```
 
-The summary records workflow metadata, ref, SHA, actor, run id, run attempt, `APP_ENV`, `RUN_RLS_TESTS`, and both environment validation and test outcomes.
+The summary records workflow metadata, ref, SHA, actor, run id, run attempt, `APP_ENV`, `RUN_RLS_TESTS`, and the environment validation outcome and test outcomes.
 
-Secret values are intentionally not printed. The contract table records each required variable/secret entry as `present` or `missing`, and validation status is the authoritative signal for whether the gate is correctly prepared.
+Secret values are intentionally not printed. The contract table records each required variable/secret entry as `present` or `missing`, and validation status is the authoritative signal for whether the gate is correctly prepared and not as proof that each value was configured.
 
 Only record this gate as CI evidence in `docs/SAAS_RLS_LIVE_STATUS.md` after a real GitHub Actions run has completed successfully.
 
