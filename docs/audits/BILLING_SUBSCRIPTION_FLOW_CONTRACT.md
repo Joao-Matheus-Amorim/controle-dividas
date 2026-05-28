@@ -93,11 +93,24 @@ Este contrato nao implementa:
 - mudanca RLS;
 - E2E data-changing.
 
+## Fronteira Stripe implementada
+
+A fronteira de configuracao Stripe desta sequencia foi implementada e documentada em:
+
+```txt
+docs/audits/BILLING_STRIPE_CONFIGURATION_BOUNDARY.md
+```
+
+Resumo do estado atual:
+
+- helper server-only versionado em `lib/billing/stripe-config.ts`;
+- `ENABLE_STRIPE_CHECKOUT=false` por padrao;
+- fail-fast em runtime de producao quando `ENABLE_STRIPE_CHECKOUT=true` e env vars obrigatorias estiverem ausentes.
+
 ## Proxima PR segura
 
-Implementar a fronteira de configuracao Stripe sem criar checkout:
+Depois da fronteira de configuracao:
 
-- validar env vars obrigatorias para runtime Stripe;
-- criar helper server-only para ler configuracao;
-- manter o app funcional quando Stripe estiver desativado;
-- adicionar guards para impedir uso no client.
+- implementar entrada de checkout em PR proprio;
+- manter webhook/portal separados em passos explicitos;
+- preservar rollback operacional definido neste contrato.

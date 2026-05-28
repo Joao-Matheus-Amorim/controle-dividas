@@ -76,6 +76,7 @@ Ainda transicional:
 - a migration `039_drop_legacy_owner_family_policies.sql` versiona a limpeza idempotente das policies antigas `*_own`/`*_family` que foram removidas no Supabase vivo durante a validacao;
 - `/protected` ainda existe para auth, onboarding, bookmarks e compatibilidade transicional;
 - a execucao real dedicada do E2E `RUN_ORGSLUG_E2E=true` ainda precisa ser registrada como evidencia verde de ambiente;
+- fronteira de configuracao Stripe existe em `lib/billing/stripe-config.ts`, mas checkout/webhook/portal continuam fora de runtime;
 - billing ainda nao foi implementado;
 - cobertura E2E ainda nao e completa para todos os modulos e perfis.
 

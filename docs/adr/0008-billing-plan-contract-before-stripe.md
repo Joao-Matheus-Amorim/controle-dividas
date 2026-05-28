@@ -54,6 +54,14 @@ docs/audits/BILLING_SUBSCRIPTION_FLOW_CONTRACT.md
 
 Esse contrato define entrada de checkout, retorno, portal, webhook idempotente, secrets e rollback antes da primeira implementacao runtime.
 
+A fronteira de configuracao Stripe antes de checkout runtime esta documentada em:
+
+```txt
+docs/audits/BILLING_STRIPE_CONFIGURATION_BOUNDARY.md
+```
+
+Essa fronteira versiona helper server-only, flag de habilitacao e fail-fast de env vars obrigatorias em runtime de producao, sem acoplar checkout/webhook.
+
 ## Limites
 
 Este ADR nao implementa:
@@ -73,7 +81,8 @@ Este ADR nao implementa:
 3. Rodar/registrar os evidence gates externos pendentes.
 4. Definir UI e fluxo de assinatura.
 5. Implementar fronteira de configuracao Stripe.
-6. Implementar Stripe em PR proprio com secrets, webhook, testes e rollback separados.
+6. Implementar checkout runtime em PR proprio.
+7. Implementar webhook/portal em PRs separados com testes e rollback.
 
 ## Relacao com docs vivos
 
@@ -81,3 +90,4 @@ Este ADR nao implementa:
 - Roadmap operacional: `docs/SAAS_OPERATIONAL_ROADMAP.md`
 - Gap register: `docs/SAAS_GAP_REGISTER.md`
 - Contrato do fluxo: `docs/audits/BILLING_SUBSCRIPTION_FLOW_CONTRACT.md`
+- Contrato da fronteira Stripe: `docs/audits/BILLING_STRIPE_CONFIGURATION_BOUNDARY.md`

@@ -50,8 +50,12 @@ describe("billing subscription flow contract", () => {
     expect(roadmap).toContain("docs/audits/billing_subscription_flow_contract.md");
     expect(roadmap).toContain("fronteira de configuracao stripe");
     expect(gapRegister).toContain("subscription flow contract is documented");
-    expect(gapRegister).toContain("implement the stripe configuration boundary before checkout runtime");
+    expect(gapRegister).toContain("stripe configuration boundary is implemented");
+    expect(gapRegister).toContain(
+      "implement checkout runtime in a dedicated pr, keeping webhook and portal separated",
+    );
     expect(billingAdr).toContain("billing_subscription_flow_contract.md");
     expect(billingAdr).toContain("fronteira de configuracao stripe");
+    expect(billingAdr).toContain("billing_stripe_configuration_boundary.md");
   });
 });

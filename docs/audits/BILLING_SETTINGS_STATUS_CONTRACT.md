@@ -34,7 +34,7 @@ Este passo nao implementa:
 - alteracoes RLS;
 - E2E data-changing.
 
-## Proximo passo seguro
+## Proximos passos seguros
 
 O contrato de fluxo de assinatura fica em:
 
@@ -42,11 +42,18 @@ O contrato de fluxo de assinatura fica em:
 docs/audits/BILLING_SUBSCRIPTION_FLOW_CONTRACT.md
 ```
 
-Antes de implementar Stripe runtime, esse contrato deve definir:
+E a fronteira de configuracao Stripe antes de checkout runtime fica em:
+
+```txt
+docs/audits/BILLING_STRIPE_CONFIGURATION_BOUNDARY.md
+```
+
+Antes de implementar checkout runtime, esses contratos devem definir:
 
 - entrada de checkout;
 - retorno de sucesso/cancelamento;
 - portal de billing;
 - webhook idempotente;
 - rollback operacional;
-- secrets esperados por ambiente.
+- secrets esperados por ambiente;
+- comportamento de fail-fast em runtime de producao.
