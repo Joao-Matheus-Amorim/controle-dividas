@@ -18,7 +18,7 @@ describe("selective visual snapshot strategy", () => {
 
   it("defines selective snapshots without implementing visual snapshots", () => {
     expect(strategy).toContain("gap-011");
-    expect(strategy).toContain("snapshots visuais devem ser seletivos, pequenos e deterministicos");
+    expect(strategy).toContain("snapshots visuais devem ser seletivos, pequenos e deterministas");
     expect(strategy).toContain("nao deve adicionar snapshot amplo");
     expect(strategy).toContain("nao:");
     expect(strategy).toContain("adiciona playwright screenshot");
@@ -53,7 +53,7 @@ describe("selective visual snapshot strategy", () => {
     expect(roadmap).toContain("dashboard summary acima da dobra");
     expect(roadmap).toContain("primeiro snapshot visual seletivo");
 
-    expect(gapRegister).toContain("selective visual snapshot strategy is documented");
+    expect(gapRegister).toContain("selective visual snapshot strategy are documented");
     expect(gapRegister).toContain("first deterministic visual snapshot");
   });
 
