@@ -26,6 +26,7 @@ Fontes cruzadas nesta revisao:
 - `docs/audits/BILLING_SUBSCRIPTION_FLOW_CONTRACT.md`
 - `docs/audits/BILLING_STRIPE_CONFIGURATION_BOUNDARY.md`
 - `docs/audits/SENSITIVE_OPERATION_CONTROLS_CONTRACT.md`
+- `docs/audits/SENSITIVE_ACTION_AUDIT_EVENT_SCHEMA_PLAN.md`
 - `docs/runbooks/BILLING_STRIPE_TEST_ACCOUNT_RUNBOOK.md`
 - `docs/rls/RLS_LIVE_GATE.md`
 - `.github/workflows/rls-live-gate.yml`
@@ -97,7 +98,7 @@ A limpeza final de policies antigas owner/family foi versionada em:
 - O runbook de conta Stripe de teste esta em `docs/runbooks/BILLING_STRIPE_TEST_ACCOUNT_RUNBOOK.md`.
 - Checkout runtime esta implementado em `lib/billing/stripe-checkout.ts` e `app/protected/configuracoes/billing-actions.ts`, sem webhook, portal ou enforcement comercial.
 - Evidencia real de checkout Stripe ainda esta pendente porque nao ha conta Stripe de teste/credenciais configuradas.
-- O contrato de planejamento para GAP-015 esta documentado em `docs/audits/SENSITIVE_OPERATION_CONTROLS_CONTRACT.md`; rate limiting, sensitive-action audit logging e data retention ainda nao tem runtime implementado.
+- O contrato de planejamento para GAP-015 esta documentado em `docs/audits/SENSITIVE_OPERATION_CONTROLS_CONTRACT.md`, com plano de schema/redaction para audit events em `docs/audits/SENSITIVE_ACTION_AUDIT_EVENT_SCHEMA_PLAN.md`; rate limiting, sensitive-action audit logging e data retention ainda nao tem runtime implementado.
 - RLS Live Gate existe em `.github/workflows/rls-live-gate.yml` e ja gera GitHub Step Summary + artifact `rls-live-gate-evidence-*`, mas ainda precisa de vars/secrets e execucao dedicada para virar evidencia verde de CI.
 
 ## 3. Estado de fechamento e gaps reais antes de declarar 100% coerente
@@ -222,6 +223,7 @@ O contrato de planejamento esta registrado em `docs/audits/SENSITIVE_OPERATION_C
 Resultado atual:
 
 - escopo documentado para rate limiting, sensitive-action audit logging e data retention policy;
+- plano de schema/redaction para audit events documentado em `docs/audits/SENSITIVE_ACTION_AUDIT_EVENT_SCHEMA_PLAN.md`;
 - inventario inicial de operacoes sensiveis documentado;
 - limites explicitos: planning only, sem runtime, schema, RLS, UI, billing ou E2E neste passo;
 - sequenciamento definido para issues/PRs dedicados antes de qualquer implementacao.
@@ -229,7 +231,7 @@ Resultado atual:
 Resultado esperado:
 
 - criar issues separadas para rate limits, audit events e retention policy;
-- definir schema/redaction de audit events em PR proprio;
+- transformar o plano de schema/redaction de audit events em schema/RLS/RPC ou write boundary em PR proprio;
 - implementar rate limits por uma fronteira server-side por vez;
 - implementar audit logging por uma familia de operacoes sensiveis por vez;
 - definir retention policy antes de qualquer automacao destrutiva.
@@ -281,6 +283,7 @@ Resultado esperado:
 
 6. **Sensitive operation controls**
    - Usar `docs/audits/SENSITIVE_OPERATION_CONTROLS_CONTRACT.md`.
+   - Usar `docs/audits/SENSITIVE_ACTION_AUDIT_EVENT_SCHEMA_PLAN.md`.
    - Criar issues separadas para rate limiting, sensitive-action audit logging e data retention.
    - Nao implementar runtime, schema, RLS, billing ou UI sem PR dedicado, validacao e rollback.
 
