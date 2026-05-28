@@ -13,6 +13,9 @@ describe("runtime env policy guards", () => {
   it("keeps production-like runtime fail-fast helper available", () => {
     const source = readSource("lib/utils.ts");
 
+    expect(source).toContain(
+      "process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||\n  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+    );
     expect(source).toContain("export function shouldFailFastForMissingRuntimeEnv()");
     expect(source).toContain('process.env.NODE_ENV === "production"');
     expect(source).toContain('process.env.APP_ENV === "production"');

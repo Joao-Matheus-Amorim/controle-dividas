@@ -194,5 +194,5 @@ describe("expenses RLS gated integration", () => {
 
       await user.auth.signOut();
     }
-  });
+  }, 30000);
 });

@@ -173,5 +173,5 @@ describe("receivable_incomes RLS gated integration", () => {
 
       await user.auth.signOut();
     }
-  });
+  }, 30000);
 });

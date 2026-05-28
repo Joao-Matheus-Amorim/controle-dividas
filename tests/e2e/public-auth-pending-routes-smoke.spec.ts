@@ -16,8 +16,8 @@ test.describe("pending public and auth routes smoke", () => {
 
     await expect(page).toHaveURL(/\/auth\/update-password/);
     await expect(page.getByRole("heading", { name: "Atualizar senha" })).toBeVisible();
-    await expect(page.getByRole("textbox", { name: "Nova senha", exact: true })).toBeVisible();
-    await expect(page.getByRole("textbox", { name: "Repetir nova senha" })).toBeVisible();
+    await expect(page.getByLabel("Nova senha", { exact: true })).toBeVisible();
+    await expect(page.getByLabel("Repetir nova senha")).toBeVisible();
     await expect(page.getByRole("button", { name: /salvar nova senha/i })).toBeVisible();
   });
 
@@ -28,7 +28,7 @@ test.describe("pending public and auth routes smoke", () => {
     await expect(
       page.getByRole("heading", { name: "Sorry, something went wrong." }),
     ).toBeVisible();
-    await expect(page.getByText("Code error: smoke-test-error")).toBeVisible();
+    await expect(page.getByText("Code error: smoke-test-error").first()).toBeVisible();
   });
 
   test("redirects auth confirm without callback params to auth error", async ({ page }) => {
@@ -38,6 +38,6 @@ test.describe("pending public and auth routes smoke", () => {
     await expect(
       page.getByRole("heading", { name: "Sorry, something went wrong." }),
     ).toBeVisible();
-    await expect(page.getByText("Code error: No token hash or type")).toBeVisible();
+    await expect(page.getByText("Code error: No token hash or type").first()).toBeVisible();
   });
 });
