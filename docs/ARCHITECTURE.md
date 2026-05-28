@@ -154,6 +154,7 @@ As rotas organization-aware existem com o contrato aceito no ADR 0007:
 `/protected` permanece como rota compativel durante a transicao.
 
 As implementacoes compartilhadas das telas protegidas ficam em `features/protected-pages`; as rotas `/protected` e `/org/[orgSlug]` atuam como wrappers de entrada.
+O contrato Playwright gated de `/org/[orgSlug]` fica em `tests/e2e/orgslug-authenticated-gated.spec.ts` e cobre slug permitido, slug sem membership e compatibilidade `/protected`.
 
 ### Server Components e Server Actions
 
@@ -369,7 +370,7 @@ Curto prazo:
 
 - configurar e rodar RLS Live Gate em CI dedicado;
 - confirmar E2E gated de troca de organizacao ativa quando houver ambiente dedicado;
-- ampliar cobertura E2E dedicada para `/org/[orgSlug]`.
+- rodar cobertura E2E dedicada para `/org/[orgSlug]` em ambiente dedicado e registrar evidencia verde.
 
 Medio prazo:
 

@@ -47,10 +47,15 @@ describe("orgSlug routing contract", () => {
     expect(adr).toContain("migrar rotas de modulo preservando a compatibilidade `/protected`");
     expect(existsSync(join(process.cwd(), "app/org/[orgSlug]/page.tsx"))).toBe(true);
     expect(existsSync(join(process.cwd(), "app/org/[orgSlug]/gastos/page.tsx"))).toBe(true);
+    expect(existsSync(join(process.cwd(), "app/org/[orgSlug]/error.tsx"))).toBe(true);
     expect(existsSync(join(process.cwd(), "app/org/[orgSlug]/admin/permissoes/page.tsx"))).toBe(true);
     expect(existsSync(join(process.cwd(), "features/protected-pages/dashboard-page.tsx"))).toBe(true);
+    expect(existsSync(join(process.cwd(), "tests/e2e/orgslug-authenticated-gated.spec.ts"))).toBe(true);
     expect(read("app/org/[orgSlug]/gastos/page.tsx")).toContain("@/features/protected-pages/gastos-page");
     expect(read("app/protected/gastos/page.tsx")).toContain("@/features/protected-pages/gastos-page");
+    expect(read("tests/e2e/helpers/e2e-env.ts")).toContain("run_orgslug_e2e");
+    expect(read("tests/e2e/orgslug-authenticated-gated.spec.ts")).toContain("runorgsluge2e");
+    expect(read("tests/e2e/orgslug-authenticated-gated.spec.ts")).toContain("voce nao tem acesso a esta organizacao.");
     expect(revalidation).toContain("revalidateorganizationpaths");
     expect(revalidation).toContain("getorgpathfromprotectedpath");
     expect(revalidation).toContain("revalidatepath(orgpath)");

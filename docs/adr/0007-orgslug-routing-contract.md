@@ -115,6 +115,8 @@ Cria `app/org/[orgSlug]` e wrappers de modulo que reutilizam implementacoes neut
 
 Centraliza a revalidacao organization-aware em `lib/organizations/revalidation.ts`.
 
+Versiona o contrato E2E gated em `tests/e2e/orgslug-authenticated-gated.spec.ts`.
+
 Nao remove `/protected`.
 
 Nao remove `owner_id`.

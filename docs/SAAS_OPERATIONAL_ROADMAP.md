@@ -75,6 +75,7 @@ A limpeza final de policies antigas owner/family foi versionada em:
 - Rotas protegidas autenticadas principais existem como contratos gated.
 - Data-changing E2E existe como gated skipped-by-default.
 - Troca de organizacao ativa tem contrato Playwright gated cleanup-backed em `tests/e2e/multi-org-switch-authenticated-gated.spec.ts`.
+- Rotas `orgSlug` tem contrato Playwright gated cleanup-backed em `tests/e2e/orgslug-authenticated-gated.spec.ts`.
 - RLS Live Gate existe em `.github/workflows/rls-live-gate.yml` e ja gera GitHub Step Summary + artifact `rls-live-gate-evidence-*`, mas ainda precisa de vars/secrets e execucao dedicada para virar evidencia verde de CI.
 
 ## 3. Estado de fechamento e gaps reais antes de declarar 100% coerente
@@ -141,6 +142,7 @@ Resultado atual:
 - validacao server-side de acesso ao slug recebido na URL;
 - links internos preservam o slug quando a navegacao esta em `/org/[orgSlug]`;
 - `revalidateOrganizationPaths` revalida `/protected` e o caminho equivalente `/org/[orgSlug]`;
+- E2E gated `RUN_ORGSLUG_E2E=true` cobre slug permitido, slug sem membership e compatibilidade `/protected`;
 - `/protected` segue compativel para auth, onboarding e bookmarks legados.
 
 ### GAP-003 - Billing
@@ -177,10 +179,10 @@ Resultado esperado:
    - Rodar `RUN_MULTI_ORG_SWITCH_E2E=true`.
    - Registrar evidencia depois de uma execucao real verde.
 
-3. **E2E dedicado de `orgSlug` quando houver ambiente pronto**
-   - ADR 0007 define `/org/[orgSlug]` e compatibilidade `/protected`.
-   - Provar slug valido, slug sem acesso e compatibilidade `/protected`.
-   - Manter fora de billing.
+3. **Confirmar E2E dedicado de `orgSlug` em ambiente dedicado quando necessario**
+   - Configurar usuario dedicado em `E2E_ORGSLUG_EMAIL`/`E2E_ORGSLUG_PASSWORD`.
+   - Rodar `RUN_ORGSLUG_E2E=true`.
+   - Registrar evidencia depois de uma execucao real verde.
 
 4. **Billing design**
    - Definir plano por organization.
