@@ -15,10 +15,10 @@ A origem familiar do projeto permanece apenas como contexto historico e validaca
 | Onboarding | Organizacao inicial criada por RPC transacional autenticada |
 | RLS | Organization-aware por membership nas tabelas financeiras principais, `profiles` e permissoes; fallback `organization_id IS NULL` removido nas migrations `030` a `038` |
 | Permissoes | Modulos, acoes, escopos, feature permissions e runtime access-control por organizacao ativa |
-| UX multi-org | Indicador e troca de organizacao ativa implementados; rotas por `orgSlug` ainda futuras |
+| UX multi-org | Indicador e troca de organizacao ativa implementados; rotas por `orgSlug` em `/org/[orgSlug]` com `/protected` compativel |
 | Design system | shadcn/ui por camadas via ADR; primitives `Alert`, `Skeleton` e `Separator` versionados |
 | Testes | Unitarios, integracao MSW, guards arquiteturais e suites RLS gated opcionais |
-| E2E | Playwright implementado com smoke de auth/rotas e contratos autenticados gated de onboarding, organizacao ativa e rotas protegidas |
+| E2E | Playwright implementado com smoke de auth/rotas e contratos autenticados gated de onboarding, organizacao ativa, rotas protegidas, troca multi-org e `orgSlug` |
 | Deploy | Vercel com redeploy manual/controlado conforme fase atual |
 
 ## Fontes oficiais de decisao
@@ -48,7 +48,7 @@ PR pequeno.
 Issue antes do PR.
 Sem mudanca funcional escondida em PR documental.
 Sem billing antes de isolamento, UX multi-org e permissoes amadurecerem.
-Sem rotas por orgSlug antes da UX de organizacao ativa estar clara.
+Rotas por orgSlug seguem o contrato ADR 0007 e mantem `/protected` como compatibilidade transicional.
 Sem remover owner_id antes de preflight, dry-run, gates e rollback.
 ```
 
@@ -64,6 +64,8 @@ Implementado:
 - runtime access-control por organizacao ativa;
 - Admin/permissoes com hardening de escopo por organizacao;
 - indicador visual e troca explicita de organizacao ativa no layout protegido;
+- rotas organization-aware em `/org/[orgSlug]` com wrappers compartilhados e `/protected` mantido como compatibilidade;
+- E2E gated para `orgSlug`, cobrindo slug permitido, slug sem membership e compatibilidade `/protected`;
 - onboarding inicial por `/onboarding/organizacao` com RPC transacional autenticada para criar organizacao, membership owner e profile inicial;
 - hardening `organization_id NOT NULL` aplicado de forma incremental em `expense_categories`, `family_members`, `expenses`, `payable_bills`, `receivable_incomes`, `banks`, `user_module_permissions`, `user_feature_permissions` e `profiles`;
 - Playwright E2E com foundation, smoke de auth/rotas e contratos autenticados gated para onboarding inicial, usuario com organizacao ativa e guard de onboarding.
@@ -72,8 +74,8 @@ Ainda transicional:
 
 - `owner_id` ainda existe por compatibilidade e para write ownership;
 - a migration `039_drop_legacy_owner_family_policies.sql` versiona a limpeza idempotente das policies antigas `*_own`/`*_family` que foram removidas no Supabase vivo durante a validacao;
-- rotas ainda usam `/protected`;
-- rotas por `orgSlug` ainda nao foram implementadas; o contrato futuro aceito e `/org/[orgSlug]`;
+- `/protected` ainda existe para auth, onboarding, bookmarks e compatibilidade transicional;
+- a execucao real dedicada do E2E `RUN_ORGSLUG_E2E=true` ainda precisa ser registrada como evidencia verde de ambiente;
 - billing ainda nao foi implementado;
 - cobertura E2E ainda nao e completa para todos os modulos e perfis.
 
@@ -116,7 +118,7 @@ Ainda transicional:
 039_drop_legacy_owner_family_policies.sql
 ```
 
-Observacao operacional: a migration `019_initial_organization_onboarding_rpc.sql` precisa estar aplicada no Supabase de cada ambiente antes de depender do onboarding inicial em runtime. As migrations `020` a `028` exigem evidencia recente de preflight/dry-run com zero linhas bloqueadas ou ambiguas para suas tabelas-alvo. As migrations `030` a `038` removem o fallback RLS legado `organization_id IS NULL`.
+Observacao operacional: a migration `019_initial_organization_onboarding_rpc.sql` precisa estar aplicada no Supabase de cada ambiente antes de depender do onboarding inicial em runtime. As migrations `020` a `028` exigem evidencia recente de preflight/dry-run com zero linhas bloqueadas ou ambiguas para suas tabelas-alvo. As migrations `030` a `038` removem o fallback RLS legado `organization_id IS NULL`. A migration `039` remove policies historicas owner/family que podiam existir em ambientes que aplicaram migrations antigas.
 
 ## Testes RLS gated
 
@@ -152,6 +154,15 @@ npm run test:e2e
 Os fluxos autenticados e data-changing sao gated e nao rodam por padrao. Use apenas usuarios e projeto Supabase dedicados para E2E. Nao usar producao nem usuario real.
 
 Detalhes dos contratos e variaveis ficam em `docs/e2e/PLAYWRIGHT_ONBOARDING_TESTS.md` e `docs/e2e/PLAYWRIGHT_COVERAGE_ROADMAP.md`.
+
+Contratos gated adicionais:
+
+```txt
+RUN_MULTI_ORG_SWITCH_E2E=true
+RUN_ORGSLUG_E2E=true
+```
+
+`RUN_ORGSLUG_E2E=true` usa usuario Supabase dedicado e cria organizations temporarias com cleanup para provar `/org/[orgSlug]`, slug sem membership e compatibilidade `/protected`.
 
 ## Como rodar localmente
 
@@ -224,6 +235,17 @@ Protegidas:
 /protected/admin
 /protected/admin/usuarios
 /protected/admin/permissoes
+/org/[orgSlug]
+/org/[orgSlug]/pessoas
+/org/[orgSlug]/gastos
+/org/[orgSlug]/contas-a-pagar
+/org/[orgSlug]/contas-a-receber
+/org/[orgSlug]/bancos
+/org/[orgSlug]/relatorios
+/org/[orgSlug]/configuracoes
+/org/[orgSlug]/admin
+/org/[orgSlug]/admin/usuarios
+/org/[orgSlug]/admin/permissoes
 ```
 
 ## Modulos funcionais atuais

@@ -20,7 +20,8 @@ Ja existem no codigo:
 - Supabase service role server-side;
 - protecao global de sessao via `proxy.ts`;
 - rotas publicas de autenticacao;
-- rotas protegidas em `/protected`;
+- rotas protegidas compativeis em `/protected`;
+- rotas organization-aware em `/org/[orgSlug]`;
 - Admin familiar;
 - usuarios familiares;
 - vinculo entre `auth.users` e `profiles`;
@@ -97,6 +98,9 @@ app/protected/configuracoes/page.tsx
 app/protected/admin/page.tsx
 app/protected/admin/usuarios/page.tsx
 app/protected/admin/permissoes/page.tsx
+app/org/[orgSlug]/page.tsx
+app/org/[orgSlug]/gastos/page.tsx
+features/protected-pages/
 ```
 
 ## Variaveis de ambiente obrigatorias
@@ -130,6 +134,8 @@ supabase/migrations/001_family_finance_schema.sql
 supabase/migrations/002_dedupe_and_seed_constraints.sql
 supabase/migrations/003_admin_profiles_permissions.sql
 supabase/migrations/004_permission_scope_and_features.sql
+...
+supabase/migrations/039_drop_legacy_owner_family_policies.sql
 ```
 
 ### Validacao esperada apos migrations
@@ -151,7 +157,8 @@ user_feature_permissions
 Tambem deve possuir:
 
 - RLS habilitado nas tabelas principais;
-- policies basicas por `owner_id`;
+- policies organization-aware por membership ativa;
+- policies antigas owner/family removidas pela migration `039`;
 - constraints contra duplicacao de membros/categorias seedadas;
 - coluna `scope` em `user_module_permissions`;
 - coluna `allowed_member_ids` em `user_module_permissions`;
@@ -207,6 +214,7 @@ npm run test:run
 - [ ] `/auth/confirm` valida token Supabase.
 - [ ] `linkAuthUserToFamilyProfile` vincula `auth_user_id` ao profile.
 - [ ] Usuario sem sessao e redirecionado para `/auth/login` ao acessar `/protected`.
+- [ ] Usuario sem sessao e redirecionado para `/auth/login` ao acessar `/org/[orgSlug]`.
 - [ ] Usuario com e-mail nao autorizado nao acessa o app.
 - [ ] Usuario inativo e bloqueado.
 
@@ -241,6 +249,8 @@ npm run test:run
 ### 6. Dashboard
 
 - [ ] `/protected` abre com usuario autenticado.
+- [ ] `/org/[orgSlug]` abre com usuario autenticado e membership ativa.
+- [ ] `/org/[orgSlug]` sem membership nao mostra dados da organizacao.
 - [ ] Dashboard mostra apenas blocos permitidos.
 - [ ] Dashboard calcula gastos do escopo permitido.
 - [ ] Dashboard calcula contas a pagar do escopo permitido.
@@ -386,10 +396,11 @@ Cobrem:
 
 - `lib/finance/calculations.ts` ainda mistura funcoes puras com calculos baseados em fixtures.
 - Alguns documentos estrategicos ainda podem listar como planejado recursos que ja estao implementados.
+- Alguns documentos historicos ainda podem citar `/protected` como unica rota protegida; a fonte viva atual e ADR 0007 + `docs/SAAS_OPERATIONAL_ROADMAP.md`.
 - Edicoes completas de algumas entidades ainda faltam.
 - `user_feature_permissions` existe, mas UI completa ainda precisa evoluir.
 - Periodo do Dashboard/Relatorios ainda precisa virar dinamico.
-- RLS atual e baseada principalmente em `owner_id`; a permissao fina por membro esta na camada server-side do app.
+- `owner_id` ainda existe como compatibilidade/write ownership; a autorizacao tenant-scoped atual depende de `organization_id` e membership.
 
 ## Definition of Done tecnica
 
@@ -397,7 +408,7 @@ Uma entrega tecnica so deve ser considerada pronta quando:
 
 - codigo implementado;
 - permissao validada no servidor;
-- dados filtrados por `owner_id` e escopo;
+- dados filtrados por `organization_id`, membership, `owner_id` de write ownership e escopo;
 - lint aprovado;
 - build aprovado;
 - testes aprovados;
