@@ -20,6 +20,7 @@ Fontes cruzadas nesta revisao:
 - `docs/audits/DASHBOARD_UI_CONTRACT.md`
 - `docs/audits/FINANCE_LIST_UI_CONTRACT.md`
 - `docs/audits/FINANCE_FORM_UI_CONTRACT.md`
+- `docs/audits/SELECTIVE_VISUAL_SNAPSHOT_STRATEGY.md`
 - `docs/rls/RLS_LIVE_GATE.md`
 - `.github/workflows/rls-live-gate.yml`
 
@@ -82,6 +83,7 @@ A limpeza final de policies antigas owner/family foi versionada em:
 - O dashboard possui contrato de UI nao fragil em `docs/audits/DASHBOARD_UI_CONTRACT.md` e guard dedicado para preservar textos, secoes, permissao e rotas compartilhadas.
 - As listas financeiras primarias possuem contrato de UI nao fragil em `docs/audits/FINANCE_LIST_UI_CONTRACT.md` e guard dedicado para preservar estrutura, estados vazios/filtros e acoes condicionadas por permissao.
 - Os formularios financeiros primarios possuem contrato de UI nao fragil em `docs/audits/FINANCE_FORM_UI_CONTRACT.md` e guard dedicado para preservar `useActionState`, feedback, pending state, `AppFormSheet` e campos essenciais.
+- A estrategia de snapshot visual seletivo esta documentada em `docs/audits/SELECTIVE_VISUAL_SNAPSHOT_STRATEGY.md`; nenhum snapshot visual amplo foi implementado neste passo.
 - RLS Live Gate existe em `.github/workflows/rls-live-gate.yml` e ja gera GitHub Step Summary + artifact `rls-live-gate-evidence-*`, mas ainda precisa de vars/secrets e execucao dedicada para virar evidencia verde de CI.
 
 ## 3. Estado de fechamento e gaps reais antes de declarar 100% coerente
@@ -176,16 +178,18 @@ Resultado atual:
 - `docs/audits/DASHBOARD_UI_CONTRACT.md`;
 - `docs/audits/FINANCE_LIST_UI_CONTRACT.md`;
 - `docs/audits/FINANCE_FORM_UI_CONTRACT.md`;
+- `docs/audits/SELECTIVE_VISUAL_SNAPSHOT_STRATEGY.md`;
 - guard dedicado para `features/protected-pages/dashboard-page.tsx`;
 - guard dedicado para `components/dashboard/**`;
 - guard dedicado para listas primarias em `components/expenses`, `components/payables`, `components/receivables`, `components/banks` e `components/people`;
 - guard dedicado para formularios primarios em `components/finance`;
 - preservacao explicita do heading `Visão do mês`;
-- garantia documental de que nao ha snapshot amplo nem redesign nestes passos.
+- garantia documental de que nao ha snapshot amplo nem redesign nestes passos;
+- estrategia definida para escolher apenas uma superficie deterministica no primeiro snapshot visual.
 
 Resultado esperado:
 
-- definir estrategia de snapshot visual seletivo antes de qualquer redesign visual amplo.
+- implementar primeiro snapshot visual deterministico para `dashboard summary acima da dobra`, quando a fixture local estiver definida.
 
 ### GAP-005 - Remocao futura de `owner_id`
 
@@ -220,9 +224,9 @@ Resultado esperado:
    - Definir plano por organization.
    - Planejar Stripe sem misturar com RLS/rotas.
 
-5. **Estrategia de snapshot visual seletivo**
-   - Definir quais superficies realmente precisam de snapshot visual.
-   - Manter snapshots pequenos e deterministas.
+5. **Primeiro snapshot visual seletivo**
+   - Comecar pelo `dashboard summary acima da dobra`.
+   - Usar fixture local deterministica.
    - Evitar snapshot amplo sem contrato visual claro.
 
 6. **Owner_id retirement plan**

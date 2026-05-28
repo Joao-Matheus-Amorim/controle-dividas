@@ -238,3 +238,9 @@ This document does not:
 ## Future redesign notes for #80
 
 Before #80 starts, use this document as the baseline. A future redesign should decide explicitly which parts remain, which tokens become official, and whether app-specific alpha surfaces should be formalized as design tokens.
+
+## Selective visual snapshots
+
+Trabalho de snapshot visual deve seguir `docs/audits/SELECTIVE_VISUAL_SNAPSHOT_STRATEGY.md`.
+
+Snapshots visuais seletivos nao substituem contratos de UI. Eles apenas complementam superficies estaveis, ja documentadas e com fixtures deterministicas.

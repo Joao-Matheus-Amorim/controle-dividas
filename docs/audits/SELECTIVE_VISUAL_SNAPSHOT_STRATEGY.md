@@ -1,0 +1,88 @@
+# Selective visual snapshot strategy
+
+Atualizado em: 2026-05-28
+
+## Objetivo
+
+Este documento define a estrategia minima para snapshots visuais seletivos antes de qualquer redesign amplo.
+
+Ele continua o GAP-011 depois dos contratos de:
+
+- dashboard;
+- listas financeiras primarias;
+- formularios financeiros primarios.
+
+## Decisao
+
+Snapshots visuais devem ser seletivos, pequenos e deterministas.
+
+O projeto nao deve adicionar snapshot amplo de telas inteiras sem contrato previo, porque isso cria falso ruido de manutencao e nao prova a estabilidade das superficies financeiras criticas.
+
+## O que pode virar snapshot primeiro
+
+As primeiras candidatas devem ser superficies ja cobertas por contrato textual:
+
+1. dashboard summary acima da dobra;
+2. uma lista financeira primaria com dados estaveis;
+3. um formulario financeiro primario em estado create;
+4. um estado vazio financeiro;
+5. um estado de erro/feedback com `AppActionFeedback`.
+
+## O que nao deve virar snapshot agora
+
+Nao criar snapshot visual para:
+
+- fluxo completo autenticado com dados reais;
+- telas com dados remotos variaveis;
+- pagina inteira protegida com navegacao e conteudo dinamico;
+- billing;
+- RLS live gate;
+- orgSlug E2E;
+- qualquer tela antes de existir fixture deterministica.
+
+## Requisitos para o primeiro snapshot
+
+Antes do primeiro snapshot visual, o PR deve definir:
+
+- superficie unica;
+- viewport unico inicial;
+- fixture deterministica;
+- objetivo do snapshot;
+- criterio de atualizacao;
+- comando local esperado;
+- estrategia para evitar dados reais ou secretos;
+- rollback simples caso o snapshot fique instavel.
+
+## Relacao com contratos atuais
+
+O snapshot visual nao substitui os guards existentes.
+
+Ele deve complementar:
+
+- `docs/audits/DASHBOARD_UI_CONTRACT.md`;
+- `docs/audits/FINANCE_LIST_UI_CONTRACT.md`;
+- `docs/audits/FINANCE_FORM_UI_CONTRACT.md`;
+- `docs/design/VISUAL_TOKENS_AND_COMPONENT_CONVENTIONS.md`;
+- ADR 0003.
+
+## Fora de escopo
+
+Este documento nao:
+
+- adiciona Playwright screenshot;
+- adiciona dependencia visual;
+- altera componentes;
+- altera tokens;
+- redesenha telas;
+- altera schema, RLS, billing ou rotas;
+- remove `owner_id`.
+
+## Proximo passo seguro
+
+O primeiro PR de snapshot visual deve escolher apenas uma superficie e provar estabilidade com fixture local deterministica.
+
+Recomendacao inicial:
+
+```txt
+dashboard summary acima da dobra com fixture local deterministica
+```
