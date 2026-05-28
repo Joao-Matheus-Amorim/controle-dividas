@@ -67,6 +67,7 @@ As migrations relevantes para SaaS/RLS/hardening ja mergeadas sao:
 036_profiles_rls_remove_legacy_fallback.sql
 037_user_module_permissions_rls_remove_legacy_fallback.sql
 038_user_feature_permissions_rls_remove_legacy_fallback.sql
+039_drop_legacy_owner_family_policies.sql
 ```
 
 Observacoes operacionais:
@@ -75,6 +76,7 @@ Observacoes operacionais:
 A migration 019 precisa estar aplicada no Supabase de cada ambiente antes de depender do onboarding inicial em runtime.
 As migrations 020 a 028 exigem evidencia recente de preflight/dry-run com zero linhas bloqueadas ou ambiguas para suas tabelas-alvo.
 As migrations 030 a 038 removem o fallback RLS legado `organization_id IS NULL`.
+A migration 039 remove policies historicas owner/family que podiam existir em ambientes que aplicaram migrations antigas.
 ```
 
 ## 4. RLS atual

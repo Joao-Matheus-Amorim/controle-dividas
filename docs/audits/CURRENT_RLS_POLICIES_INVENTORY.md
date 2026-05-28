@@ -149,7 +149,7 @@ insert/update/delete: owner_id = auth.uid() AND public.is_organization_member(or
 
 `organization_id NOT NULL` foi aplicado nas migrations `026` e `027`, e o fallback RLS legado foi removido nas migrations `037` e `038`.
 
-## 5. Gap operacional identificado
+## 5. Gap operacional fechado na cadeia de migrations
 
 Durante a validacao no Supabase vivo, as migrations `030` a `038` removeram as policies `*_organization_or_legacy`, mas ainda existiam policies historicas antigas que permitiam acesso por `owner_id` sem membership ativa:
 
@@ -181,9 +181,9 @@ Qualquer mudanca em `organization_memberships` deve preservar helpers nao recurs
 
 ## 7. Recomendacao de proximo passo
 
-1. Validar a migration `039_drop_legacy_owner_family_policies.sql` com testes RLS gated usando usuario autenticado comum.
+1. Aplicar a migration `039_drop_legacy_owner_family_policies.sql` em todo ambiente que ainda nao recebeu a limpeza manual equivalente.
 2. Executar RLS Live Gate em CI dedicado quando vars/secrets estiverem configurados.
-3. So depois planejar rotas por `orgSlug`.
+3. Implementar rotas por `orgSlug` seguindo ADR 0007, com `/protected` como compatibilidade.
 4. Billing apenas depois de isolamento e UX multi-org estarem maduros.
 5. Remover `owner_id` apenas em gate futuro com preflight, rollback e evidencia.
 

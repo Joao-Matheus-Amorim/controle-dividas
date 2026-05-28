@@ -47,11 +47,12 @@ describe("orgSlug routing contract", () => {
   });
 
   it("keeps roadmap and architecture aligned with the accepted contract", () => {
-    expect(roadmap).toContain("gap-004 - rotas por `orgslug`");
+    expect(roadmap).toContain("gap-002 - rotas por `orgslug`");
     expect(roadmap).toContain("adr 0007");
     expect(roadmap).toContain("/org/[orgslug]");
     expect(architecture).toContain("adr 0007");
     expect(architecture).toContain("/org/[orgslug]");
     expect(architecture).toContain("permanece como rota compativel");
+    expect(architecture).toContain("039_drop_legacy_owner_family_policies.sql");
   });
 });
