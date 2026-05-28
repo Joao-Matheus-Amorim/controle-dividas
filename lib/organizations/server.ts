@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 
 import { createClient } from "@/lib/supabase/server";
+import { normalizeBillingPlanKey } from "@/lib/billing/plans";
 import { ACTIVE_ORGANIZATION_COOKIE_NAME } from "./constants";
 import type { Organization, OrganizationContext, OrganizationMembership } from "./types";
 
@@ -34,7 +35,7 @@ function normalizeOrganization(row: OrganizationRow): Organization {
     slug: row.slug,
     name: row.name,
     owner_auth_user_id: row.owner_auth_user_id,
-    plan: row.plan,
+    plan: normalizeBillingPlanKey(row.plan),
     status: row.status,
     trial_ends_at: row.trial_ends_at,
     created_at: row.created_at,

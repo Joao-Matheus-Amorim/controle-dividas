@@ -1,3 +1,5 @@
+import type { BillingPlanKey } from "@/lib/billing/plans";
+
 export type OrganizationRole = "owner" | "admin" | "adult" | "child" | "custom" | "member";
 
 export interface Organization {
@@ -5,7 +7,7 @@ export interface Organization {
   slug: string;
   name: string;
   owner_auth_user_id: string;
-  plan: string;
+  plan: BillingPlanKey;
   status: string;
   trial_ends_at: string | null;
   created_at: string;
