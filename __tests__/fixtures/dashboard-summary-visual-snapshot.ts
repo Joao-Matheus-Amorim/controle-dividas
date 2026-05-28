@@ -26,9 +26,12 @@ export const dashboardSummaryVisualSnapshotViewport = {
 } as const;
 
 export const dashboardSummaryVisualSnapshotUpdatePolicy = {
-  command: "npm run test -- __tests__/unit/dashboard-summary-visual-fixture-guards.test.ts",
-  updateRule: "Atualizar a fixture somente quando o contrato do dashboard acima da dobra mudar.",
-  rollbackRule: "Reverter a fixture e o contrato documental no mesmo PR se o snapshot ficar instavel.",
+  command:
+    "RUN_DASHBOARD_SUMMARY_VISUAL_SNAPSHOT=true npm run test:e2e -- tests/e2e/dashboard-summary-visual-snapshot-gated.spec.ts --update-snapshots",
+  updateRule:
+    "Atualizar o snapshot somente quando o contrato do dashboard acima da dobra mudar.",
+  rollbackRule:
+    "Reverter o snapshot, a fixture e o contrato documental no mesmo PR se o snapshot ficar instavel.",
 } as const;
 
 export const dashboardSummaryVisualSnapshotFixture = {
@@ -95,7 +98,7 @@ export const dashboardSummaryVisualSnapshotFixture = {
       key: "expenses",
       label: "Gastos do m\u00eas",
       detail: "Saidas lancadas",
-      value: "R$ 177,50",
+      value: "177,50 \u20ac",
       iconKey: "ReceiptText",
       color: "#f0506e",
       bg: "bg-[#f0506e]/10",
@@ -104,7 +107,7 @@ export const dashboardSummaryVisualSnapshotFixture = {
       key: "payables",
       label: "Contas e dividas em aberto",
       detail: "Pendentes e atrasadas",
-      value: "R$ 909,30",
+      value: "909,30 \u20ac",
       iconKey: "WalletCards",
       color: "#f7b84b",
       bg: "bg-[#f7b84b]/10",
@@ -113,7 +116,7 @@ export const dashboardSummaryVisualSnapshotFixture = {
       key: "banks",
       label: "Saldo em bancos",
       detail: "Contas cadastradas",
-      value: "R$ 4.240,00",
+      value: "4240,00 \u20ac",
       iconKey: "Banknote",
       color: "#1de9b2",
       bg: "bg-[#1de9b2]/10",
@@ -122,7 +125,7 @@ export const dashboardSummaryVisualSnapshotFixture = {
       key: "receivables",
       label: "Valores a receber",
       detail: "Entradas previstas",
-      value: "R$ 2.120,00",
+      value: "2120,00 \u20ac",
       iconKey: "TrendingUp",
       color: "#1de9b2",
       bg: "bg-[#1de9b2]/10",

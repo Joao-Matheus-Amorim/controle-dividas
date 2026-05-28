@@ -85,7 +85,7 @@ A limpeza final de policies antigas owner/family foi versionada em:
 - As listas financeiras primarias possuem contrato de UI nao fragil em `docs/audits/FINANCE_LIST_UI_CONTRACT.md` e guard dedicado para preservar estrutura, estados vazios/filtros e acoes condicionadas por permissao.
 - Os formularios financeiros primarios possuem contrato de UI nao fragil em `docs/audits/FINANCE_FORM_UI_CONTRACT.md` e guard dedicado para preservar `useActionState`, feedback, pending state, `AppFormSheet` e campos essenciais.
 - A estrategia de snapshot visual seletivo esta documentada em `docs/audits/SELECTIVE_VISUAL_SNAPSHOT_STRATEGY.md`; nenhum snapshot visual amplo foi implementado neste passo.
-- A fixture deterministica do dashboard summary acima da dobra esta documentada em `docs/audits/DASHBOARD_SUMMARY_VISUAL_FIXTURE.md` e versionada em `__tests__/fixtures/dashboard-summary-visual-snapshot.ts`; nenhum Playwright screenshot foi implementado neste passo.
+- A fixture deterministica do dashboard summary acima da dobra esta documentada em `docs/audits/DASHBOARD_SUMMARY_VISUAL_FIXTURE.md`, versionada em `__tests__/fixtures/dashboard-summary-visual-snapshot.ts` e coberta por screenshot gated em `tests/e2e/dashboard-summary-visual-snapshot-gated.spec.ts`.
 - RLS Live Gate existe em `.github/workflows/rls-live-gate.yml` e ja gera GitHub Step Summary + artifact `rls-live-gate-evidence-*`, mas ainda precisa de vars/secrets e execucao dedicada para virar evidencia verde de CI.
 
 ## 3. Estado de fechamento e gaps reais antes de declarar 100% coerente
@@ -191,11 +191,12 @@ Resultado atual:
 - estrategia definida para escolher apenas uma superficie deterministica no primeiro snapshot visual.
 - fixture deterministica definida para `dashboard summary acima da dobra`;
 - viewport inicial unico `390x844`;
-- regra de atualizacao e rollback registrada antes do snapshot real.
+- regra de atualizacao e rollback registrada;
+- screenshot gated definido por `RUN_DASHBOARD_SUMMARY_VISUAL_SNAPSHOT=true`.
 
 Resultado esperado:
 
-- implementar primeiro screenshot test usando a fixture deterministica do dashboard summary acima da dobra.
+- validar o primeiro screenshot gated usando a fixture deterministica do dashboard summary acima da dobra.
 
 ### GAP-005 - Remocao futura de `owner_id`
 
@@ -233,7 +234,7 @@ Resultado esperado:
 5. **Primeiro snapshot visual seletivo**
    - Usar `docs/audits/DASHBOARD_SUMMARY_VISUAL_FIXTURE.md`.
    - Usar `__tests__/fixtures/dashboard-summary-visual-snapshot.ts`.
-   - Comecar pelo `dashboard summary acima da dobra`.
+   - Rodar `tests/e2e/dashboard-summary-visual-snapshot-gated.spec.ts` com `RUN_DASHBOARD_SUMMARY_VISUAL_SNAPSHOT=true`.
    - Evitar snapshot amplo sem contrato visual claro.
 
 6. **Owner_id retirement plan**
