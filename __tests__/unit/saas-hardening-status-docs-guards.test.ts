@@ -23,8 +23,9 @@ describe("SaaS hardening status docs", () => {
     expect(readme).toContain("028_profiles_organization_scope_hardening.sql");
     expect(readme).toContain("030_expense_categories_rls_remove_legacy_fallback.sql");
     expect(readme).toContain("038_user_feature_permissions_rls_remove_legacy_fallback.sql");
+    expect(readme).toContain("039_drop_legacy_owner_family_policies.sql");
     expect(readme).toContain("fallback `organization_id is null` removido");
-    expect(readme).toContain("limpeza idempotente das policies antigas `*_own`/`*_family`");
+    expect(readme).toContain("versiona a limpeza idempotente das policies antigas `*_own`/`*_family`");
   });
 
   it("keeps live SaaS status aligned with the completed hardening summary", () => {
@@ -33,6 +34,7 @@ describe("SaaS hardening status docs", () => {
     expect(liveStatus).toContain("028_profiles_organization_scope_hardening.sql");
     expect(liveStatus).toContain("030_expense_categories_rls_remove_legacy_fallback.sql");
     expect(liveStatus).toContain("038_user_feature_permissions_rls_remove_legacy_fallback.sql");
+    expect(liveStatus).toContain("039_drop_legacy_owner_family_policies.sql");
     expect(liveStatus).toContain("organization_id not null");
     expect(liveStatus).toContain("fallback rls legado `organization_id is null`");
   });
@@ -62,8 +64,8 @@ describe("SaaS hardening status docs", () => {
 
   it("keeps the operational roadmap focused on the remaining real gaps", () => {
     expect(roadmap).toContain("saaS operational roadmap".toLowerCase());
-    expect(roadmap).toContain("gap-001 - versionar limpeza de policies antigas");
-    expect(roadmap).toContain("migration `039_*`");
+    expect(roadmap).toContain("gap-001 - limpeza de policies antigas versionada");
+    expect(roadmap).toContain("039_drop_legacy_owner_family_policies.sql");
     expect(roadmap).toContain("rls live gate");
     expect(roadmap).toContain("e2e multi-org switch");
     expect(roadmap).toContain("rotas por `orgslug`");
@@ -73,6 +75,7 @@ describe("SaaS hardening status docs", () => {
 
   it("keeps the RLS inventory explicit about the migration-history cleanup gap", () => {
     expect(inventory).toContain("migration history");
+    expect(inventory).toContain("039_drop_legacy_owner_family_policies.sql");
     expect(inventory).toContain("policies antigas `*_own`/`*_family`");
     expect(inventory).toContain("drop policy if exists");
     expect(inventory).toContain("user_feature_permissions");

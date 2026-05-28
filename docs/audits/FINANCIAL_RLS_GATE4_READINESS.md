@@ -59,7 +59,7 @@ A validacao viva mostrou que tambem havia policies historicas owner-centric aind
 - policies `profiles_*_family`;
 - policies `feature_permissions_*_family`.
 
-Essas policies foram removidas manualmente no Supabase vivo validado. O proximo passo e versionar essa limpeza em migration idempotente propria para manter ambientes reproduziveis.
+Essas policies foram removidas manualmente no Supabase vivo validado. A migration `039_drop_legacy_owner_family_policies.sql` versiona essa limpeza em SQL idempotente para manter ambientes reproduziveis.
 
 ## 6. Fora de escopo agora
 
@@ -76,6 +76,6 @@ O proximo PR de limpeza nao deve incluir:
 
 O estado RLS fica operacionalmente coerente quando:
 
-- a migration idempotente de limpeza `*_own`/`*_family` estiver versionada;
+- a migration idempotente de limpeza `039_drop_legacy_owner_family_policies.sql` estiver aplicada no ambiente alvo;
 - o RLS gated focado passar contra Supabase dedicado;
 - o RLS Live Gate tiver evidencia de CI quando vars/secrets estiverem configurados.

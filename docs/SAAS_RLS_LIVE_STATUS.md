@@ -110,7 +110,7 @@ Observacoes importantes:
 - nenhuma dessas migrations remove `owner_id`;
 - `banks` preserva comportamento historico e nao depende de `family_members.is_active` na RLS;
 - a migration `019` adiciona RPC transacional de onboarding, mas nao relaxa RLS;
-- a limpeza manual das policies antigas `*_own`/`*_family` ja foi aplicada no Supabase vivo validado, mas ainda deve ser versionada em migration idempotente propria para manter a cadeia de migrations reproduzivel.
+- a migration `039_drop_legacy_owner_family_policies.sql` versiona a limpeza idempotente das policies antigas `*_own`/`*_family` ja aplicada no Supabase vivo validado.
 
 ## 5. Onboarding inicial transacional
 
@@ -248,7 +248,6 @@ Observacoes do gate:
 
 Ainda nao foi feito:
 
-- migration idempotente para versionar a limpeza das policies antigas `*_own`/`*_family` removidas manualmente no Supabase vivo;
 - RLS Live Gate separado em CI com ambiente Supabase dedicado e evidencia de execucao;
 - rotas por `orgSlug`;
 - billing/Stripe;
@@ -259,13 +258,12 @@ Ainda nao foi feito:
 
 Ordem segura:
 
-1. criar migration idempotente para remover policies antigas `*_own`/`*_family` da cadeia versionada;
-2. manter CI comum verde com lint, typecheck, build e testes;
-3. executar RLS Live Gate em CI dedicado depois de configurar secrets/vars;
-4. criar E2E especifico para troca de organizacao ativa, se houver usuario multi-org dedicado;
-5. planejar rotas por `orgSlug`;
-6. billing apenas depois de isolamento/UX estarem maduros;
-7. remocao de `owner_id` apenas em gate futuro apos schema/read-path final e rollback.
+1. manter CI comum verde com lint, typecheck, build e testes;
+2. executar RLS Live Gate em CI dedicado depois de configurar secrets/vars;
+3. criar E2E especifico para troca de organizacao ativa, se houver usuario multi-org dedicado;
+4. planejar rotas por `orgSlug`;
+5. billing apenas depois de isolamento/UX estarem maduros;
+6. remocao de `owner_id` apenas em gate futuro apos schema/read-path final e rollback.
 
 ## 11. Regra de manutencao
 

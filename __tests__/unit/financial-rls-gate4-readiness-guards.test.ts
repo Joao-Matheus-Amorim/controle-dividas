@@ -45,7 +45,7 @@ describe("financial RLS Gate 4 readiness", () => {
     expect(source).toContain("policies `*_own`");
     expect(source).toContain("policies `profiles_*_family`");
     expect(source).toContain("policies `feature_permissions_*_family`");
-    expect(source).toContain("migration idempotente propria");
+    expect(source).toContain("039_drop_legacy_owner_family_policies.sql");
     expect(source).toContain("RLS Live Gate");
   });
 });
