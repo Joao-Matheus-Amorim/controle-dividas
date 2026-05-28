@@ -28,6 +28,7 @@ Fontes cruzadas nesta revisao:
 - `docs/audits/SENSITIVE_OPERATION_CONTROLS_CONTRACT.md`
 - `docs/audits/SENSITIVE_ACTION_AUDIT_EVENT_SCHEMA_PLAN.md`
 - `docs/audits/SENSITIVE_OPERATION_RATE_LIMIT_PLAN.md`
+- `docs/audits/SENSITIVE_DATA_RETENTION_PLAN.md`
 - `docs/runbooks/BILLING_STRIPE_TEST_ACCOUNT_RUNBOOK.md`
 - `docs/rls/RLS_LIVE_GATE.md`
 - `.github/workflows/rls-live-gate.yml`
@@ -99,7 +100,7 @@ A limpeza final de policies antigas owner/family foi versionada em:
 - O runbook de conta Stripe de teste esta em `docs/runbooks/BILLING_STRIPE_TEST_ACCOUNT_RUNBOOK.md`.
 - Checkout runtime esta implementado em `lib/billing/stripe-checkout.ts` e `app/protected/configuracoes/billing-actions.ts`, sem webhook, portal ou enforcement comercial.
 - Evidencia real de checkout Stripe ainda esta pendente porque nao ha conta Stripe de teste/credenciais configuradas.
-- O contrato de planejamento para GAP-015 esta documentado em `docs/audits/SENSITIVE_OPERATION_CONTROLS_CONTRACT.md`, com plano de schema/redaction para audit events em `docs/audits/SENSITIVE_ACTION_AUDIT_EVENT_SCHEMA_PLAN.md` e plano de rate limiting em `docs/audits/SENSITIVE_OPERATION_RATE_LIMIT_PLAN.md`; rate limiting, sensitive-action audit logging e data retention ainda nao tem runtime implementado.
+- O contrato de planejamento para GAP-015 esta documentado em `docs/audits/SENSITIVE_OPERATION_CONTROLS_CONTRACT.md`, com plano de schema/redaction para audit events em `docs/audits/SENSITIVE_ACTION_AUDIT_EVENT_SCHEMA_PLAN.md`, plano de rate limiting em `docs/audits/SENSITIVE_OPERATION_RATE_LIMIT_PLAN.md` e plano de data retention em `docs/audits/SENSITIVE_DATA_RETENTION_PLAN.md`; rate limiting, sensitive-action audit logging e data retention ainda nao tem runtime implementado.
 - RLS Live Gate existe em `.github/workflows/rls-live-gate.yml` e ja gera GitHub Step Summary + artifact `rls-live-gate-evidence-*`, mas ainda precisa de vars/secrets e execucao dedicada para virar evidencia verde de CI.
 
 ## 3. Estado de fechamento e gaps reais antes de declarar 100% coerente
@@ -226,6 +227,7 @@ Resultado atual:
 - escopo documentado para rate limiting, sensitive-action audit logging e data retention policy;
 - plano de schema/redaction para audit events documentado em `docs/audits/SENSITIVE_ACTION_AUDIT_EVENT_SCHEMA_PLAN.md`;
 - plano de rate limiting documentado em `docs/audits/SENSITIVE_OPERATION_RATE_LIMIT_PLAN.md`;
+- plano de data retention documentado em `docs/audits/SENSITIVE_DATA_RETENTION_PLAN.md`;
 - inventario inicial de operacoes sensiveis documentado;
 - limites explicitos: planning only, sem runtime, schema, RLS, UI, billing ou E2E neste passo;
 - sequenciamento definido para issues/PRs dedicados antes de qualquer implementacao.
@@ -236,7 +238,7 @@ Resultado esperado:
 - transformar o plano de schema/redaction de audit events em schema/RLS/RPC ou write boundary em PR proprio;
 - transformar o plano de rate limiting em runtime server-side por uma fronteira por vez;
 - implementar audit logging por uma familia de operacoes sensiveis por vez;
-- definir retention policy antes de qualquer automacao destrutiva.
+- transformar o plano de data retention em politica por data class antes de qualquer automacao destrutiva.
 
 ### GAP-005 - Remocao futura de `owner_id`
 
@@ -287,6 +289,7 @@ Resultado esperado:
    - Usar `docs/audits/SENSITIVE_OPERATION_CONTROLS_CONTRACT.md`.
    - Usar `docs/audits/SENSITIVE_ACTION_AUDIT_EVENT_SCHEMA_PLAN.md`.
    - Usar `docs/audits/SENSITIVE_OPERATION_RATE_LIMIT_PLAN.md`.
+   - Usar `docs/audits/SENSITIVE_DATA_RETENTION_PLAN.md`.
    - Criar issues separadas para rate limiting, sensitive-action audit logging e data retention.
    - Nao implementar runtime, schema, RLS, billing ou UI sem PR dedicado, validacao e rollback.
 

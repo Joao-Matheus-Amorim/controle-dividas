@@ -35,7 +35,7 @@ Isso significa:
 - checkout runtime usa Stripe Checkout Session para owner/admin da organizacao resolvida no servidor;
 - evidencia real de checkout Stripe ainda esta pendente porque nao ha conta Stripe de teste/credenciais configuradas;
 - webhook, portal, assinatura sincronizada e enforcement comercial ainda nao foram implementados.
-- GAP-015 possui contrato de planejamento em `docs/audits/SENSITIVE_OPERATION_CONTROLS_CONTRACT.md`, plano de schema/redaction para audit events em `docs/audits/SENSITIVE_ACTION_AUDIT_EVENT_SCHEMA_PLAN.md` e plano de rate limiting em `docs/audits/SENSITIVE_OPERATION_RATE_LIMIT_PLAN.md`, mas rate limiting, sensitive-action audit logging e data retention runtime controls ainda nao foram implementados.
+- GAP-015 possui contrato de planejamento em `docs/audits/SENSITIVE_OPERATION_CONTROLS_CONTRACT.md`, plano de schema/redaction para audit events em `docs/audits/SENSITIVE_ACTION_AUDIT_EVENT_SCHEMA_PLAN.md`, plano de rate limiting em `docs/audits/SENSITIVE_OPERATION_RATE_LIMIT_PLAN.md` e plano de data retention em `docs/audits/SENSITIVE_DATA_RETENTION_PLAN.md`, mas rate limiting, sensitive-action audit logging e data retention runtime controls ainda nao foram implementados.
 
 ## 3. Migrations SaaS/RLS/hardening atuais
 
