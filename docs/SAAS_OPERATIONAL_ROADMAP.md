@@ -74,7 +74,7 @@ A limpeza final de policies antigas owner/family foi versionada em:
 - Onboarding autenticado gated cria organizacao inicial e entra no app protegido.
 - Rotas protegidas autenticadas principais existem como contratos gated.
 - Data-changing E2E existe como gated skipped-by-default.
-- RLS Live Gate existe em `.github/workflows/rls-live-gate.yml`, mas precisa de vars/secrets e execucao dedicada para virar evidencia de CI.
+- RLS Live Gate existe em `.github/workflows/rls-live-gate.yml` e ja gera GitHub Step Summary + artifact `rls-live-gate-evidence-*`, mas ainda precisa de vars/secrets e execucao dedicada para virar evidencia verde de CI.
 
 ## 3. Gap real antes de declarar 100% coerente
 
@@ -96,14 +96,15 @@ Resultado esperado:
 
 ### GAP-002 - RLS Live Gate com evidencia de CI
 
-O workflow existe, mas o estado atual confirmado e local/manual.
+O workflow existe e ja possui plumbing de evidencia auditavel. O estado ainda pendente e a execucao real no GitHub Actions com ambiente Supabase dedicado.
 
 Resultado esperado:
 
 - configurar `RLS_TEST_SUPABASE_URL` como repository variable;
 - configurar `RLS_TEST_SUPABASE_ANON_KEY`, `RLS_TEST_SUPABASE_SERVICE_ROLE_KEY`, `RLS_TEST_USER_A_*`, `RLS_TEST_USER_B_*` como secrets;
 - rodar `RLS Live Gate` via `workflow_dispatch`;
-- registrar evidencia no status vivo.
+- confirmar o GitHub Step Summary e o artifact `rls-live-gate-evidence-*`;
+- registrar evidencia no status vivo somente depois de uma execucao real verde.
 
 ### GAP-003 - Contrato E2E de troca de organizacao ativa
 
@@ -152,7 +153,8 @@ Resultado esperado:
 1. **RLS Live Gate evidence**
    - Configurar ambiente GitHub dedicado.
    - Rodar workflow manual.
-   - Documentar resultado.
+   - Validar GitHub Step Summary e artifact `rls-live-gate-evidence-*`.
+   - Documentar resultado somente depois de uma execucao real verde.
 
 2. **E2E multi-org switch**
    - Criar usuario/fixture dedicada.

@@ -39,6 +39,18 @@ describe("RLS Live Gate workflow", () => {
     expect(rlsGate).toContain("rls_test_user_b_password");
   });
 
+  it("publishes audit-friendly execution evidence without printing secrets", () => {
+    expect(rlsGate).toContain("github_step_summary");
+    expect(rlsGate).toContain("actions/upload-artifact@v4");
+    expect(rlsGate).toContain("rls-live-gate-evidence");
+    expect(rlsGate).toContain("secret values are intentionally not printed");
+    expect(docs).toContain("github step summary");
+    expect(docs).toContain("artifact");
+    expect(docs).toContain("secret values are intentionally not printed");
+    expect(docs).toContain("only record this gate as ci evidence");
+    expect(docs).toContain("after a real github actions run has completed successfully");
+  });
+
   it("documents manual operation and safety boundaries", () => {
     expect(docs).toContain("manual-only");
     expect(docs).toContain("workflow_dispatch");
