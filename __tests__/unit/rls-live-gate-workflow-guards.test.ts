@@ -40,12 +40,20 @@ describe("RLS Live Gate workflow", () => {
   });
 
   it("publishes audit-friendly execution evidence without printing secrets", () => {
+    expect(rlsGate).toContain("id: validate_rls_env");
+    expect(rlsGate).toContain("rls_env_validation_outcome");
     expect(rlsGate).toContain("github_step_summary");
     expect(rlsGate).toContain("actions/upload-artifact@v4");
     expect(rlsGate).toContain("rls-live-gate-evidence");
+    expect(rlsGate).toContain("required repository variable");
+    expect(rlsGate).toContain("required secret");
+    expect(rlsGate).not.toContain("configured as repository variable");
+    expect(rlsGate).not.toContain("configured as secret");
     expect(rlsGate).toContain("secret values are intentionally not printed");
     expect(docs).toContain("github step summary");
     expect(docs).toContain("artifact");
+    expect(docs).toContain("environment validation outcome");
+    expect(docs).toContain("not as proof that each value was configured");
     expect(docs).toContain("secret values are intentionally not printed");
     expect(docs).toContain("only record this gate as ci evidence");
     expect(docs).toContain("after a real github actions run has completed successfully");
