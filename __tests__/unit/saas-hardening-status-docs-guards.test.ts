@@ -71,7 +71,8 @@ describe("SaaS hardening status docs", () => {
     expect(roadmap).toContain("rls-live-gate-evidence-*");
     expect(roadmap).toContain("execucao real verde");
     expect(roadmap).toContain("e2e multi-org switch");
-    expect(roadmap).toContain("gap-002 - rotas por `orgslug`");
+    expect(roadmap).toContain("fechado-003 - rotas por `orgslug`");
+    expect(roadmap).toContain("wrappers `app/org/[orgslug]`");
     expect(roadmap).toContain("billing");
     expect(roadmap).toContain("owner_id retirement plan");
   });

@@ -9,11 +9,13 @@ import { ExpenseSummaryCards } from "@/components/expenses/expense-summary-cards
 import { getCurrentProfile, getModulePermission } from "@/lib/finance/access-control";
 import { getCurrentMonthLabel } from "@/lib/finance/period-context";
 import { getOrganizationExpenseDashboardData } from "@/lib/organizations/expenses";
+import { requireOrganizationAccess } from "@/lib/organizations/server";
 
 type PageSearchParams = Promise<Record<string, string | string[] | undefined>>;
 
 type GastosPageProps = {
   searchParams?: PageSearchParams;
+  orgSlug?: string;
 };
 
 function getSearchValue(
@@ -24,7 +26,7 @@ function getSearchValue(
   return Array.isArray(value) ? value[0] : value;
 }
 
-export default async function GastosPage({ searchParams }: GastosPageProps) {
+export async function GastosPage({ searchParams, orgSlug }: GastosPageProps) {
   const params = await searchParams;
   const filters: ExpenseFilters = {
     memberId: getSearchValue(params, "pessoa") ?? "",
@@ -34,11 +36,12 @@ export default async function GastosPage({ searchParams }: GastosPageProps) {
     dateTo: getSearchValue(params, "ate") ?? "",
   };
 
-  const [profile, expenseData] = await Promise.all([
+  const [profile, expenseData, organizationContext] = await Promise.all([
     getCurrentProfile(),
-    getOrganizationExpenseDashboardData(),
+    getOrganizationExpenseDashboardData(orgSlug),
+    requireOrganizationAccess(orgSlug),
   ]);
-  const permission = profile.role === "admin" ? null : await getModulePermission(profile.id, "GASTOS");
+  const permission = profile.role === "admin" ? null : await getModulePermission(profile.id, "GASTOS", organizationContext.organization.id);
   const canCreate = profile.role === "admin" || Boolean(permission?.can_create);
   const canEdit = profile.role === "admin" || Boolean(permission?.can_edit);
   const canDelete = profile.role === "admin" || Boolean(permission?.can_delete);
@@ -142,4 +145,8 @@ export default async function GastosPage({ searchParams }: GastosPageProps) {
       />
     </div>
   );
+}
+
+export default async function ProtectedGastosPage({ searchParams }: GastosPageProps) {
+  return <GastosPage searchParams={searchParams} />;
 }

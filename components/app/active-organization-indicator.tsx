@@ -6,11 +6,13 @@ import type { Organization } from "@/lib/organizations/types";
 type ActiveOrganizationIndicatorProps = {
   organization: Organization | null;
   organizationOptions: Organization[];
+  currentPath?: string;
 };
 
 export function ActiveOrganizationIndicator({
   organization,
   organizationOptions,
+  currentPath,
 }: ActiveOrganizationIndicatorProps) {
   const hasMultipleOrganizations = organizationOptions.length > 1;
 
@@ -41,6 +43,7 @@ export function ActiveOrganizationIndicator({
 
   return (
     <form action={setActiveOrganization} className="flex min-w-0 items-center gap-2">
+      <input type="hidden" name="current_path" value={currentPath ?? ""} />
       <div className="flex min-w-0 items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-medium text-white/80">
         <Building2 className="h-3.5 w-3.5 shrink-0 text-[#b09cff]" aria-hidden="true" />
         <span className="hidden text-white/45 sm:inline">Organizacao</span>

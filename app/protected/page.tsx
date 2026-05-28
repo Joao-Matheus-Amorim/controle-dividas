@@ -35,6 +35,7 @@ import { getOrganizationBanksDashboardData } from "@/lib/organizations/banks";
 import { getOrganizationExpenseDashboardData } from "@/lib/organizations/expenses";
 import { getOrganizationPayableBillsDashboardData } from "@/lib/organizations/payables";
 import { getOrganizationReceivableIncomesDashboardData } from "@/lib/organizations/receivables";
+import { getOrgPathFromProtectedPath } from "@/lib/organizations/paths";
 
 const dashboardModules: FinanceModuleKey[] = [
   "DASHBOARD",
@@ -47,13 +48,17 @@ const dashboardModules: FinanceModuleKey[] = [
   "ADMIN",
 ];
 
-export default async function ProtectedPage() {
+type DashboardPageProps = {
+  orgSlug?: string;
+};
+
+export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
   const [visibleModuleKeys, expenseData, payableData, receivableData, bankData, periodContextLabel] = await Promise.all([
-    getVisibleModuleKeys(dashboardModules),
-    getOrganizationExpenseDashboardData(),
-    getOrganizationPayableBillsDashboardData(),
-    getOrganizationReceivableIncomesDashboardData(),
-    getOrganizationBanksDashboardData(),
+    getVisibleModuleKeys(dashboardModules, orgSlug),
+    getOrganizationExpenseDashboardData(orgSlug),
+    getOrganizationPayableBillsDashboardData(orgSlug),
+    getOrganizationReceivableIncomesDashboardData(orgSlug),
+    getOrganizationBanksDashboardData(orgSlug),
     getCurrentPeriodContextLabel(),
   ]);
 
@@ -97,7 +102,7 @@ export default async function ProtectedPage() {
   const quickActions: DashboardQuickAction[] = [
     canExpenses
       ? {
-          href: "/protected/gastos",
+          href: getOrgPathFromProtectedPath("/protected/gastos", orgSlug),
           title: "Registrar gasto",
           subtitle: "Lançamento rápido",
           icon: Plus,
@@ -107,7 +112,7 @@ export default async function ProtectedPage() {
       : null,
     canPayables
       ? {
-          href: "/protected/contas-a-pagar",
+          href: getOrgPathFromProtectedPath("/protected/contas-a-pagar", orgSlug),
           title: "Nova conta/divida",
           subtitle: "Fixa ou avulsa",
           icon: WalletCards,
@@ -117,7 +122,7 @@ export default async function ProtectedPage() {
       : null,
     canBanks
       ? {
-          href: "/protected/bancos",
+          href: getOrgPathFromProtectedPath("/protected/bancos", orgSlug),
           title: "Bancos",
           subtitle: "Saldos e contas",
           icon: Banknote,
@@ -127,7 +132,7 @@ export default async function ProtectedPage() {
       : null,
     canAdmin
       ? {
-          href: "/protected/admin",
+          href: getOrgPathFromProtectedPath("/protected/admin", orgSlug),
           title: "Admin",
           subtitle: "Regras e acesso",
           icon: ShieldCheck,
@@ -238,4 +243,8 @@ export default async function ProtectedPage() {
       </section>
     </div>
   );
+}
+
+export default async function ProtectedPage() {
+  return <DashboardPage />;
 }

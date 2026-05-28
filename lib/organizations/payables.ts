@@ -23,11 +23,11 @@ function normalizePayableBill(bill: RawPayableBill): DbPayableBill {
   };
 }
 
-export async function getOrganizationPayableBills() {
+export async function getOrganizationPayableBills(orgSlug?: string) {
   const supabase = await createClient();
   const profile = await getCurrentProfile();
-  const { organization } = await requireOrganizationAccess();
-  const accessibleMemberIds = await getAccessibleMemberIds("CONTAS_A_PAGAR", "can_view");
+  const { organization } = await requireOrganizationAccess(orgSlug);
+  const accessibleMemberIds = await getAccessibleMemberIds("CONTAS_A_PAGAR", "can_view", orgSlug);
 
   if (accessibleMemberIds.length === 0) {
     return [];
@@ -51,11 +51,11 @@ export async function getOrganizationPayableBills() {
   return ((data ?? []) as RawPayableBill[]).map(normalizePayableBill);
 }
 
-export async function getOrganizationPayableBillsDashboardData() {
+export async function getOrganizationPayableBillsDashboardData(orgSlug?: string) {
   const profile = await getCurrentProfile();
-  const accessibleMemberIds = await getAccessibleMemberIds("CONTAS_A_PAGAR", "can_view");
+  const accessibleMemberIds = await getAccessibleMemberIds("CONTAS_A_PAGAR", "can_view", orgSlug);
   const supabase = await createClient();
-  const { organization } = await requireOrganizationAccess();
+  const { organization } = await requireOrganizationAccess(orgSlug);
 
   const { data: membersData, error: membersError } = await supabase
     .from("family_members")
@@ -69,7 +69,7 @@ export async function getOrganizationPayableBillsDashboardData() {
   }
 
   const allMembers = (membersData ?? []) as DbFamilyMember[];
-  const bills = await getOrganizationPayableBills();
+  const bills = await getOrganizationPayableBills(orgSlug);
   const members = allMembers
     .filter((member) => member.is_active)
     .filter((member) => accessibleMemberIds.includes(member.id));

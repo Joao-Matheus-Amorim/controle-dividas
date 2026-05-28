@@ -6,13 +6,19 @@ import { BankPageHeader } from "@/components/banks/bank-page-header";
 import { BankSummaryCards } from "@/components/banks/bank-summary-cards";
 import { getCurrentProfile, getModulePermission } from "@/lib/finance/access-control";
 import { getOrganizationBanksDashboardData } from "@/lib/organizations/banks";
+import { requireOrganizationAccess } from "@/lib/organizations/server";
 
-export default async function BancosPage() {
-  const [profile, bankData] = await Promise.all([
+type BancosPageProps = {
+  orgSlug?: string;
+};
+
+export async function BancosPage({ orgSlug }: BancosPageProps = {}) {
+  const [profile, bankData, organizationContext] = await Promise.all([
     getCurrentProfile(),
-    getOrganizationBanksDashboardData(),
+    getOrganizationBanksDashboardData(orgSlug),
+    requireOrganizationAccess(orgSlug),
   ]);
-  const permission = profile.role === "admin" ? null : await getModulePermission(profile.id, "BANCOS");
+  const permission = profile.role === "admin" ? null : await getModulePermission(profile.id, "BANCOS", organizationContext.organization.id);
   const canCreate = profile.role === "admin" || Boolean(permission?.can_create);
   const canEdit = profile.role === "admin" || Boolean(permission?.can_edit);
   const canDelete = profile.role === "admin" || Boolean(permission?.can_delete);
@@ -46,4 +52,8 @@ export default async function BancosPage() {
       />
     </div>
   );
+}
+
+export default async function ProtectedBancosPage() {
+  return <BancosPage />;
 }

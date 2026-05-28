@@ -26,7 +26,7 @@ Isso significa:
 - o onboarding inicial cria organization, owner membership e profile/link por RPC transacional autenticada;
 - Playwright/E2E possui cobertura versionada para public/auth smoke, rotas protegidas, contratos autenticados gated, permission-sensitive gated e fluxos data-changing com cleanup;
 - `owner_id` ainda existe e continua sendo usado como compatibilidade e write ownership;
-- rotas por `orgSlug` ainda nao existem; o contrato futuro aceito e `/org/[orgSlug]` pelo ADR 0007;
+- rotas por `orgSlug` existem em `/org/[orgSlug]` com `/protected` mantido como compatibilidade pelo ADR 0007;
 - billing/Stripe ainda nao foi implementado.
 
 ## 3. Migrations SaaS/RLS/hardening atuais
@@ -190,7 +190,7 @@ Observacoes importantes:
 
 - fluxos autenticados e data-changing continuam skipped-by-default;
 - fluxos data-changing dependem de flags explicitas e cleanup documentado;
-- essa cobertura nao significa billing, rotas por `orgSlug` ou remocao de `owner_id`.
+- essa cobertura nao significa billing ou remocao de `owner_id`.
 
 ## 8. Validacao operacional recente
 
@@ -252,7 +252,7 @@ Observacoes do gate:
 Ainda nao foi feito:
 
 - execucao verde do RLS Live Gate no GitHub Actions com ambiente Supabase dedicado e artifact `rls-live-gate-evidence-*`;
-- implementacao de rotas por `orgSlug` (`/org/[orgSlug]`);
+- E2E dedicado cobrindo slug valido, slug sem acesso e compatibilidade `/protected` para `/org/[orgSlug]`;
 - billing/Stripe;
 - remocao de `owner_id`;
 - down migrations automatizadas.
@@ -266,7 +266,7 @@ Ordem segura:
    - o workflow ja publica GitHub Step Summary e artifact `rls-live-gate-evidence-*`;
    - registrar evidencia neste status somente depois de uma execucao real verde;
 3. executar E2E especifico para troca de organizacao ativa com usuario multi-org dedicado;
-4. implementar rotas por `orgSlug` seguindo ADR 0007;
+4. ampliar E2E dedicado para rotas por `orgSlug` seguindo ADR 0007;
 5. billing apenas depois de isolamento/UX estarem maduros;
 6. remocao de `owner_id` apenas em gate futuro apos schema/read-path final e rollback.
 

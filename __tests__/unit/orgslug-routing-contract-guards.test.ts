@@ -26,7 +26,7 @@ describe("orgSlug routing contract", () => {
     expect(adr).toContain("/org/[orgslug]");
     expect(adr).toContain("permanece como rota compativel");
     expect(adr).toContain("nao remove `/protected`");
-    expect(adr).toContain("nao cria `app/org/[orgslug]`");
+    expect(adr).toContain("cria `app/org/[orgslug]`");
   });
 
   it("keeps authorization tied to the slug received from the route", () => {
@@ -38,16 +38,18 @@ describe("orgSlug routing contract", () => {
     expect(adr).toContain("slug inexistente");
   });
 
-  it("keeps implementation sequenced before runtime route creation", () => {
+  it("keeps implementation sequenced through runtime route creation", () => {
     expect(adr).toContain("criar helpers centralizados");
     expect(adr).toContain("criar a primeira rota `/org/[orgslug]`");
     expect(adr).toContain("provar por e2e gated");
-    expect(adr).toContain("migrar rotas de modulo em prs pequenos");
-    expect(existsSync(join(process.cwd(), "app/org/[orgSlug]/page.tsx"))).toBe(false);
+    expect(adr).toContain("migrar rotas de modulo preservando a compatibilidade `/protected`");
+    expect(existsSync(join(process.cwd(), "app/org/[orgSlug]/page.tsx"))).toBe(true);
+    expect(existsSync(join(process.cwd(), "app/org/[orgSlug]/gastos/page.tsx"))).toBe(true);
+    expect(existsSync(join(process.cwd(), "app/org/[orgSlug]/admin/permissoes/page.tsx"))).toBe(true);
   });
 
   it("keeps roadmap and architecture aligned with the accepted contract", () => {
-    expect(roadmap).toContain("gap-002 - rotas por `orgslug`");
+    expect(roadmap).toContain("fechado-003 - rotas por `orgslug`");
     expect(roadmap).toContain("adr 0007");
     expect(roadmap).toContain("/org/[orgslug]");
     expect(architecture).toContain("adr 0007");

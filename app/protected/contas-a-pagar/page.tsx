@@ -11,23 +11,26 @@ import {
 import { getCurrentProfile, getModulePermission } from "@/lib/finance/access-control";
 import { getCurrentMonthLabel } from "@/lib/finance/period-context";
 import { getOrganizationPayableBillsDashboardData } from "@/lib/organizations/payables";
+import { requireOrganizationAccess } from "@/lib/organizations/server";
 
 type PageSearchParams = Promise<Record<string, string | string[] | undefined>>;
 
 type ContasAPagarPageProps = {
   searchParams?: PageSearchParams;
+  orgSlug?: string;
 };
 
-export default async function ContasAPagarPage({ searchParams }: ContasAPagarPageProps) {
+export async function ContasAPagarPage({ searchParams, orgSlug }: ContasAPagarPageProps) {
   const params = await searchParams;
   const statusFilter = normalizeStatusFilter(getSearchValue(params, "status"));
   const typeFilter = normalizeTypeFilter(getSearchValue(params, "tipo"));
 
-  const [profile, payableData] = await Promise.all([
+  const [profile, payableData, organizationContext] = await Promise.all([
     getCurrentProfile(),
-    getOrganizationPayableBillsDashboardData(),
+    getOrganizationPayableBillsDashboardData(orgSlug),
+    requireOrganizationAccess(orgSlug),
   ]);
-  const permission = profile.role === "admin" ? null : await getModulePermission(profile.id, "CONTAS_A_PAGAR");
+  const permission = profile.role === "admin" ? null : await getModulePermission(profile.id, "CONTAS_A_PAGAR", organizationContext.organization.id);
   const canCreate = profile.role === "admin" || Boolean(permission?.can_create);
   const canEdit = profile.role === "admin" || Boolean(permission?.can_edit);
   const canDelete = profile.role === "admin" || Boolean(permission?.can_delete);
@@ -90,4 +93,8 @@ export default async function ContasAPagarPage({ searchParams }: ContasAPagarPag
       />
     </div>
   );
+}
+
+export default async function ProtectedContasAPagarPage({ searchParams }: ContasAPagarPageProps) {
+  return <ContasAPagarPage searchParams={searchParams} />;
 }

@@ -145,9 +145,7 @@ Rotas protegidas atuais:
 /protected/admin/permissoes
 ```
 
-Ainda nao existem rotas `[orgSlug]`.
-
-O contrato aceito para rotas organization-aware futuras esta no ADR 0007:
+As rotas organization-aware existem com o contrato aceito no ADR 0007:
 
 ```txt
 /org/[orgSlug]
@@ -168,6 +166,8 @@ Arquivos principais:
 ```txt
 lib/organizations/server.ts
 app/protected/layout.tsx
+app/org/[orgSlug]/layout.tsx
+components/app/app-shell.tsx
 app/protected/organization-switcher-actions.ts
 components/app/active-organization-indicator.tsx
 ```
@@ -338,7 +338,7 @@ Workflow manual de RLS real:
 1. A limpeza manual das policies antigas `*_own`/`*_family` ja foi versionada na migration idempotente `039_drop_legacy_owner_family_policies.sql`.
 2. Ambientes que nao receberam a limpeza manual precisam aplicar a migration `039`.
 3. `owner_id` ainda nao deve ser removido.
-4. Rotas `[orgSlug]` ainda nao existem.
+4. Rotas `[orgSlug]` existem e `/protected` segue compativel.
 5. Billing ainda nao existe.
 6. Client Components nao podem importar Admin Client.
 7. Data-changing E2E precisa de cleanup.
@@ -365,11 +365,11 @@ Curto prazo:
 
 - configurar e rodar RLS Live Gate em CI dedicado;
 - confirmar E2E gated de troca de organizacao ativa quando houver ambiente dedicado;
-- iniciar PR base de `/org/[orgSlug]` pelo dashboard, sem remover `/protected`.
+- ampliar cobertura E2E dedicada para `/org/[orgSlug]`.
 
 Medio prazo:
 
-- implementar rotas por `orgSlug` seguindo ADR 0007 (`/org/[orgSlug]`);
+- evoluir rotas por `orgSlug` seguindo ADR 0007 (`/org/[orgSlug]`) sem remover `/protected` antes de decisao propria;
 - evoluir filtros/relatorios e periodo dinamico;
 - ampliar cobertura E2E de perfis e modulos.
 

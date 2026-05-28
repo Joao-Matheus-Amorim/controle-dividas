@@ -7,10 +7,14 @@ import { SettingsSummaryCards } from "@/components/settings/settings-summary-car
 import { getOrganizationExpenseCategories } from "@/lib/organizations/categories";
 import { getOrganizationFamilyMembers } from "@/lib/organizations/people";
 
-export default async function ConfiguracoesPage() {
+type ConfiguracoesPageProps = {
+  orgSlug?: string;
+};
+
+export async function ConfiguracoesPage({ orgSlug }: ConfiguracoesPageProps = {}) {
   const [members, categories] = await Promise.all([
-    getOrganizationFamilyMembers(),
-    getOrganizationExpenseCategories(),
+    getOrganizationFamilyMembers(orgSlug),
+    getOrganizationExpenseCategories(orgSlug),
   ]);
 
   const totalLimit = members.reduce(
@@ -39,4 +43,8 @@ export default async function ConfiguracoesPage() {
       <SettingsAutomaticRules />
     </div>
   );
+}
+
+export default async function ProtectedConfiguracoesPage() {
+  return <ConfiguracoesPage />;
 }

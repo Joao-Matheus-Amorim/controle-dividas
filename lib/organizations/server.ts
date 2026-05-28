@@ -2,14 +2,13 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 
 import { createClient } from "@/lib/supabase/server";
+import { ACTIVE_ORGANIZATION_COOKIE_NAME } from "./constants";
 import type { Organization, OrganizationContext, OrganizationMembership } from "./types";
 
 type CurrentUser = {
   id: string;
   email: string | null;
 };
-
-export const ACTIVE_ORGANIZATION_COOKIE_NAME = "ff_active_organization_id";
 
 type OrganizationRow = Organization & {
   stripe_customer_id?: string | null;
@@ -71,7 +70,9 @@ async function getActiveOrganizationContext(contexts: OrganizationContext[]) {
   }
 
   const preferredContext = contexts.find(
-    (context) => context.organization.id === preferredOrganizationId,
+    (context) =>
+      context.organization.id === preferredOrganizationId ||
+      context.organization.slug === preferredOrganizationId,
   );
 
   return preferredContext ?? getDefaultOrganizationContext(contexts);

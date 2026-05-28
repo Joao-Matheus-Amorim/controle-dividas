@@ -19,6 +19,9 @@ describe("onboarding redirect guards", () => {
     expect(source).toContain("function shouldRequireOrganization(pathname: string)");
     expect(source).toContain('pathname === "/protected"');
     expect(source).toContain('pathname.startsWith("/protected/")');
+    expect(source).toContain('pathname.startsWith("/org/")');
+    expect(source).toContain("getOrgSlugFromPathname");
+    expect(source).toContain("ACTIVE_ORGANIZATION_COOKIE_NAME");
     expect(source).toContain("async function hasActiveOrganizationMembership");
     expect(source).toContain('from("organization_memberships")');
     expect(source).toContain('.eq("auth_user_id", authUserId)');

@@ -6,6 +6,7 @@ import type {
   DbProfile,
 } from "@/lib/finance/admin-types";
 import type { DbFamilyMember } from "@/lib/finance/types";
+import { getOrganizationPath } from "@/lib/organizations/paths";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -78,38 +79,42 @@ async function getProfileByAuthUserId(authUserId: string) {
   return data ? normalizeProfile(data as RawProfile) : null;
 }
 
-export async function ensureAdminProfile() {
+function getProtectedFallbackPath(orgSlug?: string) {
+  return orgSlug ? getOrganizationPath(orgSlug) : "/protected";
+}
+
+export async function ensureAdminProfile(orgSlug?: string) {
   const user = await getCurrentUser();
   const existingProfile = await getProfileByAuthUserId(user.id);
 
   if (existingProfile) {
     if (existingProfile.role !== "admin" || !existingProfile.is_active) {
-      redirect("/protected");
+      redirect(getProtectedFallbackPath(orgSlug));
     }
 
     return existingProfile;
   }
 
   if (!isConfiguredAdminEmail(user.email)) {
-    redirect("/protected");
+    redirect(getProtectedFallbackPath(orgSlug));
   }
 
   redirect("/onboarding/organizacao");
 }
 
-export async function requireAdminProfile() {
-  const profile = await ensureAdminProfile();
+export async function requireAdminProfile(orgSlug?: string) {
+  const profile = await ensureAdminProfile(orgSlug);
 
   if (profile.role !== "admin" || !profile.is_active) {
-    redirect("/protected");
+    redirect(getProtectedFallbackPath(orgSlug));
   }
 
   return profile;
 }
 
-export async function getAdminDashboardData() {
-  const adminProfile = await requireAdminProfile();
-  const { organization } = await requireOrganizationAccess();
+export async function getAdminDashboardData(orgSlug?: string) {
+  const adminProfile = await requireAdminProfile(orgSlug);
+  const { organization } = await requireOrganizationAccess(orgSlug);
   const [profiles, members, permissions, featurePermissions] = await Promise.all([
     getFamilyProfiles(adminProfile, organization.id),
     getAdminFamilyMembers(adminProfile, organization.id),

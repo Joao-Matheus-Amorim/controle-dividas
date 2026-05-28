@@ -3,10 +3,10 @@ import type { DbExpenseCategory } from "@/lib/finance/server";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { createClient } from "@/lib/supabase/server";
 
-export async function getOrganizationExpenseCategories() {
+export async function getOrganizationExpenseCategories(orgSlug?: string) {
   const supabase = await createClient();
   const profile = await getCurrentProfile();
-  const { organization } = await requireOrganizationAccess();
+  const { organization } = await requireOrganizationAccess(orgSlug);
 
   const { data, error } = await supabase
     .from("expense_categories")

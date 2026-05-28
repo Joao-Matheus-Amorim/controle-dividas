@@ -20,11 +20,11 @@ function normalizeBankAccount(account: RawBankAccount): DbBankAccount {
   };
 }
 
-async function getOrganizationAccessibleMembers() {
+async function getOrganizationAccessibleMembers(orgSlug?: string) {
   const supabase = await createClient();
   const profile = await getCurrentProfile();
-  const { organization } = await requireOrganizationAccess();
-  const accessibleMemberIds = await getAccessibleMemberIds("BANCOS", "can_view");
+  const { organization } = await requireOrganizationAccess(orgSlug);
+  const accessibleMemberIds = await getAccessibleMemberIds("BANCOS", "can_view", orgSlug);
 
   if (accessibleMemberIds.length === 0) {
     return [];
@@ -45,11 +45,11 @@ async function getOrganizationAccessibleMembers() {
   return (data ?? []) as DbFamilyMember[];
 }
 
-export async function getOrganizationBankAccounts() {
+export async function getOrganizationBankAccounts(orgSlug?: string) {
   const supabase = await createClient();
   const profile = await getCurrentProfile();
-  const { organization } = await requireOrganizationAccess();
-  const members = await getOrganizationAccessibleMembers();
+  const { organization } = await requireOrganizationAccess(orgSlug);
+  const members = await getOrganizationAccessibleMembers(orgSlug);
   const scopedMemberIds = members.map((member) => member.id);
 
   if (scopedMemberIds.length === 0) {
@@ -74,10 +74,10 @@ export async function getOrganizationBankAccounts() {
   return ((data ?? []) as RawBankAccount[]).map(normalizeBankAccount);
 }
 
-export async function getOrganizationBanksDashboardData() {
+export async function getOrganizationBanksDashboardData(orgSlug?: string) {
   const [members, accounts] = await Promise.all([
-    getOrganizationAccessibleMembers(),
-    getOrganizationBankAccounts(),
+    getOrganizationAccessibleMembers(orgSlug),
+    getOrganizationBankAccounts(orgSlug),
   ]);
 
   const totalBalance = accounts.reduce(

@@ -20,11 +20,11 @@ function normalizeReceivableIncome(income: RawReceivableIncome): DbReceivableInc
   };
 }
 
-export async function getOrganizationReceivableIncomes() {
+export async function getOrganizationReceivableIncomes(orgSlug?: string) {
   const supabase = await createClient();
   const profile = await getCurrentProfile();
-  const { organization } = await requireOrganizationAccess();
-  const accessibleMemberIds = await getAccessibleMemberIds("CONTAS_A_RECEBER", "can_view");
+  const { organization } = await requireOrganizationAccess(orgSlug);
+  const accessibleMemberIds = await getAccessibleMemberIds("CONTAS_A_RECEBER", "can_view", orgSlug);
 
   if (accessibleMemberIds.length === 0) {
     return [];
@@ -48,11 +48,11 @@ export async function getOrganizationReceivableIncomes() {
   return ((data ?? []) as RawReceivableIncome[]).map(normalizeReceivableIncome);
 }
 
-export async function getOrganizationReceivableIncomesDashboardData() {
+export async function getOrganizationReceivableIncomesDashboardData(orgSlug?: string) {
   const supabase = await createClient();
   const profile = await getCurrentProfile();
-  const { organization } = await requireOrganizationAccess();
-  const accessibleMemberIds = await getAccessibleMemberIds("CONTAS_A_RECEBER", "can_view");
+  const { organization } = await requireOrganizationAccess(orgSlug);
+  const accessibleMemberIds = await getAccessibleMemberIds("CONTAS_A_RECEBER", "can_view", orgSlug);
 
   const { data: membersData, error: membersError } = await supabase
     .from("family_members")
@@ -67,7 +67,7 @@ export async function getOrganizationReceivableIncomesDashboardData() {
   }
 
   const allMembers = (membersData ?? []) as DbFamilyMember[];
-  const incomes = await getOrganizationReceivableIncomes();
+  const incomes = await getOrganizationReceivableIncomes(orgSlug);
   const members = allMembers.filter((member) => accessibleMemberIds.includes(member.id));
 
   const today = new Date().toISOString().slice(0, 10);

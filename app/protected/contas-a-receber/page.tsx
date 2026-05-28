@@ -6,13 +6,19 @@ import { ReceivableSummaryCards } from "@/components/receivables/receivable-summ
 import { getCurrentProfile, getModulePermission } from "@/lib/finance/access-control";
 import { getCurrentMonthLabel } from "@/lib/finance/period-context";
 import { getOrganizationReceivableIncomesDashboardData } from "@/lib/organizations/receivables";
+import { requireOrganizationAccess } from "@/lib/organizations/server";
 
-export default async function ContasAReceberPage() {
-  const [profile, receivableData] = await Promise.all([
+type ContasAReceberPageProps = {
+  orgSlug?: string;
+};
+
+export async function ContasAReceberPage({ orgSlug }: ContasAReceberPageProps = {}) {
+  const [profile, receivableData, organizationContext] = await Promise.all([
     getCurrentProfile(),
-    getOrganizationReceivableIncomesDashboardData(),
+    getOrganizationReceivableIncomesDashboardData(orgSlug),
+    requireOrganizationAccess(orgSlug),
   ]);
-  const permission = profile.role === "admin" ? null : await getModulePermission(profile.id, "CONTAS_A_RECEBER");
+  const permission = profile.role === "admin" ? null : await getModulePermission(profile.id, "CONTAS_A_RECEBER", organizationContext.organization.id);
   const canCreate = profile.role === "admin" || Boolean(permission?.can_create);
   const canEdit = profile.role === "admin" || Boolean(permission?.can_edit);
   const canDelete = profile.role === "admin" || Boolean(permission?.can_delete);
@@ -60,4 +66,8 @@ export default async function ContasAReceberPage() {
       />
     </div>
   );
+}
+
+export default async function ProtectedContasAReceberPage() {
+  return <ContasAReceberPage />;
 }

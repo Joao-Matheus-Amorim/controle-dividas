@@ -3,10 +3,10 @@ import type { DbFamilyMember } from "@/lib/finance/server";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { createClient } from "@/lib/supabase/server";
 
-export async function getOrganizationFamilyMembers() {
+export async function getOrganizationFamilyMembers(orgSlug?: string) {
   const supabase = await createClient();
   const profile = await getCurrentProfile();
-  const { organization } = await requireOrganizationAccess();
+  const { organization } = await requireOrganizationAccess(orgSlug);
 
   const { data, error } = await supabase
     .from("family_members")
