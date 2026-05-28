@@ -87,6 +87,8 @@ describe("SaaS hardening status docs", () => {
     expect(roadmap).toContain("docs/audits/finance_form_ui_contract.md");
     expect(roadmap).toContain("estrategia de snapshot visual seletivo esta documentada");
     expect(roadmap).toContain("docs/audits/selective_visual_snapshot_strategy.md");
+    expect(roadmap).toContain("fixture deterministica do dashboard summary acima da dobra");
+    expect(roadmap).toContain("docs/audits/dashboard_summary_visual_fixture.md");
     expect(roadmap).toContain("gap-011 - contratos de ui financeira");
     expect(roadmap).not.toContain("gap-005 - contratos de ui financeira");
     expect(roadmap).toContain("gap-005 - remocao futura de `owner_id`");
@@ -111,7 +113,8 @@ describe("SaaS hardening status docs", () => {
     expect(gapRegister).toContain("gap-008 | multi-org tests");
     expect(gapRegister).toContain("gap-006 is the next product implementation risk");
     expect(gapRegister).toContain("billing has a local plan contract");
-    expect(gapRegister).toContain("dashboard, primary finance lists, primary data-changing forms, and selective visual snapshot strategy are documented");
+    expect(gapRegister).toContain("dashboard, primary finance lists, primary data-changing forms, selective visual snapshot strategy, and dashboard summary deterministic fixture are documented");
+    expect(gapRegister).toContain("first screenshot test using the dashboard summary fixture");
     expect(gapRegister).not.toContain("protected routes still use `/protected` instead of explicit organization routes");
     expect(gapRegister).not.toContain("switching between organizations has no dedicated tests");
 

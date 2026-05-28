@@ -53,8 +53,8 @@ describe("selective visual snapshot strategy", () => {
     expect(roadmap).toContain("dashboard summary acima da dobra");
     expect(roadmap).toContain("primeiro snapshot visual seletivo");
 
-    expect(gapRegister).toContain("selective visual snapshot strategy are documented");
-    expect(gapRegister).toContain("first deterministic visual snapshot");
+    expect(gapRegister).toContain("selective visual snapshot strategy, and dashboard summary deterministic fixture are documented");
+    expect(gapRegister).toContain("first screenshot test using the dashboard summary fixture");
   });
 
   it("keeps visual token docs pointing to the strategy instead of broad redesign", () => {
