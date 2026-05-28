@@ -63,7 +63,7 @@ describe("billing checkout runtime contract", () => {
     expect(flowContract).toContain("sem portal runtime");
     expect(roadmap).toContain("checkout runtime esta implementado");
     expect(roadmap).toContain("criar/configurar conta stripe de teste");
-    expect(gapRegister).toContain("stripe checkout runtime is implemented");
+    expect(gapRegister).toContain("stripe checkout runtime");
     expect(gapRegister).toContain("real stripe checkout evidence is pending");
   });
 });

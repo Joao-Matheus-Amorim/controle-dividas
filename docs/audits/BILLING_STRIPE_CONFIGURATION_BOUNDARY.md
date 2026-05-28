@@ -57,3 +57,9 @@ Enquanto essa evidencia nao existir:
 - manter `ENABLE_STRIPE_CHECKOUT=false` por padrao;
 - nao declarar checkout Stripe validado;
 - nao iniciar webhook, portal ou enforcement comercial como se checkout real ja tivesse evidencia.
+
+Runbook para criar/configurar conta Stripe de teste:
+
+```txt
+docs/runbooks/BILLING_STRIPE_TEST_ACCOUNT_RUNBOOK.md
+```

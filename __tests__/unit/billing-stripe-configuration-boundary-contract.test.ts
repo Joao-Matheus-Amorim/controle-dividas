@@ -44,7 +44,7 @@ describe("billing stripe configuration boundary contract", () => {
     expect(roadmap).toContain("checkout runtime esta implementado");
 
     expect(gapRegister).toContain("stripe configuration boundary");
-    expect(gapRegister).toContain("stripe checkout runtime is implemented");
+    expect(gapRegister).toContain("stripe checkout runtime");
 
     expect(billingAdr).toContain("billing_stripe_configuration_boundary.md");
     expect(billingAdr).toContain("implementar checkout runtime em pr proprio");

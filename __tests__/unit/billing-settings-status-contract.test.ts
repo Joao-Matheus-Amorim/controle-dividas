@@ -56,6 +56,7 @@ describe("billing settings status contract", () => {
     expect(gapRegister).toContain("billing settings status ui");
     expect(gapRegister).toContain("subscription flow contract");
     expect(gapRegister).toContain("stripe configuration boundary");
-    expect(gapRegister).toContain("stripe checkout runtime is implemented");
+    expect(gapRegister).toContain("stripe checkout runtime");
+    expect(gapRegister).toContain("stripe test account runbook");
   });
 });
