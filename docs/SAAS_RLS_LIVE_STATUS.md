@@ -33,6 +33,7 @@ Isso significa:
 - contrato local de planos existe em `lib/billing/plans.ts`, alinhado ao schema, com status em Configuracoes e entrada de checkout runtime;
 - fronteira de configuracao Stripe existe em `lib/billing/stripe-config.ts` com `ENABLE_STRIPE_CHECKOUT` e fail-fast de env vars em runtime de producao;
 - checkout runtime usa Stripe Checkout Session para owner/admin da organizacao resolvida no servidor;
+- evidencia real de checkout Stripe ainda esta pendente porque nao ha conta Stripe de teste/credenciais configuradas;
 - webhook, portal, assinatura sincronizada e enforcement comercial ainda nao foram implementados.
 
 ## 3. Migrations SaaS/RLS/hardening atuais
@@ -259,6 +260,7 @@ Ainda nao foi feito:
 
 - execucao verde do RLS Live Gate no GitHub Actions com ambiente Supabase dedicado e artifact `rls-live-gate-evidence-*`;
 - Execucao real dedicada do E2E `RUN_ORGSLUG_E2E=true` para registrar evidencia verde de `/org/[orgSlug]`;
+- conta Stripe de teste/credenciais e evidencia real de checkout;
 - webhook/portal Stripe, assinatura sincronizada e enforcement comercial;
 - remocao de `owner_id`;
 - down migrations automatizadas.

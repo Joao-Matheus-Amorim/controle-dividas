@@ -47,3 +47,13 @@ components/settings/settings-billing-plan-status.tsx
 ```
 
 Ele respeita `ENABLE_STRIPE_CHECKOUT`, resolve owner/admin no servidor e nao implementa webhook, portal ou enforcement comercial.
+
+## Evidencia Stripe pendente
+
+Ainda nao ha conta Stripe de teste/credenciais configuradas para validar checkout real.
+
+Enquanto essa evidencia nao existir:
+
+- manter `ENABLE_STRIPE_CHECKOUT=false` por padrao;
+- nao declarar checkout Stripe validado;
+- nao iniciar webhook, portal ou enforcement comercial como se checkout real ja tivesse evidencia.

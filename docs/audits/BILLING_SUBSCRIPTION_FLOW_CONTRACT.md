@@ -8,6 +8,8 @@ Este contrato define o fluxo de assinatura do GAP-006 e registra o primeiro runt
 
 Checkout runtime implementado neste passo: server action em Configuracoes cria uma Stripe Checkout Session para a organizacao resolvida no servidor. O objetivo continua sendo manter a mudanca pequena, auditavel e sem falso verde.
 
+Evidencia real pendente: ainda nao ha conta Stripe de teste/credenciais configuradas para validar o checkout contra Stripe. Enquanto isso, `ENABLE_STRIPE_CHECKOUT=false` deve permanecer como padrao operacional.
+
 ## Fluxo aprovado
 
 ### 1. Entrada de checkout
@@ -123,6 +125,8 @@ Resumo do estado atual:
 
 ## Pendencias apos checkout runtime
 
+- sem conta Stripe de teste/credenciais configuradas;
+- sem evidencia real de checkout Stripe;
 - sem webhook runtime;
 - sem portal runtime;
 - sem atualizacao automatica de `organizations.plan`;

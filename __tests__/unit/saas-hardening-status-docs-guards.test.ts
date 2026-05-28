@@ -95,6 +95,8 @@ describe("SaaS hardening status docs", () => {
     expect(roadmap).toContain("docs/audits/billing_stripe_configuration_boundary.md");
     expect(roadmap).toContain("plano atual da organizacao");
     expect(roadmap).toContain("fronteira de configuracao stripe");
+    expect(roadmap).toContain("evidencia real de checkout stripe ainda esta pendente");
+    expect(roadmap).toContain("criar/configurar conta stripe de teste");
     expect(roadmap).toContain("gap-011 - contratos de ui financeira");
     expect(roadmap).not.toContain("gap-005 - contratos de ui financeira");
     expect(roadmap).toContain("gap-005 - remocao futura de `owner_id`");
@@ -122,6 +124,8 @@ describe("SaaS hardening status docs", () => {
     expect(gapRegister).toContain("subscription flow contract");
     expect(gapRegister).toContain("stripe configuration boundary");
     expect(gapRegister).toContain("stripe checkout runtime is implemented");
+    expect(gapRegister).toContain("real stripe checkout evidence is pending");
+    expect(gapRegister).toContain("stripe test account and credentials");
     expect(gapRegister).toContain("dashboard, primary finance lists, primary data-changing forms, selective visual snapshot strategy, dashboard summary deterministic fixture, and gated dashboard summary screenshot are documented");
     expect(gapRegister).toContain("validate the first gated screenshot");
     expect(gapRegister).not.toContain("protected routes still use `/protected` instead of explicit organization routes");

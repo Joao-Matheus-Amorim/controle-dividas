@@ -42,8 +42,11 @@ describe("billing settings status contract", () => {
     expect(contract).toContain("configuracoes > plano da organizacao");
     expect(contract).toContain("ctas de checkout");
     expect(contract).toContain("enable_stripe_checkout");
+    expect(contract).toContain("requireorganizationaccess(orgslug)");
+    expect(contract).toContain("permissao de billing por membership");
     expect(contract).toContain("checkout");
     expect(contract).toContain("webhooks");
+    expect(contract).toContain("evidencia real de checkout stripe segue pendente");
     expect(contract).toContain("contratos relacionados");
   });
 
