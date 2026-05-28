@@ -1,7 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
-
 import { ensureAdminProfile } from "@/lib/finance/admin-server";
 import type { PermissionFormState, ProfileFormState } from "@/lib/finance/admin-types";
 import {
@@ -11,6 +9,7 @@ import {
   type FinanceModuleKey,
   type PermissionScope,
 } from "@/lib/finance/permissions";
+import { revalidateOrganizationPaths } from "@/lib/organizations/revalidation";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -300,9 +299,10 @@ export async function createFamilyUser(
     if (permissionsError) return { error: permissionsError.message };
   }
 
-  revalidatePath("/protected/admin");
-  revalidatePath("/protected/admin/usuarios");
-  revalidatePath("/protected/admin/permissoes");
+  revalidateOrganizationPaths(
+    ["/protected/admin", "/protected/admin/usuarios", "/protected/admin/permissoes"],
+    organization.slug,
+  );
 
   return { success: "Acesso familiar cadastrado com sucesso." };
 }
@@ -363,9 +363,10 @@ export async function updateFamilyUser(formData: FormData): Promise<FamilyUserAc
 
   if (error) return { error: error.message };
 
-  revalidatePath("/protected/admin");
-  revalidatePath("/protected/admin/usuarios");
-  revalidatePath("/protected/admin/permissoes");
+  revalidateOrganizationPaths(
+    ["/protected/admin", "/protected/admin/usuarios", "/protected/admin/permissoes"],
+    organization.slug,
+  );
 
   return { success: "Acesso familiar atualizado com sucesso." };
 }
@@ -417,10 +418,10 @@ export async function syncFamilyUserAuthLink(formData: FormData): Promise<Family
 
   if (linkError) return { error: linkError.message };
 
-  revalidatePath("/protected/admin");
-  revalidatePath("/protected/admin/usuarios");
-  revalidatePath("/protected/admin/permissoes");
-  revalidatePath("/protected");
+  revalidateOrganizationPaths(
+    ["/protected/admin", "/protected/admin/usuarios", "/protected/admin/permissoes", "/protected"],
+    organization.slug,
+  );
 
   return { success: "Login sincronizado com sucesso." };
 }
@@ -458,9 +459,10 @@ export async function deleteFamilyUser(formData: FormData): Promise<FamilyUserAc
 
   if (error) return { error: error.message };
 
-  revalidatePath("/protected/admin");
-  revalidatePath("/protected/admin/usuarios");
-  revalidatePath("/protected/admin/permissoes");
+  revalidateOrganizationPaths(
+    ["/protected/admin", "/protected/admin/usuarios", "/protected/admin/permissoes"],
+    organization.slug,
+  );
 
   return { success: "Acesso familiar excluido com sucesso." };
 }
@@ -500,9 +502,10 @@ export async function toggleFamilyUserStatus(formData: FormData): Promise<Family
 
   if (error) return { error: error.message };
 
-  revalidatePath("/protected/admin");
-  revalidatePath("/protected/admin/usuarios");
-  revalidatePath("/protected/admin/permissoes");
+  revalidateOrganizationPaths(
+    ["/protected/admin", "/protected/admin/usuarios", "/protected/admin/permissoes"],
+    organization.slug,
+  );
 
   return { success: isActive ? "Acesso familiar desativado com sucesso." : "Acesso familiar ativado com sucesso." };
 }
@@ -559,8 +562,10 @@ export async function saveProfilePermissions(
 
   if (error) return { error: error.message };
 
-  revalidatePath("/protected/admin");
-  revalidatePath("/protected/admin/permissoes");
+  revalidateOrganizationPaths(
+    ["/protected/admin", "/protected/admin/permissoes"],
+    organization.slug,
+  );
 
   return { success: "Permissoes salvas com sucesso." };
 }
@@ -603,8 +608,10 @@ export async function saveProfileFeaturePermissions(
 
   if (error) return { error: error.message };
 
-  revalidatePath("/protected/admin");
-  revalidatePath("/protected/admin/permissoes");
+  revalidateOrganizationPaths(
+    ["/protected/admin", "/protected/admin/permissoes"],
+    organization.slug,
+  );
 
   return { success: "Funcionalidades salvas com sucesso." };
 }

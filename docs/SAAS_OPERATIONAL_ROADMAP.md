@@ -139,6 +139,7 @@ Resultado atual:
 - wrappers `app/org/[orgSlug]` para dashboard e modulos protegidos;
 - validacao server-side de acesso ao slug recebido na URL;
 - links internos preservam o slug quando a navegacao esta em `/org/[orgSlug]`;
+- `revalidateOrganizationPaths` revalida `/protected` e o caminho equivalente `/org/[orgSlug]`;
 - `/protected` segue compativel para auth, onboarding e bookmarks legados.
 
 ### GAP-003 - Billing

@@ -39,6 +39,8 @@ describe("orgSlug routing contract", () => {
   });
 
   it("keeps implementation sequenced through runtime route creation", () => {
+    const revalidation = read("lib/organizations/revalidation.ts");
+
     expect(adr).toContain("criar helpers centralizados");
     expect(adr).toContain("criar a primeira rota `/org/[orgslug]`");
     expect(adr).toContain("provar por e2e gated");
@@ -46,6 +48,9 @@ describe("orgSlug routing contract", () => {
     expect(existsSync(join(process.cwd(), "app/org/[orgSlug]/page.tsx"))).toBe(true);
     expect(existsSync(join(process.cwd(), "app/org/[orgSlug]/gastos/page.tsx"))).toBe(true);
     expect(existsSync(join(process.cwd(), "app/org/[orgSlug]/admin/permissoes/page.tsx"))).toBe(true);
+    expect(revalidation).toContain("revalidateorganizationpaths");
+    expect(revalidation).toContain("getorgpathfromprotectedpath");
+    expect(revalidation).toContain("revalidatepath(orgpath)");
   });
 
   it("keeps roadmap and architecture aligned with the accepted contract", () => {

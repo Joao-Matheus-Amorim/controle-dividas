@@ -1,8 +1,8 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { revalidateOrganizationPaths } from "@/lib/organizations/revalidation";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { createClient } from "@/lib/supabase/server";
 
@@ -72,9 +72,10 @@ export async function createExpenseCategory(
     return { error: error.message };
   }
 
-  revalidatePath("/protected/configuracoes");
-  revalidatePath("/protected/gastos");
-  revalidatePath("/protected");
+  revalidateOrganizationPaths(
+    ["/protected/configuracoes", "/protected/gastos", "/protected"],
+    organization.slug,
+  );
 
   return { success: "Categoria cadastrada com sucesso." };
 }
@@ -134,9 +135,10 @@ export async function updateExpenseCategory(
     return { error: error.message };
   }
 
-  revalidatePath("/protected/configuracoes");
-  revalidatePath("/protected/gastos");
-  revalidatePath("/protected");
+  revalidateOrganizationPaths(
+    ["/protected/configuracoes", "/protected/gastos", "/protected"],
+    organization.slug,
+  );
 
   return { success: "Categoria atualizada com sucesso." };
 }
@@ -166,9 +168,10 @@ export async function deleteExpenseCategory(
     return { error: error.message };
   }
 
-  revalidatePath("/protected/configuracoes");
-  revalidatePath("/protected/gastos");
-  revalidatePath("/protected");
+  revalidateOrganizationPaths(
+    ["/protected/configuracoes", "/protected/gastos", "/protected"],
+    organization.slug,
+  );
 
   return { success: "Categoria excluida com sucesso." };
 }
@@ -216,11 +219,16 @@ export async function updateFamilyMemberLimit(
     return { error: error.message };
   }
 
-  revalidatePath("/protected/configuracoes");
-  revalidatePath("/protected/pessoas");
-  revalidatePath("/protected/gastos");
-  revalidatePath("/protected/relatorios");
-  revalidatePath("/protected");
+  revalidateOrganizationPaths(
+    [
+      "/protected/configuracoes",
+      "/protected/pessoas",
+      "/protected/gastos",
+      "/protected/relatorios",
+      "/protected",
+    ],
+    organization.slug,
+  );
 
   return { success: "Limite atualizado com sucesso." };
 }

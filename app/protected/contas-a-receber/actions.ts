@@ -1,13 +1,12 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
-
 import {
   assertCanAccessMember,
   getCurrentProfile,
 } from "@/lib/finance/access-control";
 import type { PermissionAction } from "@/lib/finance/permissions";
 import type { ReceivableIncomeFormState } from "@/lib/finance/server";
+import { revalidateOrganizationPaths } from "@/lib/organizations/revalidation";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { createClient } from "@/lib/supabase/server";
 
@@ -184,8 +183,7 @@ export async function createReceivableIncome(
     return { error: error.message };
   }
 
-  revalidatePath("/protected/contas-a-receber");
-  revalidatePath("/protected");
+  revalidateOrganizationPaths(["/protected/contas-a-receber", "/protected"], organization.slug);
 
   return { success: "Conta a receber cadastrada com sucesso." };
 }
@@ -240,8 +238,7 @@ export async function updateReceivableIncome(
       return { error: error.message };
     }
 
-    revalidatePath("/protected/contas-a-receber");
-    revalidatePath("/protected");
+    revalidateOrganizationPaths(["/protected/contas-a-receber", "/protected"], organization.slug);
 
     return { success: "Recebimento atualizado com sucesso." };
   } catch (error) {
@@ -286,8 +283,7 @@ export async function updateReceivableIncomeStatus(
       return { error: error.message };
     }
 
-    revalidatePath("/protected/contas-a-receber");
-    revalidatePath("/protected");
+    revalidateOrganizationPaths(["/protected/contas-a-receber", "/protected"], organization.slug);
 
     return { success: "Status atualizado com sucesso." };
   } catch (error) {
@@ -335,8 +331,7 @@ export async function deleteReceivableIncome(
       return { error: error.message };
     }
 
-    revalidatePath("/protected/contas-a-receber");
-    revalidatePath("/protected");
+    revalidateOrganizationPaths(["/protected/contas-a-receber", "/protected"], organization.slug);
 
     return { success: "Recebimento excluido com sucesso." };
   } catch (error) {

@@ -89,7 +89,7 @@ Regras:
 
 Quando uma pagina estiver dentro de `/org/[orgSlug]`, os links internos devem preservar o slug.
 
-Server Actions que revalidam caminhos devem revalidar o caminho com slug quando estiverem em rota organization-aware. Enquanto `/protected` existir, a compatibilidade pode revalidar tambem o caminho legado.
+Server Actions que revalidam caminhos usam o helper central `revalidateOrganizationPaths`, revalidando o caminho legado `/protected` e o caminho equivalente por slug quando estiverem em rota organization-aware.
 
 Redirects de auth continuam usando `/protected` como fallback ate existir decisao propria para deep links organization-aware.
 
@@ -112,6 +112,8 @@ Redirects de auth continuam usando `/protected` como fallback ate existir decisa
 Este ADR nao altera schema, RLS, migrations, billing ou dados.
 
 Cria `app/org/[orgSlug]` e wrappers de modulo que reutilizam as paginas existentes de `/protected`.
+
+Centraliza a revalidacao organization-aware em `lib/organizations/revalidation.ts`.
 
 Nao remove `/protected`.
 

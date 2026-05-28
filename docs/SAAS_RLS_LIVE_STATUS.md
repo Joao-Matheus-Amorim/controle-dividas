@@ -27,6 +27,7 @@ Isso significa:
 - Playwright/E2E possui cobertura versionada para public/auth smoke, rotas protegidas, contratos autenticados gated, permission-sensitive gated e fluxos data-changing com cleanup;
 - `owner_id` ainda existe e continua sendo usado como compatibilidade e write ownership;
 - rotas por `orgSlug` existem em `/org/[orgSlug]` com `/protected` mantido como compatibilidade pelo ADR 0007;
+- Server Actions revalidam caminhos por helper central que cobre `/protected` e `/org/[orgSlug]`;
 - billing/Stripe ainda nao foi implementado.
 
 ## 3. Migrations SaaS/RLS/hardening atuais
