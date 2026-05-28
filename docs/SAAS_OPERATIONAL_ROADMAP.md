@@ -77,9 +77,9 @@ A limpeza final de policies antigas owner/family foi versionada em:
 - Troca de organizacao ativa tem contrato Playwright gated cleanup-backed em `tests/e2e/multi-org-switch-authenticated-gated.spec.ts`.
 - RLS Live Gate existe em `.github/workflows/rls-live-gate.yml` e ja gera GitHub Step Summary + artifact `rls-live-gate-evidence-*`, mas ainda precisa de vars/secrets e execucao dedicada para virar evidencia verde de CI.
 
-## 3. Gap real antes de declarar 100% coerente
+## 3. Estado de fechamento e gaps reais antes de declarar 100% coerente
 
-### GAP-001 - Limpeza de policies antigas versionada
+### FECHADO-001 - Limpeza de policies antigas versionada
 
 O Supabase vivo validado ja teve as policies antigas owner-centric removidas manualmente:
 
@@ -89,13 +89,14 @@ O Supabase vivo validado ja teve as policies antigas owner-centric removidas man
 
 Agora a cadeia de migrations possui a migration idempotente `039_drop_legacy_owner_family_policies.sql` para reproduzir essa limpeza em qualquer ambiente que tenha aplicado migrations antigas.
 
-Resultado esperado:
+Resultado atual:
 
 - migration `039_drop_legacy_owner_family_policies.sql` com `drop policy if exists`;
 - teste/guard conferindo que o arquivo versiona a limpeza;
-- RLS gated focado passando depois da migration aplicada no ambiente alvo.
+- Supabase vivo validado recebeu a limpeza manual e o RLS gated focado passou depois do alinhamento;
+- ambientes que nao receberam a limpeza manual ainda precisam aplicar a migration `039`.
 
-### GAP-002 - RLS Live Gate com evidencia de CI
+### GAP-001 - RLS Live Gate com evidencia de CI
 
 O workflow existe e ja possui plumbing de evidencia auditavel. O estado ainda pendente e a execucao real no GitHub Actions com ambiente Supabase dedicado.
 
@@ -107,7 +108,7 @@ Resultado esperado:
 - confirmar o GitHub Step Summary e o artifact `rls-live-gate-evidence-*`;
 - registrar evidencia no status vivo somente depois de uma execucao real verde.
 
-### GAP-003 - Contrato E2E de troca de organizacao ativa
+### FECHADO-002 - Contrato E2E de troca de organizacao ativa
 
 A troca de organizacao ativa existe no app e agora possui contrato E2E gated cleanup-backed versionado.
 
@@ -120,7 +121,7 @@ Resultado atual:
 - reload para confirmar persistencia;
 - cleanup por slug prefixado.
 
-### GAP-004 - Rotas por `orgSlug`
+### GAP-002 - Rotas por `orgSlug`
 
 As rotas atuais ainda usam `/protected`. Helpers ja aceitam `orgSlug` opcional, mas nao ha estrutura de rota organization-aware no App Router.
 
@@ -140,7 +141,7 @@ Resultado esperado:
 - redirects/fallbacks definidos sem quebrar `/protected`;
 - cobertura E2E de slug valido, slug sem acesso e compatibilidade `/protected`.
 
-### GAP-005 - Billing
+### GAP-003 - Billing
 
 `organizations` possui campos como `plan` e `stripe_customer_id`, mas nao ha implementacao Stripe/checkout/subscription.
 
@@ -150,7 +151,7 @@ Resultado esperado:
 - criar integration plan;
 - implementar billing somente depois de RLS Live Gate, orgSlug e UX multi-org estarem estaveis.
 
-### GAP-006 - Remocao futura de `owner_id`
+### GAP-004 - Remocao futura de `owner_id`
 
 `owner_id` ainda e parte do contrato atual. Remover agora seria prematuro.
 
@@ -169,12 +170,12 @@ Resultado esperado:
    - Validar GitHub Step Summary e artifact `rls-live-gate-evidence-*`.
    - Documentar resultado somente depois de uma execucao real verde.
 
-2. **Executar E2E multi-org switch em ambiente dedicado**
+2. **Confirmar E2E multi-org switch em ambiente dedicado quando necessario**
    - Configurar usuario dedicado.
    - Rodar `RUN_MULTI_ORG_SWITCH_E2E=true`.
    - Registrar evidencia depois de uma execucao real verde.
 
-3. **Plano e PR base de `orgSlug`**
+3. **PR base de `orgSlug`**
    - ADR 0007 define `/org/[orgSlug]` e compatibilidade `/protected`.
    - Proximo PR deve criar helpers centralizados de path e primeira rota dashboard.
    - Implementar sem billing.

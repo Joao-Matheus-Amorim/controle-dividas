@@ -335,12 +335,13 @@ Workflow manual de RLS real:
 
 ## Pontos de atencao
 
-1. A limpeza manual das policies antigas `*_own`/`*_family` precisa ser versionada em migration idempotente.
-2. `owner_id` ainda nao deve ser removido.
-3. Rotas `[orgSlug]` ainda nao existem.
-4. Billing ainda nao existe.
-5. Client Components nao podem importar Admin Client.
-6. Data-changing E2E precisa de cleanup.
+1. A limpeza manual das policies antigas `*_own`/`*_family` ja foi versionada na migration idempotente `039_drop_legacy_owner_family_policies.sql`.
+2. Ambientes que nao receberam a limpeza manual precisam aplicar a migration `039`.
+3. `owner_id` ainda nao deve ser removido.
+4. Rotas `[orgSlug]` ainda nao existem.
+5. Billing ainda nao existe.
+6. Client Components nao podem importar Admin Client.
+7. Data-changing E2E precisa de cleanup.
 
 ## Checklist para nova funcionalidade
 
@@ -362,9 +363,9 @@ Workflow manual de RLS real:
 
 Curto prazo:
 
-- versionar migration idempotente para remover policies antigas `*_own`/`*_family`;
 - configurar e rodar RLS Live Gate em CI dedicado;
-- criar E2E gated para troca de organizacao ativa.
+- confirmar E2E gated de troca de organizacao ativa quando houver ambiente dedicado;
+- iniciar PR base de `/org/[orgSlug]` pelo dashboard, sem remover `/protected`.
 
 Medio prazo:
 

@@ -64,14 +64,14 @@ describe("SaaS hardening status docs", () => {
 
   it("keeps the operational roadmap focused on the remaining real gaps", () => {
     expect(roadmap).toContain("saaS operational roadmap".toLowerCase());
-    expect(roadmap).toContain("gap-001 - limpeza de policies antigas versionada");
+    expect(roadmap).toContain("fechado-001 - limpeza de policies antigas versionada");
     expect(roadmap).toContain("039_drop_legacy_owner_family_policies.sql");
     expect(roadmap).toContain("rls live gate");
     expect(roadmap).toContain("github step summary");
     expect(roadmap).toContain("rls-live-gate-evidence-*");
     expect(roadmap).toContain("execucao real verde");
     expect(roadmap).toContain("e2e multi-org switch");
-    expect(roadmap).toContain("rotas por `orgslug`");
+    expect(roadmap).toContain("gap-002 - rotas por `orgslug`");
     expect(roadmap).toContain("billing");
     expect(roadmap).toContain("owner_id retirement plan");
   });
@@ -82,6 +82,7 @@ describe("SaaS hardening status docs", () => {
     expect(inventory).toContain("policies antigas `*_own`/`*_family`");
     expect(inventory).toContain("drop policy if exists");
     expect(inventory).toContain("user_feature_permissions");
+    expect(inventory).toContain("gap operacional fechado na cadeia de migrations");
     expect(inventory).toContain("`owner_id` ainda e transicional");
   });
 });
