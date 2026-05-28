@@ -27,25 +27,24 @@ describe("billing stripe configuration boundary contract", () => {
     expect(helper).toContain("shouldfailfastformissingruntimeenv");
   });
 
-  it("documents the boundary without introducing checkout runtime", () => {
+  it("documents the boundary with checkout still separated from webhook and portal", () => {
     expect(contract).toContain("gap-006");
     expect(contract).toContain("enable_stripe_checkout");
     expect(contract).toContain("lib/billing/stripe-config.ts");
     expect(contract).toContain("compatibilidade com vitest/vite");
-    expect(contract).toContain("nao implementa");
-    expect(contract).toContain("rota de checkout");
+    expect(contract).toContain("stripe_price_family_basic");
+    expect(contract).toContain("checkout runtime");
+    expect(contract).toContain("lib/billing/stripe-checkout.ts");
     expect(contract).toContain("endpoint webhook");
   });
 
   it("keeps roadmap, gap register, and ADR aligned with the post-boundary next step", () => {
     expect(roadmap).toContain("docs/audits/billing_stripe_configuration_boundary.md");
     expect(roadmap).toContain("lib/billing/stripe-config.ts");
-    expect(roadmap).toContain("implementar checkout runtime em pr proprio");
+    expect(roadmap).toContain("checkout runtime esta implementado");
 
-    expect(gapRegister).toContain("stripe configuration boundary is implemented");
-    expect(gapRegister).toContain(
-      "implement checkout runtime in a dedicated pr, keeping webhook and portal separated",
-    );
+    expect(gapRegister).toContain("stripe configuration boundary");
+    expect(gapRegister).toContain("stripe checkout runtime is implemented");
 
     expect(billingAdr).toContain("billing_stripe_configuration_boundary.md");
     expect(billingAdr).toContain("implementar checkout runtime em pr proprio");

@@ -28,9 +28,9 @@ describe("billing subscription flow contract", () => {
   });
 
   it("keeps the contract out of runtime Stripe implementation", () => {
-    expect(contract).toContain("nao implementa sdk");
-    expect(contract).toContain("nao implementa");
-    expect(contract).toContain("rota de checkout");
+    expect(contract).toContain("checkout runtime implementado");
+    expect(contract).toContain("app/protected/configuracoes/billing-actions.ts");
+    expect(contract).toContain("lib/billing/stripe-checkout.ts");
     expect(contract).toContain("endpoint webhook");
     expect(contract).toContain("tabelas de assinatura");
     expect(contract).toContain("mudanca rls");
@@ -42,6 +42,7 @@ describe("billing subscription flow contract", () => {
     expect(contract).toContain("stripe_webhook_secret");
     expect(contract).toContain("next_public_stripe_publishable_key");
     expect(contract).toContain("next_public_app_url");
+    expect(contract).toContain("stripe_price_family_basic");
     expect(contract).toContain("rollback operacional");
     expect(contract).toContain("eventos atrasados");
   });
@@ -49,11 +50,9 @@ describe("billing subscription flow contract", () => {
   it("keeps roadmap, gap register, and ADR 0008 aligned with the next Stripe-safe step", () => {
     expect(roadmap).toContain("docs/audits/billing_subscription_flow_contract.md");
     expect(roadmap).toContain("fronteira de configuracao stripe");
-    expect(gapRegister).toContain("subscription flow contract is documented");
-    expect(gapRegister).toContain("stripe configuration boundary is implemented");
-    expect(gapRegister).toContain(
-      "implement checkout runtime in a dedicated pr, keeping webhook and portal separated",
-    );
+    expect(gapRegister).toContain("subscription flow contract");
+    expect(gapRegister).toContain("stripe configuration boundary");
+    expect(gapRegister).toContain("stripe checkout runtime is implemented");
     expect(billingAdr).toContain("billing_subscription_flow_contract.md");
     expect(billingAdr).toContain("fronteira de configuracao stripe");
     expect(billingAdr).toContain("billing_stripe_configuration_boundary.md");

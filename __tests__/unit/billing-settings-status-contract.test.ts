@@ -20,43 +20,38 @@ describe("billing settings status contract", () => {
   it("renders the current organization plan from the local billing catalog", () => {
     expect(component).toContain("getbillingplan");
     expect(component).toContain("plano da organizacao");
-    expect(component).toContain("billing comercial ainda nao esta ativo");
-    expect(component).toContain("contrato local de planos");
+    expect(component).toContain("iniciar checkout");
+    expect(component).toContain("checkoutenabled");
     expect(settingsPage).toContain("getcurrentorganization(orgslug)");
     expect(settingsPage).toContain("settingsbillingplanstatus");
     expect(settingsPage).toContain("organization.plan");
     expect(settingsPage).toContain("organization.trial_ends_at");
   });
 
-  it("keeps this step read-only and out of Stripe runtime coupling", () => {
+  it("keeps checkout separated from portal, webhook, and commercial enforcement", () => {
     for (const source of [component, settingsPage]) {
-      expect(source).not.toContain("stripe");
-      expect(source).not.toContain("checkout");
-      expect(source).not.toContain("webhook");
       expect(source).not.toContain("billing portal");
       expect(source).not.toContain("createcustomer");
-      expect(source).not.toContain("subscription");
+      expect(source).not.toContain("stripe.webhooks");
     }
   });
 
   it("documents GAP-006 as status UI before Stripe", () => {
     expect(contract).toContain("gap-006");
     expect(contract).toContain("configuracoes > plano da organizacao");
-    expect(contract).toContain("read-only");
-    expect(contract).toContain("stripe sdk");
+    expect(contract).toContain("ctas de checkout");
+    expect(contract).toContain("enable_stripe_checkout");
     expect(contract).toContain("checkout");
     expect(contract).toContain("webhooks");
-    expect(contract).toContain("contrato de fluxo de assinatura");
+    expect(contract).toContain("contratos relacionados");
   });
 
   it("keeps roadmap and gap register aligned with billing status progress", () => {
     expect(roadmap).toContain("docs/audits/billing_settings_status_contract.md");
     expect(roadmap).toContain("plano atual da organizacao");
-    expect(gapRegister).toContain("billing settings status ui is implemented");
-    expect(gapRegister).toContain("subscription flow contract is documented");
-    expect(gapRegister).toContain("stripe configuration boundary is implemented");
-    expect(gapRegister).toContain(
-      "implement checkout runtime in a dedicated pr, keeping webhook and portal separated",
-    );
+    expect(gapRegister).toContain("billing settings status ui");
+    expect(gapRegister).toContain("subscription flow contract");
+    expect(gapRegister).toContain("stripe configuration boundary");
+    expect(gapRegister).toContain("stripe checkout runtime is implemented");
   });
 });

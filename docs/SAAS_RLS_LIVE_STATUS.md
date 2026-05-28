@@ -30,9 +30,10 @@ Isso significa:
 - `/protected` e `/org/[orgSlug]` usam implementacoes compartilhadas em `features/protected-pages`;
 - Server Actions revalidam caminhos por helper central que cobre `/protected` e `/org/[orgSlug]`;
 - E2E gated `tests/e2e/orgslug-authenticated-gated.spec.ts` versiona slug permitido, slug sem membership e compatibilidade `/protected`;
-- contrato local de planos existe em `lib/billing/plans.ts`, alinhado ao schema, com status read-only em Configuracoes e sem Stripe runtime;
+- contrato local de planos existe em `lib/billing/plans.ts`, alinhado ao schema, com status em Configuracoes e entrada de checkout runtime;
 - fronteira de configuracao Stripe existe em `lib/billing/stripe-config.ts` com `ENABLE_STRIPE_CHECKOUT` e fail-fast de env vars em runtime de producao;
-- billing/Stripe ainda nao foi implementado.
+- checkout runtime usa Stripe Checkout Session para owner/admin da organizacao resolvida no servidor;
+- webhook, portal, assinatura sincronizada e enforcement comercial ainda nao foram implementados.
 
 ## 3. Migrations SaaS/RLS/hardening atuais
 
@@ -258,7 +259,7 @@ Ainda nao foi feito:
 
 - execucao verde do RLS Live Gate no GitHub Actions com ambiente Supabase dedicado e artifact `rls-live-gate-evidence-*`;
 - Execucao real dedicada do E2E `RUN_ORGSLUG_E2E=true` para registrar evidencia verde de `/org/[orgSlug]`;
-- billing/Stripe;
+- webhook/portal Stripe, assinatura sincronizada e enforcement comercial;
 - remocao de `owner_id`;
 - down migrations automatizadas.
 

@@ -5,20 +5,26 @@ import { SettingsHeroSummary } from "@/components/settings/settings-hero-summary
 import { SettingsMemberLimits } from "@/components/settings/settings-member-limits";
 import { SettingsPageHeader } from "@/components/settings/settings-page-header";
 import { SettingsSummaryCards } from "@/components/settings/settings-summary-cards";
+import { getStripeConfigurationBoundary } from "@/lib/billing/stripe-config";
 import { getOrganizationExpenseCategories } from "@/lib/organizations/categories";
 import { getCurrentOrganization } from "@/lib/organizations/server";
 import { getOrganizationFamilyMembers } from "@/lib/organizations/people";
 
 type ConfiguracoesPageProps = {
   orgSlug?: string;
+  checkoutStatus?: string;
 };
 
-export async function ConfiguracoesPage({ orgSlug }: ConfiguracoesPageProps = {}) {
+export async function ConfiguracoesPage({
+  orgSlug,
+  checkoutStatus,
+}: ConfiguracoesPageProps = {}) {
   const [members, categories, organization] = await Promise.all([
     getOrganizationFamilyMembers(orgSlug),
     getOrganizationExpenseCategories(orgSlug),
     getCurrentOrganization(orgSlug),
   ]);
+  const stripeBoundary = getStripeConfigurationBoundary();
 
   const totalLimit = members.reduce(
     (total, member) => total + Number(member.monthly_limit),
@@ -45,6 +51,10 @@ export async function ConfiguracoesPage({ orgSlug }: ConfiguracoesPageProps = {}
           plan={organization.plan}
           status={organization.status}
           trialEndsAt={organization.trial_ends_at}
+          checkoutEnabled={stripeBoundary.checkoutEnabled}
+          checkoutReady={stripeBoundary.ready}
+          checkoutStatus={checkoutStatus}
+          orgSlug={orgSlug}
         />
       ) : null}
 

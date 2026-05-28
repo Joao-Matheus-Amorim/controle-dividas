@@ -4,6 +4,8 @@ import {
   assertStripeConfigurationBoundary,
   getMissingStripeEnvVars,
   getStripeConfigurationBoundary,
+  getStripePriceEnvVar,
+  getStripePriceId,
   isStripeCheckoutEnabled,
 } from "@/lib/billing/stripe-config";
 
@@ -16,6 +18,9 @@ function resetStripeEnv() {
   delete process.env.STRIPE_WEBHOOK_SECRET;
   delete process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
   delete process.env.NEXT_PUBLIC_APP_URL;
+  delete process.env.STRIPE_PRICE_FAMILY_BASIC;
+  delete process.env.STRIPE_PRICE_FAMILY_PLUS;
+  delete process.env.STRIPE_PRICE_FAMILY_PRO;
   process.env.APP_ENV = "local";
 }
 
@@ -82,5 +87,17 @@ describe("billing stripe configuration boundary", () => {
     expect(() => assertStripeConfigurationBoundary()).toThrow(
       "Stripe runtime environment variables are missing.",
     );
+  });
+
+  it("maps paid plans to dedicated Stripe price env vars without making free checkoutable", () => {
+    resetStripeEnv();
+    process.env.STRIPE_PRICE_FAMILY_BASIC = "price_basic";
+
+    expect(getStripePriceEnvVar("free")).toBeNull();
+    expect(getStripePriceEnvVar("family_basic")).toBe("STRIPE_PRICE_FAMILY_BASIC");
+    expect(getStripePriceEnvVar("family_plus")).toBe("STRIPE_PRICE_FAMILY_PLUS");
+    expect(getStripePriceEnvVar("family_pro")).toBe("STRIPE_PRICE_FAMILY_PRO");
+    expect(getStripePriceId("family_basic")).toBe("price_basic");
+    expect(getStripePriceId("family_plus")).toBeNull();
   });
 });

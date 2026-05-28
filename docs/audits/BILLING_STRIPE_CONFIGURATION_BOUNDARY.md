@@ -4,9 +4,7 @@ Atualizado em: 2026-05-28
 
 ## Objetivo
 
-Este contrato fecha o proximo passo tecnico do GAP-006 antes de qualquer runtime de checkout.
-
-A fronteira implementada define como habilitar/desabilitar Stripe em runtime server-side sem criar acoplamento prematuro com checkout, portal ou webhook.
+Este contrato fecha a fronteira tecnica do GAP-006 para habilitar/desabilitar Stripe em runtime server-side sem acoplar checkout, portal e webhook no mesmo passo.
 
 ## Estado implementado
 
@@ -20,13 +18,15 @@ A fronteira implementada define como habilitar/desabilitar Stripe em runtime ser
   - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`;
   - `NEXT_PUBLIC_APP_URL`.
 - Em runtime parecido com producao (`NODE_ENV=production` ou `APP_ENV=production`), faltas de env vars obrigatorias disparam fail-fast.
+- Price ids de checkout sao separados por plano pago e lidos somente na entrada de checkout:
+  - `STRIPE_PRICE_FAMILY_BASIC`;
+  - `STRIPE_PRICE_FAMILY_PLUS`;
+  - `STRIPE_PRICE_FAMILY_PRO`.
 
 ## Fora de escopo
 
-Este passo nao implementa:
+Este contrato de fronteira nao implementa:
 
-- Stripe SDK;
-- rota de checkout;
 - rota de portal;
 - endpoint webhook;
 - tabela de subscriptions;
@@ -36,10 +36,14 @@ Este passo nao implementa:
 - alteracao de RLS;
 - E2E data-changing.
 
-## Proximo passo seguro
+## Checkout runtime
 
-Depois desta fronteira:
+O primeiro checkout runtime dedicado fica em:
 
-- implementar entrada de checkout em PR proprio;
-- manter `ENABLE_STRIPE_CHECKOUT=false` por padrao ate o runtime estar pronto;
-- separar webhook/portal em passos explicitos e auditaveis.
+```txt
+app/protected/configuracoes/billing-actions.ts
+lib/billing/stripe-checkout.ts
+components/settings/settings-billing-plan-status.tsx
+```
+
+Ele respeita `ENABLE_STRIPE_CHECKOUT`, resolve owner/admin no servidor e nao implementa webhook, portal ou enforcement comercial.

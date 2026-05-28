@@ -89,9 +89,10 @@ A limpeza final de policies antigas owner/family foi versionada em:
 - Os formularios financeiros primarios possuem contrato de UI nao fragil em `docs/audits/FINANCE_FORM_UI_CONTRACT.md` e guard dedicado para preservar `useActionState`, feedback, pending state, `AppFormSheet` e campos essenciais.
 - A estrategia de snapshot visual seletivo esta documentada em `docs/audits/SELECTIVE_VISUAL_SNAPSHOT_STRATEGY.md`; nenhum snapshot visual amplo foi implementado neste passo.
 - A fixture deterministica do dashboard summary acima da dobra esta documentada em `docs/audits/DASHBOARD_SUMMARY_VISUAL_FIXTURE.md`, versionada em `__tests__/fixtures/dashboard-summary-visual-snapshot.ts` e coberta por screenshot gated em `tests/e2e/dashboard-summary-visual-snapshot-gated.spec.ts`.
-- O status de billing read-only em Configuracoes mostra o plano atual da organizacao usando `lib/billing/plans.ts`, documentado em `docs/audits/BILLING_SETTINGS_STATUS_CONTRACT.md`, sem Stripe runtime.
+- O status de billing em Configuracoes mostra o plano atual da organizacao usando `lib/billing/plans.ts` e expõe entrada de checkout controlada por `ENABLE_STRIPE_CHECKOUT`, documentado em `docs/audits/BILLING_SETTINGS_STATUS_CONTRACT.md`.
 - O contrato de fluxo de assinatura esta documentado em `docs/audits/BILLING_SUBSCRIPTION_FLOW_CONTRACT.md`, cobrindo checkout, portal, webhook idempotente, secrets e rollback antes de runtime Stripe.
-- A fronteira de configuracao Stripe esta implementada em `lib/billing/stripe-config.ts` e documentada em `docs/audits/BILLING_STRIPE_CONFIGURATION_BOUNDARY.md`, sem acoplar checkout/webhook runtime.
+- A fronteira de configuracao Stripe esta implementada em `lib/billing/stripe-config.ts` e documentada em `docs/audits/BILLING_STRIPE_CONFIGURATION_BOUNDARY.md`.
+- Checkout runtime esta implementado em `lib/billing/stripe-checkout.ts` e `app/protected/configuracoes/billing-actions.ts`, sem webhook, portal ou enforcement comercial.
 - RLS Live Gate existe em `.github/workflows/rls-live-gate.yml` e ja gera GitHub Step Summary + artifact `rls-live-gate-evidence-*`, mas ainda precisa de vars/secrets e execucao dedicada para virar evidencia verde de CI.
 
 ## 3. Estado de fechamento e gaps reais antes de declarar 100% coerente
@@ -163,21 +164,21 @@ Resultado atual:
 
 ### GAP-003 - Billing
 
-`organizations` possui campos como `plan` e `stripe_customer_id`, mas nao ha implementacao Stripe/checkout/subscription.
+`organizations` possui campos como `plan` e `stripe_customer_id`. Checkout runtime esta implementado; subscription sync, portal, webhook e enforcement comercial ainda nao.
 
 Contrato local de planos:
 
 - `lib/billing/plans.ts`;
 - ADR 0008;
 - alinhado com a constraint de `organizations.plan` da migration `006`.
-- status read-only em Configuracoes documentado em `docs/audits/BILLING_SETTINGS_STATUS_CONTRACT.md`.
+- status e entrada de checkout em Configuracoes documentados em `docs/audits/BILLING_SETTINGS_STATUS_CONTRACT.md`.
 - contrato de fluxo de assinatura documentado em `docs/audits/BILLING_SUBSCRIPTION_FLOW_CONTRACT.md`.
 - fronteira de configuracao Stripe documentada em `docs/audits/BILLING_STRIPE_CONFIGURATION_BOUNDARY.md` e implementada em `lib/billing/stripe-config.ts`.
 
 Resultado esperado:
 
 - registrar evidencia externa pendente ou decidir deferimento explicito;
-- implementar checkout runtime em PR proprio;
+- validar checkout runtime com ambiente Stripe de teste;
 - implementar webhook, portal e assinatura em PRs separados.
 
 ### GAP-011 - Contratos de UI financeira
@@ -240,7 +241,8 @@ Resultado esperado:
    - Usar `docs/audits/BILLING_SETTINGS_STATUS_CONTRACT.md`.
    - Usar `docs/audits/BILLING_SUBSCRIPTION_FLOW_CONTRACT.md`.
    - Usar `docs/audits/BILLING_STRIPE_CONFIGURATION_BOUNDARY.md`.
-   - Implementar checkout runtime em PR proprio.
+   - Validar checkout runtime com Stripe de teste.
+   - Implementar webhook e portal em PRs proprios.
    - Planejar Stripe sem misturar com RLS/rotas.
 
 5. **Primeiro snapshot visual seletivo**
