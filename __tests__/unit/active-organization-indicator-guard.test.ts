@@ -58,4 +58,18 @@ describe("active organization indicator guard", () => {
     expect(source).toContain("organization_id");
     expect(source).not.toContain("useRouter");
   });
+
+  it("keeps multi-org switch E2E behind an explicit cleanup-backed gate", () => {
+    const spec = readSource("tests/e2e/multi-org-switch-authenticated-gated.spec.ts");
+    const env = readSource("tests/e2e/helpers/e2e-env.ts");
+
+    expect(env).toContain("RUN_MULTI_ORG_SWITCH_E2E");
+    expect(env).toContain("E2E_MULTI_ORG_EMAIL");
+    expect(env).toContain("E2E_MULTI_ORG_PASSWORD");
+    expect(spec).toContain("e2e-multi-org-switch-");
+    expect(spec).toContain("cleanupMultiOrgSwitchOrganizations");
+    expect(spec).toContain("organization_id");
+    expect(spec).toContain("selectOption");
+    expect(spec).toContain("page.reload");
+  });
 });
