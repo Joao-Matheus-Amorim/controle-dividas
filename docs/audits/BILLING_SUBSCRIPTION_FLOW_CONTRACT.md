@@ -103,7 +103,7 @@ docs/audits/BILLING_STRIPE_CONFIGURATION_BOUNDARY.md
 
 Resumo do estado atual:
 
-- helper server-only versionado em `lib/billing/stripe-config.ts`;
+- helper de fronteira Stripe versionado em `lib/billing/stripe-config.ts` com compatibilidade Vitest/Vite (sem `import "server-only"` direto);
 - `ENABLE_STRIPE_CHECKOUT=false` por padrao;
 - fail-fast em runtime de producao quando `ENABLE_STRIPE_CHECKOUT=true` e env vars obrigatorias estiverem ausentes.
 

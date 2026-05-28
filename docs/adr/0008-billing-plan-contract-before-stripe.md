@@ -60,7 +60,7 @@ A fronteira de configuracao Stripe antes de checkout runtime esta documentada em
 docs/audits/BILLING_STRIPE_CONFIGURATION_BOUNDARY.md
 ```
 
-Essa fronteira versiona helper server-only, flag de habilitacao e fail-fast de env vars obrigatorias em runtime de producao, sem acoplar checkout/webhook.
+Essa fronteira versiona helper de configuracao server-side, flag de habilitacao e fail-fast de env vars obrigatorias em runtime de producao, sem acoplar checkout/webhook.
 
 ## Limites
 

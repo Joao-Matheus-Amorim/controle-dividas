@@ -17,8 +17,8 @@ describe("billing stripe configuration boundary contract", () => {
   const gapRegister = read("docs/SAAS_GAP_REGISTER.md");
   const billingAdr = read("docs/adr/0008-billing-plan-contract-before-stripe.md");
 
-  it("keeps Stripe configuration boundary server-only and explicit", () => {
-    expect(helper).toContain('import "server-only"');
+  it("keeps Stripe configuration boundary explicit and Vitest-compatible", () => {
+    expect(helper).not.toContain('import "server-only"');
     expect(helper).toContain("enable_stripe_checkout");
     expect(helper).toContain("stripe_secret_key");
     expect(helper).toContain("stripe_webhook_secret");
@@ -31,7 +31,7 @@ describe("billing stripe configuration boundary contract", () => {
     expect(contract).toContain("gap-006");
     expect(contract).toContain("enable_stripe_checkout");
     expect(contract).toContain("lib/billing/stripe-config.ts");
-    expect(contract).toContain("server-only");
+    expect(contract).toContain("compatibilidade com vitest/vite");
     expect(contract).toContain("nao implementa");
     expect(contract).toContain("rota de checkout");
     expect(contract).toContain("endpoint webhook");
@@ -51,4 +51,3 @@ describe("billing stripe configuration boundary contract", () => {
     expect(billingAdr).toContain("implementar checkout runtime em pr proprio");
   });
 });
-

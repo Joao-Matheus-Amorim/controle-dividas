@@ -1,5 +1,3 @@
-import "server-only";
-
 import { shouldFailFastForMissingRuntimeEnv } from "@/lib/utils";
 
 const STRIPE_REQUIRED_ENV_VARS = [
@@ -64,4 +62,3 @@ export function assertStripeConfigurationBoundary() {
 
   return boundary;
 }
-

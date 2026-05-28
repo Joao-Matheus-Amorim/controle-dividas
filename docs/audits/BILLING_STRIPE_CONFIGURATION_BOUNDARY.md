@@ -10,7 +10,8 @@ A fronteira implementada define como habilitar/desabilitar Stripe em runtime ser
 
 ## Estado implementado
 
-- `lib/billing/stripe-config.ts` e server-only.
+- `lib/billing/stripe-config.ts` define a fronteira de configuracao Stripe para runtime server-side.
+- O helper nao usa `import "server-only"` para manter compatibilidade com Vitest/Vite nos testes unitarios.
 - `ENABLE_STRIPE_CHECKOUT` controla se o runtime Stripe esta habilitado.
 - Quando `ENABLE_STRIPE_CHECKOUT` estiver desativado, o app permanece funcional sem dependencia de env vars Stripe.
 - Quando `ENABLE_STRIPE_CHECKOUT=true`, o helper exige:
@@ -42,4 +43,3 @@ Depois desta fronteira:
 - implementar entrada de checkout em PR proprio;
 - manter `ENABLE_STRIPE_CHECKOUT=false` por padrao ate o runtime estar pronto;
 - separar webhook/portal em passos explicitos e auditaveis.
-
