@@ -29,6 +29,7 @@ Isso significa:
 - rotas por `orgSlug` existem em `/org/[orgSlug]` com `/protected` mantido como compatibilidade pelo ADR 0007;
 - `/protected` e `/org/[orgSlug]` usam implementacoes compartilhadas em `features/protected-pages`;
 - Server Actions revalidam caminhos por helper central que cobre `/protected` e `/org/[orgSlug]`;
+- E2E gated `tests/e2e/orgslug-authenticated-gated.spec.ts` versiona slug permitido, slug sem membership e compatibilidade `/protected`;
 - billing/Stripe ainda nao foi implementado.
 
 ## 3. Migrations SaaS/RLS/hardening atuais
@@ -254,7 +255,7 @@ Observacoes do gate:
 Ainda nao foi feito:
 
 - execucao verde do RLS Live Gate no GitHub Actions com ambiente Supabase dedicado e artifact `rls-live-gate-evidence-*`;
-- E2E dedicado cobrindo slug valido, slug sem acesso e compatibilidade `/protected` para `/org/[orgSlug]`;
+- Execucao real dedicada do E2E `RUN_ORGSLUG_E2E=true` para registrar evidencia verde de `/org/[orgSlug]`;
 - billing/Stripe;
 - remocao de `owner_id`;
 - down migrations automatizadas.
@@ -268,7 +269,7 @@ Ordem segura:
    - o workflow ja publica GitHub Step Summary e artifact `rls-live-gate-evidence-*`;
    - registrar evidencia neste status somente depois de uma execucao real verde;
 3. executar E2E especifico para troca de organizacao ativa com usuario multi-org dedicado;
-4. ampliar E2E dedicado para rotas por `orgSlug` seguindo ADR 0007;
+4. rodar E2E dedicado para rotas por `orgSlug` seguindo ADR 0007 quando o ambiente dedicado estiver configurado;
 5. billing apenas depois de isolamento/UX estarem maduros;
 6. remocao de `owner_id` apenas em gate futuro apos schema/read-path final e rollback.
 
