@@ -7,7 +7,7 @@ import { SettingsPageHeader } from "@/components/settings/settings-page-header";
 import { SettingsSummaryCards } from "@/components/settings/settings-summary-cards";
 import { getStripeConfigurationBoundary } from "@/lib/billing/stripe-config";
 import { getOrganizationExpenseCategories } from "@/lib/organizations/categories";
-import { getCurrentOrganization } from "@/lib/organizations/server";
+import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { getOrganizationFamilyMembers } from "@/lib/organizations/people";
 
 type ConfiguracoesPageProps = {
@@ -22,9 +22,10 @@ export async function ConfiguracoesPage({
   const [members, categories, organization] = await Promise.all([
     getOrganizationFamilyMembers(orgSlug),
     getOrganizationExpenseCategories(orgSlug),
-    getCurrentOrganization(orgSlug),
+    requireOrganizationAccess(orgSlug),
   ]);
   const stripeBoundary = getStripeConfigurationBoundary();
+  const canManageBilling = ["owner", "admin"].includes(organization.membership.role);
 
   const totalLimit = members.reduce(
     (total, member) => total + Number(member.monthly_limit),
@@ -47,10 +48,11 @@ export async function ConfiguracoesPage({
 
       {organization ? (
         <SettingsBillingPlanStatus
-          organizationName={organization.name}
-          plan={organization.plan}
-          status={organization.status}
-          trialEndsAt={organization.trial_ends_at}
+          organizationName={organization.organization.name}
+          plan={organization.organization.plan}
+          status={organization.organization.status}
+          trialEndsAt={organization.organization.trial_ends_at}
+          canManageBilling={canManageBilling}
           checkoutEnabled={stripeBoundary.checkoutEnabled}
           checkoutReady={stripeBoundary.ready}
           checkoutStatus={checkoutStatus}
