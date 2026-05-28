@@ -22,11 +22,11 @@ function normalizeExpense(expense: RawExpense): DbExpense {
   };
 }
 
-async function getOrganizationAccessibleMembers() {
+async function getOrganizationAccessibleMembers(orgSlug?: string) {
   const supabase = await createClient();
   const profile = await getCurrentProfile();
-  const { organization } = await requireOrganizationAccess();
-  const accessibleMemberIds = await getAccessibleMemberIds("GASTOS", "can_view");
+  const { organization } = await requireOrganizationAccess(orgSlug);
+  const accessibleMemberIds = await getAccessibleMemberIds("GASTOS", "can_view", orgSlug);
 
   if (accessibleMemberIds.length === 0) {
     return [];
@@ -47,10 +47,10 @@ async function getOrganizationAccessibleMembers() {
   return (data ?? []) as DbFamilyMember[];
 }
 
-export async function getOrganizationExpenseCategories() {
+export async function getOrganizationExpenseCategories(orgSlug?: string) {
   const supabase = await createClient();
   const profile = await getCurrentProfile();
-  const { organization } = await requireOrganizationAccess();
+  const { organization } = await requireOrganizationAccess(orgSlug);
 
   const { data, error } = await supabase
     .from("expense_categories")
@@ -66,11 +66,11 @@ export async function getOrganizationExpenseCategories() {
   return (data ?? []) as DbExpenseCategory[];
 }
 
-export async function getOrganizationExpenses() {
+export async function getOrganizationExpenses(orgSlug?: string) {
   const supabase = await createClient();
   const profile = await getCurrentProfile();
-  const { organization } = await requireOrganizationAccess();
-  const members = await getOrganizationAccessibleMembers();
+  const { organization } = await requireOrganizationAccess(orgSlug);
+  const members = await getOrganizationAccessibleMembers(orgSlug);
   const scopedMemberIds = members.map((member) => member.id);
 
   if (scopedMemberIds.length === 0) {
@@ -95,11 +95,11 @@ export async function getOrganizationExpenses() {
   return ((data ?? []) as RawExpense[]).map(normalizeExpense);
 }
 
-export async function getOrganizationExpenseDashboardData() {
+export async function getOrganizationExpenseDashboardData(orgSlug?: string) {
   const [allMembers, categories, expenses] = await Promise.all([
-    getOrganizationAccessibleMembers(),
-    getOrganizationExpenseCategories(),
-    getOrganizationExpenses(),
+    getOrganizationAccessibleMembers(orgSlug),
+    getOrganizationExpenseCategories(orgSlug),
+    getOrganizationExpenses(orgSlug),
   ]);
 
   const members = allMembers.filter((member) => member.is_active);

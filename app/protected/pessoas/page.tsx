@@ -29,11 +29,15 @@ async function getAccessProfilesByMember(ownerId: string, organizationId: string
   );
 }
 
-export default async function PessoasPage() {
+type PessoasPageProps = {
+  orgSlug?: string;
+};
+
+export async function PessoasPage({ orgSlug }: PessoasPageProps = {}) {
   const profile = await getCurrentProfile();
-  const { organization } = await requireOrganizationAccess();
+  const { organization } = await requireOrganizationAccess(orgSlug);
   const [members, accessByMember] = await Promise.all([
-    getOrganizationFamilyMembers(),
+    getOrganizationFamilyMembers(orgSlug),
     getAccessProfilesByMember(profile.owner_id, organization.id),
   ]);
   const activeMembers = members.filter((member) => member.is_active);
@@ -63,4 +67,8 @@ export default async function PessoasPage() {
       <PeopleList members={members} profiles={accessByMember} />
     </div>
   );
+}
+
+export default async function ProtectedPessoasPage() {
+  return <PessoasPage />;
 }

@@ -10,9 +10,9 @@ Aceito
 
 ## Contexto
 
-O app ja possui organizacao ativa, selector/troca de organizacao, RLS por membership e helpers server-side que aceitam `orgSlug` opcional.
+O app possui organizacao ativa, selector/troca de organizacao, RLS por membership e helpers server-side que aceitam `orgSlug` opcional.
 
-Mesmo assim, as rotas de runtime ainda usam `/protected`:
+A rota legada de runtime permanece em `/protected`:
 
 ```txt
 /protected
@@ -28,11 +28,11 @@ Mesmo assim, as rotas de runtime ainda usam `/protected`:
 /protected/admin/permissoes
 ```
 
-Migrar todas as telas diretamente para uma rota dinamica sem contrato previo aumentaria o risco em auth, proxy, links, redirects, Server Actions, revalidacao e E2E.
+A implementacao organization-aware foi feita sem remover essa compatibilidade para reduzir risco em auth, proxy, links, redirects, Server Actions, revalidacao e E2E.
 
 ## Decisao
 
-A rota organization-aware futura deve usar o prefixo explicito:
+A rota organization-aware usa o prefixo explicito:
 
 ```txt
 /org/[orgSlug]
@@ -63,7 +63,7 @@ O prefixo `/org` evita colisao com rotas publicas e autenticacao:
 /protected/*
 ```
 
-`/protected` permanece como rota compativel durante a transicao. Ele continua usando a organizacao ativa por cookie/fallback de membership.
+`/protected` permanece como rota compativel durante a transicao. Ele continua usando a organizacao ativa por cookie/membership.
 
 Nas rotas `/org/[orgSlug]`, o slug da URL deve ser a fonte primaria do contexto de organizacao. O cookie de organizacao ativa pode ser atualizado como efeito de navegacao/autorizacao, mas nao deve sobrepor o slug da URL.
 
@@ -98,20 +98,20 @@ Redirects de auth continuam usando `/protected` como fallback ate existir decisa
 1. Versionar este contrato.
 2. Criar helpers centralizados para montar caminhos organization-aware.
 3. Criar a primeira rota `/org/[orgSlug]` para dashboard sem remover `/protected`.
-4. Provar por E2E gated:
+4. Migrar rotas de modulo preservando a compatibilidade `/protected`.
+5. Provar por E2E gated:
    - slug valido abre dashboard;
    - slug sem acesso nao mostra dados;
    - troca de organizacao preserva contexto esperado;
    - `/protected` continua compativel.
-5. Migrar rotas de modulo em PRs pequenos.
 6. Atualizar links internos e revalidacoes por superficie.
 7. So depois avaliar redirect automatico de `/protected` para `/org/[orgSlug]`.
 
 ## Fora de escopo
 
-Este ADR nao altera runtime, schema, RLS, migrations, UI, billing, E2E ou dados.
+Este ADR nao altera schema, RLS, migrations, billing ou dados.
 
-Nao cria `app/org/[orgSlug]`.
+Cria `app/org/[orgSlug]` e wrappers de modulo que reutilizam as paginas existentes de `/protected`.
 
 Nao remove `/protected`.
 

@@ -10,12 +10,15 @@ export type OrganizationReportFilters = {
   dateTo?: string;
 };
 
-export async function getOrganizationReportsDashboardData(filters: OrganizationReportFilters = {}) {
+export async function getOrganizationReportsDashboardData(
+  filters: OrganizationReportFilters = {},
+  orgSlug?: string,
+) {
   const [expenseData, payableData, receivableData, bankData] = await Promise.all([
-    getOrganizationExpenseDashboardData(),
-    getOrganizationPayableBillsDashboardData(),
-    getOrganizationReceivableIncomesDashboardData(),
-    getOrganizationBanksDashboardData(),
+    getOrganizationExpenseDashboardData(orgSlug),
+    getOrganizationPayableBillsDashboardData(orgSlug),
+    getOrganizationReceivableIncomesDashboardData(orgSlug),
+    getOrganizationBanksDashboardData(orgSlug),
   ]);
 
   const filteredExpenses = expenseData.expenses.filter((expense) => {

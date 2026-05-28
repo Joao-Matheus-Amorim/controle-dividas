@@ -13,6 +13,7 @@ type PageSearchParams = Promise<Record<string, string | string[] | undefined>>;
 
 type RelatoriosPageProps = {
   searchParams?: PageSearchParams;
+  orgSlug?: string;
 };
 
 function getSearchValue(
@@ -23,7 +24,7 @@ function getSearchValue(
   return Array.isArray(value) ? value[0] : value;
 }
 
-export default async function RelatoriosPage({ searchParams }: RelatoriosPageProps) {
+export async function RelatoriosPage({ searchParams, orgSlug }: RelatoriosPageProps) {
   const params = await searchParams;
   const filters: ReportFilters = {
     memberId: getSearchValue(params, "pessoa") ?? "",
@@ -33,7 +34,7 @@ export default async function RelatoriosPage({ searchParams }: RelatoriosPagePro
   };
 
   const [report, periodContextLabel] = await Promise.all([
-    getOrganizationReportsDashboardData(filters),
+    getOrganizationReportsDashboardData(filters, orgSlug),
     getCurrentPeriodContextLabel(),
   ]);
   const hasActiveFilters = Object.values(filters).some(Boolean);
@@ -73,4 +74,8 @@ export default async function RelatoriosPage({ searchParams }: RelatoriosPagePro
       </section>
     </div>
   );
+}
+
+export default async function ProtectedRelatoriosPage({ searchParams }: RelatoriosPageProps) {
+  return <RelatoriosPage searchParams={searchParams} />;
 }

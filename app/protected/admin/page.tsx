@@ -5,8 +5,12 @@ import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { AdminSummaryCards } from "@/components/admin/admin-summary-cards";
 import { getAdminDashboardData } from "@/lib/finance/admin-server";
 
-export default async function AdminPage() {
-  const { adminProfile, profiles, permissions, modules } = await getAdminDashboardData();
+type AdminPageProps = {
+  orgSlug?: string;
+};
+
+export async function AdminPage({ orgSlug }: AdminPageProps = {}) {
+  const { adminProfile, profiles, permissions, modules } = await getAdminDashboardData(orgSlug);
 
   const familyUsers = profiles.filter((profile) => profile.role === "user");
   const activeUsers = profiles.filter((profile) => profile.is_active);
@@ -27,9 +31,13 @@ export default async function AdminPage() {
         configuredProfileCount={configuredProfiles.size}
       />
 
-      <AdminManagementLinks />
+      <AdminManagementLinks orgSlug={orgSlug} />
 
       <AdminModuleBadges modules={modules} />
     </div>
   );
+}
+
+export default async function ProtectedAdminPage() {
+  return <AdminPage />;
 }

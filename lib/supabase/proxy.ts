@@ -5,6 +5,8 @@ import {
   shouldFailFastForMissingRuntimeEnv,
   supabasePublicKey,
 } from "../utils";
+import { getOrgSlugFromPathname } from "@/lib/organizations/paths";
+import { ACTIVE_ORGANIZATION_COOKIE_NAME } from "@/lib/organizations/constants";
 
 const PUBLIC_FILE = /\.(.*)$/;
 const INITIAL_ORGANIZATION_ONBOARDING_PATH = "/onboarding/organizacao";
@@ -23,7 +25,11 @@ function shouldSkipAuth(pathname: string) {
 }
 
 function shouldRequireOrganization(pathname: string) {
-  return pathname === "/protected" || pathname.startsWith("/protected/");
+  return (
+    pathname === "/protected" ||
+    pathname.startsWith("/protected/") ||
+    pathname.startsWith("/org/")
+  );
 }
 
 function assertRuntimeEnvForProxy() {
@@ -144,6 +150,17 @@ export async function updateSession(request: NextRequest) {
 
       return redirectWithSupabaseCookies(url, supabaseResponse);
     }
+  }
+
+  const orgSlug = getOrgSlugFromPathname(request.nextUrl.pathname);
+  if (user?.sub && orgSlug) {
+    request.cookies.set(ACTIVE_ORGANIZATION_COOKIE_NAME, orgSlug);
+    supabaseResponse.cookies.set(ACTIVE_ORGANIZATION_COOKIE_NAME, orgSlug, {
+      path: "/",
+      maxAge: 60 * 60 * 24 * 30,
+      sameSite: "lax",
+      httpOnly: true,
+    });
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is.

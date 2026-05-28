@@ -5,8 +5,12 @@ import { AdminPermissionsPageHeader } from "@/components/admin/permissions/admin
 import { AdminPermissionsSummaryCards } from "@/components/admin/permissions/admin-permissions-summary-cards";
 import { getAdminDashboardData } from "@/lib/finance/admin-server";
 
-export default async function AdminPermissoesPage() {
-  const { profiles, permissions, featurePermissions, modules, members } = await getAdminDashboardData();
+type AdminPermissoesPageProps = {
+  orgSlug?: string;
+};
+
+export async function AdminPermissoesPage({ orgSlug }: AdminPermissoesPageProps = {}) {
+  const { profiles, permissions, featurePermissions, modules, members } = await getAdminDashboardData(orgSlug);
   const familyUsers = profiles.filter((profile) => profile.role !== "admin");
   const configuredProfiles = new Set(permissions.map((permission) => permission.profile_id));
 
@@ -32,4 +36,8 @@ export default async function AdminPermissoesPage() {
       <AdminPermissionsModulesList modules={modules} />
     </div>
   );
+}
+
+export default async function ProtectedAdminPermissoesPage() {
+  return <AdminPermissoesPage />;
 }

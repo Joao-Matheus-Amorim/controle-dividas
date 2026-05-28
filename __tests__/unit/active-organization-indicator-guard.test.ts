@@ -10,8 +10,8 @@ function readSource(path: string) {
 }
 
 describe("active organization indicator guard", () => {
-  it("keeps the protected layout wired to the active organization indicator", () => {
-    const source = readSource("app/protected/layout.tsx");
+  it("keeps the shared app shell wired to the active organization indicator", () => {
+    const source = readSource("components/app/app-shell.tsx");
 
     expect(source).toContain("@/components/app/active-organization-indicator");
     expect(source).toContain("ActiveOrganizationIndicator");
@@ -22,8 +22,8 @@ describe("active organization indicator guard", () => {
     expect(source).toContain("organization={currentOrganization}");
   });
 
-  it("keeps the protected layout using the Separator primitive for visual nav separation", () => {
-    const source = readSource("app/protected/layout.tsx");
+  it("keeps the shared app shell using the Separator primitive for visual nav separation", () => {
+    const source = readSource("components/app/app-shell.tsx");
 
     expect(source).toContain("@/components/ui/separator");
     expect(source).toContain("Separator");
@@ -32,8 +32,8 @@ describe("active organization indicator guard", () => {
     expect(source).toContain("hidden bg-white/5 md:block");
   });
 
-  it("keeps the layout hierarchy SaaS-ready", () => {
-    const source = readSource("app/protected/layout.tsx");
+  it("keeps the shared app shell hierarchy SaaS-ready", () => {
+    const source = readSource("components/app/app-shell.tsx");
 
     expect(source).toContain("FF");
     expect(source).toContain("FamilyFinance");
@@ -56,6 +56,7 @@ describe("active organization indicator guard", () => {
     expect(source).toContain("action={setActiveOrganization}");
     expect(source).toContain("<form");
     expect(source).toContain("organization_id");
+    expect(source).toContain("current_path");
     expect(source).not.toContain("useRouter");
   });
 

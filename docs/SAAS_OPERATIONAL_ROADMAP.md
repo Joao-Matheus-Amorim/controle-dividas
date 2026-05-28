@@ -121,9 +121,9 @@ Resultado atual:
 - reload para confirmar persistencia;
 - cleanup por slug prefixado.
 
-### GAP-002 - Rotas por `orgSlug`
+### FECHADO-003 - Rotas por `orgSlug`
 
-As rotas atuais ainda usam `/protected`. Helpers ja aceitam `orgSlug` opcional, mas nao ha estrutura de rota organization-aware no App Router.
+As rotas organization-aware foram implementadas no App Router sem remover a compatibilidade `/protected`.
 
 O contrato de roteamento foi definido no ADR 0007:
 
@@ -133,13 +133,13 @@ O contrato de roteamento foi definido no ADR 0007:
 
 `/protected` permanece como compatibilidade transicional ate a migracao ser concluida.
 
-Resultado esperado:
+Resultado atual:
 
 - helpers centralizados de path para `/org/[orgSlug]`;
-- primeira rota `/org/[orgSlug]` para dashboard sem remover `/protected`;
+- wrappers `app/org/[orgSlug]` para dashboard e modulos protegidos;
 - validacao server-side de acesso ao slug recebido na URL;
-- redirects/fallbacks definidos sem quebrar `/protected`;
-- cobertura E2E de slug valido, slug sem acesso e compatibilidade `/protected`.
+- links internos preservam o slug quando a navegacao esta em `/org/[orgSlug]`;
+- `/protected` segue compativel para auth, onboarding e bookmarks legados.
 
 ### GAP-003 - Billing
 
@@ -175,10 +175,10 @@ Resultado esperado:
    - Rodar `RUN_MULTI_ORG_SWITCH_E2E=true`.
    - Registrar evidencia depois de uma execucao real verde.
 
-3. **PR base de `orgSlug`**
+3. **E2E dedicado de `orgSlug` quando houver ambiente pronto**
    - ADR 0007 define `/org/[orgSlug]` e compatibilidade `/protected`.
-   - Proximo PR deve criar helpers centralizados de path e primeira rota dashboard.
-   - Implementar sem billing.
+   - Provar slug valido, slug sem acesso e compatibilidade `/protected`.
+   - Manter fora de billing.
 
 4. **Billing design**
    - Definir plano por organization.
