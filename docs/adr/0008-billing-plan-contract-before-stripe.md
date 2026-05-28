@@ -38,6 +38,14 @@ Esse contrato deve permanecer alinhado com a constraint de schema de `organizati
 
 `free` e o plano de compatibilidade. Valores ausentes ou desconhecidos vindos do banco sao normalizados para `free` no runtime server-side.
 
+A primeira superficie runtime permitida antes de Stripe e read-only:
+
+```txt
+components/settings/settings-billing-plan-status.tsx
+```
+
+Ela exibe o plano atual da organizacao em Configuracoes usando `lib/billing/plans.ts`, sem checkout, webhook, portal ou cobranca.
+
 ## Limites
 
 Este ADR nao implementa:
@@ -53,9 +61,10 @@ Este ADR nao implementa:
 ## Sequencia esperada
 
 1. Manter o contrato local de planos alinhado ao schema.
-2. Rodar/registrar os evidence gates externos pendentes.
-3. Definir UI e fluxo de assinatura.
-4. Implementar Stripe em PR proprio com secrets, webhook, testes e rollback separados.
+2. Exibir status read-only do plano atual da organizacao.
+3. Rodar/registrar os evidence gates externos pendentes.
+4. Definir UI e fluxo de assinatura.
+5. Implementar Stripe em PR proprio com secrets, webhook, testes e rollback separados.
 
 ## Relacao com docs vivos
 

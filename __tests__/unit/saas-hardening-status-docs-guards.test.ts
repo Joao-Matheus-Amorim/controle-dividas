@@ -90,6 +90,8 @@ describe("SaaS hardening status docs", () => {
     expect(roadmap).toContain("fixture deterministica do dashboard summary acima da dobra");
     expect(roadmap).toContain("docs/audits/dashboard_summary_visual_fixture.md");
     expect(roadmap).toContain("tests/e2e/dashboard-summary-visual-snapshot-gated.spec.ts");
+    expect(roadmap).toContain("docs/audits/billing_settings_status_contract.md");
+    expect(roadmap).toContain("plano atual da organizacao");
     expect(roadmap).toContain("gap-011 - contratos de ui financeira");
     expect(roadmap).not.toContain("gap-005 - contratos de ui financeira");
     expect(roadmap).toContain("gap-005 - remocao futura de `owner_id`");
@@ -113,7 +115,8 @@ describe("SaaS hardening status docs", () => {
     expect(gapRegister).toContain("gap-002 | routes | adr 0007");
     expect(gapRegister).toContain("gap-008 | multi-org tests");
     expect(gapRegister).toContain("gap-006 is the next product implementation risk");
-    expect(gapRegister).toContain("billing has a local plan contract");
+    expect(gapRegister).toContain("billing settings status ui is implemented");
+    expect(gapRegister).toContain("define the subscription flow contract before stripe runtime");
     expect(gapRegister).toContain("dashboard, primary finance lists, primary data-changing forms, selective visual snapshot strategy, dashboard summary deterministic fixture, and gated dashboard summary screenshot are documented");
     expect(gapRegister).toContain("validate the first gated screenshot");
     expect(gapRegister).not.toContain("protected routes still use `/protected` instead of explicit organization routes");
@@ -136,6 +139,8 @@ describe("SaaS hardening status docs", () => {
     expect(billingAdr).toContain("family_basic");
     expect(billingAdr).toContain("family_plus");
     expect(billingAdr).toContain("family_pro");
+    expect(billingAdr).toContain("settings-billing-plan-status.tsx");
+    expect(billingAdr).toContain("read-only");
     expect(billingAdr).toContain("nao implementa");
     expect(billingAdr).toContain("stripe sdk");
     expect(billingAdr).toContain("webhooks");
