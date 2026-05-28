@@ -12,8 +12,9 @@ function readSource(path: string) {
 describe("runtime env policy guards", () => {
   it("keeps production-like runtime fail-fast helper available", () => {
     const source = readSource("lib/utils.ts");
+    const normalizedSource = source.replace(/\r\n/g, "\n");
 
-    expect(source).toContain(
+    expect(normalizedSource).toContain(
       "process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||\n  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
     );
     expect(source).toContain("export function shouldFailFastForMissingRuntimeEnv()");
