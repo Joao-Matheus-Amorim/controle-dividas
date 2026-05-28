@@ -1,13 +1,12 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
-
 import {
   assertCanAccessMember,
   getCurrentProfile,
 } from "@/lib/finance/access-control";
 import type { PermissionAction } from "@/lib/finance/permissions";
 import type { BankAccountFormState } from "@/lib/finance/banks-server";
+import { revalidateOrganizationPaths } from "@/lib/organizations/revalidation";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { createClient } from "@/lib/supabase/server";
 
@@ -161,8 +160,7 @@ export async function createBankAccount(
     return { error: error.message };
   }
 
-  revalidatePath("/protected/bancos");
-  revalidatePath("/protected");
+  revalidateOrganizationPaths(["/protected/bancos", "/protected"], organization.slug);
 
   return { success: "Banco cadastrado com sucesso." };
 }
@@ -215,8 +213,7 @@ export async function updateBankAccount(
       return { error: error.message };
     }
 
-    revalidatePath("/protected/bancos");
-    revalidatePath("/protected");
+    revalidateOrganizationPaths(["/protected/bancos", "/protected"], organization.slug);
 
     return { success: "Banco atualizado com sucesso." };
   } catch (error) {
@@ -261,8 +258,7 @@ export async function updateBankAccountBalance(
       return { error: error.message };
     }
 
-    revalidatePath("/protected/bancos");
-    revalidatePath("/protected");
+    revalidateOrganizationPaths(["/protected/bancos", "/protected"], organization.slug);
 
     return { success: "Saldo atualizado com sucesso." };
   } catch (error) {
@@ -310,8 +306,7 @@ export async function deleteBankAccount(
       return { error: error.message };
     }
 
-    revalidatePath("/protected/bancos");
-    revalidatePath("/protected");
+    revalidateOrganizationPaths(["/protected/bancos", "/protected"], organization.slug);
 
     return { success: "Banco excluido com sucesso." };
   } catch (error) {

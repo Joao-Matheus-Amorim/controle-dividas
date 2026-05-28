@@ -1,13 +1,12 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
-
 import {
   assertCanAccessMember,
   getCurrentProfile,
 } from "@/lib/finance/access-control";
 import type { PermissionAction } from "@/lib/finance/permissions";
 import type { PayableBillFormState, PayableBillType } from "@/lib/finance/server";
+import { revalidateOrganizationPaths } from "@/lib/organizations/revalidation";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { createClient } from "@/lib/supabase/server";
 
@@ -187,8 +186,7 @@ export async function createPayableBill(
     return { error: error.message };
   }
 
-  revalidatePath("/protected/contas-a-pagar");
-  revalidatePath("/protected");
+  revalidateOrganizationPaths(["/protected/contas-a-pagar", "/protected"], organization.slug);
 
   return {
     success:
@@ -250,8 +248,7 @@ export async function updatePayableBill(
       return { error: error.message };
     }
 
-    revalidatePath("/protected/contas-a-pagar");
-    revalidatePath("/protected");
+    revalidateOrganizationPaths(["/protected/contas-a-pagar", "/protected"], organization.slug);
 
     return { success: "Conta atualizada com sucesso." };
   } catch (error) {
@@ -297,8 +294,7 @@ export async function updatePayableBillStatus(
       return { error: error.message };
     }
 
-    revalidatePath("/protected/contas-a-pagar");
-    revalidatePath("/protected");
+    revalidateOrganizationPaths(["/protected/contas-a-pagar", "/protected"], organization.slug);
 
     return { success: "Status atualizado com sucesso." };
   } catch (error) {
@@ -341,8 +337,7 @@ export async function deletePayableBill(
       return { error: error.message };
     }
 
-    revalidatePath("/protected/contas-a-pagar");
-    revalidatePath("/protected");
+    revalidateOrganizationPaths(["/protected/contas-a-pagar", "/protected"], organization.slug);
 
     return { success: "Conta excluida com sucesso." };
   } catch (error) {

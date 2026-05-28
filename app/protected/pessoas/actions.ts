@@ -1,9 +1,8 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
-
 import { getCurrentProfile } from "@/lib/finance/access-control";
 import type { FamilyMemberFormState } from "@/lib/finance/server";
+import { revalidateOrganizationPaths } from "@/lib/organizations/revalidation";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { createClient } from "@/lib/supabase/server";
 
@@ -46,8 +45,7 @@ export async function createFamilyMember(
     return { error: error.message };
   }
 
-  revalidatePath("/protected/pessoas");
-  revalidatePath("/protected");
+  revalidateOrganizationPaths(["/protected/pessoas", "/protected"], organization.slug);
 
   return { success: "Pessoa cadastrada com sucesso." };
 }
@@ -92,9 +90,10 @@ export async function updateFamilyMember(
     return { error: error.message };
   }
 
-  revalidatePath("/protected/pessoas");
-  revalidatePath("/protected/admin/usuarios");
-  revalidatePath("/protected");
+  revalidateOrganizationPaths(
+    ["/protected/pessoas", "/protected/admin/usuarios", "/protected"],
+    organization.slug,
+  );
 
   return { success: "Pessoa atualizada com sucesso." };
 }
@@ -138,8 +137,7 @@ export async function toggleFamilyMemberStatus(
     return { error: error.message };
   }
 
-  revalidatePath("/protected/pessoas");
-  revalidatePath("/protected");
+  revalidateOrganizationPaths(["/protected/pessoas", "/protected"], organization.slug);
 
   return { success: isActive ? "Pessoa desativada com sucesso." : "Pessoa ativada com sucesso." };
 }

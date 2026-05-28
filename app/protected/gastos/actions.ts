@@ -1,13 +1,12 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
-
 import {
   assertCanAccessMember,
   getCurrentProfile,
 } from "@/lib/finance/access-control";
 import type { PermissionAction } from "@/lib/finance/permissions";
 import type { ExpenseFormState } from "@/lib/finance/server";
+import { revalidateOrganizationPaths } from "@/lib/organizations/revalidation";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { createClient } from "@/lib/supabase/server";
 
@@ -211,8 +210,7 @@ export async function createExpense(
     return { error: error.message };
   }
 
-  revalidatePath("/protected/gastos");
-  revalidatePath("/protected");
+  revalidateOrganizationPaths(["/protected/gastos", "/protected"], organization.slug);
 
   return { success: "Gasto cadastrado com sucesso." };
 }
@@ -277,8 +275,7 @@ export async function updateExpense(
       return { error: error.message };
     }
 
-    revalidatePath("/protected/gastos");
-    revalidatePath("/protected");
+    revalidateOrganizationPaths(["/protected/gastos", "/protected"], organization.slug);
 
     return { success: "Gasto atualizado com sucesso." };
   } catch (error) {
@@ -323,8 +320,7 @@ export async function deleteExpense(
       return { error: error.message };
     }
 
-    revalidatePath("/protected/gastos");
-    revalidatePath("/protected");
+    revalidateOrganizationPaths(["/protected/gastos", "/protected"], organization.slug);
 
     return { success: "Gasto excluido com sucesso." };
   } catch (error) {

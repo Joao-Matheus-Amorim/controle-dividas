@@ -85,7 +85,7 @@ Exemplo: usuario cria um gasto.
 8. se permitido: insert em expenses com organization_id da organizacao ativa.
 9. Supabase valida RLS/policies quando usando server client comum.
 10. dados sao persistidos.
-11. revalidatePath atualiza paginas afetadas.
+11. `revalidateOrganizationPaths` atualiza paginas afetadas em `/protected` e no caminho equivalente `/org/[orgSlug]`.
 12. usuario recebe feedback na UI.
 ```
 
@@ -157,7 +157,7 @@ As rotas organization-aware existem com o contrato aceito no ADR 0007:
 
 Server Components carregam dados no servidor, chamam helpers de permissao e montam a visao conforme profile/organizacao ativa.
 
-Server Actions validam input, profile, permissao, organizacao ativa, executam mutacoes e revalidam paginas afetadas.
+Server Actions validam input, profile, permissao, organizacao ativa, executam mutacoes e revalidam paginas afetadas por `revalidateOrganizationPaths`.
 
 ## Organizacao ativa
 
@@ -170,6 +170,7 @@ app/org/[orgSlug]/layout.tsx
 components/app/app-shell.tsx
 app/protected/organization-switcher-actions.ts
 components/app/active-organization-indicator.tsx
+lib/organizations/revalidation.ts
 ```
 
 Contrato atual:
