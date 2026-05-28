@@ -67,6 +67,9 @@ describe("SaaS hardening status docs", () => {
     expect(roadmap).toContain("gap-001 - limpeza de policies antigas versionada");
     expect(roadmap).toContain("039_drop_legacy_owner_family_policies.sql");
     expect(roadmap).toContain("rls live gate");
+    expect(roadmap).toContain("github step summary");
+    expect(roadmap).toContain("rls-live-gate-evidence-*");
+    expect(roadmap).toContain("execucao real verde");
     expect(roadmap).toContain("e2e multi-org switch");
     expect(roadmap).toContain("rotas por `orgslug`");
     expect(roadmap).toContain("billing");

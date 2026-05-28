@@ -68,6 +68,26 @@ with the RLS environment variables set.
 
 The existing gated RLS suites are expected to stay skipped unless `RUN_RLS_TESTS=true` and the required Supabase variables are configured.
 
+## Evidence output
+
+Every workflow execution writes an evidence summary to GitHub Step Summary and uploads an artifact named:
+
+```txt
+rls-live-gate-evidence-<run_id>-<run_attempt>
+```
+
+The artifact contains:
+
+```txt
+rls-live-gate-evidence/summary.md
+```
+
+The summary records workflow metadata, ref, SHA, actor, run id, run attempt, `APP_ENV`, `RUN_RLS_TESTS`, and the test command.
+
+Secret values are intentionally not printed. The summary only records the environment contract by variable/secret name.
+
+Only record this gate as CI evidence in `docs/SAAS_RLS_LIVE_STATUS.md` after a real GitHub Actions run has completed successfully.
+
 ## Safety boundaries
 
 This gate does not change:
@@ -92,6 +112,14 @@ Run this workflow manually when validating RLS behavior before or after sensitiv
 - organization scope hardening;
 - permission model changes;
 - changes to RLS test fixtures or helpers.
+
+Operational sequence:
+
+1. Configure the dedicated repository variable and secrets.
+2. Run `RLS Live Gate` with `workflow_dispatch`.
+3. Confirm the run result in GitHub Actions.
+4. Download or inspect the `rls-live-gate-evidence-<run_id>-<run_attempt>` artifact.
+5. Update `docs/SAAS_RLS_LIVE_STATUS.md` with the run metadata only after the run is green.
 
 ## Stop criteria
 

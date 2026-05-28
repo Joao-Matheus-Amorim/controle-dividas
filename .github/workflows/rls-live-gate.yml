@@ -75,3 +75,48 @@ jobs:
 
       - name: Run RLS gated tests
         run: npm run test
+
+      - name: Write RLS live gate evidence summary
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p rls-live-gate-evidence
+
+          {
+            echo "# RLS Live Gate Evidence"
+            echo
+            echo "| Field | Value |"
+            echo "| --- | --- |"
+            echo "| Workflow | ${GITHUB_WORKFLOW} |"
+            echo "| Run ID | ${GITHUB_RUN_ID} |"
+            echo "| Run attempt | ${GITHUB_RUN_ATTEMPT} |"
+            echo "| Ref | ${GITHUB_REF} |"
+            echo "| SHA | ${GITHUB_SHA} |"
+            echo "| Actor | ${GITHUB_ACTOR} |"
+            echo "| Event | ${GITHUB_EVENT_NAME} |"
+            echo "| APP_ENV | ${APP_ENV} |"
+            echo "| RUN_RLS_TESTS | ${RUN_RLS_TESTS} |"
+            echo "| Test command | npm run test |"
+            echo
+            echo "## Environment contract"
+            echo
+            echo "- RLS_TEST_SUPABASE_URL: configured as repository variable"
+            echo "- RLS_TEST_SUPABASE_ANON_KEY: configured as secret"
+            echo "- RLS_TEST_SUPABASE_SERVICE_ROLE_KEY: configured as secret"
+            echo "- RLS_TEST_USER_A_EMAIL: configured as secret"
+            echo "- RLS_TEST_USER_A_PASSWORD: configured as secret"
+            echo "- RLS_TEST_USER_B_EMAIL: configured as secret"
+            echo "- RLS_TEST_USER_B_PASSWORD: configured as secret"
+            echo
+            echo "Secret values are intentionally not printed."
+          } > rls-live-gate-evidence/summary.md
+
+          cat rls-live-gate-evidence/summary.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload RLS live gate evidence artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rls-live-gate-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: rls-live-gate-evidence/
+          retention-days: 30

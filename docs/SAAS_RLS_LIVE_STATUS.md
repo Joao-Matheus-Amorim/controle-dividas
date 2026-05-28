@@ -248,7 +248,7 @@ Observacoes do gate:
 
 Ainda nao foi feito:
 
-- RLS Live Gate separado em CI com ambiente Supabase dedicado e evidencia de execucao;
+- execucao verde do RLS Live Gate no GitHub Actions com ambiente Supabase dedicado e artifact `rls-live-gate-evidence-*`;
 - rotas por `orgSlug`;
 - billing/Stripe;
 - remocao de `owner_id`;
@@ -260,6 +260,8 @@ Ordem segura:
 
 1. manter CI comum verde com lint, typecheck, build e testes;
 2. executar RLS Live Gate em CI dedicado depois de configurar secrets/vars;
+   - o workflow ja publica GitHub Step Summary e artifact `rls-live-gate-evidence-*`;
+   - registrar evidencia neste status somente depois de uma execucao real verde;
 3. criar E2E especifico para troca de organizacao ativa, se houver usuario multi-org dedicado;
 4. planejar rotas por `orgSlug`;
 5. billing apenas depois de isolamento/UX estarem maduros;
