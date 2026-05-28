@@ -17,13 +17,13 @@ describe("sensitive-action audit event schema plan guards", () => {
   const liveStatus = read("docs/SAAS_RLS_LIVE_STATUS.md");
   const gapRegister = read("docs/SAAS_GAP_REGISTER.md");
 
-  it("keeps audit event planning explicit without claiming runtime logging", () => {
+  it("keeps audit event schema progress explicit without claiming runtime logging", () => {
     expect(plan).toContain("gap-015");
-    expect(plan).toContain("planning only");
-    expect(plan).toContain("no audit_events table");
-    expect(plan).toContain("no migration");
+    expect(plan).toContain("schema migration exists in supabase/migrations/040_audit_events_schema.sql");
     expect(plan).toContain("no runtime logging");
-    expect(plan).toContain("no rls policy");
+    expect(plan).toContain("read-side rls exists for organization owner/admin");
+    expect(plan).toContain("no insert/update/delete policy for authenticated users");
+    expect(plan).toContain("audit event storage is versioned");
     expect(plan).toContain("audit logging is not implemented yet");
   });
 
@@ -62,12 +62,13 @@ describe("sensitive-action audit event schema plan guards", () => {
   it("keeps live docs aligned with the audit event schema plan", () => {
     for (const source of [contract, roadmap, liveStatus, gapRegister]) {
       expect(source).toContain("docs/audits/sensitive_action_audit_event_schema_plan.md");
+      expect(source).toContain("040_audit_events_schema.sql");
     }
 
     expect(contract).toContain("when changing audit event behavior");
-    expect(roadmap).toContain("plano de schema/redaction para audit events");
-    expect(liveStatus).toContain("plano de schema/redaction para audit events");
-    expect(gapRegister).toContain("audit event schema/redaction planning");
-    expect(gapRegister).toContain("runtime controls are not implemented");
+    expect(roadmap).toContain("schema/read-side rls de audit events");
+    expect(liveStatus).toContain("schema/read-side rls de audit events");
+    expect(gapRegister).toContain("audit event schema/read-side rls");
+    expect(gapRegister).toContain("sensitive-action audit logging runtime");
   });
 });

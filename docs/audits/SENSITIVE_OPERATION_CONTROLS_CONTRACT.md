@@ -21,16 +21,16 @@ Related planning documents:
 ## Current status
 
 ```txt
-Planning only.
-No runtime change.
-No schema change.
-No RLS change.
+Audit event schema/read-side RLS exists in supabase/migrations/040_audit_events_schema.sql.
+No runtime logging.
+No rate limit runtime.
+No data retention runtime.
 No UI change.
 No billing change.
 No E2E change.
 ```
 
-These controls are not implemented yet. This document exists to prevent later PRs from claiming GAP-015 coverage without a specific implementation surface, validation plan, and rollback plan.
+Runtime controls are not implemented yet. This document exists to prevent later PRs from claiming GAP-015 runtime coverage without a specific implementation surface, validation plan, and rollback plan.
 
 ## Sensitive operation inventory
 
@@ -104,7 +104,7 @@ Destructive retention work must not be bundled with unrelated runtime, RLS, bill
 GAP-015 should move in this order:
 
 1. Create planning issues for rate limits, audit events, and retention policy.
-2. Define the audit event schema and redaction model using `docs/audits/SENSITIVE_ACTION_AUDIT_EVENT_SCHEMA_PLAN.md`.
+2. Define the audit event schema and redaction model using `docs/audits/SENSITIVE_ACTION_AUDIT_EVENT_SCHEMA_PLAN.md` and `supabase/migrations/040_audit_events_schema.sql`.
 3. Implement rate limits for one server boundary at a time using `docs/audits/SENSITIVE_OPERATION_RATE_LIMIT_PLAN.md`.
 4. Add audit logging for one sensitive operation family at a time.
 5. Define retention policy before any destructive cleanup automation using `docs/audits/SENSITIVE_DATA_RETENTION_PLAN.md`.
@@ -114,9 +114,8 @@ GAP-015 should move in this order:
 This contract does not implement:
 
 - rate limiting runtime;
-- audit event table or migrations;
+- audit event runtime logging;
 - retention jobs;
-- new RLS policies;
 - billing webhook or portal behavior;
 - commercial enforcement;
 - new UI flows;

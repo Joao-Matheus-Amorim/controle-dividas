@@ -16,16 +16,16 @@ describe("sensitive operation controls contract guards", () => {
   const liveStatus = read("docs/SAAS_RLS_LIVE_STATUS.md");
   const gapRegister = read("docs/SAAS_GAP_REGISTER.md");
 
-  it("documents GAP-015 as planning-only before runtime controls", () => {
+  it("documents GAP-015 schema progress without claiming runtime controls", () => {
     expect(contract).toContain("gap-015");
-    expect(contract).toContain("planning only");
-    expect(contract).toContain("no runtime change");
-    expect(contract).toContain("no schema change");
-    expect(contract).toContain("no rls change");
+    expect(contract).toContain("audit event schema/read-side rls exists in supabase/migrations/040_audit_events_schema.sql");
+    expect(contract).toContain("no runtime logging");
+    expect(contract).toContain("no rate limit runtime");
+    expect(contract).toContain("no data retention runtime");
     expect(contract).toContain("no ui change");
     expect(contract).toContain("no billing change");
     expect(contract).toContain("no e2e change");
-    expect(contract).toContain("these controls are not implemented yet");
+    expect(contract).toContain("runtime controls are not implemented yet");
   });
 
   it("keeps the three GAP-015 control families explicit", () => {
@@ -60,7 +60,7 @@ describe("sensitive operation controls contract guards", () => {
     }
 
     expect(gapRegister).toContain("runtime controls are not implemented");
-    expect(roadmap).toContain("planning only, sem runtime, schema, rls, ui, billing ou e2e");
+    expect(roadmap).toContain("schema/read-side rls apenas para audit events");
     expect(liveStatus).toContain("runtime controls ainda nao foram implementados");
   });
 });
