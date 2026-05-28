@@ -85,6 +85,8 @@ describe("SaaS hardening status docs", () => {
     expect(roadmap).toContain("docs/audits/finance_list_ui_contract.md");
     expect(roadmap).toContain("gap-011 - contratos de ui financeira");
     expect(roadmap).not.toContain("gap-005 - contratos de ui financeira");
+    expect(roadmap).toContain("gap-005 - remocao futura de `owner_id`");
+    expect(roadmap).not.toContain("gap-004 - remocao futura de `owner_id`");
     expect(roadmap).toContain("billing");
     expect(roadmap).toContain("owner_id retirement plan");
   });

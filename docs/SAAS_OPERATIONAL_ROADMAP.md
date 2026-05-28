@@ -184,7 +184,7 @@ Resultado esperado:
 - expandir a cobertura para formularios data-changing;
 - manter cada expansao como PR pequeno antes de qualquer redesign visual amplo.
 
-### GAP-004 - Remocao futura de `owner_id`
+### GAP-005 - Remocao futura de `owner_id`
 
 `owner_id` ainda e parte do contrato atual. Remover agora seria prematuro.
 
