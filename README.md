@@ -30,6 +30,7 @@ ADRs:
 - `docs/adr/0002-active-organization-ux-before-orgslug-routes.md`
 - `docs/adr/0003-design-system-and-shadcn-adoption.md`
 - `docs/adr/0006-current-saas-transition-architecture.md`
+- `docs/adr/0007-orgslug-routing-contract.md`
 
 Status/roadmap vivos:
 
@@ -72,7 +73,7 @@ Ainda transicional:
 - `owner_id` ainda existe por compatibilidade e para write ownership;
 - a migration `039_drop_legacy_owner_family_policies.sql` versiona a limpeza idempotente das policies antigas `*_own`/`*_family` que foram removidas no Supabase vivo durante a validacao;
 - rotas ainda usam `/protected`;
-- rotas por `orgSlug` ainda nao foram implementadas;
+- rotas por `orgSlug` ainda nao foram implementadas; o contrato futuro aceito e `/org/[orgSlug]`;
 - billing ainda nao foi implementado;
 - cobertura E2E ainda nao e completa para todos os modulos e perfis.
 

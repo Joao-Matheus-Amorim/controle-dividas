@@ -76,3 +76,4 @@ Um ADR aceito não deve ser editado para mudar a decisão histórica. Se a decis
 | [0004](./0004-initial-organization-onboarding-boundary.md) | Aceito | A primeira organização e owner membership devem ser criados por onboarding explícito, não por efeito colateral do bootstrap de perfil. |
 | [0005](./0005-onboarding-route-layout-strategy.md) | Aceito | O onboarding inicial deve usar rota fora do layout protegido atual para não exigir organização ativa antes da criação. |
 | [0006](./0006-current-saas-transition-architecture.md) | Aceito | O estado SaaS transicional atual deve ter registro arquitetural próprio. |
+| [0007](./0007-orgslug-routing-contract.md) | Aceito | As rotas organization-aware futuras devem usar `/org/[orgSlug]` com `/protected` mantido como compatibilidade transicional. |
