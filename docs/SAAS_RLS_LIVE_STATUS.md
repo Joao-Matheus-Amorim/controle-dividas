@@ -31,6 +31,7 @@ Isso significa:
 - Server Actions revalidam caminhos por helper central que cobre `/protected` e `/org/[orgSlug]`;
 - E2E gated `tests/e2e/orgslug-authenticated-gated.spec.ts` versiona slug permitido, slug sem membership e compatibilidade `/protected`;
 - contrato local de planos existe em `lib/billing/plans.ts`, alinhado ao schema, com status read-only em Configuracoes e sem Stripe runtime;
+- fronteira de configuracao Stripe existe em `lib/billing/stripe-config.ts` com `ENABLE_STRIPE_CHECKOUT` e fail-fast de env vars em runtime de producao;
 - billing/Stripe ainda nao foi implementado.
 
 ## 3. Migrations SaaS/RLS/hardening atuais

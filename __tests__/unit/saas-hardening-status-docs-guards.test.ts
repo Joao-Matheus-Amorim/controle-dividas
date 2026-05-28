@@ -92,6 +92,7 @@ describe("SaaS hardening status docs", () => {
     expect(roadmap).toContain("tests/e2e/dashboard-summary-visual-snapshot-gated.spec.ts");
     expect(roadmap).toContain("docs/audits/billing_settings_status_contract.md");
     expect(roadmap).toContain("docs/audits/billing_subscription_flow_contract.md");
+    expect(roadmap).toContain("docs/audits/billing_stripe_configuration_boundary.md");
     expect(roadmap).toContain("plano atual da organizacao");
     expect(roadmap).toContain("fronteira de configuracao stripe");
     expect(roadmap).toContain("gap-011 - contratos de ui financeira");
@@ -119,7 +120,10 @@ describe("SaaS hardening status docs", () => {
     expect(gapRegister).toContain("gap-006 is the next product implementation risk");
     expect(gapRegister).toContain("billing settings status ui is implemented");
     expect(gapRegister).toContain("subscription flow contract is documented");
-    expect(gapRegister).toContain("implement the stripe configuration boundary before checkout runtime");
+    expect(gapRegister).toContain("stripe configuration boundary is implemented");
+    expect(gapRegister).toContain(
+      "implement checkout runtime in a dedicated pr, keeping webhook and portal separated",
+    );
     expect(gapRegister).toContain("dashboard, primary finance lists, primary data-changing forms, selective visual snapshot strategy, dashboard summary deterministic fixture, and gated dashboard summary screenshot are documented");
     expect(gapRegister).toContain("validate the first gated screenshot");
     expect(gapRegister).not.toContain("protected routes still use `/protected` instead of explicit organization routes");
@@ -144,6 +148,7 @@ describe("SaaS hardening status docs", () => {
     expect(billingAdr).toContain("family_pro");
     expect(billingAdr).toContain("settings-billing-plan-status.tsx");
     expect(billingAdr).toContain("billing_subscription_flow_contract.md");
+    expect(billingAdr).toContain("billing_stripe_configuration_boundary.md");
     expect(billingAdr).toContain("read-only");
     expect(billingAdr).toContain("nao implementa");
     expect(billingAdr).toContain("stripe sdk");
