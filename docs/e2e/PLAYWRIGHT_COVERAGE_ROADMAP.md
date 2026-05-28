@@ -75,6 +75,7 @@ No data-mutating E2E flow before a documented cleanup strategy exists.
 | Initial onboarding happy path | Gated covered |
 | Active organization user path | Gated covered |
 | Active organization switch | Gated cleanup-backed covered |
+| OrgSlug route contract | Gated cleanup-backed covered |
 | Onboarding guard path | Gated covered |
 | Protected app shell | Gated covered |
 | Protected people route | Gated covered |
@@ -118,6 +119,8 @@ No data-mutating E2E flow before a documented cleanup strategy exists.
 | `/protected/admin` | Gated covered | Read-only smoke. |
 | `/protected/admin/usuarios` | Gated covered | Read-only smoke. |
 | `/protected/admin/permissoes` | Gated covered | Read-only smoke. |
+| `/org/[orgSlug]` | Gated cleanup-backed covered | Creates allowed and denied temporary organizations, proves allowed dashboard, denied slug handling, and `/protected` compatibility. |
+| `/org/[orgSlug]/gastos` | Gated cleanup-backed covered | Reached through real dashboard navigation while preserving the slug. |
 
 ## Public/auth matrix
 
@@ -172,6 +175,7 @@ All protected non-admin module routes have active-organization smoke coverage.
 Onboarding happy path and guard paths are gated and documented.
 Protected shell and active organization access are gated and documented.
 Active organization switching is covered by a cleanup-backed gated contract.
+OrgSlug routing is covered by a cleanup-backed gated contract for allowed slug, inaccessible slug, and `/protected` compatibility.
 Admin and limited-user coverage are blocked only by explicit fixture contracts.
 No data-changing E2E test exists without cleanup strategy.
 The data-changing E2E coverage block has cleanup-backed coverage for create, update, and remaining record lifecycle flows.
