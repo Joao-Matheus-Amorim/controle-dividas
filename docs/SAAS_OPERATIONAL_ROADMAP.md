@@ -74,6 +74,7 @@ A limpeza final de policies antigas owner/family foi versionada em:
 - Onboarding autenticado gated cria organizacao inicial e entra no app protegido.
 - Rotas protegidas autenticadas principais existem como contratos gated.
 - Data-changing E2E existe como gated skipped-by-default.
+- Troca de organizacao ativa tem contrato Playwright gated cleanup-backed em `tests/e2e/multi-org-switch-authenticated-gated.spec.ts`.
 - RLS Live Gate existe em `.github/workflows/rls-live-gate.yml` e ja gera GitHub Step Summary + artifact `rls-live-gate-evidence-*`, mas ainda precisa de vars/secrets e execucao dedicada para virar evidencia verde de CI.
 
 ## 3. Gap real antes de declarar 100% coerente
@@ -108,13 +109,16 @@ Resultado esperado:
 
 ### GAP-003 - Contrato E2E de troca de organizacao ativa
 
-A troca de organizacao ativa existe no app, mas ainda precisa de prova E2E dedicada com usuario multi-org real/dedicado.
+A troca de organizacao ativa existe no app e agora possui contrato E2E gated cleanup-backed versionado.
 
-Resultado esperado:
+Resultado atual:
 
-- fixture de usuario com duas organizations ativas;
-- teste gated que alterna organizacao e confirma dados/contexto da tela protegida;
-- cleanup documentado se o teste criar dados.
+- `RUN_MULTI_ORG_SWITCH_E2E=true`;
+- usuario dedicado em `E2E_MULTI_ORG_EMAIL`/`E2E_MULTI_ORG_PASSWORD`;
+- criacao de duas organizations temporarias com prefixo `e2e-multi-org-switch-`;
+- troca pelo selector real;
+- reload para confirmar persistencia;
+- cleanup por slug prefixado.
 
 ### GAP-004 - Rotas por `orgSlug`
 
@@ -156,9 +160,10 @@ Resultado esperado:
    - Validar GitHub Step Summary e artifact `rls-live-gate-evidence-*`.
    - Documentar resultado somente depois de uma execucao real verde.
 
-2. **E2E multi-org switch**
-   - Criar usuario/fixture dedicada.
-   - Testar troca de organizacao ativa.
+2. **Executar E2E multi-org switch em ambiente dedicado**
+   - Configurar usuario dedicado.
+   - Rodar `RUN_MULTI_ORG_SWITCH_E2E=true`.
+   - Registrar evidencia depois de uma execucao real verde.
 
 3. **Plano e PR base de `orgSlug`**
    - Planejar rota, autorizacao, redirects e compatibilidade.

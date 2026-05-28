@@ -12,6 +12,13 @@ const requiredActiveOrganizationVariables = [
   "E2E_ACTIVE_ORG_PASSWORD",
 ] as const;
 
+const requiredMultiOrgSwitchVariables = [
+  "E2E_MULTI_ORG_EMAIL",
+  "E2E_MULTI_ORG_PASSWORD",
+  "NEXT_PUBLIC_SUPABASE_URL",
+  "SUPABASE_SERVICE_ROLE_KEY",
+] as const;
+
 const requiredAdminVariables = [
   "E2E_ADMIN_EMAIL",
   "E2E_ADMIN_PASSWORD",
@@ -70,6 +77,27 @@ export function getActiveOrganizationE2eConfig(env: Env = process.env) {
 
 export function shouldRunActiveOrganizationE2e(env: Env = process.env) {
   const config = getActiveOrganizationE2eConfig(env);
+  return config.enabled && config.missingVariables.length === 0;
+}
+
+export function getMultiOrgSwitchE2eConfig(env: Env = process.env) {
+  const enabled = env.RUN_MULTI_ORG_SWITCH_E2E === "true";
+  const missingVariables = enabled
+    ? requiredMultiOrgSwitchVariables.filter((key) => !env[key])
+    : [];
+
+  return {
+    enabled,
+    missingVariables,
+    email: env.E2E_MULTI_ORG_EMAIL,
+    password: env.E2E_MULTI_ORG_PASSWORD,
+    supabaseUrl: env.NEXT_PUBLIC_SUPABASE_URL,
+    serviceRoleKey: env.SUPABASE_SERVICE_ROLE_KEY,
+  };
+}
+
+export function shouldRunMultiOrgSwitchE2e(env: Env = process.env) {
+  const config = getMultiOrgSwitchE2eConfig(env);
   return config.enabled && config.missingVariables.length === 0;
 }
 

@@ -100,6 +100,39 @@ monthly dashboard heading is visible
 
 This path should not create or mutate application data.
 
+## Multi-org switch path
+
+Variables:
+
+```txt
+RUN_MULTI_ORG_SWITCH_E2E=true
+E2E_MULTI_ORG_EMAIL
+E2E_MULTI_ORG_PASSWORD
+NEXT_PUBLIC_SUPABASE_URL
+SUPABASE_SERVICE_ROLE_KEY
+```
+
+Fixture state:
+
+```txt
+The E2E user can log in to the target Supabase project.
+The test creates two temporary organizations with the `e2e-multi-org-switch-` slug prefix.
+The test creates an admin profile only if the user does not already have a profile.
+```
+
+The multi-org switch path verifies:
+
+```txt
+login with the dedicated multi-org E2E user
+protected dashboard is reachable
+the real organization selector lists both temporary organizations
+switching to the first temporary organization persists after reload
+switching to the second temporary organization persists after reload
+cleanup removes only prefixed temporary organizations and related memberships/profiles
+```
+
+This path must not use production users or operational organizations.
+
 ## Onboarding guard path
 
 Variables:

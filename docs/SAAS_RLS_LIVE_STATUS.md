@@ -178,6 +178,7 @@ Blocos atualmente cobertos no roadmap:
 - public/auth smoke;
 - protected unauthenticated redirects;
 - onboarding e active organization gated;
+- active organization switch gated cleanup-backed;
 - protected app shell e rotas protegidas principais gated;
 - rotas admin gated;
 - limited-user hidden navigation e direct route denial gated;
@@ -262,7 +263,7 @@ Ordem segura:
 2. executar RLS Live Gate em CI dedicado depois de configurar secrets/vars;
    - o workflow ja publica GitHub Step Summary e artifact `rls-live-gate-evidence-*`;
    - registrar evidencia neste status somente depois de uma execucao real verde;
-3. criar E2E especifico para troca de organizacao ativa, se houver usuario multi-org dedicado;
+3. executar E2E especifico para troca de organizacao ativa com usuario multi-org dedicado;
 4. planejar rotas por `orgSlug`;
 5. billing apenas depois de isolamento/UX estarem maduros;
 6. remocao de `owner_id` apenas em gate futuro apos schema/read-path final e rollback.
