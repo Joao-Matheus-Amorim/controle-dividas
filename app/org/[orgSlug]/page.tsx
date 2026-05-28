@@ -1,10 +1,14 @@
-import { DashboardPage } from "@/app/protected/page";
+import { DashboardPage } from "@/features/protected-pages/dashboard-page";
 
-type OrgDashboardPageProps = {
-  params: Promise<{ orgSlug: string }>;
+type OrgRouteParams = {
+  orgSlug: string;
 };
 
-export default async function OrgDashboardPage({ params }: OrgDashboardPageProps) {
+type PageProps = {
+  params: Promise<OrgRouteParams>;
+};
+
+export default async function OrgProtectedPage({ params }: PageProps) {
   const { orgSlug } = await params;
 
   return <DashboardPage orgSlug={orgSlug} />;

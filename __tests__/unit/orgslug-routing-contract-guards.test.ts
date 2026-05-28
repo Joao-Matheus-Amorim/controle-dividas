@@ -48,6 +48,9 @@ describe("orgSlug routing contract", () => {
     expect(existsSync(join(process.cwd(), "app/org/[orgSlug]/page.tsx"))).toBe(true);
     expect(existsSync(join(process.cwd(), "app/org/[orgSlug]/gastos/page.tsx"))).toBe(true);
     expect(existsSync(join(process.cwd(), "app/org/[orgSlug]/admin/permissoes/page.tsx"))).toBe(true);
+    expect(existsSync(join(process.cwd(), "features/protected-pages/dashboard-page.tsx"))).toBe(true);
+    expect(read("app/org/[orgSlug]/gastos/page.tsx")).toContain("@/features/protected-pages/gastos-page");
+    expect(read("app/protected/gastos/page.tsx")).toContain("@/features/protected-pages/gastos-page");
     expect(revalidation).toContain("revalidateorganizationpaths");
     expect(revalidation).toContain("getorgpathfromprotectedpath");
     expect(revalidation).toContain("revalidatepath(orgpath)");

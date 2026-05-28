@@ -1,10 +1,14 @@
-import { BancosPage } from "@/app/protected/bancos/page";
+import { BancosPage } from "@/features/protected-pages/bancos-page";
 
-type OrgPageProps = {
-  params: Promise<{ orgSlug: string }>;
+type OrgRouteParams = {
+  orgSlug: string;
 };
 
-export default async function OrgBancosPage({ params }: OrgPageProps) {
+type PageProps = {
+  params: Promise<OrgRouteParams>;
+};
+
+export default async function OrgProtectedBancosPage({ params }: PageProps) {
   const { orgSlug } = await params;
 
   return <BancosPage orgSlug={orgSlug} />;

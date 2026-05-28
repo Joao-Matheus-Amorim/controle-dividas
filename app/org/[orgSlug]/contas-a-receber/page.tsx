@@ -1,10 +1,14 @@
-import { ContasAReceberPage } from "@/app/protected/contas-a-receber/page";
+import { ContasAReceberPage } from "@/features/protected-pages/contas-a-receber-page";
 
-type OrgPageProps = {
-  params: Promise<{ orgSlug: string }>;
+type OrgRouteParams = {
+  orgSlug: string;
 };
 
-export default async function OrgContasAReceberPage({ params }: OrgPageProps) {
+type PageProps = {
+  params: Promise<OrgRouteParams>;
+};
+
+export default async function OrgProtectedContasAReceberPage({ params }: PageProps) {
   const { orgSlug } = await params;
 
   return <ContasAReceberPage orgSlug={orgSlug} />;

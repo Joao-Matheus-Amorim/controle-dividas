@@ -111,7 +111,7 @@ Redirects de auth continuam usando `/protected` como fallback ate existir decisa
 
 Este ADR nao altera schema, RLS, migrations, billing ou dados.
 
-Cria `app/org/[orgSlug]` e wrappers de modulo que reutilizam as paginas existentes de `/protected`.
+Cria `app/org/[orgSlug]` e wrappers de modulo que reutilizam implementacoes neutras em `features/protected-pages`.
 
 Centraliza a revalidacao organization-aware em `lib/organizations/revalidation.ts`.
 

@@ -16,7 +16,7 @@ function normalize(text: string) {
 describe("user feature permissions write path audit", () => {
   const audit = normalize(read(auditPath));
   const actions = read("app/protected/admin/actions.ts");
-  const page = read("app/protected/admin/permissoes/page.tsx");
+  const page = read("features/protected-pages/admin-permissoes-page.tsx");
   const section = read("components/admin/permissions/admin-permissions-form-section.tsx");
   const form = read("components/finance/feature-permissions-form.tsx");
 

@@ -153,6 +153,8 @@ As rotas organization-aware existem com o contrato aceito no ADR 0007:
 
 `/protected` permanece como rota compativel durante a transicao.
 
+As implementacoes compartilhadas das telas protegidas ficam em `features/protected-pages`; as rotas `/protected` e `/org/[orgSlug]` atuam como wrappers de entrada.
+
 ### Server Components e Server Actions
 
 Server Components carregam dados no servidor, chamam helpers de permissao e montam a visao conforme profile/organizacao ativa.
@@ -168,6 +170,7 @@ lib/organizations/server.ts
 app/protected/layout.tsx
 app/org/[orgSlug]/layout.tsx
 components/app/app-shell.tsx
+features/protected-pages
 app/protected/organization-switcher-actions.ts
 components/app/active-organization-indicator.tsx
 lib/organizations/revalidation.ts
