@@ -12,6 +12,10 @@ It covers:
 - sensitive-action audit logging;
 - data retention policy.
 
+Related planning documents:
+
+- `docs/audits/SENSITIVE_ACTION_AUDIT_EVENT_SCHEMA_PLAN.md`
+
 ## Current status
 
 ```txt
@@ -98,7 +102,7 @@ Destructive retention work must not be bundled with unrelated runtime, RLS, bill
 GAP-015 should move in this order:
 
 1. Create planning issues for rate limits, audit events, and retention policy.
-2. Define the audit event schema and redaction model in a dedicated PR.
+2. Define the audit event schema and redaction model using `docs/audits/SENSITIVE_ACTION_AUDIT_EVENT_SCHEMA_PLAN.md`.
 3. Implement rate limits for one server boundary at a time.
 4. Add audit logging for one sensitive operation family at a time.
 5. Define retention policy before any destructive cleanup automation.
@@ -121,6 +125,7 @@ This contract does not implement:
 A future PR can claim progress on GAP-015 only when it:
 
 - references this contract;
+- references `docs/audits/SENSITIVE_ACTION_AUDIT_EVENT_SCHEMA_PLAN.md` when changing audit event behavior;
 - targets exactly one control family or one operation surface;
 - includes focused tests or guards;
 - documents validation and rollback;
