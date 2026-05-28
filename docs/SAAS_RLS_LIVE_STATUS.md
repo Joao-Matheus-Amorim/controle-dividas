@@ -195,6 +195,62 @@ Suites unitarias, integracao, guards arquiteturais e testes RLS reais skipped-by
 Suites Playwright autenticadas/data-changing permanecem gated e nao rodam por padrao sem contrato de ambiente.
 ```
 
+### Evidencia operacional de 2026-05-28
+
+No Supabase normal usado para validacao local, as policies RLS finais de remocao
+do fallback legado foram aplicadas para:
+
+- `expense_categories`;
+- `family_members`;
+- `expenses`;
+- `payable_bills`;
+- `receivable_incomes`;
+- `banks`;
+- `profiles`;
+- `user_module_permissions`;
+- `user_feature_permissions`.
+
+Tambem foram removidas as policies antigas owner-centric que ainda permitiam
+leitura/escrita por `owner_id` sem membership ativa:
+
+- policies `*_own` das tabelas financeiras;
+- policies `profiles_*_family`;
+- policies `feature_permissions_*_family`.
+
+Apos esse alinhamento do ambiente vivo, o gate focado RLS confirmou:
+
+```txt
+npm run test -- __tests__/unit/runtime-env-policy-guards.test.ts \
+  __tests__/integration/rls/family-members.rls.test.ts \
+  __tests__/integration/rls/category-owner-scope.rls.test.ts \
+  __tests__/integration/rls/profiles.rls.test.ts \
+  __tests__/integration/rls/payable-bills.rls.test.ts \
+  __tests__/integration/rls/user-feature-permissions.rls.test.ts \
+  __tests__/integration/rls/banks.rls.test.ts \
+  __tests__/integration/rls/receivable-incomes.rls.test.ts \
+  __tests__/integration/rls/expenses.rls.test.ts
+
+9 test files passed; 18 tests passed.
+```
+
+Em seguida, o gate local completo foi reportado como aprovado por Joao Matheus:
+
+```txt
+npm audit --audit-level=moderate
+npm run typecheck
+npm run lint
+npm run test
+npm run build
+npm run test:e2e
+```
+
+Observacoes do gate:
+
+- `npm audit --audit-level=moderate`: 0 vulnerabilidades;
+- `npm run lint`: 0 erros e 1 warning conhecido em `components/app/app-data-table.tsx`
+  por `useReactTable` e `react-hooks/incompatible-library`;
+- `npm run test:e2e`: 33 passed, 22 skipped no contrato local reportado.
+
 ## 9. O que ainda nao esta pronto
 
 Ainda nao foi feito:
