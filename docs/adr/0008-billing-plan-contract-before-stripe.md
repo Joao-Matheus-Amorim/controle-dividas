@@ -12,7 +12,7 @@ Aceito
 
 `organizations` ja possui os campos `plan`, `trial_ends_at` e `stripe_customer_id` desde a migration `006_organizations_memberships.sql`.
 
-O app ainda nao possui checkout, webhook, portal de billing, assinatura Stripe ou enforcement comercial por plano. Implementar Stripe diretamente agora aumentaria risco porque os evidence gates externos ainda precisam de execucao dedicada:
+No inicio desta decisao, o app ainda nao possuia checkout, webhook, portal de billing, assinatura Stripe ou enforcement comercial por plano. Implementar Stripe diretamente em um pacote amplo aumentaria risco porque os evidence gates externos ainda precisam de execucao dedicada:
 
 - RLS Live Gate;
 - E2E dedicado de `orgSlug`.
@@ -38,13 +38,13 @@ Esse contrato deve permanecer alinhado com a constraint de schema de `organizati
 
 `free` e o plano de compatibilidade. Valores ausentes ou desconhecidos vindos do banco sao normalizados para `free` no runtime server-side.
 
-A primeira superficie runtime permitida antes de Stripe e read-only:
+A primeira superficie runtime permitida antes de Stripe foi o status inicial:
 
 ```txt
 components/settings/settings-billing-plan-status.tsx
 ```
 
-Ela exibe o plano atual da organizacao em Configuracoes usando `lib/billing/plans.ts`, sem checkout, webhook, portal ou cobranca.
+Ela exibe o plano atual da organizacao em Configuracoes usando `lib/billing/plans.ts`.
 
 O fluxo de assinatura antes do runtime Stripe esta documentado em:
 
@@ -60,14 +60,14 @@ A fronteira de configuracao Stripe antes de checkout runtime esta documentada em
 docs/audits/BILLING_STRIPE_CONFIGURATION_BOUNDARY.md
 ```
 
-Essa fronteira versiona helper de configuracao server-side, flag de habilitacao e fail-fast de env vars obrigatorias em runtime de producao, sem acoplar checkout/webhook.
+Essa fronteira versiona helper de configuracao server-side, flag de habilitacao e fail-fast de env vars obrigatorias em runtime de producao.
+
+Depois dessa fronteira, checkout runtime foi implementado em PR proprio, mantendo webhooks, portal, cobranca real e enforcement comercial fora do mesmo passo.
 
 ## Limites
 
-Este ADR nao implementa:
+Este ADR e sua sequencia nao implementam:
 
-- Stripe SDK;
-- checkout;
 - billing portal;
 - webhooks;
 - tabelas `subscriptions`;

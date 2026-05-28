@@ -10,6 +10,7 @@ export interface Organization {
   plan: BillingPlanKey;
   status: string;
   trial_ends_at: string | null;
+  stripe_customer_id: string | null;
   created_at: string;
   updated_at: string;
 }

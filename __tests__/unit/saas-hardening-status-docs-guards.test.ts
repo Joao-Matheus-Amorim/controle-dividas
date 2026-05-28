@@ -117,13 +117,11 @@ describe("SaaS hardening status docs", () => {
     expect(gapRegister).toContain("explicit organization routes `/org/[orgslug]`");
     expect(gapRegister).toContain("gap-002 | routes | adr 0007");
     expect(gapRegister).toContain("gap-008 | multi-org tests");
-    expect(gapRegister).toContain("gap-006 is the next product implementation risk");
-    expect(gapRegister).toContain("billing settings status ui is implemented");
-    expect(gapRegister).toContain("subscription flow contract is documented");
-    expect(gapRegister).toContain("stripe configuration boundary is implemented");
-    expect(gapRegister).toContain(
-      "implement checkout runtime in a dedicated pr, keeping webhook and portal separated",
-    );
+    expect(gapRegister).toContain("gap-006 remains a product implementation risk");
+    expect(gapRegister).toContain("billing settings status ui");
+    expect(gapRegister).toContain("subscription flow contract");
+    expect(gapRegister).toContain("stripe configuration boundary");
+    expect(gapRegister).toContain("stripe checkout runtime is implemented");
     expect(gapRegister).toContain("dashboard, primary finance lists, primary data-changing forms, selective visual snapshot strategy, dashboard summary deterministic fixture, and gated dashboard summary screenshot are documented");
     expect(gapRegister).toContain("validate the first gated screenshot");
     expect(gapRegister).not.toContain("protected routes still use `/protected` instead of explicit organization routes");
@@ -136,7 +134,7 @@ describe("SaaS hardening status docs", () => {
     expect(e2eRoadmap).toContain("run_dashboard_summary_visual_snapshot=true");
   });
 
-  it("keeps the billing plan contract documented as pre-Stripe work", () => {
+  it("keeps the billing plan contract documented as the start of GAP-006", () => {
     const adrIndex = read("docs/adr/README.md");
     const billingAdr = read("docs/adr/0008-billing-plan-contract-before-stripe.md");
 
@@ -149,9 +147,8 @@ describe("SaaS hardening status docs", () => {
     expect(billingAdr).toContain("settings-billing-plan-status.tsx");
     expect(billingAdr).toContain("billing_subscription_flow_contract.md");
     expect(billingAdr).toContain("billing_stripe_configuration_boundary.md");
-    expect(billingAdr).toContain("read-only");
+    expect(billingAdr).toContain("checkout runtime");
     expect(billingAdr).toContain("nao implementa");
-    expect(billingAdr).toContain("stripe sdk");
     expect(billingAdr).toContain("webhooks");
   });
 });

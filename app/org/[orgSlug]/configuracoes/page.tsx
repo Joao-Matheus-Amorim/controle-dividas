@@ -6,10 +6,25 @@ type OrgRouteParams = {
 
 type PageProps = {
   params: Promise<OrgRouteParams>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
 
-export default async function OrgProtectedConfiguracoesPage({ params }: PageProps) {
+function getCheckoutStatus(searchParams?: Record<string, string | string[] | undefined>) {
+  const value = searchParams?.billing_checkout;
+
+  return typeof value === "string" ? value : undefined;
+}
+
+export default async function OrgProtectedConfiguracoesPage({
+  params,
+  searchParams,
+}: PageProps) {
   const { orgSlug } = await params;
 
-  return <ConfiguracoesPage orgSlug={orgSlug} />;
+  return (
+    <ConfiguracoesPage
+      orgSlug={orgSlug}
+      checkoutStatus={getCheckoutStatus(await searchParams)}
+    />
+  );
 }

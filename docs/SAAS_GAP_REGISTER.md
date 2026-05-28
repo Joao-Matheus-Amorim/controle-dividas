@@ -34,7 +34,7 @@ A gap is not solved until a small PR is merged with green CI and the related doc
 | ID | Area | Current gap | Next safe action |
 | --- | --- | --- | --- |
 | GAP-005 | Compatibility | `owner_id` remains part of the transitional model. | Keep compatibility until the organization-only model is proven. |
-| GAP-006 | Billing | Billing has a local plan contract, billing settings status UI is implemented, the subscription flow contract is documented, and the Stripe configuration boundary is implemented, but Stripe checkout, portal, webhook, subscriptions, and commercial enforcement are not implemented. | Implement checkout runtime in a dedicated PR, keeping webhook and portal separated. |
+| GAP-006 | Billing | Billing has a local plan contract, billing settings status UI, subscription flow contract, Stripe configuration boundary, and Stripe checkout runtime is implemented. Portal, webhook, subscriptions, and commercial enforcement are not implemented. | Implement webhook and portal in dedicated PRs after checkout evidence, keeping commercial enforcement separated. |
 | GAP-007 | Admin bootstrap | `ADMIN_EMAIL` remains a bootstrap mechanism. | Plan a final organization admin and invitation model. |
 | GAP-010 | Documentation freshness | Audits can become stale after implementation PRs. | Reconcile docs after each merged implementation PR. |
 | GAP-011 | UI contracts | Dashboard, primary finance lists, primary data-changing forms, selective visual snapshot strategy, dashboard summary deterministic fixture, and gated dashboard summary screenshot are documented. | Validate the first gated screenshot with the dashboard summary fixture before adding any broader visual coverage. |
@@ -60,7 +60,7 @@ A gap is not solved until a small PR is merged with green CI and the related doc
 
 ## Next recommended risk
 
-GAP-006 is the next product implementation risk after evidence gates: billing status UI, subscription flow contract, and Stripe configuration boundary exist, but subscription runtime is still not implemented.
+GAP-006 remains a product implementation risk after evidence gates: billing status UI, subscription flow contract, Stripe configuration boundary, and checkout runtime exist, but webhook, portal, subscription state sync, and commercial enforcement are still not implemented.
 
 GAP-011 is also a product-quality risk and should be handled as a focused test-hardening track before major UI redesigns.
 

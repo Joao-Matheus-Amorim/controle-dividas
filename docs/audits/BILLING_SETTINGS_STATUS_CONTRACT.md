@@ -1,30 +1,29 @@
-# Billing settings status contract
+# Billing settings status and checkout entry contract
 
 Atualizado em: 2026-05-28
 
 ## Objetivo
 
-Este contrato fecha o primeiro passo runtime do GAP-006 sem integrar Stripe.
+Este contrato registra o bloco de plano em Configuracoes e a primeira entrada de checkout runtime do GAP-006.
 
 A superficie escolhida e:
 
 ```txt
-Configurações > Plano da organizacao
+Configuracoes > Plano da organizacao
 ```
 
 ## Estado implementado
 
-- `components/settings/settings-billing-plan-status.tsx` renderiza o plano atual da organizacao.
-- `features/protected-pages/configuracoes-page.tsx` busca `getCurrentOrganization(orgSlug)` e passa `plan`, `status` e `trial_ends_at`.
+- `components/settings/settings-billing-plan-status.tsx` renderiza o plano atual da organizacao e os CTAs de checkout dos planos pagos.
+- `features/protected-pages/configuracoes-page.tsx` busca `getCurrentOrganization(orgSlug)` e passa `plan`, `status`, `trial_ends_at` e o estado da fronteira Stripe.
 - O bloco usa `lib/billing/plans.ts` como fonte unica do contrato local de planos.
-- O bloco e read-only e informa que billing comercial ainda nao esta ativo.
+- Os CTAs chamam server action, nao aceitam `organization_id` do client e ficam desabilitados quando `ENABLE_STRIPE_CHECKOUT` esta desligado ou incompleto.
+- O bloco informa que plano local, webhook, portal e enforcement comercial continuam fora deste passo.
 
 ## Fora de escopo
 
 Este passo nao implementa:
 
-- Stripe SDK;
-- checkout;
 - billing portal;
 - webhooks;
 - tabelas `subscriptions`;
@@ -34,7 +33,7 @@ Este passo nao implementa:
 - alteracoes RLS;
 - E2E data-changing.
 
-## Proximos passos seguros
+## Contratos relacionados
 
 O contrato de fluxo de assinatura fica em:
 
@@ -42,18 +41,10 @@ O contrato de fluxo de assinatura fica em:
 docs/audits/BILLING_SUBSCRIPTION_FLOW_CONTRACT.md
 ```
 
-E a fronteira de configuracao Stripe antes de checkout runtime fica em:
+A fronteira de configuracao Stripe fica em:
 
 ```txt
 docs/audits/BILLING_STRIPE_CONFIGURATION_BOUNDARY.md
 ```
 
-Antes de implementar checkout runtime, esses contratos devem definir:
-
-- entrada de checkout;
-- retorno de sucesso/cancelamento;
-- portal de billing;
-- webhook idempotente;
-- rollback operacional;
-- secrets esperados por ambiente;
-- comportamento de fail-fast em runtime de producao.
+O checkout runtime inicial esta implementado em PR proprio. Portal de billing, webhook idempotente e rollback operacional continuam separados.

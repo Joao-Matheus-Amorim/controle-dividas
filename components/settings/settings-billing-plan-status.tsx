@@ -1,13 +1,23 @@
 import { CreditCard, ShieldCheck } from "lucide-react";
 
 import { AppCard, AppSectionTitle } from "@/components/app/app-card";
-import { getBillingPlan, type BillingPlanKey } from "@/lib/billing/plans";
+import { Button } from "@/components/ui/button";
+import { startBillingCheckout } from "@/app/protected/configuracoes/billing-actions";
+import {
+  BILLING_PLANS,
+  getBillingPlan,
+  type BillingPlanKey,
+} from "@/lib/billing/plans";
 
 interface SettingsBillingPlanStatusProps {
   organizationName: string;
   plan: BillingPlanKey;
   status: string;
   trialEndsAt: string | null;
+  checkoutEnabled: boolean;
+  checkoutReady: boolean;
+  checkoutStatus?: string;
+  orgSlug?: string;
 }
 
 function formatTrialEndsAt(value: string | null) {
@@ -20,13 +30,45 @@ function formatTrialEndsAt(value: string | null) {
   return date.toLocaleDateString("pt-BR");
 }
 
+function getCheckoutStatusMessage(status: string | undefined) {
+  switch (status) {
+    case "success":
+      return "Checkout iniciado. O plano local permanece ate a confirmacao da assinatura.";
+    case "cancelled":
+      return "Checkout cancelado. Nenhuma alteracao local foi aplicada.";
+    case "checkout_disabled":
+      return "Checkout Stripe esta desativado por configuracao.";
+    case "stripe_not_configured":
+      return "Checkout Stripe esta habilitado, mas a configuracao server-side esta incompleta.";
+    case "missing_price":
+      return "Checkout Stripe esta sem price id configurado para o plano escolhido.";
+    case "invalid_plan":
+      return "Plano selecionado nao possui checkout.";
+    case "missing_checkout_url":
+      return "Stripe nao retornou URL de checkout.";
+    default:
+      return null;
+  }
+}
+
 export function SettingsBillingPlanStatus({
   organizationName,
   plan,
   status,
   trialEndsAt,
+  checkoutEnabled,
+  checkoutReady,
+  checkoutStatus,
+  orgSlug,
 }: SettingsBillingPlanStatusProps) {
   const billingPlan = getBillingPlan(plan);
+  const paidPlans = [
+    BILLING_PLANS.family_basic,
+    BILLING_PLANS.family_plus,
+    BILLING_PLANS.family_pro,
+  ];
+  const checkoutAvailable = checkoutEnabled && checkoutReady;
+  const checkoutStatusMessage = getCheckoutStatusMessage(checkoutStatus);
 
   return (
     <AppCard className="space-y-4">
@@ -71,9 +113,56 @@ export function SettingsBillingPlanStatus({
       <div className="flex items-start gap-3 rounded-2xl border border-[#1de9b2]/15 bg-[#1de9b2]/10 p-3 text-sm text-[#1de9b2]">
         <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
         <p>
-          Billing comercial ainda nao esta ativo. Este bloco mostra o contrato local de planos antes da integracao comercial.
+          A assinatura e concluida no ambiente de pagamento. O plano local permanece ate a confirmacao.
         </p>
       </div>
+
+      {checkoutStatusMessage ? (
+        <div className="rounded-2xl border border-white/10 bg-[#080810]/55 p-3 text-sm text-white/65">
+          {checkoutStatusMessage}
+        </div>
+      ) : null}
+
+      <div className="grid gap-3 lg:grid-cols-3">
+        {paidPlans.map((paidPlan) => {
+          const formAction = startBillingCheckout.bind(null, paidPlan.key, orgSlug);
+
+          return (
+            <form
+              action={formAction}
+              className="flex min-h-36 flex-col justify-between rounded-2xl border border-white/10 bg-[#080810]/55 p-3"
+              key={paidPlan.key}
+            >
+              <div>
+                <p className="text-sm font-bold text-white">{paidPlan.name}</p>
+                <p className="mt-1 text-sm leading-6 text-white/40">
+                  {paidPlan.description}
+                </p>
+              </div>
+              <Button
+                className="mt-4 w-full"
+                disabled={!checkoutAvailable || paidPlan.key === plan}
+                type="submit"
+              >
+                <CreditCard className="h-4 w-4" />
+                {paidPlan.key === plan ? "Plano atual" : "Iniciar checkout"}
+              </Button>
+            </form>
+          );
+        })}
+      </div>
+
+      {!checkoutEnabled ? (
+        <p className="text-sm text-white/40">
+          Checkout indisponivel neste ambiente. O app continua funcionando normalmente.
+        </p>
+      ) : null}
+
+      {checkoutEnabled && !checkoutReady ? (
+        <p className="text-sm text-white/40">
+          Checkout indisponivel por configuracao incompleta.
+        </p>
+      ) : null}
     </AppCard>
   );
 }

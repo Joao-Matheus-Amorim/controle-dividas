@@ -4,9 +4,9 @@ Atualizado em: 2026-05-28
 
 ## Objetivo
 
-Este contrato define o fluxo de assinatura do GAP-006 antes de qualquer runtime Stripe.
+Este contrato define o fluxo de assinatura do GAP-006 e registra o primeiro runtime Stripe permitido.
 
-Ele nao implementa SDK, rotas, webhooks, checkout ou portal. O objetivo e deixar a proxima PR de runtime pequena, auditavel e sem falso verde.
+Checkout runtime implementado neste passo: server action em Configuracoes cria uma Stripe Checkout Session para a organizacao resolvida no servidor. O objetivo continua sendo manter a mudanca pequena, auditavel e sem falso verde.
 
 ## Fluxo aprovado
 
@@ -15,21 +15,33 @@ Ele nao implementa SDK, rotas, webhooks, checkout ou portal. O objetivo e deixar
 Superficie inicial:
 
 ```txt
-Configurações > Plano da organizacao
+Configuracoes > Plano da organizacao
 ```
 
-Comportamento esperado quando Stripe runtime existir:
+Comportamento implementado:
 
 - usuario owner/admin escolhe um plano pago;
-- servidor cria uma checkout session para a organizacao ativa;
+- servidor cria uma checkout session para a organizacao ativa ou para o `orgSlug` da rota;
 - checkout usa `organization.id` como chave de correlacao interna;
 - checkout nao aceita `organization_id` vindo livremente do client;
 - retorno de sucesso volta para a area de Configuracoes;
 - retorno de cancelamento volta para a area de Configuracoes sem alterar plano local.
 
+Arquivos:
+
+- `components/settings/settings-billing-plan-status.tsx`;
+- `app/protected/configuracoes/billing-actions.ts`;
+- `lib/billing/stripe-checkout.ts`.
+
+Price ids por plano pago:
+
+- `STRIPE_PRICE_FAMILY_BASIC`;
+- `STRIPE_PRICE_FAMILY_PLUS`;
+- `STRIPE_PRICE_FAMILY_PRO`.
+
 ### 2. Portal de billing
 
-Comportamento esperado quando Stripe runtime existir:
+Comportamento esperado quando portal runtime existir:
 
 - usuario owner/admin abre portal somente se a organizacao possuir customer externo;
 - servidor resolve a organizacao ativa antes de criar a sessao;
@@ -38,7 +50,7 @@ Comportamento esperado quando Stripe runtime existir:
 
 ### 3. Webhook
 
-Comportamento esperado quando Stripe runtime existir:
+Comportamento esperado quando webhook runtime existir:
 
 - endpoint dedicado valida assinatura do provedor;
 - evento e processado de forma idempotente;
@@ -66,24 +78,25 @@ STRIPE_SECRET_KEY
 STRIPE_WEBHOOK_SECRET
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 NEXT_PUBLIC_APP_URL
+STRIPE_PRICE_FAMILY_BASIC
+STRIPE_PRICE_FAMILY_PLUS
+STRIPE_PRICE_FAMILY_PRO
 ```
 
 ## Rollback operacional
 
-Rollback minimo esperado antes de runtime:
+Rollback minimo esperado:
 
-- desativar CTA de checkout por feature flag ou remocao da superficie;
+- desativar CTA de checkout por `ENABLE_STRIPE_CHECKOUT=false`;
 - manter `organizations.plan` como fonte local normalizada;
 - nao apagar dados de assinatura sem exportar evidencia;
-- preservar webhook idempotente para eventos atrasados durante rollback;
+- preservar webhook idempotente para eventos atrasados durante rollback quando webhook existir;
 - registrar evento manual quando houver correcao operacional de plano.
 
-## Fora de escopo deste contrato
+## Fora de escopo deste passo
 
-Este contrato nao implementa:
+Este passo nao implementa:
 
-- Stripe SDK;
-- rota de checkout;
 - rota de portal;
 - endpoint webhook;
 - tabelas de assinatura;
@@ -105,12 +118,14 @@ Resumo do estado atual:
 
 - helper de fronteira Stripe versionado em `lib/billing/stripe-config.ts` com compatibilidade Vitest/Vite (sem `import "server-only"` direto);
 - `ENABLE_STRIPE_CHECKOUT=false` por padrao;
-- fail-fast em runtime de producao quando `ENABLE_STRIPE_CHECKOUT=true` e env vars obrigatorias estiverem ausentes.
+- fail-fast em runtime de producao quando `ENABLE_STRIPE_CHECKOUT=true` e env vars obrigatorias estiverem ausentes;
+- checkout runtime cria sessao Stripe somente quando a fronteira esta habilitada e pronta.
 
-## Proxima PR segura
+## Pendencias apos checkout runtime
 
-Depois da fronteira de configuracao:
-
-- implementar entrada de checkout em PR proprio;
+- sem webhook runtime;
+- sem portal runtime;
+- sem atualizacao automatica de `organizations.plan`;
+- sem enforcement comercial final;
 - manter webhook/portal separados em passos explicitos;
 - preservar rollback operacional definido neste contrato.
