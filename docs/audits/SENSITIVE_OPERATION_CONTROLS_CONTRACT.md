@@ -25,6 +25,7 @@ Audit event schema/read-side RLS exists in supabase/migrations/040_audit_events_
 Audit event write boundary exists in supabase/migrations/041_audit_events_write_boundary.sql via record_audit_event.
 Billing checkout audit runtime exists via record_audit_event.
 Admin permission audit runtime exists via record_audit_event.
+Admin user audit runtime exists via record_audit_event.
 No rate limit runtime.
 No data retention runtime.
 No UI change.
@@ -116,7 +117,7 @@ GAP-015 should move in this order:
 This contract does not implement:
 
 - rate limiting runtime;
-- admin user lifecycle or finance audit event runtime logging;
+- finance audit event runtime logging;
 - retention jobs;
 - billing webhook or portal behavior;
 - commercial enforcement;

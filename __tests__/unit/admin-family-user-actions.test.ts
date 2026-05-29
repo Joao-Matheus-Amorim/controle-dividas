@@ -139,6 +139,10 @@ vi.mock("@/lib/finance/admin-server", () => ({
   ensureAdminProfile: vi.fn(async () => mockState.adminProfile),
 }));
 
+vi.mock("@/lib/audit/events", () => ({
+  recordAuditEvent: vi.fn(async () => true),
+}));
+
 vi.mock("@/lib/finance/permissions", () => ({
   FINANCE_MODULES: [
     { key: "DASHBOARD" },
