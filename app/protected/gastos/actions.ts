@@ -1,5 +1,6 @@
 "use server";
 
+import { recordAuditEvent } from "@/lib/audit/events";
 import {
   assertCanAccessMember,
   getCurrentProfile,
@@ -14,6 +15,27 @@ export type ExpenseActionState = {
   error?: string;
   success?: string;
 };
+
+async function recordExpenseAuditEvent({
+  organizationId,
+  action,
+  expenseId,
+  metadata,
+}: {
+  organizationId: string;
+  action: "finance.expense.delete";
+  expenseId: string;
+  metadata?: Record<string, string | number | boolean | null>;
+}) {
+  await recordAuditEvent({
+    organizationId,
+    action,
+    targetType: "expense",
+    targetId: expenseId,
+    outcome: "success",
+    metadata,
+  });
+}
 
 async function assertMemberBelongsToOrganization(
   ownerId: string,
@@ -303,15 +325,15 @@ export async function deleteExpense(
   }
 
   try {
-    const { profile, organization } = await assertCanManageExpense(
+    const { profile, organization, expense } = await assertCanManageExpense(
       id,
       "can_delete",
     );
     const supabase = await createClient();
 
-    const { error } = await supabase
+    const { error, count } = await supabase
       .from("expenses")
-      .delete()
+      .delete({ count: "exact" })
       .eq("id", id)
       .eq("owner_id", profile.owner_id)
       .eq("organization_id", organization.id);
@@ -319,6 +341,19 @@ export async function deleteExpense(
     if (error) {
       return { error: error.message };
     }
+
+    if (count !== 1) {
+      return { error: "Gasto nao encontrado." };
+    }
+
+    await recordExpenseAuditEvent({
+      organizationId: organization.id,
+      action: "finance.expense.delete",
+      expenseId: id,
+      metadata: {
+        family_member_id: String(expense.family_member_id),
+      },
+    });
 
     revalidateOrganizationPaths(["/protected/gastos", "/protected"], organization.slug);
 
