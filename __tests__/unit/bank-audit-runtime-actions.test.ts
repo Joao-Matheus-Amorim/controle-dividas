@@ -174,8 +174,7 @@ describe("bank audit runtime actions", () => {
         p_target_id: "bank-1",
         p_outcome: "success",
         p_metadata: {
-          previous_balance: 100,
-          next_balance: 125.5,
+          balance_changed: true,
           family_member_id: "member-1",
         },
       }),
@@ -200,8 +199,7 @@ describe("bank audit runtime actions", () => {
         p_target_type: "bank",
         p_target_id: "bank-1",
         p_metadata: {
-          previous_balance: 100,
-          next_balance: 180,
+          balance_changed: true,
           family_member_id: "member-1",
         },
       }),

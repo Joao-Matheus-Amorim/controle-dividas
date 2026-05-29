@@ -245,8 +245,7 @@ export async function updateBankAccount(
         action: "finance.bank.balance.update",
         bankId: id,
         metadata: {
-          previous_balance: Number(account.current_balance),
-          next_balance: input.currentBalance,
+          balance_changed: true,
           family_member_id: input.familyMemberId,
         },
       });
@@ -306,8 +305,7 @@ export async function updateBankAccountBalance(
       action: "finance.bank.balance.update",
       bankId: id,
       metadata: {
-        previous_balance: Number(account.current_balance),
-        next_balance: currentBalance,
+        balance_changed: true,
         family_member_id: String(account.family_member_id),
       },
     });

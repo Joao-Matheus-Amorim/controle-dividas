@@ -27,9 +27,10 @@ describe("bank audit runtime guards", () => {
   });
 
   it("keeps emitted metadata redacted and small", () => {
-    expect(actions).toContain("previous_balance");
-    expect(actions).toContain("next_balance");
+    expect(actions).toContain("balance_changed");
     expect(actions).toContain("family_member_id");
+    expect(actions).not.toContain("previous_balance");
+    expect(actions).not.toContain("next_balance");
     expect(actions).not.toContain("full_payload");
     expect(actions).not.toContain("raw_payload");
     expect(actions).not.toContain("full financial payload");
