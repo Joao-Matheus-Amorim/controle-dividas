@@ -9,10 +9,16 @@ import type { PermissionAction } from "@/lib/finance/permissions";
 import type { ReceivableIncomeFormState } from "@/lib/finance/server";
 import { revalidateOrganizationPaths } from "@/lib/organizations/revalidation";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
+import { checkSensitiveOperationRateLimit } from "@/lib/security/sensitive-rate-limit";
 import { createClient } from "@/lib/supabase/server";
 
 const receivableIncomeTypes = ["fixa", "variavel"] as const;
 const receivableIncomeStatuses = ["previsto", "recebido", "atrasado"] as const;
+const receivableDeleteRateLimit = {
+  operationKey: "finance.receivable.delete",
+  limit: 5,
+  windowMs: 10 * 60 * 1000,
+};
 
 export type ReceivableIncomeActionState = {
   error?: string;
@@ -23,11 +29,13 @@ async function recordReceivableIncomeAuditEvent({
   organizationId,
   action,
   incomeId,
+  outcome = "success",
   metadata,
 }: {
   organizationId: string;
   action: "finance.receivable.status.update" | "finance.receivable.delete";
   incomeId: string;
+  outcome?: "success" | "denied";
   metadata?: Record<string, string | number | boolean | null>;
 }) {
   await recordAuditEvent({
@@ -35,7 +43,7 @@ async function recordReceivableIncomeAuditEvent({
     action,
     targetType: "receivable_income",
     targetId: incomeId,
-    outcome: "success",
+    outcome,
     metadata,
   });
 }
@@ -363,17 +371,42 @@ export async function deleteReceivableIncome(
 
   try {
     const { profile, organization, income } = await assertCanManageReceivableIncome(id, "can_delete");
+    const rateLimit = checkSensitiveOperationRateLimit({
+      ...receivableDeleteRateLimit,
+      actorKey: profile.id,
+      organizationId: organization.id,
+    });
+
+    if (!rateLimit.allowed) {
+      await recordReceivableIncomeAuditEvent({
+        organizationId: organization.id,
+        action: "finance.receivable.delete",
+        incomeId: id,
+        outcome: "denied",
+        metadata: {
+          status: "rate_limited",
+          receiver_member_id: String(income.receiver_member_id),
+        },
+      });
+
+      return { error: "Muitas tentativas de exclusao. Tente novamente em alguns minutos." };
+    }
+
     const supabase = await createClient();
 
-    const { error } = await supabase
+    const { error, count } = await supabase
       .from("receivable_incomes")
-      .delete()
+      .delete({ count: "exact" })
       .eq("id", id)
       .eq("owner_id", profile.owner_id)
       .eq("organization_id", organization.id);
 
     if (error) {
       return { error: error.message };
+    }
+
+    if (count !== 1) {
+      return { error: "Recebimento nao encontrado." };
     }
 
     await recordReceivableIncomeAuditEvent({

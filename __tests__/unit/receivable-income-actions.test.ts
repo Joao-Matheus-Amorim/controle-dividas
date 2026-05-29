@@ -24,7 +24,10 @@ const mockState = vi.hoisted(() => ({
   } as Record<string, unknown> | null,
   updateError: null as { message: string } | null,
   deleteError: null as { message: string } | null,
+  deleteCount: 1 as number | null,
   accessError: null as Error | null,
+  rateLimitAllowed: true,
+  rateLimitChecks: [] as Array<Record<string, unknown>>,
   auditEvents: [] as Array<Record<string, unknown>>,
 }));
 
@@ -60,7 +63,7 @@ function makeQuery(table: string) {
       }
 
       if (deleteMode && key === "organization_id") {
-        return Promise.resolve({ error: mockState.deleteError });
+        return Promise.resolve({ error: mockState.deleteError, count: mockState.deleteCount });
       }
 
       if (deleteMode && key === "id") {
@@ -98,7 +101,11 @@ function makeQuery(table: string) {
       updatePayload = payload;
       return query;
     },
-    delete() {
+    delete(options?: Record<string, unknown>) {
+      if (options?.count !== "exact") {
+        throw new Error("Expected exact delete count");
+      }
+
       deleteMode = true;
       return query;
     },
@@ -154,6 +161,16 @@ vi.mock("@/lib/finance/access-control", () => ({
   }),
 }));
 
+vi.mock("@/lib/security/sensitive-rate-limit", () => ({
+  checkSensitiveOperationRateLimit: vi.fn((input: Record<string, unknown>) => {
+    mockState.rateLimitChecks.push(input);
+
+    return mockState.rateLimitAllowed
+      ? { allowed: true, remaining: 4, resetAt: 1000 }
+      : { allowed: false, retryAfterMs: 1000, resetAt: 1000 };
+  }),
+}));
+
 describe("receivable income actions", () => {
   beforeEach(() => {
     mockState.updatedPayloads = [];
@@ -170,7 +187,10 @@ describe("receivable income actions", () => {
     };
     mockState.updateError = null;
     mockState.deleteError = null;
+    mockState.deleteCount = 1;
     mockState.accessError = null;
+    mockState.rateLimitAllowed = true;
+    mockState.rateLimitChecks = [];
     mockState.auditEvents = [];
   });
 
@@ -294,6 +314,15 @@ describe("receivable income actions", () => {
     }));
 
     expect(result).toEqual({ success: "Recebimento excluido com sucesso." });
+    expect(mockState.rateLimitChecks).toEqual([
+      {
+        operationKey: "finance.receivable.delete",
+        limit: 5,
+        windowMs: 10 * 60 * 1000,
+        actorKey: "profile-1",
+        organizationId: "org-1",
+      },
+    ]);
     expect(mockState.deletedIds).toEqual(["income-1"]);
     expect(mockState.auditEvents).toEqual([
       expect.objectContaining({
@@ -307,5 +336,45 @@ describe("receivable income actions", () => {
         },
       }),
     ]);
+  });
+
+  it("does not delete receivable income when the delete rate limit blocks the action", async () => {
+    const { deleteReceivableIncome } = await import("@/app/protected/contas-a-receber/actions");
+    mockState.rateLimitAllowed = false;
+
+    const result = await deleteReceivableIncome(createFormData({
+      id: "income-1",
+    }));
+
+    expect(result).toEqual({
+      error: "Muitas tentativas de exclusao. Tente novamente em alguns minutos.",
+    });
+    expect(mockState.deletedIds).toHaveLength(0);
+    expect(mockState.auditEvents).toEqual([
+      expect.objectContaining({
+        p_organization_id: "org-1",
+        p_action: "finance.receivable.delete",
+        p_target_type: "receivable_income",
+        p_target_id: "income-1",
+        p_outcome: "denied",
+        p_metadata: {
+          status: "rate_limited",
+          receiver_member_id: "member-1",
+        },
+      }),
+    ]);
+  });
+
+  it("does not audit receivable income delete when no row was deleted", async () => {
+    const { deleteReceivableIncome } = await import("@/app/protected/contas-a-receber/actions");
+    mockState.deleteCount = 0;
+
+    const result = await deleteReceivableIncome(createFormData({
+      id: "income-1",
+    }));
+
+    expect(result).toEqual({ error: "Recebimento nao encontrado." });
+    expect(mockState.deletedIds).toEqual(["income-1"]);
+    expect(mockState.auditEvents).toHaveLength(0);
   });
 });
