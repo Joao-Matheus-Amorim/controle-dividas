@@ -22,6 +22,8 @@ const mockState = vi.hoisted(() => ({
   deletedRows: [] as Array<{ table: string; filters: Record<string, unknown> }>,
   deleteCount: 1 as number | null,
   deleteError: null as { message: string } | null,
+  rateLimitAllowed: true,
+  rateLimitChecks: [] as Array<Record<string, unknown>>,
   auditEvents: [] as Array<Record<string, unknown>>,
 }));
 
@@ -120,6 +122,16 @@ vi.mock("@/lib/finance/access-control", () => ({
   assertCanAccessMember: vi.fn(async () => true),
 }));
 
+vi.mock("@/lib/security/sensitive-rate-limit", () => ({
+  checkSensitiveOperationRateLimit: vi.fn((input: Record<string, unknown>) => {
+    mockState.rateLimitChecks.push(input);
+
+    return mockState.rateLimitAllowed
+      ? { allowed: true, remaining: 4, resetAt: 1000 }
+      : { allowed: false, retryAfterMs: 1000, resetAt: 1000 };
+  }),
+}));
+
 describe("expense audit runtime actions", () => {
   beforeEach(() => {
     mockState.expenseLookup = {
@@ -134,6 +146,8 @@ describe("expense audit runtime actions", () => {
     mockState.deletedRows = [];
     mockState.deleteCount = 1;
     mockState.deleteError = null;
+    mockState.rateLimitAllowed = true;
+    mockState.rateLimitChecks = [];
     mockState.auditEvents = [];
   });
 
@@ -146,6 +160,14 @@ describe("expense audit runtime actions", () => {
     }));
 
     expect(result).toEqual({ success: "Gasto excluido com sucesso." });
+    expect(mockState.rateLimitChecks).toEqual([
+      expect.objectContaining({
+        operationKey: "finance.expense.delete",
+        actorKey: "profile-1",
+        organizationId: "org-1",
+        targetKey: "expense-1",
+      }),
+    ]);
     expect(mockState.deletedRows).toEqual([
       {
         table: "expenses",
@@ -182,5 +204,33 @@ describe("expense audit runtime actions", () => {
     expect(result).toEqual({ error: "Gasto nao encontrado." });
     expect(mockState.deletedRows).toHaveLength(1);
     expect(mockState.auditEvents).toHaveLength(0);
+  });
+
+  it("does not delete the expense when the delete rate limit blocks the action", async () => {
+    const { deleteExpense } = await import("@/app/protected/gastos/actions");
+    mockState.rateLimitAllowed = false;
+
+    const result = await deleteExpense(createFormData({
+      id: "expense-1",
+      confirm_delete: "confirmado",
+    }));
+
+    expect(result).toEqual({
+      error: "Muitas tentativas de exclusao. Tente novamente em alguns minutos.",
+    });
+    expect(mockState.deletedRows).toHaveLength(0);
+    expect(mockState.auditEvents).toEqual([
+      expect.objectContaining({
+        p_organization_id: "org-1",
+        p_action: "finance.expense.delete",
+        p_target_type: "expense",
+        p_target_id: "expense-1",
+        p_outcome: "denied",
+        p_metadata: {
+          status: "rate_limited",
+          family_member_id: "member-1",
+        },
+      }),
+    ]);
   });
 });

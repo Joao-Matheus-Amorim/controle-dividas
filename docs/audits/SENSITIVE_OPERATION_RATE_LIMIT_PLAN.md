@@ -4,7 +4,7 @@ GAP: GAP-015
 
 ## Purpose
 
-This document defines the planning contract for rate limiting sensitive operations before any runtime limiter exists.
+This document defines the planning contract for rate limiting sensitive operations as runtime coverage expands one server boundary at a time.
 
 It follows `docs/audits/SENSITIVE_OPERATION_CONTROLS_CONTRACT.md` and complements `docs/audits/SENSITIVE_ACTION_AUDIT_EVENT_SCHEMA_PLAN.md`.
 
@@ -12,6 +12,7 @@ It follows `docs/audits/SENSITIVE_OPERATION_CONTROLS_CONTRACT.md` and complement
 
 ```txt
 Billing checkout rate limit runtime exists for `billing.checkout.start`.
+Expense delete rate limit runtime exists for `finance.expense.delete`.
 Storage is process-local memory for the first runtime step, with expired buckets evicted before new tracking.
 Rollback is `DISABLE_SENSITIVE_RATE_LIMITS=true`.
 No middleware change.
@@ -22,7 +23,7 @@ No billing behavior change.
 No E2E change.
 ```
 
-Rate limiting is implemented only for billing checkout start attempts.
+Rate limiting is implemented only for billing checkout start attempts and expense delete attempts.
 
 ## Control model
 
@@ -51,6 +52,7 @@ Initial limits should be grouped by risk:
 | --- | --- | --- |
 | Public auth | login, signup, password reset | Highest abuse risk; actor may be anonymous. |
 | Billing checkout | `billing.checkout.start` | Authenticated and organization-scoped. |
+| Expense delete | `finance.expense.delete` | Authenticated, organization-scoped, permission-gated. |
 | Admin mutations | user create/update/deactivate, permission updates | Authenticated, organization-scoped, owner/admin only. |
 | Destructive finance actions | delete expense/payable/receivable/bank/category | Authenticated, organization-scoped, permission-gated. |
 | Status transitions | payable/receivable status updates | Authenticated, organization-scoped, lower initial risk than deletes. |
@@ -94,7 +96,7 @@ Before implementation, choose and document one storage model:
 | External cache | Better for short windows, but needs operational dependency and env handling. |
 | Platform limiter | Acceptable only if limits can include actor and organization dimensions. |
 
-The first runtime limiter uses process-local memory to keep the rollout schema-free and reversible. It sweeps expired buckets before tracking new traffic so long-lived processes do not retain stale actor/organization/target entries forever. This is acceptable for the initial billing checkout boundary because it is low blast-radius, authenticated, organization-scoped, and protected by `DISABLE_SENSITIVE_RATE_LIMITS=true` rollback. Broader or public-auth limits still need a durable/cache-backed storage decision before implementation.
+The first runtime limiter uses process-local memory to keep the rollout schema-free and reversible. It sweeps expired buckets before tracking new traffic so long-lived processes do not retain stale actor/organization/target entries forever. This is acceptable for the initial billing checkout and expense delete boundaries because they are authenticated, organization-scoped, and protected by `DISABLE_SENSITIVE_RATE_LIMITS=true` rollback. Broader or public-auth limits still need a durable/cache-backed storage decision before implementation.
 
 ## Sequencing
 
@@ -102,10 +104,11 @@ Rate limiting should move in this order:
 
 1. Billing checkout limit in one PR using process-local memory and `DISABLE_SENSITIVE_RATE_LIMITS=true` rollback.
 2. Add focused tests for allowed, blocked, and reset-window behavior.
-3. Expand to durable/cache-backed storage before public auth flow limits.
-4. Add audit outcome events after audit event storage exists.
-5. Expand to admin mutations.
-6. Expand to destructive finance actions.
+3. Add expense delete limit in one PR using the same server-side limiter.
+4. Expand to durable/cache-backed storage before public auth flow limits.
+5. Add audit outcome events after audit event storage exists.
+6. Expand to the remaining destructive finance actions.
+7. Expand to admin mutations.
 
 ## Non-goals
 
