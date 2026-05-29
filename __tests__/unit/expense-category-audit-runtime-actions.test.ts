@@ -12,6 +12,8 @@ const mockState = vi.hoisted(() => ({
   deletedRows: [] as Array<{ table: string; filters: Record<string, unknown> }>,
   deleteCount: 1 as number | null,
   deleteError: null as { message: string } | null,
+  rateLimitAllowed: true,
+  rateLimitChecks: [] as Array<Record<string, unknown>>,
   auditEvents: [] as Array<Record<string, unknown>>,
 }));
 
@@ -103,11 +105,23 @@ vi.mock("@/lib/organizations/server", () => ({
   })),
 }));
 
+vi.mock("@/lib/security/sensitive-rate-limit", () => ({
+  checkSensitiveOperationRateLimit: vi.fn((input: Record<string, unknown>) => {
+    mockState.rateLimitChecks.push(input);
+
+    return mockState.rateLimitAllowed
+      ? { allowed: true, remaining: 4, resetAt: 1000 }
+      : { allowed: false, retryAfterMs: 1000, resetAt: 1000 };
+  }),
+}));
+
 describe("expense category audit runtime actions", () => {
   beforeEach(() => {
     mockState.deletedRows = [];
     mockState.deleteCount = 1;
     mockState.deleteError = null;
+    mockState.rateLimitAllowed = true;
+    mockState.rateLimitChecks = [];
     mockState.auditEvents = [];
   });
 
@@ -119,6 +133,15 @@ describe("expense category audit runtime actions", () => {
     }));
 
     expect(result).toEqual({ success: "Categoria excluida com sucesso." });
+    expect(mockState.rateLimitChecks).toEqual([
+      {
+        operationKey: "finance.category.delete",
+        limit: 5,
+        windowMs: 10 * 60 * 1000,
+        actorKey: "owner-1",
+        organizationId: "org-1",
+      },
+    ]);
     expect(mockState.deletedRows).toEqual([
       {
         table: "expense_categories",
@@ -153,5 +176,31 @@ describe("expense category audit runtime actions", () => {
     expect(result).toEqual({ error: "Categoria nao encontrada." });
     expect(mockState.deletedRows).toHaveLength(1);
     expect(mockState.auditEvents).toHaveLength(0);
+  });
+
+  it("does not delete category when the delete rate limit blocks the action", async () => {
+    const { deleteExpenseCategory } = await import("@/app/protected/configuracoes/actions");
+    mockState.rateLimitAllowed = false;
+
+    const result = await deleteExpenseCategory(createFormData({
+      id: "category-1",
+    }));
+
+    expect(result).toEqual({
+      error: "Muitas tentativas de exclusao. Tente novamente em alguns minutos.",
+    });
+    expect(mockState.deletedRows).toHaveLength(0);
+    expect(mockState.auditEvents).toEqual([
+      expect.objectContaining({
+        p_organization_id: "org-1",
+        p_action: "finance.category.delete",
+        p_target_type: "expense_category",
+        p_target_id: "category-1",
+        p_outcome: "denied",
+        p_metadata: {
+          status: "rate_limited",
+        },
+      }),
+    ]);
   });
 });

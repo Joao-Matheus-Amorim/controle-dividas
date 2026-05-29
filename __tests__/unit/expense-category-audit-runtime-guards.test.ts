@@ -23,7 +23,14 @@ describe("expense category audit runtime guards", () => {
     expect(actions).toContain('targettype: "expense_category"');
     expect(actions).toContain('delete({ count: "exact" })');
     expect(actions).toContain("if (count !== 1)");
-    expect(actions).toContain('outcome: "success"');
+    expect(actions).toContain('outcome = "success"');
+    expect(actions).toContain("checksensitiveoperationratelimit");
+    expect(actions).toContain('operationkey: "finance.category.delete"');
+    expect(actions).toContain("actorkey: ownerid");
+    expect(actions).toContain("organizationid: organization.id");
+    expect(actions).not.toContain("targetkey: id");
+    expect(actions).toContain('outcome: "denied"');
+    expect(actions).toContain("rate_limited");
   });
 
   it("keeps emitted metadata redacted and small", () => {
@@ -43,6 +50,7 @@ describe("expense category audit runtime guards", () => {
 
     for (const source of [roadmap, liveStatus, gapRegister]) {
       expect(source).toContain("category delete audit runtime");
+      expect(source).toContain("category delete rate limit runtime");
       expect(source).toContain("rate limiting");
       expect(source).toContain("data retention");
     }
