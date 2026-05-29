@@ -54,9 +54,9 @@ describe("admin permission audit runtime guards", () => {
     }
 
     expect(schemaPlan).toContain("admin permission runtime calls `record_audit_event`");
-    expect(gapRegister).toContain("admin user lifecycle audit logging runtime");
+    expect(gapRegister).toContain("admin user audit runtime");
     expect(gapRegister).toContain("finance audit logging runtime");
-    expect(roadmap).toContain("sem admin user lifecycle audit logging");
-    expect(liveStatus).toContain("admin user lifecycle audit logging runtime");
+    expect(roadmap).toContain("sem finance audit logging");
+    expect(liveStatus).toContain("finance audit logging runtime");
   });
 });

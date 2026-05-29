@@ -63,6 +63,33 @@ async function recordAdminPermissionAuditEvent({
   });
 }
 
+async function recordAdminUserAuditEvent({
+  organizationId,
+  action,
+  profileId,
+  metadata,
+}: {
+  organizationId: string;
+  action:
+    | "admin.user.create"
+    | "admin.user.update"
+    | "admin.user.activate"
+    | "admin.user.deactivate"
+    | "admin.user.delete"
+    | "admin.user.auth_link.sync";
+  profileId: string;
+  metadata?: Record<string, string | number | boolean | null>;
+}) {
+  await recordAuditEvent({
+    organizationId,
+    action,
+    targetType: "profile",
+    targetId: profileId,
+    outcome: "success",
+    metadata,
+  });
+}
+
 function normalizeAccessModel(value: string) {
   if (["basic", "family", "admin", "custom"].includes(value)) {
     return value;
@@ -322,6 +349,17 @@ export async function createFamilyUser(
       .insert(permissionRows);
 
     if (permissionsError) return { error: permissionsError.message };
+
+    await recordAdminUserAuditEvent({
+      organizationId: organization.id,
+      action: "admin.user.create",
+      profileId: profile.id,
+      metadata: {
+        role,
+        access_model: accessModel,
+        default_permission_count: permissionRows.length,
+      },
+    });
   }
 
   revalidateOrganizationPaths(
@@ -388,6 +426,15 @@ export async function updateFamilyUser(formData: FormData): Promise<FamilyUserAc
 
   if (error) return { error: error.message };
 
+  await recordAdminUserAuditEvent({
+    organizationId: organization.id,
+    action: "admin.user.update",
+    profileId: id,
+    metadata: {
+      fields_changed: "name,email,linked_family_member_id",
+    },
+  });
+
   revalidateOrganizationPaths(
     ["/protected/admin", "/protected/admin/usuarios", "/protected/admin/permissoes"],
     organization.slug,
@@ -443,6 +490,15 @@ export async function syncFamilyUserAuthLink(formData: FormData): Promise<Family
 
   if (linkError) return { error: linkError.message };
 
+  await recordAdminUserAuditEvent({
+    organizationId: organization.id,
+    action: "admin.user.auth_link.sync",
+    profileId: profile.id,
+    metadata: {
+      auth_linked: true,
+    },
+  });
+
   revalidateOrganizationPaths(
     ["/protected/admin", "/protected/admin/usuarios", "/protected/admin/permissoes", "/protected"],
     organization.slug,
@@ -483,6 +539,12 @@ export async function deleteFamilyUser(formData: FormData): Promise<FamilyUserAc
     .eq("organization_id", organization.id);
 
   if (error) return { error: error.message };
+
+  await recordAdminUserAuditEvent({
+    organizationId: organization.id,
+    action: "admin.user.delete",
+    profileId: id,
+  });
 
   revalidateOrganizationPaths(
     ["/protected/admin", "/protected/admin/usuarios", "/protected/admin/permissoes"],
@@ -526,6 +588,15 @@ export async function toggleFamilyUserStatus(formData: FormData): Promise<Family
     .eq("organization_id", organization.id);
 
   if (error) return { error: error.message };
+
+  await recordAdminUserAuditEvent({
+    organizationId: organization.id,
+    action: isActive ? "admin.user.deactivate" : "admin.user.activate",
+    profileId: id,
+    metadata: {
+      next_active: !isActive,
+    },
+  });
 
   revalidateOrganizationPaths(
     ["/protected/admin", "/protected/admin/usuarios", "/protected/admin/permissoes"],

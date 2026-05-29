@@ -22,6 +22,7 @@ describe("sensitive operation controls contract guards", () => {
     expect(contract).toContain("audit event write boundary exists in supabase/migrations/041_audit_events_write_boundary.sql");
     expect(contract).toContain("billing checkout audit runtime exists");
     expect(contract).toContain("admin permission audit runtime exists");
+    expect(contract).toContain("admin user audit runtime exists");
     expect(contract).toContain("no rate limit runtime");
     expect(contract).toContain("no data retention runtime");
     expect(contract).toContain("no ui change");
