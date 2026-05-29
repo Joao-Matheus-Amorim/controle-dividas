@@ -58,11 +58,11 @@ describe("sensitive operation controls contract guards", () => {
       expect(source).toContain("docs/audits/sensitive_operation_controls_contract.md");
       expect(source).toContain("gap-015");
       expect(source).toContain("rate limiting");
-      expect(source).toContain("sensitive-action audit logging");
+      expect(source).toContain("audit runtime");
       expect(source).toContain("data retention");
     }
 
-    expect(gapRegister).toContain("data retention runtime controls are not implemented");
+    expect(gapRegister).toContain("rate limiting and data retention runtime controls are not implemented");
     expect(roadmap).toContain("write boundary de audit events");
     expect(liveStatus).toContain("data retention runtime controls ainda nao foram implementados");
   });

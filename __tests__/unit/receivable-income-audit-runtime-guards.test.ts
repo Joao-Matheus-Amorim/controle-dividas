@@ -40,8 +40,8 @@ describe("receivable income audit runtime guards", () => {
       expect(source).toContain("finance.receivable.delete");
     }
 
-    expect(gapRegister).toContain("remaining finance audit logging runtime");
-    expect(roadmap).toContain("sem bank audit runtime");
-    expect(liveStatus).toContain("remaining finance audit logging runtime");
+    expect(gapRegister).toContain("bank audit runtime");
+    expect(roadmap).toContain("rate limiting e data retention ainda nao tem runtime implementado");
+    expect(liveStatus).toContain("rate limiting e data retention runtime controls ainda nao foram implementados");
   });
 });
