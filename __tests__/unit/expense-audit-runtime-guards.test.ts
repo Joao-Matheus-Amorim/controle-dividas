@@ -19,6 +19,8 @@ describe("expense audit runtime guards", () => {
   it("records expense delete events through the audit write boundary", () => {
     expect(actions).toContain("recordexpenseauditevent");
     expect(actions).toContain("finance.expense.delete");
+    expect(actions).toContain('delete({ count: "exact" })');
+    expect(actions).toContain("if (count !== 1)");
     expect(actions).toContain('targettype: "expense"');
     expect(actions).toContain('outcome: "success"');
   });

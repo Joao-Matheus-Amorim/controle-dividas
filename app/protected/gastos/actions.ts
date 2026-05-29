@@ -331,15 +331,19 @@ export async function deleteExpense(
     );
     const supabase = await createClient();
 
-    const { error } = await supabase
+    const { error, count } = await supabase
       .from("expenses")
-      .delete()
+      .delete({ count: "exact" })
       .eq("id", id)
       .eq("owner_id", profile.owner_id)
       .eq("organization_id", organization.id);
 
     if (error) {
       return { error: error.message };
+    }
+
+    if (count !== 1) {
+      return { error: "Gasto nao encontrado." };
     }
 
     await recordExpenseAuditEvent({

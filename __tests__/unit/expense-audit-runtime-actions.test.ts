@@ -20,6 +20,7 @@ const mockState = vi.hoisted(() => ({
     organization_id: "org-1",
   } as Record<string, unknown> | null,
   deletedRows: [] as Array<{ table: string; filters: Record<string, unknown> }>,
+  deleteCount: 1 as number | null,
   deleteError: null as { message: string } | null,
   auditEvents: [] as Array<Record<string, unknown>>,
 }));
@@ -47,7 +48,7 @@ function makeQuery(table: string) {
 
       if (deleteMode && key === "organization_id") {
         mockState.deletedRows.push({ table, filters: { ...filters } });
-        return Promise.resolve({ error: mockState.deleteError });
+        return Promise.resolve({ error: mockState.deleteError, count: mockState.deleteCount });
       }
 
       return query;
@@ -63,7 +64,11 @@ function makeQuery(table: string) {
 
       return Promise.resolve({ data: null, error: null });
     },
-    delete() {
+    delete(options?: Record<string, unknown>) {
+      if (options?.count !== "exact") {
+        throw new Error("Expected exact delete count");
+      }
+
       deleteMode = true;
       return query;
     },
@@ -127,6 +132,7 @@ describe("expense audit runtime actions", () => {
       organization_id: "org-1",
     };
     mockState.deletedRows = [];
+    mockState.deleteCount = 1;
     mockState.deleteError = null;
     mockState.auditEvents = [];
   });
@@ -162,5 +168,19 @@ describe("expense audit runtime actions", () => {
         },
       }),
     ]);
+  });
+
+  it("does not record expense delete audit event when no row was deleted", async () => {
+    const { deleteExpense } = await import("@/app/protected/gastos/actions");
+    mockState.deleteCount = 0;
+
+    const result = await deleteExpense(createFormData({
+      id: "expense-1",
+      confirm_delete: "confirmado",
+    }));
+
+    expect(result).toEqual({ error: "Gasto nao encontrado." });
+    expect(mockState.deletedRows).toHaveLength(1);
+    expect(mockState.auditEvents).toHaveLength(0);
   });
 });
