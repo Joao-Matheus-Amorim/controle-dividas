@@ -70,8 +70,9 @@ describe("admin user audit runtime guards", () => {
       expect(source).toContain("record_audit_event");
     }
 
-    expect(gapRegister).toContain("finance audit logging runtime");
-    expect(roadmap).toContain("sem finance audit logging");
-    expect(liveStatus).toContain("finance audit logging runtime");
+    expect(gapRegister).toContain("payable bill audit runtime");
+    expect(gapRegister).toContain("remaining finance audit logging runtime");
+    expect(roadmap).toContain("sem expense, receivable ou bank audit runtime");
+    expect(liveStatus).toContain("remaining finance audit logging runtime");
   });
 });
