@@ -12,6 +12,7 @@ It is the next planning slice after `docs/audits/SENSITIVE_OPERATION_CONTROLS_CO
 
 ```txt
 Schema migration exists in supabase/migrations/040_audit_events_schema.sql.
+Write boundary exists in supabase/migrations/041_audit_events_write_boundary.sql.
 No runtime logging.
 Read-side RLS exists for organization owner/admin.
 No insert/update/delete policy for authenticated users.
@@ -89,17 +90,17 @@ The initial audit event storage decision is:
 - `public.audit_events` stores sensitive-action audit event summaries.
 - Owner/admin members can read events for their organization through RLS.
 - Authenticated users do not receive insert, update, or delete grants.
-- No runtime writes exist yet.
-- Future runtime logging must choose an explicit write boundary before emitting events.
+- `public.record_audit_event(...)` is the authenticated member-scoped write boundary.
+- Runtime logging is not wired yet.
 
-The write boundary remains open until a dedicated runtime logging PR defines service-role writes, an RPC boundary, or another explicit server-side mechanism.
+Runtime logging PRs must call the write boundary from one operation family at a time.
 
 ## Runtime sequencing
 
 Audit logging should be added incrementally:
 
 1. Keep `040_audit_events_schema.sql` as schema/read-side RLS only.
-2. Define the runtime write boundary in one PR.
+2. Keep `041_audit_events_write_boundary.sql` as the authenticated write boundary.
 3. Add billing checkout audit events in one PR.
 4. Add admin user/permission audit events in one PR.
 5. Add destructive finance audit events one family at a time.
@@ -111,6 +112,7 @@ A future audit logging PR must:
 
 - reference this plan;
 - preserve `040_audit_events_schema.sql` or document the migration replacement;
+- preserve `041_audit_events_write_boundary.sql` or document the write-boundary replacement;
 - implement one operation family at a time;
 - prove actor and organization are resolved server-side;
 - prove forbidden metadata is not logged;

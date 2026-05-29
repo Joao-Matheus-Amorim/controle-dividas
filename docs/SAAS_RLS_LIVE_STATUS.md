@@ -35,7 +35,7 @@ Isso significa:
 - checkout runtime usa Stripe Checkout Session para owner/admin da organizacao resolvida no servidor;
 - evidencia real de checkout Stripe ainda esta pendente porque nao ha conta Stripe de teste/credenciais configuradas;
 - webhook, portal, assinatura sincronizada e enforcement comercial ainda nao foram implementados.
-- GAP-015 possui contrato de planejamento em `docs/audits/SENSITIVE_OPERATION_CONTROLS_CONTRACT.md`, plano de schema/redaction em `docs/audits/SENSITIVE_ACTION_AUDIT_EVENT_SCHEMA_PLAN.md`, schema/read-side RLS de audit events em `supabase/migrations/040_audit_events_schema.sql`, plano de rate limiting em `docs/audits/SENSITIVE_OPERATION_RATE_LIMIT_PLAN.md` e plano de data retention em `docs/audits/SENSITIVE_DATA_RETENTION_PLAN.md`, mas rate limiting, sensitive-action audit logging runtime e data retention runtime controls ainda nao foram implementados.
+- GAP-015 possui contrato de planejamento em `docs/audits/SENSITIVE_OPERATION_CONTROLS_CONTRACT.md`, plano de schema/redaction em `docs/audits/SENSITIVE_ACTION_AUDIT_EVENT_SCHEMA_PLAN.md`, schema/read-side RLS de audit events em `supabase/migrations/040_audit_events_schema.sql`, write boundary de audit events em `supabase/migrations/041_audit_events_write_boundary.sql` via `record_audit_event`, plano de rate limiting em `docs/audits/SENSITIVE_OPERATION_RATE_LIMIT_PLAN.md` e plano de data retention em `docs/audits/SENSITIVE_DATA_RETENTION_PLAN.md`, mas rate limiting, sensitive-action audit logging runtime calls e data retention runtime controls ainda nao foram implementados.
 
 ## 3. Migrations SaaS/RLS/hardening atuais
 
@@ -77,6 +77,7 @@ As migrations relevantes para SaaS/RLS/hardening ja mergeadas sao:
 038_user_feature_permissions_rls_remove_legacy_fallback.sql
 039_drop_legacy_owner_family_policies.sql
 040_audit_events_schema.sql
+041_audit_events_write_boundary.sql
 ```
 
 Observacoes operacionais:

@@ -19,6 +19,7 @@ describe("sensitive operation controls contract guards", () => {
   it("documents GAP-015 schema progress without claiming runtime controls", () => {
     expect(contract).toContain("gap-015");
     expect(contract).toContain("audit event schema/read-side rls exists in supabase/migrations/040_audit_events_schema.sql");
+    expect(contract).toContain("audit event write boundary exists in supabase/migrations/041_audit_events_write_boundary.sql");
     expect(contract).toContain("no runtime logging");
     expect(contract).toContain("no rate limit runtime");
     expect(contract).toContain("no data retention runtime");
@@ -60,7 +61,7 @@ describe("sensitive operation controls contract guards", () => {
     }
 
     expect(gapRegister).toContain("runtime controls are not implemented");
-    expect(roadmap).toContain("schema/read-side rls apenas para audit events");
+    expect(roadmap).toContain("write boundary de audit events");
     expect(liveStatus).toContain("runtime controls ainda nao foram implementados");
   });
 });
