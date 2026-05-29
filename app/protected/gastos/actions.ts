@@ -9,6 +9,7 @@ import type { PermissionAction } from "@/lib/finance/permissions";
 import type { ExpenseFormState } from "@/lib/finance/server";
 import { revalidateOrganizationPaths } from "@/lib/organizations/revalidation";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
+import { checkSensitiveOperationRateLimit } from "@/lib/security/sensitive-rate-limit";
 import { createClient } from "@/lib/supabase/server";
 
 export type ExpenseActionState = {
@@ -16,15 +17,23 @@ export type ExpenseActionState = {
   success?: string;
 };
 
+const expenseDeleteRateLimit = {
+  operationKey: "finance.expense.delete",
+  limit: 5,
+  windowMs: 10 * 60 * 1000,
+};
+
 async function recordExpenseAuditEvent({
   organizationId,
   action,
   expenseId,
+  outcome = "success",
   metadata,
 }: {
   organizationId: string;
   action: "finance.expense.delete";
   expenseId: string;
+  outcome?: "success" | "denied";
   metadata?: Record<string, string | number | boolean | null>;
 }) {
   await recordAuditEvent({
@@ -32,7 +41,7 @@ async function recordExpenseAuditEvent({
     action,
     targetType: "expense",
     targetId: expenseId,
-    outcome: "success",
+    outcome,
     metadata,
   });
 }
@@ -329,6 +338,28 @@ export async function deleteExpense(
       id,
       "can_delete",
     );
+    const rateLimit = checkSensitiveOperationRateLimit({
+      ...expenseDeleteRateLimit,
+      actorKey: profile.id,
+      organizationId: organization.id,
+      targetKey: id,
+    });
+
+    if (!rateLimit.allowed) {
+      await recordExpenseAuditEvent({
+        organizationId: organization.id,
+        action: "finance.expense.delete",
+        expenseId: id,
+        outcome: "denied",
+        metadata: {
+          status: "rate_limited",
+          family_member_id: String(expense.family_member_id),
+        },
+      });
+
+      return { error: "Muitas tentativas de exclusao. Tente novamente em alguns minutos." };
+    }
+
     const supabase = await createClient();
 
     const { error, count } = await supabase

@@ -17,10 +17,12 @@ describe("sensitive operation rate limit plan guards", () => {
   const liveStatus = read("docs/SAAS_RLS_LIVE_STATUS.md");
   const gapRegister = read("docs/SAAS_GAP_REGISTER.md");
 
-  it("documents the first billing checkout rate limit runtime without broadening scope", () => {
+  it("documents the current checkout and expense delete rate limit runtime without broadening scope", () => {
     expect(plan).toContain("gap-015");
     expect(plan).toContain("billing checkout rate limit runtime exists");
     expect(plan).toContain("billing.checkout.start");
+    expect(plan).toContain("expense delete rate limit runtime exists");
+    expect(plan).toContain("finance.expense.delete");
     expect(plan).toContain("process-local memory");
     expect(plan).toContain("disable_sensitive_rate_limits=true");
     expect(plan).toContain("no middleware change");
@@ -52,6 +54,7 @@ describe("sensitive operation rate limit plan guards", () => {
 
   it("protects key design, operation tiers, and storage decisions", () => {
     expect(plan).toContain("billing.checkout.start");
+    expect(plan).toContain("finance.expense.delete");
     expect(plan).toContain("admin mutations");
     expect(plan).toContain("destructive finance actions");
     expect(plan).toContain("rate_limit:{operation_key}:{actor_key}:{organization_key}:{target_key?}");
@@ -73,6 +76,7 @@ describe("sensitive operation rate limit plan guards", () => {
     expect(liveStatus).toContain("plano de rate limiting");
     expect(gapRegister).toContain("rate limit planning exists");
     expect(gapRegister).toContain("billing checkout rate limit runtime");
+    expect(gapRegister).toContain("expense delete rate limit runtime");
     expect(gapRegister).toContain("remaining broader rate limiting and data retention runtime controls are not implemented");
   });
 });

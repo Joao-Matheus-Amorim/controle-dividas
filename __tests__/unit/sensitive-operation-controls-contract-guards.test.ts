@@ -22,6 +22,7 @@ describe("sensitive operation controls contract guards", () => {
     expect(contract).toContain("audit event write boundary exists in supabase/migrations/041_audit_events_write_boundary.sql");
     expect(contract).toContain("billing checkout audit runtime exists");
     expect(contract).toContain("billing checkout rate limit runtime exists");
+    expect(contract).toContain("expense delete rate limit runtime exists");
     expect(contract).toContain("admin permission audit runtime exists");
     expect(contract).toContain("admin user audit runtime exists");
     expect(contract).toContain("no data retention runtime");
@@ -64,6 +65,7 @@ describe("sensitive operation controls contract guards", () => {
 
     expect(gapRegister).toContain("category delete audit runtime");
     expect(gapRegister).toContain("billing checkout rate limit runtime");
+    expect(gapRegister).toContain("expense delete rate limit runtime");
     expect(gapRegister).toContain("remaining broader rate limiting and data retention runtime controls are not implemented");
     expect(roadmap).toContain("write boundary de audit events");
     expect(liveStatus).toContain("data retention runtime controls ainda nao foram implementados");
