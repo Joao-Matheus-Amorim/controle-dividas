@@ -9,6 +9,7 @@ import type { PermissionAction } from "@/lib/finance/permissions";
 import type { BankAccountFormState } from "@/lib/finance/banks-server";
 import { revalidateOrganizationPaths } from "@/lib/organizations/revalidation";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
+import { checkSensitiveOperationRateLimit } from "@/lib/security/sensitive-rate-limit";
 import { createClient } from "@/lib/supabase/server";
 
 export type BankAccountActionState = {
@@ -16,15 +17,23 @@ export type BankAccountActionState = {
   success?: string;
 };
 
+const bankDeleteRateLimit = {
+  operationKey: "finance.bank.delete",
+  limit: 5,
+  windowMs: 10 * 60 * 1000,
+};
+
 async function recordBankAuditEvent({
   organizationId,
   action,
   bankId,
+  outcome = "success",
   metadata,
 }: {
   organizationId: string;
   action: "finance.bank.balance.update" | "finance.bank.delete";
   bankId: string;
+  outcome?: "success" | "denied";
   metadata?: Record<string, string | number | boolean | null>;
 }) {
   await recordAuditEvent({
@@ -32,7 +41,7 @@ async function recordBankAuditEvent({
     action,
     targetType: "bank",
     targetId: bankId,
-    outcome: "success",
+    outcome,
     metadata,
   });
 }
@@ -347,6 +356,27 @@ export async function deleteBankAccount(
 
   try {
     const { profile, organization, account } = await assertCanManageBankAccount(id, "can_delete");
+    const rateLimit = checkSensitiveOperationRateLimit({
+      ...bankDeleteRateLimit,
+      actorKey: profile.id,
+      organizationId: organization.id,
+    });
+
+    if (!rateLimit.allowed) {
+      await recordBankAuditEvent({
+        organizationId: organization.id,
+        action: "finance.bank.delete",
+        bankId: id,
+        outcome: "denied",
+        metadata: {
+          status: "rate_limited",
+          family_member_id: String(account.family_member_id),
+        },
+      });
+
+      return { error: "Muitas tentativas de exclusao. Tente novamente em alguns minutos." };
+    }
+
     const supabase = await createClient();
 
     const { error, count } = await supabase
