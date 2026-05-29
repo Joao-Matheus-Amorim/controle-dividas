@@ -57,8 +57,9 @@ describe("admin permission audit runtime guards", () => {
     expect(gapRegister).toContain("admin user audit runtime");
     expect(gapRegister).toContain("payable bill audit runtime");
     expect(gapRegister).toContain("receivable income audit runtime");
+    expect(gapRegister).toContain("expense audit runtime");
     expect(gapRegister).toContain("remaining finance audit logging runtime");
-    expect(roadmap).toContain("sem expense ou bank audit runtime");
+    expect(roadmap).toContain("sem bank audit runtime");
     expect(liveStatus).toContain("remaining finance audit logging runtime");
   });
 });

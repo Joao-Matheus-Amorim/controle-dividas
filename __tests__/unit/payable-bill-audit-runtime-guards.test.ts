@@ -40,7 +40,7 @@ describe("payable bill audit runtime guards", () => {
     }
 
     expect(gapRegister).toContain("remaining finance audit logging runtime");
-    expect(roadmap).toContain("sem expense ou bank audit runtime");
+    expect(roadmap).toContain("sem bank audit runtime");
     expect(liveStatus).toContain("remaining finance audit logging runtime");
   });
 });
