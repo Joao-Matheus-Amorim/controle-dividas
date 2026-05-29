@@ -87,6 +87,7 @@ describe("sensitive audit events schema guards", () => {
     expect(roadmap).toContain("schema/read-side rls de audit events");
     expect(liveStatus).toContain("bank audit runtime");
     expect(gapRegister).toContain("bank audit runtime");
-    expect(gapRegister).toContain("remaining category-delete audit logging runtime, rate limiting, and data retention runtime controls are not implemented");
+    expect(gapRegister).toContain("category delete audit runtime");
+    expect(gapRegister).toContain("rate limiting and data retention runtime controls are not implemented");
   });
 });

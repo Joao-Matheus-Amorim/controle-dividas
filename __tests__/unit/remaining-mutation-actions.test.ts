@@ -48,12 +48,12 @@ function makeQuery(table: string) {
   const finishMutation = () => {
     if (updatePayload) {
       mockState.updatedPayloads.push({ table, payload: updatePayload, filters: { ...filters } });
-      return Promise.resolve({ error: mockState.updateErrors[table] ?? null });
+      return Promise.resolve({ error: mockState.updateErrors[table] ?? null, count: 1 });
     }
 
     if (deleteMode) {
       mockState.deletedRows.push({ table, filters: { ...filters } });
-      return Promise.resolve({ error: mockState.deleteErrors[table] ?? null });
+      return Promise.resolve({ error: mockState.deleteErrors[table] ?? null, count: 1 });
     }
 
     return query;
@@ -91,7 +91,11 @@ function makeQuery(table: string) {
       updatePayload = payload;
       return query;
     },
-    delete() {
+    delete(options?: Record<string, unknown>) {
+      if (table === "expense_categories" && options?.count !== "exact") {
+        throw new Error("Expected exact delete count");
+      }
+
       deleteMode = true;
       return query;
     },

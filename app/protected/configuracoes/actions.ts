@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 
+import { recordAuditEvent } from "@/lib/audit/events";
 import { revalidateOrganizationPaths } from "@/lib/organizations/revalidation";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { createClient } from "@/lib/supabase/server";
@@ -25,6 +26,22 @@ async function getCurrentUserId() {
   }
 
   return String(data.claims.sub);
+}
+
+async function recordExpenseCategoryAuditEvent({
+  organizationId,
+  categoryId,
+}: {
+  organizationId: string;
+  categoryId: string;
+}) {
+  await recordAuditEvent({
+    organizationId,
+    action: "finance.category.delete",
+    targetType: "expense_category",
+    targetId: categoryId,
+    outcome: "success",
+  });
 }
 
 function parseExpenseCategoryForm(formData: FormData) {
@@ -156,9 +173,9 @@ export async function deleteExpenseCategory(
   const ownerId = await getCurrentUserId();
   const { organization } = await requireOrganizationAccess();
 
-  const { error } = await supabase
+  const { error, count } = await supabase
     .from("expense_categories")
-    .delete()
+    .delete({ count: "exact" })
     .eq("id", id)
     .eq("owner_id", ownerId)
     .eq("is_default", false)
@@ -167,6 +184,15 @@ export async function deleteExpenseCategory(
   if (error) {
     return { error: error.message };
   }
+
+  if (count !== 1) {
+    return { error: "Categoria nao encontrada." };
+  }
+
+  await recordExpenseCategoryAuditEvent({
+    organizationId: organization.id,
+    categoryId: id,
+  });
 
   revalidateOrganizationPaths(
     ["/protected/configuracoes", "/protected/gastos", "/protected"],
