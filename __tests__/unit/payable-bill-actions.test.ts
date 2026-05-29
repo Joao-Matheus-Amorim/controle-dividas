@@ -466,12 +466,13 @@ describe("payable bill actions", () => {
 
     expect(result).toEqual({ success: "Conta excluida com sucesso." });
     expect(mockState.rateLimitChecks).toEqual([
-      expect.objectContaining({
+      {
         operationKey: "finance.payable.delete",
+        limit: 5,
+        windowMs: 10 * 60 * 1000,
         actorKey: "profile-1",
         organizationId: "org-1",
-        targetKey: "bill-1",
-      }),
+      },
     ]);
     expect(mockState.deletedIds).toEqual(["bill-1"]);
     expect(mockState.auditEvents).toEqual([

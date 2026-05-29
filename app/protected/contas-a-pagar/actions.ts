@@ -381,7 +381,6 @@ export async function deletePayableBill(
       ...payableDeleteRateLimit,
       actorKey: profile.id,
       organizationId: organization.id,
-      targetKey: id,
     });
 
     if (!rateLimit.allowed) {

@@ -76,6 +76,7 @@ Rules:
 - derive organization from the active server context;
 - derive actor from authenticated server context;
 - include target id only when it reduces abuse without causing excessive cardinality;
+- destructive delete rate limits should default to operation/actor/organization buckets so deleting many distinct records still reaches the threshold;
 - keep keys free of raw emails, names, tokens, or full payload values.
 
 ## Response contract
