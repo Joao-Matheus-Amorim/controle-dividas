@@ -1,5 +1,6 @@
 "use server";
 
+import { recordAuditEvent } from "@/lib/audit/events";
 import {
   assertCanAccessMember,
   getCurrentProfile,
@@ -14,6 +15,27 @@ export type BankAccountActionState = {
   error?: string;
   success?: string;
 };
+
+async function recordBankAuditEvent({
+  organizationId,
+  action,
+  bankId,
+  metadata,
+}: {
+  organizationId: string;
+  action: "finance.bank.balance.update" | "finance.bank.delete";
+  bankId: string;
+  metadata?: Record<string, string | number | boolean | null>;
+}) {
+  await recordAuditEvent({
+    organizationId,
+    action,
+    targetType: "bank",
+    targetId: bankId,
+    outcome: "success",
+    metadata,
+  });
+}
 
 async function assertMemberBelongsToOrganization(
   ownerId: string,
@@ -51,7 +73,7 @@ async function assertCanManageBankAccount(
 
   const { data: account, error } = await supabase
     .from("banks")
-    .select("id, owner_id, family_member_id")
+    .select("id, owner_id, family_member_id, current_balance")
     .eq("id", accountId)
     .eq("owner_id", profile.owner_id)
     .eq("organization_id", organization.id)
@@ -194,7 +216,7 @@ export async function updateBankAccount(
     }
 
     const supabase = await createClient();
-    const { error } = await supabase
+    const { error, count } = await supabase
       .from("banks")
       .update({
         family_member_id: input.familyMemberId,
@@ -204,13 +226,30 @@ export async function updateBankAccount(
         currency: input.currency,
         notes: input.notes || null,
         organization_id: organization.id,
-      })
+      }, { count: "exact" })
       .eq("id", id)
       .eq("owner_id", profile.owner_id)
       .eq("organization_id", organization.id);
 
     if (error) {
       return { error: error.message };
+    }
+
+    if (count === 0) {
+      return { error: "Banco nao encontrado." };
+    }
+
+    if (Number(account.current_balance) !== input.currentBalance) {
+      await recordBankAuditEvent({
+        organizationId: organization.id,
+        action: "finance.bank.balance.update",
+        bankId: id,
+        metadata: {
+          previous_balance: Number(account.current_balance),
+          next_balance: input.currentBalance,
+          family_member_id: input.familyMemberId,
+        },
+      });
     }
 
     revalidateOrganizationPaths(["/protected/bancos", "/protected"], organization.slug);
@@ -241,15 +280,15 @@ export async function updateBankAccountBalance(
   }
 
   try {
-    const { profile, organization } = await assertCanManageBankAccount(id, "can_edit");
+    const { profile, organization, account } = await assertCanManageBankAccount(id, "can_edit");
     const supabase = await createClient();
 
-    const { error } = await supabase
+    const { error, count } = await supabase
       .from("banks")
       .update({
         current_balance: currentBalance,
         organization_id: organization.id,
-      })
+      }, { count: "exact" })
       .eq("id", id)
       .eq("owner_id", profile.owner_id)
       .eq("organization_id", organization.id);
@@ -257,6 +296,21 @@ export async function updateBankAccountBalance(
     if (error) {
       return { error: error.message };
     }
+
+    if (count === 0) {
+      return { error: "Banco nao encontrado." };
+    }
+
+    await recordBankAuditEvent({
+      organizationId: organization.id,
+      action: "finance.bank.balance.update",
+      bankId: id,
+      metadata: {
+        previous_balance: Number(account.current_balance),
+        next_balance: currentBalance,
+        family_member_id: String(account.family_member_id),
+      },
+    });
 
     revalidateOrganizationPaths(["/protected/bancos", "/protected"], organization.slug);
 
@@ -292,12 +346,12 @@ export async function deleteBankAccount(
   }
 
   try {
-    const { profile, organization } = await assertCanManageBankAccount(id, "can_delete");
+    const { profile, organization, account } = await assertCanManageBankAccount(id, "can_delete");
     const supabase = await createClient();
 
-    const { error } = await supabase
+    const { error, count } = await supabase
       .from("banks")
-      .delete()
+      .delete({ count: "exact" })
       .eq("id", id)
       .eq("owner_id", profile.owner_id)
       .eq("organization_id", organization.id);
@@ -305,6 +359,19 @@ export async function deleteBankAccount(
     if (error) {
       return { error: error.message };
     }
+
+    if (count !== 1) {
+      return { error: "Banco nao encontrado." };
+    }
+
+    await recordBankAuditEvent({
+      organizationId: organization.id,
+      action: "finance.bank.delete",
+      bankId: id,
+      metadata: {
+        family_member_id: String(account.family_member_id),
+      },
+    });
 
     revalidateOrganizationPaths(["/protected/bancos", "/protected"], organization.slug);
 

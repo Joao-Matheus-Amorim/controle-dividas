@@ -54,6 +54,7 @@ describe("sensitive-action audit event schema plan guards", () => {
     expect(plan).toContain("admin.permission.update");
     expect(plan).toContain("finance.expense.delete");
     expect(plan).toContain("finance.payable.status.update");
+    expect(plan).toContain("finance.bank.balance.update");
     expect(plan).toContain("forbidden metadata examples");
     expect(plan).toContain("passwords");
     expect(plan).toContain("stripe secret keys");
@@ -74,8 +75,9 @@ describe("sensitive-action audit event schema plan guards", () => {
     expect(roadmap).toContain("schema/read-side rls de audit events");
     expect(liveStatus).toContain("schema/read-side rls de audit events");
     expect(gapRegister).toContain("audit event schema/read-side rls");
-    expect(gapRegister).toContain("sensitive-action audit logging runtime");
     expect(gapRegister).toContain("admin permission audit runtime");
     expect(gapRegister).toContain("admin user audit runtime");
+    expect(gapRegister).toContain("bank audit runtime");
+    expect(gapRegister).toContain("rate limiting and data retention runtime controls are not implemented");
   });
 });

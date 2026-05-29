@@ -58,8 +58,8 @@ describe("admin permission audit runtime guards", () => {
     expect(gapRegister).toContain("payable bill audit runtime");
     expect(gapRegister).toContain("receivable income audit runtime");
     expect(gapRegister).toContain("expense audit runtime");
-    expect(gapRegister).toContain("remaining finance audit logging runtime");
-    expect(roadmap).toContain("sem bank audit runtime");
-    expect(liveStatus).toContain("remaining finance audit logging runtime");
+    expect(gapRegister).toContain("bank audit runtime");
+    expect(roadmap).toContain("rate limiting e data retention ainda nao tem runtime implementado");
+    expect(liveStatus).toContain("rate limiting e data retention runtime controls ainda nao foram implementados");
   });
 });

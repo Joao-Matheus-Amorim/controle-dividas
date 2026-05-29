@@ -55,7 +55,7 @@ Initial operation keys should be stable strings, not translated UI labels:
 | Admin users | `admin.user.create`, `admin.user.update`, `admin.user.activate`, `admin.user.deactivate`, `admin.user.delete`, `admin.user.auth_link.sync` |
 | Permissions | `admin.permission.update`, `admin.feature_permission.update` |
 | Finance deletes | `finance.expense.delete`, `finance.payable.delete`, `finance.receivable.delete`, `finance.bank.delete`, `finance.category.delete` |
-| Finance status changes | `finance.payable.status.update`, `finance.receivable.status.update` |
+| Finance status/balance changes | `finance.payable.status.update`, `finance.receivable.status.update`, `finance.bank.balance.update` |
 | Organization membership | `organization.membership.role.update`, `organization.membership.status.update` |
 
 Each runtime PR should add only the keys it actually emits.
