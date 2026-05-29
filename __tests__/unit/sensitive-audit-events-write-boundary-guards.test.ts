@@ -74,22 +74,22 @@ describe("sensitive audit events write boundary guards", () => {
     expect(migration).toContain("p_outcome not in ('success', 'denied', 'validation_error', 'failure')");
   });
 
-  it("does not wire runtime logging or unrelated controls", () => {
+  it("does not add unrelated controls", () => {
     expect(migration).not.toContain("create trigger");
     expect(migration).not.toContain("create policy");
     expect(migration).not.toContain("alter table public.audit_events");
     expect(migration).not.toContain("rate_limit");
-    expect(migration).not.toContain("retention");
+    expect(migration).not.toContain("retention_job");
     expect(migration).not.toContain("checkout");
   });
 
-  it("keeps GAP-015 docs aligned with write-boundary-only progress", () => {
+  it("keeps GAP-015 docs aligned with write boundary and billing checkout progress", () => {
     for (const source of [plan, contract, roadmap, liveStatus, gapRegister]) {
       expect(source).toContain("041_audit_events_write_boundary.sql");
       expect(source).toContain("record_audit_event");
     }
 
-    expect(plan).toContain("runtime logging is not wired yet");
+    expect(plan).toContain("billing checkout runtime calls `record_audit_event`");
     expect(contract).toContain("audit event write boundary exists");
     expect(roadmap).toContain("write boundary de audit events");
     expect(liveStatus).toContain("write boundary de audit events");

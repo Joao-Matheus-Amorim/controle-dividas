@@ -17,15 +17,15 @@ describe("sensitive-action audit event schema plan guards", () => {
   const liveStatus = read("docs/SAAS_RLS_LIVE_STATUS.md");
   const gapRegister = read("docs/SAAS_GAP_REGISTER.md");
 
-  it("keeps audit event schema progress explicit without claiming runtime logging", () => {
+  it("keeps audit event schema progress explicit without claiming broad runtime logging", () => {
     expect(plan).toContain("gap-015");
     expect(plan).toContain("schema migration exists in supabase/migrations/040_audit_events_schema.sql");
     expect(plan).toContain("write boundary exists in supabase/migrations/041_audit_events_write_boundary.sql");
-    expect(plan).toContain("no runtime logging");
+    expect(plan).toContain("billing checkout audit runtime exists");
     expect(plan).toContain("read-side rls exists for organization owner/admin");
     expect(plan).toContain("no insert/update/delete policy for authenticated users");
     expect(plan).toContain("audit event storage is versioned");
-    expect(plan).toContain("audit logging is not implemented yet");
+    expect(plan).toContain("other operation families remain pending");
   });
 
   it("defines the minimum event shape decisions for a future schema PR", () => {

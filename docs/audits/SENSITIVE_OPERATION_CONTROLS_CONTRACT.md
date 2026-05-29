@@ -23,15 +23,15 @@ Related planning documents:
 ```txt
 Audit event schema/read-side RLS exists in supabase/migrations/040_audit_events_schema.sql.
 Audit event write boundary exists in supabase/migrations/041_audit_events_write_boundary.sql via record_audit_event.
-No runtime logging.
+Billing checkout audit runtime exists via record_audit_event.
 No rate limit runtime.
 No data retention runtime.
 No UI change.
-No billing change.
+No billing webhook, portal, or commercial enforcement change.
 No E2E change.
 ```
 
-Runtime controls are not implemented yet. This document exists to prevent later PRs from claiming GAP-015 runtime coverage without a specific implementation surface, validation plan, and rollback plan.
+Non-billing runtime controls are not implemented yet. This document exists to prevent later PRs from claiming GAP-015 runtime coverage without a specific implementation surface, validation plan, and rollback plan.
 
 ## Sensitive operation inventory
 
@@ -115,7 +115,7 @@ GAP-015 should move in this order:
 This contract does not implement:
 
 - rate limiting runtime;
-- audit event runtime logging;
+- non-billing audit event runtime logging;
 - retention jobs;
 - billing webhook or portal behavior;
 - commercial enforcement;

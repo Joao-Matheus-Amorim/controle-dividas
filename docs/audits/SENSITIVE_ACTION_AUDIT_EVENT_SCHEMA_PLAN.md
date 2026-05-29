@@ -13,15 +13,15 @@ It is the next planning slice after `docs/audits/SENSITIVE_OPERATION_CONTROLS_CO
 ```txt
 Schema migration exists in supabase/migrations/040_audit_events_schema.sql.
 Write boundary exists in supabase/migrations/041_audit_events_write_boundary.sql.
-No runtime logging.
+Billing checkout audit runtime exists in app/protected/configuracoes/billing-actions.ts using record_audit_event.
 Read-side RLS exists for organization owner/admin.
 No insert/update/delete policy for authenticated users.
 No UI.
-No billing behavior change.
+No billing webhook, portal, or commercial enforcement change.
 No E2E change.
 ```
 
-Audit event storage is versioned. Audit logging is not implemented yet.
+Audit event storage is versioned. Billing checkout audit logging is implemented; other operation families remain pending.
 
 ## Event shape candidate
 
@@ -91,7 +91,7 @@ The initial audit event storage decision is:
 - Owner/admin members can read events for their organization through RLS.
 - Authenticated users do not receive insert, update, or delete grants.
 - `public.record_audit_event(...)` is the authenticated member-scoped write boundary.
-- Runtime logging is not wired yet.
+- Billing checkout runtime calls `record_audit_event` for checkout session creation and checkout setup failures.
 
 Runtime logging PRs must call the write boundary from one operation family at a time.
 
@@ -101,7 +101,7 @@ Audit logging should be added incrementally:
 
 1. Keep `040_audit_events_schema.sql` as schema/read-side RLS only.
 2. Keep `041_audit_events_write_boundary.sql` as the authenticated write boundary.
-3. Add billing checkout audit events in one PR.
+3. Billing checkout audit runtime is wired through `record_audit_event`.
 4. Add admin user/permission audit events in one PR.
 5. Add destructive finance audit events one family at a time.
 6. Add status-transition audit events after delete coverage is stable.
