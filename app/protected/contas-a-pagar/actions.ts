@@ -76,7 +76,7 @@ async function assertCanManagePayableBill(
 
   const { data: bill, error } = await supabase
     .from("payable_bills")
-    .select("id, owner_id, responsible_member_id")
+    .select("id, owner_id, responsible_member_id, status")
     .eq("id", billId)
     .eq("owner_id", profile.owner_id)
     .eq("organization_id", organization.id)
@@ -268,6 +268,19 @@ export async function updatePayableBill(
 
     if (error) {
       return { error: error.message };
+    }
+
+    if (String(bill.status) !== input.status) {
+      await recordPayableBillAuditEvent({
+        organizationId: organization.id,
+        action: "finance.payable.status.update",
+        billId: id,
+        metadata: {
+          previous_status: String(bill.status),
+          next_status: input.status,
+          responsible_member_id: input.responsibleMemberId,
+        },
+      });
     }
 
     revalidateOrganizationPaths(["/protected/contas-a-pagar", "/protected"], organization.slug);
