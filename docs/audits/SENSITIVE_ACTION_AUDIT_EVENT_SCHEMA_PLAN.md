@@ -4,24 +4,23 @@ GAP: GAP-015
 
 ## Purpose
 
-This document defines the planning contract for sensitive-action audit event schema and redaction before any migration or runtime logging exists.
+This document defines the contract for sensitive-action audit event schema and redaction.
 
 It is the next planning slice after `docs/audits/SENSITIVE_OPERATION_CONTROLS_CONTRACT.md`.
 
 ## Current status
 
 ```txt
-Planning only.
-No audit_events table.
-No migration.
+Schema migration exists in supabase/migrations/040_audit_events_schema.sql.
 No runtime logging.
-No RLS policy.
+Read-side RLS exists for organization owner/admin.
+No insert/update/delete policy for authenticated users.
 No UI.
 No billing behavior change.
 No E2E change.
 ```
 
-Audit logging is not implemented yet.
+Audit event storage is versioned. Audit logging is not implemented yet.
 
 ## Event shape candidate
 
@@ -83,35 +82,35 @@ Forbidden metadata examples:
 - free-form notes;
 - full before/after row snapshots.
 
-## Access and RLS planning
+## Access and RLS decision
 
-The audit event storage decision must be made in a dedicated schema PR.
+The initial audit event storage decision is:
 
-Before runtime logging, that PR must define:
+- `public.audit_events` stores sensitive-action audit event summaries.
+- Owner/admin members can read events for their organization through RLS.
+- Authenticated users do not receive insert, update, or delete grants.
+- No runtime writes exist yet.
+- Future runtime logging must choose an explicit write boundary before emitting events.
 
-- whether users can read their own organization audit events;
-- whether only owner/admin can read audit events;
-- whether service-role writes are required;
-- insert policy or RPC boundary;
-- retention period;
-- backfill behavior, if any;
-- rollback path for the table/RPC/policies.
+The write boundary remains open until a dedicated runtime logging PR defines service-role writes, an RPC boundary, or another explicit server-side mechanism.
 
 ## Runtime sequencing
 
 Audit logging should be added incrementally:
 
-1. Create schema/RLS/RPC or write boundary in one PR.
-2. Add billing checkout audit events in one PR.
-3. Add admin user/permission audit events in one PR.
-4. Add destructive finance audit events one family at a time.
-5. Add status-transition audit events after delete coverage is stable.
+1. Keep `040_audit_events_schema.sql` as schema/read-side RLS only.
+2. Define the runtime write boundary in one PR.
+3. Add billing checkout audit events in one PR.
+4. Add admin user/permission audit events in one PR.
+5. Add destructive finance audit events one family at a time.
+6. Add status-transition audit events after delete coverage is stable.
 
 ## Acceptance
 
 A future audit logging PR must:
 
 - reference this plan;
+- preserve `040_audit_events_schema.sql` or document the migration replacement;
 - implement one operation family at a time;
 - prove actor and organization are resolved server-side;
 - prove forbidden metadata is not logged;
