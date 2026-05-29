@@ -78,6 +78,6 @@ describe("sensitive-action audit event schema plan guards", () => {
     expect(gapRegister).toContain("admin permission audit runtime");
     expect(gapRegister).toContain("admin user audit runtime");
     expect(gapRegister).toContain("bank audit runtime");
-    expect(gapRegister).toContain("rate limiting and data retention runtime controls are not implemented");
+    expect(gapRegister).toContain("remaining category-delete audit logging runtime, rate limiting, and data retention runtime controls are not implemented");
   });
 });
