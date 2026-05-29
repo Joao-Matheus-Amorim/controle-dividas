@@ -9,10 +9,16 @@ import type { PermissionAction } from "@/lib/finance/permissions";
 import type { PayableBillFormState, PayableBillType } from "@/lib/finance/server";
 import { revalidateOrganizationPaths } from "@/lib/organizations/revalidation";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
+import { checkSensitiveOperationRateLimit } from "@/lib/security/sensitive-rate-limit";
 import { createClient } from "@/lib/supabase/server";
 
 const payableBillTypes: PayableBillType[] = ["avulsa", "fixa"];
 const payableBillStatuses = ["pago", "pendente", "atrasado"] as const;
+const payableDeleteRateLimit = {
+  operationKey: "finance.payable.delete",
+  limit: 5,
+  windowMs: 10 * 60 * 1000,
+};
 
 export type PayableBillActionState = {
   error?: string;
@@ -23,11 +29,13 @@ async function recordPayableBillAuditEvent({
   organizationId,
   action,
   billId,
+  outcome = "success",
   metadata,
 }: {
   organizationId: string;
   action: "finance.payable.status.update" | "finance.payable.delete";
   billId: string;
+  outcome?: "success" | "denied";
   metadata?: Record<string, string | number | boolean | null>;
 }) {
   await recordAuditEvent({
@@ -35,7 +43,7 @@ async function recordPayableBillAuditEvent({
     action,
     targetType: "payable_bill",
     targetId: billId,
-    outcome: "success",
+    outcome,
     metadata,
   });
 }
@@ -369,17 +377,43 @@ export async function deletePayableBill(
 
   try {
     const { profile, organization, bill } = await assertCanManagePayableBill(id, "can_delete");
+    const rateLimit = checkSensitiveOperationRateLimit({
+      ...payableDeleteRateLimit,
+      actorKey: profile.id,
+      organizationId: organization.id,
+      targetKey: id,
+    });
+
+    if (!rateLimit.allowed) {
+      await recordPayableBillAuditEvent({
+        organizationId: organization.id,
+        action: "finance.payable.delete",
+        billId: id,
+        outcome: "denied",
+        metadata: {
+          status: "rate_limited",
+          responsible_member_id: String(bill.responsible_member_id),
+        },
+      });
+
+      return { error: "Muitas tentativas de exclusao. Tente novamente em alguns minutos." };
+    }
+
     const supabase = await createClient();
 
-    const { error } = await supabase
+    const { error, count } = await supabase
       .from("payable_bills")
-      .delete()
+      .delete({ count: "exact" })
       .eq("id", id)
       .eq("owner_id", profile.owner_id)
       .eq("organization_id", organization.id);
 
     if (error) {
       return { error: error.message };
+    }
+
+    if (count !== 1) {
+      return { error: "Conta nao encontrada." };
     }
 
     await recordPayableBillAuditEvent({

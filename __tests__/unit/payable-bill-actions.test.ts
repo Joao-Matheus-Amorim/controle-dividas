@@ -24,7 +24,11 @@ const mockState = vi.hoisted(() => ({
     organization_id: "org-1",
   } as Record<string, unknown> | null,
   insertError: null as { message: string } | null,
+  deleteCount: 1 as number | null,
+  deleteError: null as { message: string } | null,
   accessError: null as Error | null,
+  rateLimitAllowed: true,
+  rateLimitChecks: [] as Array<Record<string, unknown>>,
   auditEvents: [] as Array<Record<string, unknown>>,
 }));
 
@@ -62,6 +66,10 @@ function makeQuery(table: string) {
         mockState.deletedIds.push(String(value));
       }
 
+      if (deleteMode && key === "organization_id") {
+        return Promise.resolve({ error: mockState.deleteError, count: mockState.deleteCount });
+      }
+
       return query;
     },
     or(expression: string) {
@@ -92,7 +100,11 @@ function makeQuery(table: string) {
       updatePayload = payload;
       return query;
     },
-    delete() {
+    delete(options?: Record<string, unknown>) {
+      if (options?.count !== "exact") {
+        throw new Error("Expected exact delete count");
+      }
+
       deleteMode = true;
       return query;
     },
@@ -148,6 +160,16 @@ vi.mock("@/lib/finance/access-control", () => ({
   }),
 }));
 
+vi.mock("@/lib/security/sensitive-rate-limit", () => ({
+  checkSensitiveOperationRateLimit: vi.fn((input: Record<string, unknown>) => {
+    mockState.rateLimitChecks.push(input);
+
+    return mockState.rateLimitAllowed
+      ? { allowed: true, remaining: 4, resetAt: 1000 }
+      : { allowed: false, retryAfterMs: 1000, resetAt: 1000 };
+  }),
+}));
+
 describe("payable bill actions", () => {
   beforeEach(() => {
     mockState.insertedPayloads = [];
@@ -164,7 +186,11 @@ describe("payable bill actions", () => {
       organization_id: "org-1",
     };
     mockState.insertError = null;
+    mockState.deleteCount = 1;
+    mockState.deleteError = null;
     mockState.accessError = null;
+    mockState.rateLimitAllowed = true;
+    mockState.rateLimitChecks = [];
     mockState.auditEvents = [];
   });
 
@@ -439,6 +465,14 @@ describe("payable bill actions", () => {
     }));
 
     expect(result).toEqual({ success: "Conta excluida com sucesso." });
+    expect(mockState.rateLimitChecks).toEqual([
+      expect.objectContaining({
+        operationKey: "finance.payable.delete",
+        actorKey: "profile-1",
+        organizationId: "org-1",
+        targetKey: "bill-1",
+      }),
+    ]);
     expect(mockState.deletedIds).toEqual(["bill-1"]);
     expect(mockState.auditEvents).toEqual([
       expect.objectContaining({
@@ -452,5 +486,47 @@ describe("payable bill actions", () => {
         },
       }),
     ]);
+  });
+
+  it("does not delete payable bill when the delete rate limit blocks the action", async () => {
+    const { deletePayableBill } = await import("@/app/protected/contas-a-pagar/actions");
+    mockState.rateLimitAllowed = false;
+
+    const result = await deletePayableBill({}, createFormData({
+      id: "bill-1",
+      confirm_delete: "confirmado",
+    }));
+
+    expect(result).toEqual({
+      error: "Muitas tentativas de exclusao. Tente novamente em alguns minutos.",
+    });
+    expect(mockState.deletedIds).toHaveLength(0);
+    expect(mockState.auditEvents).toEqual([
+      expect.objectContaining({
+        p_organization_id: "org-1",
+        p_action: "finance.payable.delete",
+        p_target_type: "payable_bill",
+        p_target_id: "bill-1",
+        p_outcome: "denied",
+        p_metadata: {
+          status: "rate_limited",
+          responsible_member_id: "member-1",
+        },
+      }),
+    ]);
+  });
+
+  it("does not audit payable bill delete when no row was deleted", async () => {
+    const { deletePayableBill } = await import("@/app/protected/contas-a-pagar/actions");
+    mockState.deleteCount = 0;
+
+    const result = await deletePayableBill({}, createFormData({
+      id: "bill-1",
+      confirm_delete: "confirmado",
+    }));
+
+    expect(result).toEqual({ error: "Conta nao encontrada." });
+    expect(mockState.deletedIds).toEqual(["bill-1"]);
+    expect(mockState.auditEvents).toHaveLength(0);
   });
 });
