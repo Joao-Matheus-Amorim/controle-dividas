@@ -6,8 +6,15 @@ import { recordAuditEvent, type AuditEventOutcome } from "@/lib/audit/events";
 import { createStripeCheckoutSession } from "@/lib/billing/stripe-checkout";
 import { getOrgPathFromProtectedPath } from "@/lib/organizations/paths";
 import { requireOrganizationAdmin } from "@/lib/organizations/server";
+import { checkSensitiveOperationRateLimit } from "@/lib/security/sensitive-rate-limit";
 import { createClient } from "@/lib/supabase/server";
 import type { BillingPlanKey } from "@/lib/billing/plans";
+
+const billingCheckoutRateLimit = {
+  operationKey: "billing.checkout.start",
+  limit: 5,
+  windowMs: 10 * 60 * 1000,
+};
 
 async function getCurrentUserEmail() {
   const supabase = await createClient();
@@ -59,7 +66,26 @@ export async function startBillingCheckout(
   plan: BillingPlanKey,
   orgSlug?: string,
 ): Promise<void> {
-  const { organization } = await requireOrganizationAdmin(orgSlug);
+  const { organization, membership } = await requireOrganizationAdmin(orgSlug);
+  const rateLimit = checkSensitiveOperationRateLimit({
+    ...billingCheckoutRateLimit,
+    actorKey: membership.auth_user_id,
+    organizationId: organization.id,
+    targetKey: plan,
+  });
+
+  if (!rateLimit.allowed) {
+    await recordBillingCheckoutAuditEvent({
+      organizationId: organization.id,
+      action: "billing.checkout.failed",
+      outcome: "denied",
+      plan,
+      status: "rate_limited",
+    });
+
+    redirectToSettings(orgSlug, "rate_limited");
+  }
+
   const customerEmail = await getCurrentUserEmail();
   const session = await createStripeCheckoutSession({
     plan,

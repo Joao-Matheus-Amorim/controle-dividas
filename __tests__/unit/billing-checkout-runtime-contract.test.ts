@@ -47,13 +47,12 @@ describe("billing checkout runtime contract", () => {
     expect(component).toContain("checkoutready");
   });
 
-  it("does not implement webhook, portal, schema, RLS, or commercial enforcement", () => {
+  it("does not implement webhook, portal, schema, RLS, retention, or commercial enforcement", () => {
     for (const source of [checkoutHelper, action, component]) {
       expect(source).not.toContain("billing portal");
       expect(source).not.toContain("alter table");
       expect(source).not.toContain("create policy");
       expect(source).not.toContain("stripe.webhooks");
-      expect(source).not.toContain("rate_limit");
       expect(source).not.toContain("retention");
     }
   });
