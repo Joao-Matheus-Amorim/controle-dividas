@@ -20,11 +20,11 @@ describe("sensitive operation controls contract guards", () => {
     expect(contract).toContain("gap-015");
     expect(contract).toContain("audit event schema/read-side rls exists in supabase/migrations/040_audit_events_schema.sql");
     expect(contract).toContain("audit event write boundary exists in supabase/migrations/041_audit_events_write_boundary.sql");
-    expect(contract).toContain("no runtime logging");
+    expect(contract).toContain("billing checkout audit runtime exists");
     expect(contract).toContain("no rate limit runtime");
     expect(contract).toContain("no data retention runtime");
     expect(contract).toContain("no ui change");
-    expect(contract).toContain("no billing change");
+    expect(contract).toContain("no billing webhook, portal, or commercial enforcement change");
     expect(contract).toContain("no e2e change");
     expect(contract).toContain("runtime controls are not implemented yet");
   });

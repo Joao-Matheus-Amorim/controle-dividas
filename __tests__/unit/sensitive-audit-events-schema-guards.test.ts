@@ -81,7 +81,7 @@ describe("sensitive audit events schema guards", () => {
       expect(source).toContain("040_audit_events_schema.sql");
     }
 
-    expect(plan).toContain("no runtime logging");
+    expect(plan).toContain("billing checkout audit runtime exists");
     expect(plan).toContain("no insert/update/delete policy for authenticated users");
     expect(contract).toContain("audit event runtime logging");
     expect(roadmap).toContain("schema/read-side rls de audit events");

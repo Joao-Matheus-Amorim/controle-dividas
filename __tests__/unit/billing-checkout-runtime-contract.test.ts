@@ -21,6 +21,7 @@ describe("billing checkout runtime contract", () => {
   it("creates checkout sessions from server-resolved organization context", () => {
     expect(action).toContain("requireorganizationadmin(orgslug)");
     expect(action).toContain("createstripecheckoutsession");
+    expect(action).toContain("recordbillingcheckoutauditevent");
     expect(action).not.toContain("organization_id");
     expect(checkoutHelper).toContain("client_reference_id: organization.id");
     expect(checkoutHelper).toContain("organization.stripe_customer_id");
@@ -52,6 +53,8 @@ describe("billing checkout runtime contract", () => {
       expect(source).not.toContain("alter table");
       expect(source).not.toContain("create policy");
       expect(source).not.toContain("stripe.webhooks");
+      expect(source).not.toContain("rate_limit");
+      expect(source).not.toContain("retention");
     }
   });
 
