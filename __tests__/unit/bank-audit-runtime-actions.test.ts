@@ -181,6 +181,19 @@ describe("bank audit runtime actions", () => {
     ]);
   });
 
+  it("does not record bank balance audit event when the quick balance value is unchanged", async () => {
+    const { updateBankAccountBalance } = await import("@/app/protected/bancos/actions");
+
+    const result = await updateBankAccountBalance(createFormData({
+      id: "bank-1",
+      current_balance: "100",
+    }));
+
+    expect(result).toEqual({ success: "Saldo atualizado com sucesso." });
+    expect(mockState.updatedRows).toHaveLength(1);
+    expect(mockState.auditEvents).toHaveLength(0);
+  });
+
   it("records bank balance audit event from the full edit form", async () => {
     const { updateBankAccount } = await import("@/app/protected/bancos/actions");
 
@@ -204,6 +217,36 @@ describe("bank audit runtime actions", () => {
         },
       }),
     ]);
+  });
+
+  it("does not record bank balance audit event when the full edit balance value is unchanged", async () => {
+    const { updateBankAccount } = await import("@/app/protected/bancos/actions");
+
+    const result = await updateBankAccount({}, createFormData({
+      id: "bank-1",
+      family_member_id: "member-1",
+      bank_name: "Wise",
+      current_balance: "100",
+      currency: "EUR",
+    }));
+
+    expect(result).toEqual({ success: "Banco atualizado com sucesso." });
+    expect(mockState.updatedRows).toHaveLength(1);
+    expect(mockState.auditEvents).toHaveLength(0);
+  });
+
+  it("does not record bank balance audit event when no row was updated", async () => {
+    const { updateBankAccountBalance } = await import("@/app/protected/bancos/actions");
+    mockState.mutationCount = 0;
+
+    const result = await updateBankAccountBalance(createFormData({
+      id: "bank-1",
+      current_balance: "125.50",
+    }));
+
+    expect(result).toEqual({ error: "Banco nao encontrado." });
+    expect(mockState.updatedRows).toHaveLength(1);
+    expect(mockState.auditEvents).toHaveLength(0);
   });
 
   it("records bank delete audit event only after an exact row delete", async () => {

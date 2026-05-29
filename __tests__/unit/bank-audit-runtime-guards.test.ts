@@ -21,7 +21,11 @@ describe("bank audit runtime guards", () => {
     expect(actions).toContain("recordbankauditevent");
     expect(actions).toContain("finance.bank.balance.update");
     expect(actions).toContain("finance.bank.delete");
+    expect(actions).toContain('update({');
+    expect(actions).toContain('{ count: "exact" }');
     expect(actions).toContain('delete({ count: "exact" })');
+    expect(actions).toContain("if (count !== 1)");
+    expect(actions).toContain("number(account.current_balance) !== currentbalance");
     expect(actions).toContain('targettype: "bank"');
     expect(actions).toContain('outcome: "success"');
   });

@@ -62,7 +62,7 @@ describe("sensitive operation controls contract guards", () => {
       expect(source).toContain("data retention");
     }
 
-    expect(gapRegister).toContain("rate limiting and data retention runtime controls are not implemented");
+    expect(gapRegister).toContain("remaining category-delete audit logging runtime, rate limiting, and data retention runtime controls are not implemented");
     expect(roadmap).toContain("write boundary de audit events");
     expect(liveStatus).toContain("data retention runtime controls ainda nao foram implementados");
   });

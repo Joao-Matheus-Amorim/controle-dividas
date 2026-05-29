@@ -40,7 +40,7 @@ describe("payable bill audit runtime guards", () => {
     }
 
     expect(gapRegister).toContain("bank audit runtime");
-    expect(roadmap).toContain("rate limiting e data retention ainda nao tem runtime implementado");
-    expect(liveStatus).toContain("rate limiting e data retention runtime controls ainda nao foram implementados");
+    expect(roadmap).toContain("category-delete audit logging, rate limiting e data retention ainda nao tem runtime implementado");
+    expect(liveStatus).toContain("category-delete audit logging, rate limiting e data retention runtime controls ainda nao foram implementados");
   });
 });
