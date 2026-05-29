@@ -265,7 +265,7 @@ Ainda nao foi feito:
 - Execucao real dedicada do E2E `RUN_ORGSLUG_E2E=true` para registrar evidencia verde de `/org/[orgSlug]`;
 - conta Stripe de teste/credenciais e evidencia real de checkout;
 - webhook/portal Stripe, assinatura sincronizada e enforcement comercial;
-- rate limiting, remaining sensitive-action audit logging e data retention runtime controls;
+- rate limiting e data retention runtime controls;
 - remocao de `owner_id`;
 - down migrations automatizadas.
 
@@ -280,7 +280,7 @@ Ordem segura:
 3. executar E2E especifico para troca de organizacao ativa com usuario multi-org dedicado;
 4. rodar E2E dedicado para rotas por `orgSlug` seguindo ADR 0007 quando o ambiente dedicado estiver configurado;
 5. billing apenas depois de isolamento/UX estarem maduros;
-6. planejar GAP-015 por issues separadas antes de runtime de rate limiting, remaining audit events ou retention;
+6. planejar GAP-015 por issues separadas antes de runtime de rate limiting ou retention;
 7. remocao de `owner_id` apenas em gate futuro apos schema/read-path final e rollback.
 
 ## 11. Regra de manutencao

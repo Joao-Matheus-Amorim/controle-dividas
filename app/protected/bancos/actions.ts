@@ -235,7 +235,7 @@ export async function updateBankAccount(
       return { error: error.message };
     }
 
-    if (count === 0) {
+    if (count !== 1) {
       return { error: "Banco nao encontrado." };
     }
 
@@ -296,19 +296,21 @@ export async function updateBankAccountBalance(
       return { error: error.message };
     }
 
-    if (count === 0) {
+    if (count !== 1) {
       return { error: "Banco nao encontrado." };
     }
 
-    await recordBankAuditEvent({
-      organizationId: organization.id,
-      action: "finance.bank.balance.update",
-      bankId: id,
-      metadata: {
-        balance_changed: true,
-        family_member_id: String(account.family_member_id),
-      },
-    });
+    if (Number(account.current_balance) !== currentBalance) {
+      await recordBankAuditEvent({
+        organizationId: organization.id,
+        action: "finance.bank.balance.update",
+        bankId: id,
+        metadata: {
+          balance_changed: true,
+          family_member_id: String(account.family_member_id),
+        },
+      });
+    }
 
     revalidateOrganizationPaths(["/protected/bancos", "/protected"], organization.slug);
 
