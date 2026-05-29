@@ -21,7 +21,13 @@ describe("payable bill audit runtime guards", () => {
     expect(actions).toContain("finance.payable.status.update");
     expect(actions).toContain("finance.payable.delete");
     expect(actions).toContain('targettype: "payable_bill"');
-    expect(actions).toContain('outcome: "success"');
+    expect(actions).toContain('outcome = "success"');
+    expect(actions).toContain("checksensitiveoperationratelimit");
+    expect(actions).toContain('operationkey: "finance.payable.delete"');
+    expect(actions).toContain('delete({ count: "exact" })');
+    expect(actions).toContain("if (count !== 1)");
+    expect(actions).toContain('outcome: "denied"');
+    expect(actions).toContain("rate_limited");
   });
 
   it("keeps emitted metadata redacted and small", () => {
@@ -42,7 +48,8 @@ describe("payable bill audit runtime guards", () => {
     expect(gapRegister).toContain("bank audit runtime");
     expect(gapRegister).toContain("category delete audit runtime");
     expect(gapRegister).toContain("billing checkout rate limit runtime");
-    expect(roadmap).toContain("broader rate limiting e data retention ainda nao tem runtime implementado");
-    expect(liveStatus).toContain("broader rate limiting e data retention runtime controls ainda nao foram implementados");
+    expect(gapRegister).toContain("payable delete rate limit runtime");
+    expect(roadmap).toContain("remaining broader rate limiting e data retention ainda nao tem runtime implementado");
+    expect(liveStatus).toContain("remaining broader rate limiting e data retention runtime controls ainda nao foram implementados");
   });
 });
