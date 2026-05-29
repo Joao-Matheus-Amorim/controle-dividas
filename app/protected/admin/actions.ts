@@ -1,5 +1,6 @@
 "use server";
 
+import { recordAuditEvent } from "@/lib/audit/events";
 import { ensureAdminProfile } from "@/lib/finance/admin-server";
 import type { PermissionFormState, ProfileFormState } from "@/lib/finance/admin-types";
 import {
@@ -36,6 +37,30 @@ function getAllowedMemberIds(formData: FormData, moduleKey: FinanceModuleKey) {
 
 function isFeatureEnabled(formData: FormData, featureKey: FeaturePermissionKey) {
   return formData.get(`${featureKey}.is_enabled`) === "on";
+}
+
+async function recordAdminPermissionAuditEvent({
+  organizationId,
+  action,
+  profileId,
+  changedCount,
+}: {
+  organizationId: string;
+  action: "admin.permission.update" | "admin.feature_permission.update";
+  profileId: string;
+  changedCount: number;
+}) {
+  await recordAuditEvent({
+    organizationId,
+    action,
+    targetType: "profile",
+    targetId: profileId,
+    outcome: "success",
+    metadata: {
+      profile_id: profileId,
+      changed_count: changedCount,
+    },
+  });
 }
 
 function normalizeAccessModel(value: string) {
@@ -562,6 +587,13 @@ export async function saveProfilePermissions(
 
   if (error) return { error: error.message };
 
+  await recordAdminPermissionAuditEvent({
+    organizationId: organization.id,
+    action: "admin.permission.update",
+    profileId,
+    changedCount: rows.length,
+  });
+
   revalidateOrganizationPaths(
     ["/protected/admin", "/protected/admin/permissoes"],
     organization.slug,
@@ -607,6 +639,13 @@ export async function saveProfileFeaturePermissions(
     .upsert(rows, { onConflict: "profile_id,feature_key" });
 
   if (error) return { error: error.message };
+
+  await recordAdminPermissionAuditEvent({
+    organizationId: organization.id,
+    action: "admin.feature_permission.update",
+    profileId,
+    changedCount: rows.length,
+  });
 
   revalidateOrganizationPaths(
     ["/protected/admin", "/protected/admin/permissoes"],

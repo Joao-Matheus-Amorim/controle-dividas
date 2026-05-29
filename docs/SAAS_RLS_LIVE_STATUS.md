@@ -35,7 +35,7 @@ Isso significa:
 - checkout runtime usa Stripe Checkout Session para owner/admin da organizacao resolvida no servidor;
 - evidencia real de checkout Stripe ainda esta pendente porque nao ha conta Stripe de teste/credenciais configuradas;
 - webhook, portal, assinatura sincronizada e enforcement comercial ainda nao foram implementados.
-- GAP-015 possui contrato de planejamento em `docs/audits/SENSITIVE_OPERATION_CONTROLS_CONTRACT.md`, plano de schema/redaction em `docs/audits/SENSITIVE_ACTION_AUDIT_EVENT_SCHEMA_PLAN.md`, schema/read-side RLS de audit events em `supabase/migrations/040_audit_events_schema.sql`, write boundary de audit events em `supabase/migrations/041_audit_events_write_boundary.sql` via `record_audit_event`, billing checkout audit runtime em `app/protected/configuracoes/billing-actions.ts` sem webhook, portal, rate limit ou retention, plano de rate limiting em `docs/audits/SENSITIVE_OPERATION_RATE_LIMIT_PLAN.md` e plano de data retention em `docs/audits/SENSITIVE_DATA_RETENTION_PLAN.md`, mas rate limiting, non-billing sensitive-action audit logging runtime e data retention runtime controls ainda nao foram implementados.
+- GAP-015 possui contrato de planejamento em `docs/audits/SENSITIVE_OPERATION_CONTROLS_CONTRACT.md`, plano de schema/redaction em `docs/audits/SENSITIVE_ACTION_AUDIT_EVENT_SCHEMA_PLAN.md`, schema/read-side RLS de audit events em `supabase/migrations/040_audit_events_schema.sql`, write boundary de audit events em `supabase/migrations/041_audit_events_write_boundary.sql` via `record_audit_event`, billing checkout audit runtime em `app/protected/configuracoes/billing-actions.ts` sem webhook, portal, rate limit ou retention, admin permission audit runtime em `app/protected/admin/actions.ts`, plano de rate limiting em `docs/audits/SENSITIVE_OPERATION_RATE_LIMIT_PLAN.md` e plano de data retention em `docs/audits/SENSITIVE_DATA_RETENTION_PLAN.md`, mas rate limiting, admin user lifecycle audit logging runtime, finance audit logging runtime e data retention runtime controls ainda nao foram implementados.
 
 ## 3. Migrations SaaS/RLS/hardening atuais
 
@@ -265,7 +265,7 @@ Ainda nao foi feito:
 - Execucao real dedicada do E2E `RUN_ORGSLUG_E2E=true` para registrar evidencia verde de `/org/[orgSlug]`;
 - conta Stripe de teste/credenciais e evidencia real de checkout;
 - webhook/portal Stripe, assinatura sincronizada e enforcement comercial;
-- rate limiting, sensitive-action audit logging e data retention runtime controls;
+- rate limiting, remaining sensitive-action audit logging e data retention runtime controls;
 - remocao de `owner_id`;
 - down migrations automatizadas.
 
@@ -280,7 +280,7 @@ Ordem segura:
 3. executar E2E especifico para troca de organizacao ativa com usuario multi-org dedicado;
 4. rodar E2E dedicado para rotas por `orgSlug` seguindo ADR 0007 quando o ambiente dedicado estiver configurado;
 5. billing apenas depois de isolamento/UX estarem maduros;
-6. planejar GAP-015 por issues separadas antes de runtime de rate limiting, audit events ou retention;
+6. planejar GAP-015 por issues separadas antes de runtime de rate limiting, remaining audit events ou retention;
 7. remocao de `owner_id` apenas em gate futuro apos schema/read-path final e rollback.
 
 ## 11. Regra de manutencao

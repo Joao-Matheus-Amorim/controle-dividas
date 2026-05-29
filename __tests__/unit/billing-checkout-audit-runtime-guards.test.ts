@@ -51,13 +51,13 @@ describe("billing checkout audit runtime guards", () => {
     }
   });
 
-  it("keeps live docs aligned with billing-checkout-only audit runtime", () => {
+  it("keeps live docs aligned with billing checkout audit runtime", () => {
     for (const source of [schemaPlan, controlsContract, roadmap, liveStatus, gapRegister]) {
       expect(source).toContain("billing checkout audit runtime");
       expect(source).toContain("record_audit_event");
     }
 
-    expect(gapRegister).toContain("non-billing sensitive-action audit logging runtime");
+    expect(gapRegister).toContain("remaining sensitive-action audit logging runtime");
     expect(roadmap).toContain("sem webhook, portal, rate limit ou retention");
     expect(liveStatus).toContain("sem webhook, portal, rate limit ou retention");
   });

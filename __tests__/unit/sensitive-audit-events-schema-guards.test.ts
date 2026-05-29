@@ -85,7 +85,7 @@ describe("sensitive audit events schema guards", () => {
     expect(plan).toContain("no insert/update/delete policy for authenticated users");
     expect(contract).toContain("audit event runtime logging");
     expect(roadmap).toContain("schema/read-side rls de audit events");
-    expect(liveStatus).toContain("sensitive-action audit logging runtime");
-    expect(gapRegister).toContain("sensitive-action audit logging runtime");
+    expect(liveStatus).toContain("remaining sensitive-action audit logging");
+    expect(gapRegister).toContain("remaining sensitive-action audit logging runtime");
   });
 });

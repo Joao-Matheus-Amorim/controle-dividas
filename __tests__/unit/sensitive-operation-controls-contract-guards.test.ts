@@ -21,12 +21,13 @@ describe("sensitive operation controls contract guards", () => {
     expect(contract).toContain("audit event schema/read-side rls exists in supabase/migrations/040_audit_events_schema.sql");
     expect(contract).toContain("audit event write boundary exists in supabase/migrations/041_audit_events_write_boundary.sql");
     expect(contract).toContain("billing checkout audit runtime exists");
+    expect(contract).toContain("admin permission audit runtime exists");
     expect(contract).toContain("no rate limit runtime");
     expect(contract).toContain("no data retention runtime");
     expect(contract).toContain("no ui change");
     expect(contract).toContain("no billing webhook, portal, or commercial enforcement change");
     expect(contract).toContain("no e2e change");
-    expect(contract).toContain("runtime controls are not implemented yet");
+    expect(contract).toContain("remaining runtime controls are not implemented yet");
   });
 
   it("keeps the three GAP-015 control families explicit", () => {
@@ -60,8 +61,8 @@ describe("sensitive operation controls contract guards", () => {
       expect(source).toContain("data retention");
     }
 
-    expect(gapRegister).toContain("runtime controls are not implemented");
+    expect(gapRegister).toContain("data retention runtime controls are not implemented");
     expect(roadmap).toContain("write boundary de audit events");
-    expect(liveStatus).toContain("runtime controls ainda nao foram implementados");
+    expect(liveStatus).toContain("data retention runtime controls ainda nao foram implementados");
   });
 });
