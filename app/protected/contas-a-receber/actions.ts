@@ -1,5 +1,6 @@
 "use server";
 
+import { recordAuditEvent } from "@/lib/audit/events";
 import {
   assertCanAccessMember,
   getCurrentProfile,
@@ -17,6 +18,27 @@ export type ReceivableIncomeActionState = {
   error?: string;
   success?: string;
 };
+
+async function recordReceivableIncomeAuditEvent({
+  organizationId,
+  action,
+  incomeId,
+  metadata,
+}: {
+  organizationId: string;
+  action: "finance.receivable.status.update" | "finance.receivable.delete";
+  incomeId: string;
+  metadata?: Record<string, string | number | boolean | null>;
+}) {
+  await recordAuditEvent({
+    organizationId,
+    action,
+    targetType: "receivable_income",
+    targetId: incomeId,
+    outcome: "success",
+    metadata,
+  });
+}
 
 async function assertReceiverMemberBelongsToOrganization(
   ownerId: string,
@@ -54,7 +76,7 @@ async function assertCanManageReceivableIncome(
 
   const { data: income, error } = await supabase
     .from("receivable_incomes")
-    .select("id, owner_id, receiver_member_id")
+    .select("id, owner_id, receiver_member_id, status")
     .eq("id", incomeId)
     .eq("owner_id", profile.owner_id)
     .eq("organization_id", organization.id)
@@ -238,6 +260,19 @@ export async function updateReceivableIncome(
       return { error: error.message };
     }
 
+    if (String(income.status) !== input.status) {
+      await recordReceivableIncomeAuditEvent({
+        organizationId: organization.id,
+        action: "finance.receivable.status.update",
+        incomeId: id,
+        metadata: {
+          previous_status: String(income.status),
+          next_status: input.status,
+          receiver_member_id: input.receiverMemberId,
+        },
+      });
+    }
+
     revalidateOrganizationPaths(["/protected/contas-a-receber", "/protected"], organization.slug);
 
     return { success: "Recebimento atualizado com sucesso." };
@@ -266,7 +301,7 @@ export async function updateReceivableIncomeStatus(
   }
 
   try {
-    const { profile, organization } = await assertCanManageReceivableIncome(id, "can_edit");
+    const { profile, organization, income } = await assertCanManageReceivableIncome(id, "can_edit");
     const supabase = await createClient();
 
     const { error } = await supabase
@@ -282,6 +317,16 @@ export async function updateReceivableIncomeStatus(
     if (error) {
       return { error: error.message };
     }
+
+    await recordReceivableIncomeAuditEvent({
+      organizationId: organization.id,
+      action: "finance.receivable.status.update",
+      incomeId: id,
+      metadata: {
+        next_status: status,
+        receiver_member_id: String(income.receiver_member_id),
+      },
+    });
 
     revalidateOrganizationPaths(["/protected/contas-a-receber", "/protected"], organization.slug);
 
@@ -317,7 +362,7 @@ export async function deleteReceivableIncome(
   }
 
   try {
-    const { profile, organization } = await assertCanManageReceivableIncome(id, "can_delete");
+    const { profile, organization, income } = await assertCanManageReceivableIncome(id, "can_delete");
     const supabase = await createClient();
 
     const { error } = await supabase
@@ -330,6 +375,15 @@ export async function deleteReceivableIncome(
     if (error) {
       return { error: error.message };
     }
+
+    await recordReceivableIncomeAuditEvent({
+      organizationId: organization.id,
+      action: "finance.receivable.delete",
+      incomeId: id,
+      metadata: {
+        receiver_member_id: String(income.receiver_member_id),
+      },
+    });
 
     revalidateOrganizationPaths(["/protected/contas-a-receber", "/protected"], organization.slug);
 

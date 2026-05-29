@@ -10,33 +10,34 @@ function read(path: string) {
     .toLowerCase();
 }
 
-describe("payable bill audit runtime guards", () => {
-  const actions = read("app/protected/contas-a-pagar/actions.ts");
+describe("receivable income audit runtime guards", () => {
+  const actions = read("app/protected/contas-a-receber/actions.ts");
   const roadmap = read("docs/SAAS_OPERATIONAL_ROADMAP.md");
   const liveStatus = read("docs/SAAS_RLS_LIVE_STATUS.md");
   const gapRegister = read("docs/SAAS_GAP_REGISTER.md");
 
-  it("records payable status and delete events through the audit write boundary", () => {
-    expect(actions).toContain("recordpayablebillauditevent");
-    expect(actions).toContain("finance.payable.status.update");
-    expect(actions).toContain("finance.payable.delete");
-    expect(actions).toContain('targettype: "payable_bill"');
+  it("records receivable status and delete events through the audit write boundary", () => {
+    expect(actions).toContain("recordreceivableincomeauditevent");
+    expect(actions).toContain("finance.receivable.status.update");
+    expect(actions).toContain("finance.receivable.delete");
+    expect(actions).toContain('targettype: "receivable_income"');
     expect(actions).toContain('outcome: "success"');
   });
 
   it("keeps emitted metadata redacted and small", () => {
+    expect(actions).toContain("previous_status");
     expect(actions).toContain("next_status");
-    expect(actions).toContain("responsible_member_id");
+    expect(actions).toContain("receiver_member_id");
     expect(actions).not.toContain("full_payload");
     expect(actions).not.toContain("raw_payload");
     expect(actions).not.toContain("full financial payload");
   });
 
-  it("keeps docs aligned with payable audit runtime and remaining finance work", () => {
+  it("keeps docs aligned with receivable audit runtime and remaining finance work", () => {
     for (const source of [roadmap, liveStatus, gapRegister]) {
-      expect(source).toContain("payable bill audit runtime");
-      expect(source).toContain("finance.payable.status.update");
-      expect(source).toContain("finance.payable.delete");
+      expect(source).toContain("receivable income audit runtime");
+      expect(source).toContain("finance.receivable.status.update");
+      expect(source).toContain("finance.receivable.delete");
     }
 
     expect(gapRegister).toContain("remaining finance audit logging runtime");
