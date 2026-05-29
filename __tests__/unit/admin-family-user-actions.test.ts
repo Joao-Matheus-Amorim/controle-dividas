@@ -14,12 +14,14 @@ const mockState = vi.hoisted(() => ({
   profileLookup: {
     id: "profile-1",
     role: "user",
+    is_active: true,
   } as Record<string, unknown> | null,
   profileLookupError: null as { message: string } | null,
   updatedPayloads: [] as Array<Record<string, unknown>>,
   deletedIds: [] as string[],
   updateError: null as { message: string } | null,
   deleteError: null as { message: string } | null,
+  recordAuditEvent: vi.fn(async () => true),
 }));
 
 function createFormData(values: Record<string, string>) {
@@ -140,7 +142,7 @@ vi.mock("@/lib/finance/admin-server", () => ({
 }));
 
 vi.mock("@/lib/audit/events", () => ({
-  recordAuditEvent: vi.fn(async () => true),
+  recordAuditEvent: mockState.recordAuditEvent,
 }));
 
 vi.mock("@/lib/finance/permissions", () => ({
@@ -155,12 +157,14 @@ describe("admin family user actions", () => {
     mockState.profileLookup = {
       id: "profile-1",
       role: "user",
+      is_active: true,
     };
     mockState.profileLookupError = null;
     mockState.updatedPayloads = [];
     mockState.deletedIds = [];
     mockState.updateError = null;
     mockState.deleteError = null;
+    mockState.recordAuditEvent.mockClear();
   });
 
   it("returns explicit validation error when updating without email", async () => {
@@ -181,6 +185,7 @@ describe("admin family user actions", () => {
     mockState.profileLookup = {
       id: "admin-profile-1",
       role: "admin",
+      is_active: true,
     };
 
     const result = await toggleFamilyUserStatus(createFormData({
@@ -230,6 +235,55 @@ describe("admin family user actions", () => {
         owner_id: "owner-1",
         organization_id: "org-1",
       }),
+    }));
+  });
+
+  it("blocks stale status forms before updating or recording audit events", async () => {
+    const { toggleFamilyUserStatus } = await import("@/app/protected/admin/actions");
+    mockState.profileLookup = {
+      id: "profile-1",
+      role: "user",
+      is_active: false,
+    };
+
+    const result = await toggleFamilyUserStatus(createFormData({
+      id: "profile-1",
+      is_active: "true",
+    }));
+
+    expect(result).toEqual({ error: "O status deste acesso mudou. Atualize a pagina e tente novamente." });
+    expect(mockState.updatedPayloads).toHaveLength(0);
+    expect(mockState.recordAuditEvent).not.toHaveBeenCalled();
+  });
+
+  it("derives status update and audit event from persisted profile state", async () => {
+    const { toggleFamilyUserStatus } = await import("@/app/protected/admin/actions");
+    mockState.profileLookup = {
+      id: "profile-1",
+      role: "user",
+      is_active: true,
+    };
+
+    const result = await toggleFamilyUserStatus(createFormData({
+      id: "profile-1",
+      is_active: "true",
+    }));
+
+    expect(result).toEqual({ success: "Acesso familiar desativado com sucesso." });
+    expect(lastUpdatePayload()).toEqual(expect.objectContaining({
+      is_active: false,
+      organization_id: "org-1",
+    }));
+    expect(mockState.recordAuditEvent).toHaveBeenCalledWith(expect.objectContaining({
+      organizationId: "org-1",
+      action: "admin.user.deactivate",
+      targetType: "profile",
+      targetId: "profile-1",
+      outcome: "success",
+      metadata: {
+        previous_active: true,
+        next_active: false,
+      },
     }));
   });
 

@@ -560,9 +560,12 @@ export async function deleteFamilyUserFormAction(formData: FormData): Promise<vo
 
 export async function toggleFamilyUserStatus(formData: FormData): Promise<FamilyUserActionState> {
   const id = String(formData.get("id") ?? "");
-  const isActive = String(formData.get("is_active") ?? "true") === "true";
+  const submittedActiveValue = String(formData.get("is_active") ?? "");
 
   if (!id) return { error: "Acesso familiar nao encontrado." };
+  if (!["true", "false"].includes(submittedActiveValue)) {
+    return { error: "Status do acesso familiar invalido." };
+  }
 
   const supabase = await createClient();
   const adminProfile = await ensureAdminProfile();
@@ -570,7 +573,7 @@ export async function toggleFamilyUserStatus(formData: FormData): Promise<Family
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("id, role")
+    .select("id, role, is_active")
     .eq("id", id)
     .eq("owner_id", adminProfile.owner_id)
     .eq("organization_id", organization.id)
@@ -580,9 +583,17 @@ export async function toggleFamilyUserStatus(formData: FormData): Promise<Family
   if (!profile) return { error: "Acesso familiar nao encontrado." };
   if (profile.role === "admin") return { error: "Nao e possivel alterar o status do Admin familiar." };
 
+  const currentActive = profile.is_active === true;
+  const submittedActive = submittedActiveValue === "true";
+  if (currentActive !== submittedActive) {
+    return { error: "O status deste acesso mudou. Atualize a pagina e tente novamente." };
+  }
+
+  const nextActive = !currentActive;
+
   const { error } = await supabase
     .from("profiles")
-    .update({ is_active: !isActive, organization_id: organization.id })
+    .update({ is_active: nextActive, organization_id: organization.id })
     .eq("id", id)
     .eq("owner_id", adminProfile.owner_id)
     .eq("organization_id", organization.id);
@@ -591,10 +602,11 @@ export async function toggleFamilyUserStatus(formData: FormData): Promise<Family
 
   await recordAdminUserAuditEvent({
     organizationId: organization.id,
-    action: isActive ? "admin.user.deactivate" : "admin.user.activate",
+    action: currentActive ? "admin.user.deactivate" : "admin.user.activate",
     profileId: id,
     metadata: {
-      next_active: !isActive,
+      previous_active: currentActive,
+      next_active: nextActive,
     },
   });
 
@@ -603,7 +615,7 @@ export async function toggleFamilyUserStatus(formData: FormData): Promise<Family
     organization.slug,
   );
 
-  return { success: isActive ? "Acesso familiar desativado com sucesso." : "Acesso familiar ativado com sucesso." };
+  return { success: currentActive ? "Acesso familiar desativado com sucesso." : "Acesso familiar ativado com sucesso." };
 }
 
 export async function toggleFamilyUserStatusFormAction(formData: FormData): Promise<void> {
