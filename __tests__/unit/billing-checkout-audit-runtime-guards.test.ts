@@ -58,7 +58,8 @@ describe("billing checkout audit runtime guards", () => {
     }
 
     expect(gapRegister).toContain("bank audit runtime");
-    expect(gapRegister).toContain("remaining category-delete audit logging runtime, rate limiting, and data retention runtime controls are not implemented");
+    expect(gapRegister).toContain("category delete audit runtime");
+    expect(gapRegister).toContain("rate limiting and data retention runtime controls are not implemented");
     expect(roadmap).toContain("sem webhook, portal, rate limit ou retention");
     expect(liveStatus).toContain("sem webhook, portal, rate limit ou retention");
   });
