@@ -14,6 +14,7 @@ It is the next planning slice after `docs/audits/SENSITIVE_OPERATION_CONTROLS_CO
 Schema migration exists in supabase/migrations/040_audit_events_schema.sql.
 Write boundary exists in supabase/migrations/041_audit_events_write_boundary.sql.
 Billing checkout audit runtime exists in app/protected/configuracoes/billing-actions.ts using record_audit_event.
+Admin permission audit runtime exists in app/protected/admin/actions.ts using record_audit_event.
 Read-side RLS exists for organization owner/admin.
 No insert/update/delete policy for authenticated users.
 No UI.
@@ -21,7 +22,7 @@ No billing webhook, portal, or commercial enforcement change.
 No E2E change.
 ```
 
-Audit event storage is versioned. Billing checkout audit logging is implemented; other operation families remain pending.
+Audit event storage is versioned. Billing checkout and admin permission audit logging are implemented; other operation families remain pending.
 
 ## Event shape candidate
 
@@ -92,6 +93,7 @@ The initial audit event storage decision is:
 - Authenticated users do not receive insert, update, or delete grants.
 - `public.record_audit_event(...)` is the authenticated member-scoped write boundary.
 - Billing checkout runtime calls `record_audit_event` for checkout session creation and checkout setup failures.
+- Admin permission runtime calls `record_audit_event` for module and feature permission updates.
 
 Runtime logging PRs must call the write boundary from one operation family at a time.
 
@@ -102,7 +104,7 @@ Audit logging should be added incrementally:
 1. Keep `040_audit_events_schema.sql` as schema/read-side RLS only.
 2. Keep `041_audit_events_write_boundary.sql` as the authenticated write boundary.
 3. Billing checkout audit runtime is wired through `record_audit_event`.
-4. Add admin user/permission audit events in one PR.
+4. Admin permission audit runtime is wired through `record_audit_event`; admin user lifecycle audit events remain pending.
 5. Add destructive finance audit events one family at a time.
 6. Add status-transition audit events after delete coverage is stable.
 

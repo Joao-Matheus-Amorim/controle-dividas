@@ -22,6 +22,7 @@ describe("sensitive-action audit event schema plan guards", () => {
     expect(plan).toContain("schema migration exists in supabase/migrations/040_audit_events_schema.sql");
     expect(plan).toContain("write boundary exists in supabase/migrations/041_audit_events_write_boundary.sql");
     expect(plan).toContain("billing checkout audit runtime exists");
+    expect(plan).toContain("admin permission audit runtime exists");
     expect(plan).toContain("read-side rls exists for organization owner/admin");
     expect(plan).toContain("no insert/update/delete policy for authenticated users");
     expect(plan).toContain("audit event storage is versioned");
@@ -73,5 +74,6 @@ describe("sensitive-action audit event schema plan guards", () => {
     expect(liveStatus).toContain("schema/read-side rls de audit events");
     expect(gapRegister).toContain("audit event schema/read-side rls");
     expect(gapRegister).toContain("sensitive-action audit logging runtime");
+    expect(gapRegister).toContain("admin permission audit runtime");
   });
 });
