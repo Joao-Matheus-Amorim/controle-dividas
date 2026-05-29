@@ -24,6 +24,9 @@ describe("payable bill audit runtime guards", () => {
     expect(actions).toContain('outcome = "success"');
     expect(actions).toContain("checksensitiveoperationratelimit");
     expect(actions).toContain('operationkey: "finance.payable.delete"');
+    expect(actions).toContain("actorkey: profile.id");
+    expect(actions).toContain("organizationid: organization.id");
+    expect(actions).not.toContain("targetkey: id");
     expect(actions).toContain('delete({ count: "exact" })');
     expect(actions).toContain("if (count !== 1)");
     expect(actions).toContain('outcome: "denied"');
