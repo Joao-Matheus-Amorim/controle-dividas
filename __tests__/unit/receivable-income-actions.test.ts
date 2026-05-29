@@ -16,6 +16,7 @@ const mockState = vi.hoisted(() => ({
     id: "income-1",
     owner_id: "owner-1",
     receiver_member_id: "member-1",
+    status: "previsto",
   } as Record<string, unknown> | null,
   memberLookup: {
     id: "member-1",
@@ -24,6 +25,7 @@ const mockState = vi.hoisted(() => ({
   updateError: null as { message: string } | null,
   deleteError: null as { message: string } | null,
   accessError: null as Error | null,
+  auditEvents: [] as Array<Record<string, unknown>>,
 }));
 
 function createFormData(values: Record<string, string>) {
@@ -107,6 +109,14 @@ function makeQuery(table: string) {
 
 function makeSupabaseClient() {
   return {
+    rpc(name: string, payload: Record<string, unknown>) {
+      if (name !== "record_audit_event") {
+        throw new Error(`Unexpected rpc: ${name}`);
+      }
+
+      mockState.auditEvents.push(payload);
+      return Promise.resolve({ error: null });
+    },
     from(table: string) {
       if (!["receivable_incomes", "family_members"].includes(table)) {
         throw new Error(`Unexpected table: ${table}`);
@@ -152,6 +162,7 @@ describe("receivable income actions", () => {
       id: "income-1",
       owner_id: "owner-1",
       receiver_member_id: "member-1",
+      status: "previsto",
     };
     mockState.memberLookup = {
       id: "member-1",
@@ -160,6 +171,7 @@ describe("receivable income actions", () => {
     mockState.updateError = null;
     mockState.deleteError = null;
     mockState.accessError = null;
+    mockState.auditEvents = [];
   });
 
   it("blocks status update with invalid status", async () => {
@@ -205,6 +217,49 @@ describe("receivable income actions", () => {
       organization_id: "org-1",
       filters: expect.objectContaining({ id: "income-1", owner_id: "owner-1" }),
     }));
+    expect(mockState.auditEvents).toEqual([
+      expect.objectContaining({
+        p_organization_id: "org-1",
+        p_action: "finance.receivable.status.update",
+        p_target_type: "receivable_income",
+        p_target_id: "income-1",
+        p_outcome: "success",
+        p_metadata: {
+          next_status: "recebido",
+          receiver_member_id: "member-1",
+        },
+      }),
+    ]);
+  });
+
+  it("records status audit event when full receivable edit changes status", async () => {
+    const { updateReceivableIncome } = await import("@/app/protected/contas-a-receber/actions");
+
+    const result = await updateReceivableIncome({}, createFormData({
+      id: "income-1",
+      receiver_member_id: "member-1",
+      source: "Salario",
+      income_type: "fixa",
+      amount: "1800",
+      expected_date: "2026-05-31",
+      status: "recebido",
+    }));
+
+    expect(result).toEqual({ success: "Recebimento atualizado com sucesso." });
+    expect(mockState.auditEvents).toEqual([
+      expect.objectContaining({
+        p_organization_id: "org-1",
+        p_action: "finance.receivable.status.update",
+        p_target_type: "receivable_income",
+        p_target_id: "income-1",
+        p_outcome: "success",
+        p_metadata: {
+          previous_status: "previsto",
+          next_status: "recebido",
+          receiver_member_id: "member-1",
+        },
+      }),
+    ]);
   });
 
   it("returns permission errors for delete instead of swallowing them", async () => {
@@ -240,5 +295,17 @@ describe("receivable income actions", () => {
 
     expect(result).toEqual({ success: "Recebimento excluido com sucesso." });
     expect(mockState.deletedIds).toEqual(["income-1"]);
+    expect(mockState.auditEvents).toEqual([
+      expect.objectContaining({
+        p_organization_id: "org-1",
+        p_action: "finance.receivable.delete",
+        p_target_type: "receivable_income",
+        p_target_id: "income-1",
+        p_outcome: "success",
+        p_metadata: {
+          receiver_member_id: "member-1",
+        },
+      }),
+    ]);
   });
 });
