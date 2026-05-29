@@ -44,11 +44,24 @@ describe("admin user audit runtime guards", () => {
     expect(actions).toContain("default_permission_count");
     expect(actions).toContain("fields_changed");
     expect(actions).toContain("auth_linked");
+    expect(actions).toContain("previous_active");
     expect(actions).toContain("next_active");
     expect(actions).not.toContain("password");
     expect(actions).not.toContain("service_role");
     expect(actions).not.toContain("raw_payload");
     expect(actions).not.toContain("full_payload");
+  });
+
+  it("derives status lifecycle events from persisted profile state", () => {
+    const statusStart = actions.indexOf("export async function togglefamilyuserstatus");
+    const statusBody = actions.slice(statusStart);
+
+    expect(statusBody).toContain('.select("id, role, is_active")');
+    expect(statusBody).toContain('formdata.get("is_active")');
+    expect(statusBody).toContain("const currentactive = profile.is_active === true");
+    expect(statusBody).toContain('if (currentactive !== submittedactive)');
+    expect(statusBody).toContain("const nextactive = !currentactive");
+    expect(statusBody).toContain('action: currentactive ? "admin.user.deactivate" : "admin.user.activate"');
   });
 
   it("keeps docs aligned with admin user audit runtime and remaining GAP-015 work", () => {
