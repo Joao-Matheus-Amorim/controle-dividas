@@ -27,7 +27,14 @@ describe("bank audit runtime guards", () => {
     expect(actions).toContain("if (count !== 1)");
     expect(actions).toContain("number(account.current_balance) !== currentbalance");
     expect(actions).toContain('targettype: "bank"');
-    expect(actions).toContain('outcome: "success"');
+    expect(actions).toContain('outcome = "success"');
+    expect(actions).toContain("checksensitiveoperationratelimit");
+    expect(actions).toContain('operationkey: "finance.bank.delete"');
+    expect(actions).toContain("actorkey: profile.id");
+    expect(actions).toContain("organizationid: organization.id");
+    expect(actions).not.toContain("targetkey: id");
+    expect(actions).toContain('outcome: "denied"');
+    expect(actions).toContain("rate_limited");
   });
 
   it("keeps emitted metadata redacted and small", () => {
@@ -48,6 +55,7 @@ describe("bank audit runtime guards", () => {
 
     for (const source of [roadmap, liveStatus, gapRegister]) {
       expect(source).toContain("bank audit runtime");
+      expect(source).toContain("bank delete rate limit runtime");
       expect(source).toContain("rate limiting");
       expect(source).toContain("data retention");
     }

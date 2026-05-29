@@ -24,6 +24,8 @@ const mockState = vi.hoisted(() => ({
   deletedRows: [] as Array<{ table: string; filters: Record<string, unknown> }>,
   mutationCount: 1 as number | null,
   mutationError: null as { message: string } | null,
+  rateLimitAllowed: true,
+  rateLimitChecks: [] as Array<Record<string, unknown>>,
   auditEvents: [] as Array<Record<string, unknown>>,
 }));
 
@@ -138,6 +140,16 @@ vi.mock("@/lib/finance/access-control", () => ({
   assertCanAccessMember: vi.fn(async () => true),
 }));
 
+vi.mock("@/lib/security/sensitive-rate-limit", () => ({
+  checkSensitiveOperationRateLimit: vi.fn((input: Record<string, unknown>) => {
+    mockState.rateLimitChecks.push(input);
+
+    return mockState.rateLimitAllowed
+      ? { allowed: true, remaining: 4, resetAt: 1000 }
+      : { allowed: false, retryAfterMs: 1000, resetAt: 1000 };
+  }),
+}));
+
 describe("bank audit runtime actions", () => {
   beforeEach(() => {
     mockState.bankLookup = {
@@ -154,6 +166,8 @@ describe("bank audit runtime actions", () => {
     mockState.deletedRows = [];
     mockState.mutationCount = 1;
     mockState.mutationError = null;
+    mockState.rateLimitAllowed = true;
+    mockState.rateLimitChecks = [];
     mockState.auditEvents = [];
   });
 
@@ -257,6 +271,15 @@ describe("bank audit runtime actions", () => {
     }));
 
     expect(result).toEqual({ success: "Banco excluido com sucesso." });
+    expect(mockState.rateLimitChecks).toEqual([
+      {
+        operationKey: "finance.bank.delete",
+        limit: 5,
+        windowMs: 10 * 60 * 1000,
+        actorKey: "profile-1",
+        organizationId: "org-1",
+      },
+    ]);
     expect(mockState.deletedRows).toHaveLength(1);
     expect(mockState.auditEvents).toEqual([
       expect.objectContaining({
@@ -283,5 +306,32 @@ describe("bank audit runtime actions", () => {
     expect(result).toEqual({ error: "Banco nao encontrado." });
     expect(mockState.deletedRows).toHaveLength(1);
     expect(mockState.auditEvents).toHaveLength(0);
+  });
+
+  it("does not delete bank account when the delete rate limit blocks the action", async () => {
+    const { deleteBankAccount } = await import("@/app/protected/bancos/actions");
+    mockState.rateLimitAllowed = false;
+
+    const result = await deleteBankAccount(createFormData({
+      id: "bank-1",
+    }));
+
+    expect(result).toEqual({
+      error: "Muitas tentativas de exclusao. Tente novamente em alguns minutos.",
+    });
+    expect(mockState.deletedRows).toHaveLength(0);
+    expect(mockState.auditEvents).toEqual([
+      expect.objectContaining({
+        p_organization_id: "org-1",
+        p_action: "finance.bank.delete",
+        p_target_type: "bank",
+        p_target_id: "bank-1",
+        p_outcome: "denied",
+        p_metadata: {
+          status: "rate_limited",
+          family_member_id: "member-1",
+        },
+      }),
+    ]);
   });
 });

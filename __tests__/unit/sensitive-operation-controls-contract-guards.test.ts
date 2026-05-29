@@ -25,6 +25,7 @@ describe("sensitive operation controls contract guards", () => {
     expect(contract).toContain("expense delete rate limit runtime exists");
     expect(contract).toContain("payable delete rate limit runtime exists");
     expect(contract).toContain("receivable delete rate limit runtime exists");
+    expect(contract).toContain("bank delete rate limit runtime exists");
     expect(contract).toContain("admin permission audit runtime exists");
     expect(contract).toContain("admin user audit runtime exists");
     expect(contract).toContain("no data retention runtime");
@@ -70,6 +71,7 @@ describe("sensitive operation controls contract guards", () => {
     expect(gapRegister).toContain("expense delete rate limit runtime");
     expect(gapRegister).toContain("payable delete rate limit runtime");
     expect(gapRegister).toContain("receivable delete rate limit runtime");
+    expect(gapRegister).toContain("bank delete rate limit runtime");
     expect(gapRegister).toContain("remaining broader rate limiting and data retention runtime controls are not implemented");
     expect(roadmap).toContain("write boundary de audit events");
     expect(liveStatus).toContain("data retention runtime controls ainda nao foram implementados");
