@@ -27,8 +27,10 @@ describe("expense category audit runtime guards", () => {
   });
 
   it("keeps emitted metadata redacted and small", () => {
-    expect(actions).not.toContain("previous");
-    expect(actions).not.toContain("next");
+    expect(actions).not.toContain("previous_value");
+    expect(actions).not.toContain("next_value");
+    expect(actions).not.toContain("before");
+    expect(actions).not.toContain("after");
     expect(actions).not.toContain("full_payload");
     expect(actions).not.toContain("raw_payload");
     expect(actions).not.toContain("full financial payload");
