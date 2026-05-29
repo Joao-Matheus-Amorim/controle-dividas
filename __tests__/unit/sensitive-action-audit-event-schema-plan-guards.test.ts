@@ -20,6 +20,7 @@ describe("sensitive-action audit event schema plan guards", () => {
   it("keeps audit event schema progress explicit without claiming runtime logging", () => {
     expect(plan).toContain("gap-015");
     expect(plan).toContain("schema migration exists in supabase/migrations/040_audit_events_schema.sql");
+    expect(plan).toContain("write boundary exists in supabase/migrations/041_audit_events_write_boundary.sql");
     expect(plan).toContain("no runtime logging");
     expect(plan).toContain("read-side rls exists for organization owner/admin");
     expect(plan).toContain("no insert/update/delete policy for authenticated users");
@@ -63,6 +64,8 @@ describe("sensitive-action audit event schema plan guards", () => {
     for (const source of [contract, roadmap, liveStatus, gapRegister]) {
       expect(source).toContain("docs/audits/sensitive_action_audit_event_schema_plan.md");
       expect(source).toContain("040_audit_events_schema.sql");
+      expect(source).toContain("041_audit_events_write_boundary.sql");
+      expect(source).toContain("record_audit_event");
     }
 
     expect(contract).toContain("when changing audit event behavior");

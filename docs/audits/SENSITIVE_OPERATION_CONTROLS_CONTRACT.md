@@ -22,6 +22,7 @@ Related planning documents:
 
 ```txt
 Audit event schema/read-side RLS exists in supabase/migrations/040_audit_events_schema.sql.
+Audit event write boundary exists in supabase/migrations/041_audit_events_write_boundary.sql via record_audit_event.
 No runtime logging.
 No rate limit runtime.
 No data retention runtime.
@@ -104,7 +105,7 @@ Destructive retention work must not be bundled with unrelated runtime, RLS, bill
 GAP-015 should move in this order:
 
 1. Create planning issues for rate limits, audit events, and retention policy.
-2. Define the audit event schema and redaction model using `docs/audits/SENSITIVE_ACTION_AUDIT_EVENT_SCHEMA_PLAN.md` and `supabase/migrations/040_audit_events_schema.sql`.
+2. Define the audit event schema and redaction model using `docs/audits/SENSITIVE_ACTION_AUDIT_EVENT_SCHEMA_PLAN.md`, `supabase/migrations/040_audit_events_schema.sql`, and `supabase/migrations/041_audit_events_write_boundary.sql` via `record_audit_event`.
 3. Implement rate limits for one server boundary at a time using `docs/audits/SENSITIVE_OPERATION_RATE_LIMIT_PLAN.md`.
 4. Add audit logging for one sensitive operation family at a time.
 5. Define retention policy before any destructive cleanup automation using `docs/audits/SENSITIVE_DATA_RETENTION_PLAN.md`.
