@@ -40,11 +40,10 @@ describe("billing checkout audit runtime guards", () => {
     expect(auditHelper).not.toContain("service_role");
   });
 
-  it("keeps checkout runtime free of webhook, portal, rate limit, and retention work", () => {
+  it("keeps checkout audit runtime free of webhook, portal, and retention work", () => {
     for (const source of [action, auditHelper]) {
       expect(source).not.toContain("stripe.webhooks");
       expect(source).not.toContain("billing portal");
-      expect(source).not.toContain("rate_limit");
       expect(source).not.toContain("retention");
       expect(source).not.toContain("setinterval");
       expect(source).not.toContain("cron");
@@ -59,8 +58,9 @@ describe("billing checkout audit runtime guards", () => {
 
     expect(gapRegister).toContain("bank audit runtime");
     expect(gapRegister).toContain("category delete audit runtime");
-    expect(gapRegister).toContain("rate limiting and data retention runtime controls are not implemented");
-    expect(roadmap).toContain("sem webhook, portal, rate limit ou retention");
-    expect(liveStatus).toContain("sem webhook, portal, rate limit ou retention");
+    expect(gapRegister).toContain("billing checkout rate limit runtime");
+    expect(gapRegister).toContain("remaining broader rate limiting and data retention runtime controls are not implemented");
+    expect(roadmap).toContain("sem webhook, portal ou retention");
+    expect(liveStatus).toContain("sem webhook, portal ou retention");
   });
 });

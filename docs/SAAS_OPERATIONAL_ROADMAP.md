@@ -102,7 +102,7 @@ A limpeza final de policies antigas owner/family foi versionada em:
 - O runbook de conta Stripe de teste esta em `docs/runbooks/BILLING_STRIPE_TEST_ACCOUNT_RUNBOOK.md`.
 - Checkout runtime esta implementado em `lib/billing/stripe-checkout.ts` e `app/protected/configuracoes/billing-actions.ts`, sem webhook, portal ou enforcement comercial.
 - Evidencia real de checkout Stripe ainda esta pendente porque nao ha conta Stripe de teste/credenciais configuradas.
-- O contrato de planejamento para GAP-015 esta documentado em `docs/audits/SENSITIVE_OPERATION_CONTROLS_CONTRACT.md`, com schema/read-side RLS de audit events em `supabase/migrations/040_audit_events_schema.sql`, write boundary de audit events em `supabase/migrations/041_audit_events_write_boundary.sql` via `record_audit_event`, billing checkout audit runtime em `app/protected/configuracoes/billing-actions.ts`, admin permission audit runtime e admin user audit runtime em `app/protected/admin/actions.ts`, payable bill audit runtime em `app/protected/contas-a-pagar/actions.ts` para `finance.payable.status.update` e `finance.payable.delete`, receivable income audit runtime em `app/protected/contas-a-receber/actions.ts` para `finance.receivable.status.update` e `finance.receivable.delete`, expense audit runtime em `app/protected/gastos/actions.ts` para `finance.expense.delete`, category delete audit runtime em `app/protected/configuracoes/actions.ts` para `finance.category.delete`, bank audit runtime em `app/protected/bancos/actions.ts` para `finance.bank.balance.update` e `finance.bank.delete`, plano de rate limiting em `docs/audits/SENSITIVE_OPERATION_RATE_LIMIT_PLAN.md` e plano de data retention em `docs/audits/SENSITIVE_DATA_RETENTION_PLAN.md`; rate limiting e data retention ainda nao tem runtime implementado.
+- O contrato de planejamento para GAP-015 esta documentado em `docs/audits/SENSITIVE_OPERATION_CONTROLS_CONTRACT.md`, com schema/read-side RLS de audit events em `supabase/migrations/040_audit_events_schema.sql`, write boundary de audit events em `supabase/migrations/041_audit_events_write_boundary.sql` via `record_audit_event`, billing checkout audit runtime e billing checkout rate limit runtime em `app/protected/configuracoes/billing-actions.ts`, admin permission audit runtime e admin user audit runtime em `app/protected/admin/actions.ts`, payable bill audit runtime em `app/protected/contas-a-pagar/actions.ts` para `finance.payable.status.update` e `finance.payable.delete`, receivable income audit runtime em `app/protected/contas-a-receber/actions.ts` para `finance.receivable.status.update` e `finance.receivable.delete`, expense audit runtime em `app/protected/gastos/actions.ts` para `finance.expense.delete`, category delete audit runtime em `app/protected/configuracoes/actions.ts` para `finance.category.delete`, bank audit runtime em `app/protected/bancos/actions.ts` para `finance.bank.balance.update` e `finance.bank.delete`, plano de rate limiting em `docs/audits/SENSITIVE_OPERATION_RATE_LIMIT_PLAN.md` e plano de data retention em `docs/audits/SENSITIVE_DATA_RETENTION_PLAN.md`; broader rate limiting e data retention ainda nao tem runtime implementado.
 - RLS Live Gate existe em `.github/workflows/rls-live-gate.yml` e ja gera GitHub Step Summary + artifact `rls-live-gate-evidence-*`, mas ainda precisa de vars/secrets e execucao dedicada para virar evidencia verde de CI.
 
 ## 3. Estado de fechamento e gaps reais antes de declarar 100% coerente
@@ -230,7 +230,8 @@ Resultado atual:
 - plano de schema/redaction para audit events documentado em `docs/audits/SENSITIVE_ACTION_AUDIT_EVENT_SCHEMA_PLAN.md`;
 - schema/read-side RLS de audit events versionado em `supabase/migrations/040_audit_events_schema.sql`;
 - write boundary de audit events versionado em `supabase/migrations/041_audit_events_write_boundary.sql` via `record_audit_event`;
-- billing checkout audit runtime versionado em `app/protected/configuracoes/billing-actions.ts`, sem webhook, portal, rate limit ou retention;
+- billing checkout audit runtime versionado em `app/protected/configuracoes/billing-actions.ts`, sem webhook, portal ou retention;
+- billing checkout rate limit runtime versionado em `app/protected/configuracoes/billing-actions.ts` para `billing.checkout.start` via `lib/security/sensitive-rate-limit.ts`, com storage em memoria de processo, limpeza de buckets expirados e rollback por `DISABLE_SENSITIVE_RATE_LIMITS=true`;
 - admin permission audit runtime versionado em `app/protected/admin/actions.ts` para module e feature permission updates via `record_audit_event`;
 - admin user audit runtime versionado em `app/protected/admin/actions.ts` para create, update, auth link sync, activate/deactivate e delete via `record_audit_event`;
 - payable bill audit runtime versionado em `app/protected/contas-a-pagar/actions.ts` para `finance.payable.status.update` e `finance.payable.delete` via `record_audit_event`;
@@ -241,7 +242,7 @@ Resultado atual:
 - plano de rate limiting documentado em `docs/audits/SENSITIVE_OPERATION_RATE_LIMIT_PLAN.md`;
 - plano de data retention documentado em `docs/audits/SENSITIVE_DATA_RETENTION_PLAN.md`;
 - inventario inicial de operacoes sensiveis documentado;
-- limites explicitos: sem rate limit runtime, data retention runtime, UI, billing ou E2E neste passo;
+- limites explicitos: sem broader rate limit runtime, data retention runtime, UI, billing ou E2E neste passo;
 - sequenciamento definido para issues/PRs dedicados antes de qualquer implementacao.
 
 Resultado esperado:

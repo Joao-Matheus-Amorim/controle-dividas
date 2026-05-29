@@ -11,11 +11,10 @@ It follows `docs/audits/SENSITIVE_OPERATION_CONTROLS_CONTRACT.md` and complement
 ## Current status
 
 ```txt
-Planning only.
-No rate limit runtime.
-No storage dependency.
+Billing checkout rate limit runtime exists for `billing.checkout.start`.
+Storage is process-local memory for the first runtime step, with expired buckets evicted before new tracking.
+Rollback is `DISABLE_SENSITIVE_RATE_LIMITS=true`.
 No middleware change.
-No Server Action wrapper.
 No schema change.
 No RLS change.
 No UI change.
@@ -23,7 +22,7 @@ No billing behavior change.
 No E2E change.
 ```
 
-Rate limiting is not implemented yet.
+Rate limiting is implemented only for billing checkout start attempts.
 
 ## Control model
 
@@ -38,7 +37,7 @@ Every future rate limit implementation must define:
 | Window | Fixed, sliding, or token-bucket window with explicit duration. |
 | Threshold | Maximum attempts allowed in the window. |
 | Response | Safe user-facing error and server-side outcome category. |
-| Storage | Explicit backend decision before runtime. |
+| Storage | Explicit backend decision before runtime. The first runtime uses process-local memory with expired bucket cleanup and must not be treated as durable abuse prevention. |
 | Bypass | Explicit internal/admin bypass policy, if any. |
 | Rollback | How to disable or relax the limiter without data loss. |
 
@@ -95,15 +94,15 @@ Before implementation, choose and document one storage model:
 | External cache | Better for short windows, but needs operational dependency and env handling. |
 | Platform limiter | Acceptable only if limits can include actor and organization dimensions. |
 
-No runtime limiter should be added until the storage model and rollback path are explicit.
+The first runtime limiter uses process-local memory to keep the rollout schema-free and reversible. It sweeps expired buckets before tracking new traffic so long-lived processes do not retain stale actor/organization/target entries forever. This is acceptable for the initial billing checkout boundary because it is low blast-radius, authenticated, organization-scoped, and protected by `DISABLE_SENSITIVE_RATE_LIMITS=true` rollback. Broader or public-auth limits still need a durable/cache-backed storage decision before implementation.
 
 ## Sequencing
 
 Rate limiting should move in this order:
 
-1. Choose storage model and disable/rollback mechanism.
-2. Implement public auth flow limits or billing checkout limit in one PR.
-3. Add focused tests for allowed, blocked, and reset-window behavior.
+1. Billing checkout limit in one PR using process-local memory and `DISABLE_SENSITIVE_RATE_LIMITS=true` rollback.
+2. Add focused tests for allowed, blocked, and reset-window behavior.
+3. Expand to durable/cache-backed storage before public auth flow limits.
 4. Add audit outcome events after audit event storage exists.
 5. Expand to admin mutations.
 6. Expand to destructive finance actions.
@@ -112,11 +111,8 @@ Rate limiting should move in this order:
 
 This plan does not implement:
 
-- limiter middleware;
-- Server Action wrappers;
 - storage tables;
 - external cache configuration;
-- audit events;
 - UI copy changes;
 - billing checkout behavior changes;
 - E2E coverage.

@@ -17,14 +17,17 @@ describe("sensitive operation rate limit plan guards", () => {
   const liveStatus = read("docs/SAAS_RLS_LIVE_STATUS.md");
   const gapRegister = read("docs/SAAS_GAP_REGISTER.md");
 
-  it("keeps rate limiting planning-only before runtime", () => {
+  it("documents the first billing checkout rate limit runtime without broadening scope", () => {
     expect(plan).toContain("gap-015");
-    expect(plan).toContain("planning only");
-    expect(plan).toContain("no rate limit runtime");
-    expect(plan).toContain("no storage dependency");
+    expect(plan).toContain("billing checkout rate limit runtime exists");
+    expect(plan).toContain("billing.checkout.start");
+    expect(plan).toContain("process-local memory");
+    expect(plan).toContain("disable_sensitive_rate_limits=true");
     expect(plan).toContain("no middleware change");
-    expect(plan).toContain("no server action wrapper");
-    expect(plan).toContain("rate limiting is not implemented yet");
+    expect(plan).toContain("no schema change");
+    expect(plan).toContain("no rls change");
+    expect(plan).toContain("no e2e change");
+    expect(plan).toContain("broader or public-auth limits still need a durable/cache-backed storage decision");
   });
 
   it("defines required rate limit implementation decisions", () => {
@@ -56,7 +59,7 @@ describe("sensitive operation rate limit plan guards", () => {
     expect(plan).toContain("database table");
     expect(plan).toContain("external cache");
     expect(plan).toContain("platform limiter");
-    expect(plan).toContain("no runtime limiter should be added until the storage model and rollback path are explicit");
+    expect(plan).toContain("the first runtime limiter uses process-local memory");
   });
 
   it("keeps live docs aligned with the rate limit plan", () => {
@@ -69,6 +72,7 @@ describe("sensitive operation rate limit plan guards", () => {
     expect(roadmap).toContain("plano de rate limiting");
     expect(liveStatus).toContain("plano de rate limiting");
     expect(gapRegister).toContain("rate limit planning exists");
-    expect(gapRegister).toContain("runtime controls are not implemented");
+    expect(gapRegister).toContain("billing checkout rate limit runtime");
+    expect(gapRegister).toContain("remaining broader rate limiting and data retention runtime controls are not implemented");
   });
 });
