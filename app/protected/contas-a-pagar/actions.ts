@@ -1,5 +1,6 @@
 "use server";
 
+import { recordAuditEvent } from "@/lib/audit/events";
 import {
   assertCanAccessMember,
   getCurrentProfile,
@@ -17,6 +18,27 @@ export type PayableBillActionState = {
   error?: string;
   success?: string;
 };
+
+async function recordPayableBillAuditEvent({
+  organizationId,
+  action,
+  billId,
+  metadata,
+}: {
+  organizationId: string;
+  action: "finance.payable.status.update" | "finance.payable.delete";
+  billId: string;
+  metadata?: Record<string, string | number | boolean | null>;
+}) {
+  await recordAuditEvent({
+    organizationId,
+    action,
+    targetType: "payable_bill",
+    targetId: billId,
+    outcome: "success",
+    metadata,
+  });
+}
 
 async function assertResponsibleMemberBelongsToOrganization(
   ownerId: string,
@@ -277,7 +299,7 @@ export async function updatePayableBillStatus(
   }
 
   try {
-    const { profile, organization } = await assertCanManagePayableBill(id, "can_edit");
+    const { profile, organization, bill } = await assertCanManagePayableBill(id, "can_edit");
     const supabase = await createClient();
 
     const { error } = await supabase
@@ -293,6 +315,16 @@ export async function updatePayableBillStatus(
     if (error) {
       return { error: error.message };
     }
+
+    await recordPayableBillAuditEvent({
+      organizationId: organization.id,
+      action: "finance.payable.status.update",
+      billId: id,
+      metadata: {
+        next_status: status,
+        responsible_member_id: String(bill.responsible_member_id),
+      },
+    });
 
     revalidateOrganizationPaths(["/protected/contas-a-pagar", "/protected"], organization.slug);
 
@@ -323,7 +355,7 @@ export async function deletePayableBill(
   }
 
   try {
-    const { profile, organization } = await assertCanManagePayableBill(id, "can_delete");
+    const { profile, organization, bill } = await assertCanManagePayableBill(id, "can_delete");
     const supabase = await createClient();
 
     const { error } = await supabase
@@ -336,6 +368,15 @@ export async function deletePayableBill(
     if (error) {
       return { error: error.message };
     }
+
+    await recordPayableBillAuditEvent({
+      organizationId: organization.id,
+      action: "finance.payable.delete",
+      billId: id,
+      metadata: {
+        responsible_member_id: String(bill.responsible_member_id),
+      },
+    });
 
     revalidateOrganizationPaths(["/protected/contas-a-pagar", "/protected"], organization.slug);
 

@@ -24,6 +24,7 @@ const mockState = vi.hoisted(() => ({
   } as Record<string, unknown> | null,
   insertError: null as { message: string } | null,
   accessError: null as Error | null,
+  auditEvents: [] as Array<Record<string, unknown>>,
 }));
 
 function createFormData(values: Record<string, string>) {
@@ -101,6 +102,14 @@ function makeQuery(table: string) {
 
 function makeSupabaseClient() {
   return {
+    rpc(name: string, payload: Record<string, unknown>) {
+      if (name !== "record_audit_event") {
+        throw new Error(`Unexpected rpc: ${name}`);
+      }
+
+      mockState.auditEvents.push(payload);
+      return Promise.resolve({ error: null });
+    },
     from(table: string) {
       if (!["payable_bills", "family_members"].includes(table)) {
         throw new Error(`Unexpected table: ${table}`);
@@ -154,6 +163,7 @@ describe("payable bill actions", () => {
     };
     mockState.insertError = null;
     mockState.accessError = null;
+    mockState.auditEvents = [];
   });
 
   it("blocks payable bill creation without responsible member", async () => {
@@ -355,6 +365,19 @@ describe("payable bill actions", () => {
       organization_id: "org-1",
       filters: expect.objectContaining({ id: "bill-1", owner_id: "owner-1" }),
     }));
+    expect(mockState.auditEvents).toEqual([
+      expect.objectContaining({
+        p_organization_id: "org-1",
+        p_action: "finance.payable.status.update",
+        p_target_type: "payable_bill",
+        p_target_id: "bill-1",
+        p_outcome: "success",
+        p_metadata: {
+          next_status: "pago",
+          responsible_member_id: "member-1",
+        },
+      }),
+    ]);
   });
 
   it("blocks delete without explicit confirmation", async () => {
@@ -379,5 +402,17 @@ describe("payable bill actions", () => {
 
     expect(result).toEqual({ success: "Conta excluida com sucesso." });
     expect(mockState.deletedIds).toEqual(["bill-1"]);
+    expect(mockState.auditEvents).toEqual([
+      expect.objectContaining({
+        p_organization_id: "org-1",
+        p_action: "finance.payable.delete",
+        p_target_type: "payable_bill",
+        p_target_id: "bill-1",
+        p_outcome: "success",
+        p_metadata: {
+          responsible_member_id: "member-1",
+        },
+      }),
+    ]);
   });
 });
