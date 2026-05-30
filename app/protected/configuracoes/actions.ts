@@ -28,6 +28,18 @@ const categoryDeleteRateLimit = {
   windowMs: 10 * 60 * 1000,
 };
 
+const categoryCreateRateLimit = {
+  operationKey: "finance.category.create",
+  limit: 10,
+  windowMs: 10 * 60 * 1000,
+};
+
+const categoryUpdateRateLimit = {
+  operationKey: "finance.category.update",
+  limit: 10,
+  windowMs: 10 * 60 * 1000,
+};
+
 async function getCurrentUserId() {
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getClaims();
@@ -41,18 +53,20 @@ async function getCurrentUserId() {
 
 async function recordExpenseCategoryAuditEvent({
   organizationId,
+  action = "finance.category.delete",
   categoryId,
   outcome = "success",
   metadata,
 }: {
   organizationId: string;
-  categoryId: string;
+  action?: "finance.category.create" | "finance.category.update" | "finance.category.delete";
+  categoryId: string | null;
   outcome?: "success" | "denied";
   metadata?: Record<string, string | number | boolean | null>;
 }) {
   await recordAuditEvent({
     organizationId,
-    action: "finance.category.delete",
+    action,
     targetType: "expense_category",
     targetId: categoryId,
     outcome,
@@ -92,18 +106,47 @@ export async function createExpenseCategory(
   const supabase = await createClient();
   const ownerId = await getCurrentUserId();
   const { organization } = await requireOrganizationAccess();
+  const rateLimit = checkSensitiveOperationRateLimit({
+    ...categoryCreateRateLimit,
+    actorKey: ownerId,
+    organizationId: organization.id,
+  });
 
-  const { error } = await supabase.from("expense_categories").insert({
+  if (!rateLimit.allowed) {
+    await recordExpenseCategoryAuditEvent({
+      organizationId: organization.id,
+      action: "finance.category.create",
+      categoryId: null,
+      outcome: "denied",
+      metadata: {
+        status: "rate_limited",
+        category_created: true,
+      },
+    });
+
+    return { error: "Muitas tentativas de cadastro de categoria. Tente novamente em alguns minutos." };
+  }
+
+  const { data: category, error } = await supabase.from("expense_categories").insert({
     owner_id: ownerId,
     organization_id: organization.id,
     name: input.name,
     description: input.description || null,
     is_default: false,
-  });
+  }).select("id").single();
 
   if (error) {
     return { error: error.message };
   }
+
+  await recordExpenseCategoryAuditEvent({
+    organizationId: organization.id,
+    action: "finance.category.create",
+    categoryId: category?.id ? String(category.id) : null,
+    metadata: {
+      category_created: true,
+    },
+  });
 
   revalidateOrganizationPaths(
     ["/protected/configuracoes", "/protected/gastos", "/protected"],
@@ -135,7 +178,7 @@ export async function updateExpenseCategory(
 
   const { data: category, error: fetchError } = await supabase
     .from("expense_categories")
-    .select("id, is_default")
+    .select("id, name, description, is_default")
     .eq("id", id)
     .eq("owner_id", ownerId)
     .eq("organization_id", organization.id)
@@ -153,13 +196,43 @@ export async function updateExpenseCategory(
     return { error: "Categorias padrao nao podem ser editadas nesta fase." };
   }
 
-  const { error } = await supabase
+  const categoryChanged =
+    String(category.name ?? "").trim() !== input.name ||
+    String(category.description ?? "").trim() !== input.description;
+
+  if (!categoryChanged) {
+    return { success: "Categoria atualizada com sucesso." };
+  }
+
+  const rateLimit = checkSensitiveOperationRateLimit({
+    ...categoryUpdateRateLimit,
+    actorKey: ownerId,
+    organizationId: organization.id,
+    targetKey: id,
+  });
+
+  if (!rateLimit.allowed) {
+    await recordExpenseCategoryAuditEvent({
+      organizationId: organization.id,
+      action: "finance.category.update",
+      categoryId: id,
+      outcome: "denied",
+      metadata: {
+        status: "rate_limited",
+        category_changed: true,
+      },
+    });
+
+    return { error: "Muitas tentativas de alteracao de categoria. Tente novamente em alguns minutos." };
+  }
+
+  const { error, count } = await supabase
     .from("expense_categories")
     .update({
       name: input.name,
       description: input.description || null,
       organization_id: organization.id,
-    })
+    }, { count: "exact" })
     .eq("id", id)
     .eq("owner_id", ownerId)
     .eq("organization_id", organization.id);
@@ -167,6 +240,19 @@ export async function updateExpenseCategory(
   if (error) {
     return { error: error.message };
   }
+
+  if (count !== 1) {
+    return { error: "Categoria nao encontrada." };
+  }
+
+  await recordExpenseCategoryAuditEvent({
+    organizationId: organization.id,
+    action: "finance.category.update",
+    categoryId: id,
+    metadata: {
+      category_changed: true,
+    },
+  });
 
   revalidateOrganizationPaths(
     ["/protected/configuracoes", "/protected/gastos", "/protected"],
