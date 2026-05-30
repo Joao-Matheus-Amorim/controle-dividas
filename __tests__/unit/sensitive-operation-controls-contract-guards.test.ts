@@ -31,6 +31,8 @@ describe("sensitive operation controls contract guards", () => {
     expect(contract).toContain("bank balance rate limit runtime exists");
     expect(contract).toContain("member limit audit runtime exists");
     expect(contract).toContain("member limit rate limit runtime exists");
+    expect(contract).toContain("member status audit runtime exists");
+    expect(contract).toContain("member status rate limit runtime exists");
     expect(contract).toContain("category delete rate limit runtime exists");
     expect(contract).toContain("admin permission rate limit runtime exists");
     expect(contract).toContain("admin user rate limit runtime exists");
@@ -86,6 +88,7 @@ describe("sensitive operation controls contract guards", () => {
     expect(gapRegister).toContain("bank delete rate limit runtime");
     expect(gapRegister).toContain("bank balance rate limit runtime");
     expect(gapRegister).toContain("member limit rate limit runtime");
+    expect(gapRegister).toContain("member status rate limit runtime");
     expect(gapRegister).toContain("category delete rate limit runtime");
     expect(gapRegister).toContain("admin permission rate limit runtime");
     expect(gapRegister).toContain("admin user rate limit runtime");
