@@ -25,6 +25,7 @@ Expense write audit runtime exists in app/protected/gastos/actions.ts using reco
 Category delete audit runtime exists in app/protected/configuracoes/actions.ts using record_audit_event.
 Category write audit runtime exists in app/protected/configuracoes/actions.ts using record_audit_event.
 Bank audit runtime exists in app/protected/bancos/actions.ts using record_audit_event.
+Bank write audit runtime exists in app/protected/bancos/actions.ts using record_audit_event.
 Member limit audit runtime exists in lib/finance/member-limit-controls.ts, app/protected/configuracoes/actions.ts, and app/protected/pessoas/actions.ts using record_audit_event.
 Member status audit runtime exists in lib/finance/member-status-controls.ts and app/protected/pessoas/actions.ts using record_audit_event.
 Member write audit runtime exists in lib/finance/member-write-controls.ts and app/protected/pessoas/actions.ts using record_audit_event.
@@ -35,7 +36,7 @@ No billing webhook, portal, or commercial enforcement change.
 No E2E change.
 ```
 
-Audit event storage is versioned. Billing checkout, admin permission, admin user, payable bill, payable write, receivable income, receivable write, expense, expense write, category delete, category write, bank, member limit, member status, and member write audit logging are implemented. Other operation families remain pending.
+Audit event storage is versioned. Billing checkout, admin permission, admin user, payable bill, payable write, receivable income, receivable write, expense, expense write, category delete, category write, bank, bank write, member limit, member status, and member write audit logging are implemented. Other operation families remain pending.
 
 ## Event shape candidate
 
@@ -71,6 +72,7 @@ Initial operation keys should be stable strings, not translated UI labels:
 | Finance payable writes | `finance.payable.create`, `finance.payable.update` |
 | Finance receivable writes | `finance.receivable.create`, `finance.receivable.update` |
 | Finance category writes | `finance.category.create`, `finance.category.update` |
+| Finance bank writes | `finance.bank.create`, `finance.bank.update` |
 | Finance status/balance/limit changes | `finance.payable.status.update`, `finance.receivable.status.update`, `finance.bank.balance.update`, `finance.member.limit.update`, `finance.member.status.update` |
 | Finance member writes | `finance.member.create`, `finance.member.update` |
 | Organization membership | `organization.membership.role.update`, `organization.membership.status.update` |
@@ -118,7 +120,7 @@ The initial audit event storage decision is:
 - Expense runtime calls `record_audit_event` for creation, update, and deletion without storing amounts, descriptions, locations, payment details, or notes.
 - Category delete runtime calls `record_audit_event` for deletion.
 - Category write runtime calls `record_audit_event` for category creation and update without storing names or descriptions.
-- Bank runtime calls `record_audit_event` for balance updates and deletion.
+- Bank runtime calls `record_audit_event` for creation, update, balance updates, and deletion without storing balances, bank names, notes, or full payloads.
 - Member limit runtime calls `record_audit_event` for monthly limit updates without storing previous or next amounts.
 - Member write runtime calls `record_audit_event` for family member creation and profile updates without storing names, roles, or financial amounts.
 
