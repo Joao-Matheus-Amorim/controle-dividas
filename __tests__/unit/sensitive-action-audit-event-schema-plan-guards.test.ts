@@ -24,6 +24,12 @@ describe("sensitive-action audit event schema plan guards", () => {
     expect(plan).toContain("billing checkout audit runtime exists");
     expect(plan).toContain("admin permission audit runtime exists");
     expect(plan).toContain("admin user audit runtime exists");
+    expect(plan).toContain("payable bill audit runtime exists");
+    expect(plan).toContain("receivable income audit runtime exists");
+    expect(plan).toContain("expense audit runtime exists");
+    expect(plan).toContain("category delete audit runtime exists");
+    expect(plan).toContain("bank audit runtime exists");
+    expect(plan).toContain("member limit audit runtime exists");
     expect(plan).toContain("read-side rls exists for organization owner/admin");
     expect(plan).toContain("no insert/update/delete policy for authenticated users");
     expect(plan).toContain("audit event storage is versioned");
@@ -55,6 +61,7 @@ describe("sensitive-action audit event schema plan guards", () => {
     expect(plan).toContain("finance.expense.delete");
     expect(plan).toContain("finance.payable.status.update");
     expect(plan).toContain("finance.bank.balance.update");
+    expect(plan).toContain("finance.member.limit.update");
     expect(plan).toContain("forbidden metadata examples");
     expect(plan).toContain("passwords");
     expect(plan).toContain("stripe secret keys");
@@ -77,6 +84,10 @@ describe("sensitive-action audit event schema plan guards", () => {
     expect(gapRegister).toContain("audit event schema/read-side rls");
     expect(gapRegister).toContain("admin permission audit runtime");
     expect(gapRegister).toContain("admin user audit runtime");
+    expect(gapRegister).toContain("payable bill audit runtime");
+    expect(gapRegister).toContain("receivable income audit runtime");
+    expect(gapRegister).toContain("expense audit runtime");
+    expect(gapRegister).toContain("member limit audit runtime");
     expect(gapRegister).toContain("bank audit runtime");
     expect(gapRegister).toContain("category delete audit runtime");
     expect(gapRegister).toContain("billing checkout rate limit runtime");

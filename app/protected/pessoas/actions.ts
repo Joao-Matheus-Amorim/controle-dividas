@@ -1,9 +1,14 @@
 "use server";
 
 import { getCurrentProfile } from "@/lib/finance/access-control";
+import {
+  familyMemberLimitRateLimit,
+  recordFamilyMemberLimitAuditEvent,
+} from "@/lib/finance/member-limit-controls";
 import type { FamilyMemberFormState } from "@/lib/finance/server";
 import { revalidateOrganizationPaths } from "@/lib/organizations/revalidation";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
+import { checkSensitiveOperationRateLimit } from "@/lib/security/sensitive-rate-limit";
 import { createClient } from "@/lib/supabase/server";
 
 export type FamilyMemberActionState = {
@@ -74,20 +79,75 @@ export async function updateFamilyMember(
   const profile = await getCurrentProfile();
   const { organization } = await requireOrganizationAccess();
 
-  const { error } = await supabase
+  const { data: member, error: fetchError } = await supabase
+    .from("family_members")
+    .select("id, monthly_limit")
+    .eq("id", id)
+    .eq("owner_id", profile.owner_id)
+    .eq("organization_id", organization.id)
+    .maybeSingle();
+
+  if (fetchError) {
+    return { error: fetchError.message };
+  }
+
+  if (!member) {
+    return { error: "Pessoa nao encontrada." };
+  }
+
+  const limitChanged = Number(member.monthly_limit ?? 0) !== monthlyLimit;
+
+  if (limitChanged) {
+    const rateLimit = checkSensitiveOperationRateLimit({
+      ...familyMemberLimitRateLimit,
+      actorKey: profile.owner_id,
+      organizationId: organization.id,
+      targetKey: id,
+    });
+
+    if (!rateLimit.allowed) {
+      await recordFamilyMemberLimitAuditEvent({
+        organizationId: organization.id,
+        familyMemberId: id,
+        outcome: "denied",
+        metadata: {
+          status: "rate_limited",
+          limit_changed: true,
+        },
+      });
+
+      return { error: "Muitas tentativas de alteracao de limite. Tente novamente em alguns minutos." };
+    }
+  }
+
+  const { error, count } = await supabase
     .from("family_members")
     .update({
       name,
       role: role || null,
       monthly_limit: monthlyLimit,
       organization_id: organization.id,
-    })
+    }, { count: "exact" })
     .eq("id", id)
     .eq("owner_id", profile.owner_id)
     .eq("organization_id", organization.id);
 
   if (error) {
     return { error: error.message };
+  }
+
+  if (count !== 1) {
+    return { error: "Pessoa nao encontrada." };
+  }
+
+  if (limitChanged) {
+    await recordFamilyMemberLimitAuditEvent({
+      organizationId: organization.id,
+      familyMemberId: id,
+      metadata: {
+        limit_changed: true,
+      },
+    });
   }
 
   revalidateOrganizationPaths(

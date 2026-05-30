@@ -35,6 +35,8 @@ describe("sensitive operation rate limit plan guards", () => {
     expect(plan).toContain("finance.bank.delete");
     expect(plan).toContain("bank balance rate limit runtime exists");
     expect(plan).toContain("finance.bank.balance.update");
+    expect(plan).toContain("member limit rate limit runtime exists");
+    expect(plan).toContain("finance.member.limit.update");
     expect(plan).toContain("category delete rate limit runtime exists");
     expect(plan).toContain("finance.category.delete");
     expect(plan).toContain("admin permission rate limit runtime exists");
@@ -84,6 +86,7 @@ describe("sensitive operation rate limit plan guards", () => {
     expect(plan).toContain("finance.receivable.status.update");
     expect(plan).toContain("finance.bank.delete");
     expect(plan).toContain("finance.bank.balance.update");
+    expect(plan).toContain("finance.member.limit.update");
     expect(plan).toContain("finance.category.delete");
     expect(plan).toContain("admin.permission.update");
     expect(plan).toContain("admin.feature_permission.update");
@@ -117,6 +120,7 @@ describe("sensitive operation rate limit plan guards", () => {
     expect(gapRegister).toContain("receivable status rate limit runtime");
     expect(gapRegister).toContain("bank delete rate limit runtime");
     expect(gapRegister).toContain("bank balance rate limit runtime");
+    expect(gapRegister).toContain("member limit rate limit runtime");
     expect(gapRegister).toContain("category delete rate limit runtime");
     expect(gapRegister).toContain("admin permission rate limit runtime");
     expect(gapRegister).toContain("admin user rate limit runtime");

@@ -10,8 +10,20 @@ function read(path: string) {
     .toLowerCase();
 }
 
+function functionBlock(source: string, functionName: string) {
+  const startToken = `export async function ${functionName}`;
+  const start = source.indexOf(startToken);
+
+  expect(start, `missing function ${functionName}`).toBeGreaterThanOrEqual(0);
+
+  const next = source.indexOf("\nexport async function ", start + startToken.length);
+
+  return source.slice(start, next >= 0 ? next : source.length);
+}
+
 describe("expense category audit runtime guards", () => {
   const actions = read("app/protected/configuracoes/actions.ts");
+  const deleteExpenseCategoryAction = functionBlock(actions, "deleteexpensecategory");
   const schemaPlan = read("docs/audits/SENSITIVE_ACTION_AUDIT_EVENT_SCHEMA_PLAN.md");
   const roadmap = read("docs/SAAS_OPERATIONAL_ROADMAP.md");
   const liveStatus = read("docs/SAAS_RLS_LIVE_STATUS.md");
@@ -19,18 +31,17 @@ describe("expense category audit runtime guards", () => {
 
   it("records category delete events through the audit write boundary", () => {
     expect(actions).toContain("recordexpensecategoryauditevent");
-    expect(actions).toContain("finance.category.delete");
     expect(actions).toContain('targettype: "expense_category"');
-    expect(actions).toContain('delete({ count: "exact" })');
-    expect(actions).toContain("if (count !== 1)");
     expect(actions).toContain('outcome = "success"');
-    expect(actions).toContain("checksensitiveoperationratelimit");
     expect(actions).toContain('operationkey: "finance.category.delete"');
-    expect(actions).toContain("actorkey: ownerid");
-    expect(actions).toContain("organizationid: organization.id");
-    expect(actions).not.toContain("targetkey: id");
-    expect(actions).toContain('outcome: "denied"');
-    expect(actions).toContain("rate_limited");
+    expect(deleteExpenseCategoryAction).toContain("checksensitiveoperationratelimit");
+    expect(deleteExpenseCategoryAction).toContain("actorkey: ownerid");
+    expect(deleteExpenseCategoryAction).toContain("organizationid: organization.id");
+    expect(deleteExpenseCategoryAction).not.toContain("targetkey: id");
+    expect(deleteExpenseCategoryAction).toContain('delete({ count: "exact" })');
+    expect(deleteExpenseCategoryAction).toContain("if (count !== 1)");
+    expect(deleteExpenseCategoryAction).toContain('outcome: "denied"');
+    expect(deleteExpenseCategoryAction).toContain("rate_limited");
   });
 
   it("keeps emitted metadata redacted and small", () => {

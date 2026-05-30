@@ -112,6 +112,13 @@ function makeSupabaseClient() {
         error: null,
       })),
     },
+    rpc(name: string) {
+      if (name !== "record_audit_event") {
+        throw new Error(`Unexpected rpc: ${name}`);
+      }
+
+      return Promise.resolve({ error: null });
+    },
     from(table: string) {
       if (!["banks", "family_members", "expense_categories"].includes(table)) {
         throw new Error(`Unexpected table: ${table}`);

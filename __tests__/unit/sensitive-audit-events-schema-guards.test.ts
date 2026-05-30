@@ -82,11 +82,18 @@ describe("sensitive audit events schema guards", () => {
     }
 
     expect(plan).toContain("billing checkout audit runtime exists");
+    expect(plan).toContain("payable bill audit runtime exists");
+    expect(plan).toContain("receivable income audit runtime exists");
+    expect(plan).toContain("expense audit runtime exists");
+    expect(plan).toContain("category delete audit runtime exists");
+    expect(plan).toContain("bank audit runtime exists");
+    expect(plan).toContain("member limit audit runtime exists");
     expect(plan).toContain("no insert/update/delete policy for authenticated users");
     expect(contract).toContain("audit event runtime logging");
     expect(roadmap).toContain("schema/read-side rls de audit events");
     expect(liveStatus).toContain("bank audit runtime");
     expect(gapRegister).toContain("bank audit runtime");
+    expect(gapRegister).toContain("member limit audit runtime");
     expect(gapRegister).toContain("category delete audit runtime");
     expect(gapRegister).toContain("billing checkout rate limit runtime");
     expect(gapRegister).toContain("remaining broader rate limiting and data retention cleanup runtime controls are not implemented");
