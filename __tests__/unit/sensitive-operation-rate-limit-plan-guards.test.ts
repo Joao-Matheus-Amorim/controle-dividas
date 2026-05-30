@@ -29,6 +29,8 @@ describe("sensitive operation rate limit plan guards", () => {
     expect(plan).toContain("finance.receivable.delete");
     expect(plan).toContain("bank delete rate limit runtime exists");
     expect(plan).toContain("finance.bank.delete");
+    expect(plan).toContain("category delete rate limit runtime exists");
+    expect(plan).toContain("finance.category.delete");
     expect(plan).toContain("process-local memory");
     expect(plan).toContain("disable_sensitive_rate_limits=true");
     expect(plan).toContain("no middleware change");
@@ -64,6 +66,7 @@ describe("sensitive operation rate limit plan guards", () => {
     expect(plan).toContain("finance.payable.delete");
     expect(plan).toContain("finance.receivable.delete");
     expect(plan).toContain("finance.bank.delete");
+    expect(plan).toContain("finance.category.delete");
     expect(plan).toContain("admin mutations");
     expect(plan).toContain("destructive finance actions");
     expect(plan).toContain("rate_limit:{operation_key}:{actor_key}:{organization_key}:{target_key?}");
@@ -89,6 +92,7 @@ describe("sensitive operation rate limit plan guards", () => {
     expect(gapRegister).toContain("payable delete rate limit runtime");
     expect(gapRegister).toContain("receivable delete rate limit runtime");
     expect(gapRegister).toContain("bank delete rate limit runtime");
+    expect(gapRegister).toContain("category delete rate limit runtime");
     expect(gapRegister).toContain("remaining broader rate limiting and data retention runtime controls are not implemented");
   });
 });

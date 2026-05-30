@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { recordAuditEvent } from "@/lib/audit/events";
 import { revalidateOrganizationPaths } from "@/lib/organizations/revalidation";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
+import { checkSensitiveOperationRateLimit } from "@/lib/security/sensitive-rate-limit";
 import { createClient } from "@/lib/supabase/server";
 
 type FormState = {
@@ -15,6 +16,12 @@ type FormState = {
 export type SettingsActionState = {
   error?: string;
   success?: string;
+};
+
+const categoryDeleteRateLimit = {
+  operationKey: "finance.category.delete",
+  limit: 5,
+  windowMs: 10 * 60 * 1000,
 };
 
 async function getCurrentUserId() {
@@ -31,16 +38,21 @@ async function getCurrentUserId() {
 async function recordExpenseCategoryAuditEvent({
   organizationId,
   categoryId,
+  outcome = "success",
+  metadata,
 }: {
   organizationId: string;
   categoryId: string;
+  outcome?: "success" | "denied";
+  metadata?: Record<string, string | number | boolean | null>;
 }) {
   await recordAuditEvent({
     organizationId,
     action: "finance.category.delete",
     targetType: "expense_category",
     targetId: categoryId,
-    outcome: "success",
+    outcome,
+    metadata,
   });
 }
 
@@ -172,6 +184,24 @@ export async function deleteExpenseCategory(
   const supabase = await createClient();
   const ownerId = await getCurrentUserId();
   const { organization } = await requireOrganizationAccess();
+  const rateLimit = checkSensitiveOperationRateLimit({
+    ...categoryDeleteRateLimit,
+    actorKey: ownerId,
+    organizationId: organization.id,
+  });
+
+  if (!rateLimit.allowed) {
+    await recordExpenseCategoryAuditEvent({
+      organizationId: organization.id,
+      categoryId: id,
+      outcome: "denied",
+      metadata: {
+        status: "rate_limited",
+      },
+    });
+
+    return { error: "Muitas tentativas de exclusao. Tente novamente em alguns minutos." };
+  }
 
   const { error, count } = await supabase
     .from("expense_categories")
