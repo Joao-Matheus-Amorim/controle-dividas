@@ -14,6 +14,9 @@ const mockState = vi.hoisted(() => ({
     filters: Record<string, unknown>;
   }>,
   destructiveCalls: [] as string[],
+  cleanupDeletedCount: 7,
+  cleanupError: null as { message: string } | null,
+  auditEvents: [] as Array<Record<string, unknown>>,
 }));
 
 function makeQuery(table: string) {
@@ -58,6 +61,24 @@ function makeQuery(table: string) {
 
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(async () => ({
+    rpc(name: string, payload: Record<string, unknown>) {
+      if (name === "cleanup_expired_audit_events") {
+        mockState.destructiveCalls.push(name);
+
+        return Promise.resolve({
+          data: mockState.cleanupDeletedCount,
+          error: mockState.cleanupError,
+        });
+      }
+
+      if (name === "record_audit_event") {
+        mockState.auditEvents.push(payload);
+
+        return Promise.resolve({ data: "audit-1", error: null });
+      }
+
+      throw new Error(`Unexpected rpc: ${name}`);
+    },
     from(table: string) {
       if (table !== "audit_events") {
         throw new Error(`Unexpected table: ${table}`);
@@ -93,6 +114,9 @@ describe("audit event retention preflight actions", () => {
     mockState.adminError = null;
     mockState.queries = [];
     mockState.destructiveCalls = [];
+    mockState.cleanupDeletedCount = 7;
+    mockState.cleanupError = null;
+    mockState.auditEvents = [];
   });
 
   afterEach(() => {
@@ -153,5 +177,75 @@ describe("audit event retention preflight actions", () => {
     );
     expect(mockState.queries).toHaveLength(0);
     expect(mockState.destructiveCalls).toHaveLength(0);
+  });
+
+  it("requires explicit confirmation before cleanup", async () => {
+    const { cleanupExpiredAuditEvents } = await import(
+      "@/app/protected/configuracoes/audit-retention-actions"
+    );
+
+    const result = await cleanupExpiredAuditEvents(new FormData());
+
+    expect(result).toEqual({ error: "Confirme a limpeza de auditoria antes de continuar." });
+    expect(mockState.queries).toHaveLength(0);
+    expect(mockState.destructiveCalls).toHaveLength(0);
+    expect(mockState.auditEvents).toHaveLength(0);
+  });
+
+  it("skips cleanup rpc and audit when there are no eligible audit events", async () => {
+    const { cleanupExpiredAuditEvents } = await import(
+      "@/app/protected/configuracoes/audit-retention-actions"
+    );
+    const formData = new FormData();
+    formData.set("confirm_retention_cleanup", "confirmado");
+    mockState.count = 0;
+
+    const result = await cleanupExpiredAuditEvents(formData);
+
+    expect(result).toEqual({
+      success: "Nenhum evento de auditoria elegivel para limpeza.",
+      organizationId: "org-1",
+      retentionDays: 365,
+      cutoffIso: "2025-05-30T12:00:00.000Z",
+      candidateCount: 0,
+      deletedCount: 0,
+      destructiveAction: false,
+    });
+    expect(mockState.destructiveCalls).toHaveLength(0);
+    expect(mockState.auditEvents).toHaveLength(0);
+  });
+
+  it("cleans expired audit events through the privileged rpc and records the cleanup audit event", async () => {
+    const { cleanupExpiredAuditEvents } = await import(
+      "@/app/protected/configuracoes/audit-retention-actions"
+    );
+    const formData = new FormData();
+    formData.set("confirm_retention_cleanup", "confirmado");
+
+    const result = await cleanupExpiredAuditEvents(formData);
+
+    expect(result).toEqual({
+      success: "Limpeza de auditoria executada com sucesso.",
+      organizationId: "org-1",
+      retentionDays: 365,
+      cutoffIso: "2025-05-30T12:00:00.000Z",
+      candidateCount: 7,
+      deletedCount: 7,
+      destructiveAction: true,
+    });
+    expect(mockState.destructiveCalls).toEqual(["cleanup_expired_audit_events"]);
+    expect(mockState.auditEvents).toEqual([
+      expect.objectContaining({
+        p_organization_id: "org-1",
+        p_action: "audit.retention.cleanup",
+        p_target_type: "audit_events",
+        p_outcome: "success",
+        p_metadata: {
+          retention_days: 365,
+          candidate_count: 7,
+          deleted_count: 7,
+        },
+      }),
+    ]);
   });
 });

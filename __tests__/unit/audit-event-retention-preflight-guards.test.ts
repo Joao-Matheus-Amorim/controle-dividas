@@ -24,6 +24,10 @@ describe("audit event retention preflight guards", () => {
     expect(actions).toContain("retentiondays: 365");
     expect(actions).toContain("requireorganizationadmin");
     expect(actions).not.toContain("requireorganizationaccess");
+    expect(actions).toContain("cleanupexpiredauditevents");
+    expect(actions).toContain("confirm_retention_cleanup");
+    expect(actions).toContain("cleanup_expired_audit_events");
+    expect(actions).toContain("audit.retention.cleanup");
     expect(actions).toContain('from("audit_events")');
     expect(actions).toContain('select("id", { count: "exact", head: true })');
     expect(actions).toContain('eq("organization_id", organization.id)');
@@ -32,7 +36,6 @@ describe("audit event retention preflight guards", () => {
     expect(actions).not.toContain(".delete(");
     expect(actions).not.toContain(".update(");
     expect(actions).not.toContain(".insert(");
-    expect(actions).not.toContain(".rpc(");
   });
 
   it("keeps docs aligned with audit event retention preflight and remaining retention work", () => {
@@ -49,12 +52,16 @@ describe("audit event retention preflight guards", () => {
     expect(gapRegister).toContain("audit_events");
 
     expect(plan).toContain("no cleanup job");
-    expect(plan).toContain("no destructive deletion");
+    expect(plan).toContain("no destructive deletion outside confirmed audit_events retention cleanup");
+    expect(plan).toContain("cleanup_expired_audit_events");
     expect(contract).toContain("no cleanup job");
-    expect(contract).toContain("no destructive deletion");
-    expect(roadmap).toContain("sem cleanup job ou destructive deletion");
+    expect(contract).toContain(
+      "confirmed cleanup through `cleanup_expired_audit_events` for organization-scoped `audit_events` older than 365 days",
+    );
+    expect(roadmap).toContain("sem cleanup job, ui ou e2e");
 
-    expect(gapRegister).toContain("without cleanup or destructive deletion");
+    expect(gapRegister).toContain("audit event retention preflight and cleanup runtime");
+    expect(gapRegister).toContain("cleanup_expired_audit_events");
     expect(gapRegister).toContain("data retention cleanup runtime controls are not implemented");
   });
 });

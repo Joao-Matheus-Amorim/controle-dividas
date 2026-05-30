@@ -34,12 +34,13 @@ describe("sensitive operation controls contract guards", () => {
     expect(contract).toContain("admin user rate limit runtime exists");
     expect(contract).toContain("admin permission audit runtime exists");
     expect(contract).toContain("admin user audit runtime exists");
-    expect(contract).toContain("no data retention cleanup runtime");
     expect(contract).toContain("audit event retention preflight runtime exists");
+    expect(contract).toContain("audit event retention cleanup runtime exists");
+    expect(contract).toContain("cleanup_expired_audit_events");
     expect(contract).toContain("no ui change");
     expect(contract).toContain("no billing webhook, portal, or commercial enforcement change");
     expect(contract).toContain("no e2e change");
-    expect(contract).toContain("remaining runtime controls are not implemented yet");
+    expect(contract).toContain("remaining broader runtime controls are not implemented yet");
   });
 
   it("keeps the three GAP-015 control families explicit", () => {
@@ -85,7 +86,7 @@ describe("sensitive operation controls contract guards", () => {
     expect(gapRegister).toContain("category delete rate limit runtime");
     expect(gapRegister).toContain("admin permission rate limit runtime");
     expect(gapRegister).toContain("admin user rate limit runtime");
-    expect(gapRegister).toContain("audit event retention preflight runtime");
+    expect(gapRegister).toContain("audit event retention preflight and cleanup runtime");
     expect(gapRegister).toContain("remaining broader rate limiting and data retention cleanup runtime controls are not implemented");
     expect(roadmap).toContain("write boundary de audit events");
     expect(liveStatus).toContain("data retention cleanup runtime controls ainda nao foram implementados");
