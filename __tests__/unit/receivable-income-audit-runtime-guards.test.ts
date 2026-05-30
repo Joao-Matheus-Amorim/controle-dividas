@@ -23,14 +23,25 @@ describe("receivable income audit runtime guards", () => {
     expect(actions).toContain('targettype: "receivable_income"');
     expect(actions).toContain('outcome = "success"');
     expect(actions).toContain("checksensitiveoperationratelimit");
+    expect(actions).toContain('operationkey: "finance.receivable.status.update"');
     expect(actions).toContain('operationkey: "finance.receivable.delete"');
     expect(actions).toContain("actorkey: profile.id");
     expect(actions).toContain("organizationid: organization.id");
-    expect(actions).not.toContain("targetkey: id");
+    expect(actions).toContain("targetkey: id");
     expect(actions).toContain('delete({ count: "exact" })');
     expect(actions).toContain("if (count !== 1)");
     expect(actions).toContain('outcome: "denied"');
     expect(actions).toContain("rate_limited");
+
+    const deleteRateLimitStart = actions.indexOf("...receivabledeleteratelimit");
+    const deleteRateLimitBody = actions.slice(
+      deleteRateLimitStart,
+      actions.indexOf("if (!ratelimit.allowed)", deleteRateLimitStart),
+    );
+
+    expect(deleteRateLimitBody).toContain("actorkey: profile.id");
+    expect(deleteRateLimitBody).toContain("organizationid: organization.id");
+    expect(deleteRateLimitBody).not.toContain("targetkey");
   });
 
   it("keeps emitted metadata redacted and small", () => {
@@ -53,6 +64,7 @@ describe("receivable income audit runtime guards", () => {
     expect(gapRegister).toContain("category delete audit runtime");
     expect(gapRegister).toContain("billing checkout rate limit runtime");
     expect(gapRegister).toContain("receivable delete rate limit runtime");
+    expect(gapRegister).toContain("receivable status rate limit runtime");
     expect(roadmap).toContain("remaining broader rate limiting e data retention ainda nao tem runtime implementado");
     expect(liveStatus).toContain("remaining broader rate limiting e data retention runtime controls ainda nao foram implementados");
   });
