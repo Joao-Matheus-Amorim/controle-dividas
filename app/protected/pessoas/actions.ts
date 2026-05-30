@@ -9,6 +9,11 @@ import {
   familyMemberStatusRateLimit,
   recordFamilyMemberStatusAuditEvent,
 } from "@/lib/finance/member-status-controls";
+import {
+  familyMemberCreateRateLimit,
+  familyMemberUpdateRateLimit,
+  recordFamilyMemberWriteAuditEvent,
+} from "@/lib/finance/member-write-controls";
 import type { FamilyMemberFormState } from "@/lib/finance/server";
 import { revalidateOrganizationPaths } from "@/lib/organizations/revalidation";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
@@ -39,8 +44,27 @@ export async function createFamilyMember(
   const supabase = await createClient();
   const profile = await getCurrentProfile();
   const { organization } = await requireOrganizationAccess();
+  const rateLimit = checkSensitiveOperationRateLimit({
+    ...familyMemberCreateRateLimit,
+    actorKey: profile.id,
+    organizationId: organization.id,
+  });
 
-  const { error } = await supabase.from("family_members").insert({
+  if (!rateLimit.allowed) {
+    await recordFamilyMemberWriteAuditEvent({
+      organizationId: organization.id,
+      action: "finance.member.create",
+      outcome: "denied",
+      metadata: {
+        status: "rate_limited",
+        member_created: true,
+      },
+    });
+
+    return { error: "Muitas tentativas de cadastro de pessoa. Tente novamente em alguns minutos." };
+  }
+
+  const { data: member, error } = await supabase.from("family_members").insert({
     owner_id: profile.owner_id,
     organization_id: organization.id,
     name,
@@ -48,11 +72,20 @@ export async function createFamilyMember(
     monthly_limit: monthlyLimit,
     currency: "EUR",
     is_active: true,
-  });
+  }).select("id").single();
 
   if (error) {
     return { error: error.message };
   }
+
+  await recordFamilyMemberWriteAuditEvent({
+    organizationId: organization.id,
+    action: "finance.member.create",
+    familyMemberId: member?.id ? String(member.id) : null,
+    metadata: {
+      member_created: true,
+    },
+  });
 
   revalidateOrganizationPaths(["/protected/pessoas", "/protected"], organization.slug);
 
@@ -85,7 +118,7 @@ export async function updateFamilyMember(
 
   const { data: member, error: fetchError } = await supabase
     .from("family_members")
-    .select("id, monthly_limit")
+    .select("id, name, role, monthly_limit")
     .eq("id", id)
     .eq("owner_id", profile.owner_id)
     .eq("organization_id", organization.id)
@@ -99,7 +132,34 @@ export async function updateFamilyMember(
     return { error: "Pessoa nao encontrada." };
   }
 
+  const currentRole = String(member.role ?? "").trim();
+  const profileChanged =
+    String(member.name ?? "").trim() !== name || currentRole !== role;
   const limitChanged = Number(member.monthly_limit ?? 0) !== monthlyLimit;
+
+  if (profileChanged) {
+    const rateLimit = checkSensitiveOperationRateLimit({
+      ...familyMemberUpdateRateLimit,
+      actorKey: profile.id,
+      organizationId: organization.id,
+      targetKey: id,
+    });
+
+    if (!rateLimit.allowed) {
+      await recordFamilyMemberWriteAuditEvent({
+        organizationId: organization.id,
+        action: "finance.member.update",
+        familyMemberId: id,
+        outcome: "denied",
+        metadata: {
+          status: "rate_limited",
+          member_profile_changed: true,
+        },
+      });
+
+      return { error: "Muitas tentativas de alteracao de pessoa. Tente novamente em alguns minutos." };
+    }
+  }
 
   if (limitChanged) {
     const rateLimit = checkSensitiveOperationRateLimit({
@@ -150,6 +210,17 @@ export async function updateFamilyMember(
       familyMemberId: id,
       metadata: {
         limit_changed: true,
+      },
+    });
+  }
+
+  if (profileChanged) {
+    await recordFamilyMemberWriteAuditEvent({
+      organizationId: organization.id,
+      action: "finance.member.update",
+      familyMemberId: id,
+      metadata: {
+        member_profile_changed: true,
       },
     });
   }

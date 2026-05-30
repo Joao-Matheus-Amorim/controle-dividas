@@ -23,6 +23,7 @@ Category delete audit runtime exists in app/protected/configuracoes/actions.ts u
 Bank audit runtime exists in app/protected/bancos/actions.ts using record_audit_event.
 Member limit audit runtime exists in lib/finance/member-limit-controls.ts, app/protected/configuracoes/actions.ts, and app/protected/pessoas/actions.ts using record_audit_event.
 Member status audit runtime exists in lib/finance/member-status-controls.ts and app/protected/pessoas/actions.ts using record_audit_event.
+Member write audit runtime exists in lib/finance/member-write-controls.ts and app/protected/pessoas/actions.ts using record_audit_event.
 Read-side RLS exists for organization owner/admin.
 No insert/update/delete policy for authenticated users.
 No UI.
@@ -30,7 +31,7 @@ No billing webhook, portal, or commercial enforcement change.
 No E2E change.
 ```
 
-Audit event storage is versioned. Billing checkout, admin permission, admin user, payable bill, receivable income, expense, category delete, bank, member limit, and member status audit logging are implemented. Other operation families remain pending.
+Audit event storage is versioned. Billing checkout, admin permission, admin user, payable bill, receivable income, expense, category delete, bank, member limit, member status, and member write audit logging are implemented. Other operation families remain pending.
 
 ## Event shape candidate
 
@@ -63,6 +64,7 @@ Initial operation keys should be stable strings, not translated UI labels:
 | Permissions | `admin.permission.update`, `admin.feature_permission.update` |
 | Finance deletes | `finance.expense.delete`, `finance.payable.delete`, `finance.receivable.delete`, `finance.bank.delete`, `finance.category.delete` |
 | Finance status/balance/limit changes | `finance.payable.status.update`, `finance.receivable.status.update`, `finance.bank.balance.update`, `finance.member.limit.update`, `finance.member.status.update` |
+| Finance member writes | `finance.member.create`, `finance.member.update` |
 | Organization membership | `organization.membership.role.update`, `organization.membership.status.update` |
 
 Each runtime PR should add only the keys it actually emits.
@@ -109,6 +111,7 @@ The initial audit event storage decision is:
 - Category delete runtime calls `record_audit_event` for deletion.
 - Bank runtime calls `record_audit_event` for balance updates and deletion.
 - Member limit runtime calls `record_audit_event` for monthly limit updates without storing previous or next amounts.
+- Member write runtime calls `record_audit_event` for family member creation and profile updates without storing names, roles, or financial amounts.
 
 Runtime logging PRs must call the write boundary from one operation family at a time.
 
@@ -122,8 +125,9 @@ Audit logging should be added incrementally:
 4. Admin permission audit runtime is wired through `record_audit_event`.
 5. Admin user audit runtime is wired through `record_audit_event`.
 6. Finance delete, status, bank balance, and category delete audit runtimes are wired through `record_audit_event`.
-7. Member limit audit runtime is wired through `record_audit_event` without storing financial amounts.
-8. Add any remaining operation family only after documenting its redaction model.
+7. Member limit and member status audit runtimes are wired through `record_audit_event` without storing financial amounts or status before/after values.
+8. Member write audit runtime is wired through `record_audit_event` without storing names, roles, or financial amounts.
+9. Add any remaining operation family only after documenting its redaction model.
 
 ## Acceptance
 
