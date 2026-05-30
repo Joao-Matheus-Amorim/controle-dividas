@@ -37,9 +37,14 @@ describe("audit event retention preflight guards", () => {
   it("keeps docs aligned with audit event retention preflight and remaining retention work", () => {
     for (const source of [plan, contract, roadmap, liveStatus, gapRegister]) {
       expect(source).toContain("audit event retention preflight");
-      expect(source).toContain("audit events");
       expect(source).toContain("365");
     }
+
+    for (const source of [plan, contract, roadmap, liveStatus]) {
+      expect(source).toContain("audit events");
+    }
+
+    expect(gapRegister).toContain("audit_events");
 
     for (const source of [plan, contract, roadmap]) {
       expect(source).toContain("no cleanup job");
