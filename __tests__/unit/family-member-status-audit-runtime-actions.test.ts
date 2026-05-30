@@ -146,7 +146,7 @@ describe("family member status audit runtime actions", () => {
         operationKey: "finance.member.status.update",
         limit: 10,
         windowMs: 10 * 60 * 1000,
-        actorKey: "owner-1",
+        actorKey: "profile-1",
         organizationId: "org-1",
         targetKey: "member-1",
       },

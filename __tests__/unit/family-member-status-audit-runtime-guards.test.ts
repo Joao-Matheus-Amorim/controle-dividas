@@ -46,7 +46,8 @@ describe("family member status audit runtime guards", () => {
     expect(toggleAction).toContain("const currentactive = boolean(member.is_active)");
     expect(toggleAction).toContain("currentactive !== submittedactive");
     expect(toggleAction).toContain("o status desta pessoa mudou");
-    expect(toggleAction).toContain("actorkey: profile.owner_id");
+    expect(toggleAction).toContain("actorkey: profile.id");
+    expect(toggleAction).not.toContain("actorkey: profile.owner_id");
     expect(toggleAction).toContain("organizationid: organization.id");
     expect(toggleAction).toContain("targetkey: id");
     expect(toggleAction).toContain('update({');

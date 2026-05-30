@@ -334,7 +334,7 @@ export async function toggleFamilyMemberStatus(
   const nextActive = !currentActive;
   const rateLimit = checkSensitiveOperationRateLimit({
     ...familyMemberStatusRateLimit,
-    actorKey: profile.owner_id,
+    actorKey: profile.id,
     organizationId: organization.id,
     targetKey: id,
   });
