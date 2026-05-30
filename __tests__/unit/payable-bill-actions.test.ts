@@ -41,6 +41,7 @@ const mockState = vi.hoisted(() => ({
   deleteError: null as { message: string } | null,
   accessError: null as Error | null,
   rateLimitAllowed: true,
+  rateLimitAllowedByOperation: {} as Record<string, boolean>,
   rateLimitChecks: [] as Array<Record<string, unknown>>,
   auditEvents: [] as Array<Record<string, unknown>>,
 }));
@@ -186,8 +187,12 @@ vi.mock("@/lib/finance/access-control", () => ({
 vi.mock("@/lib/security/sensitive-rate-limit", () => ({
   checkSensitiveOperationRateLimit: vi.fn((input: Record<string, unknown>) => {
     mockState.rateLimitChecks.push(input);
+    const operationKey = String(input.operationKey);
+    const allowed = operationKey in mockState.rateLimitAllowedByOperation
+      ? mockState.rateLimitAllowedByOperation[operationKey]
+      : mockState.rateLimitAllowed;
 
-    return mockState.rateLimitAllowed
+    return allowed
       ? { allowed: true, remaining: 4, resetAt: 1000 }
       : { allowed: false, retryAfterMs: 1000, resetAt: 1000 };
   }),
@@ -226,6 +231,7 @@ describe("payable bill actions", () => {
     mockState.deleteError = null;
     mockState.accessError = null;
     mockState.rateLimitAllowed = true;
+    mockState.rateLimitAllowedByOperation = {};
     mockState.rateLimitChecks = [];
     mockState.auditEvents = [];
   });
@@ -553,6 +559,24 @@ describe("payable bill actions", () => {
         actorKey: "profile-1",
         organizationId: "org-1",
         targetKey: "bill-1",
+        consume: false,
+      },
+      {
+        operationKey: "finance.payable.update",
+        limit: 10,
+        windowMs: 10 * 60 * 1000,
+        actorKey: "profile-1",
+        organizationId: "org-1",
+        targetKey: "bill-1",
+        consume: false,
+      },
+      {
+        operationKey: "finance.payable.status.update",
+        limit: 10,
+        windowMs: 10 * 60 * 1000,
+        actorKey: "profile-1",
+        organizationId: "org-1",
+        targetKey: "bill-1",
       },
       {
         operationKey: "finance.payable.update",
@@ -624,6 +648,108 @@ describe("payable bill actions", () => {
         p_outcome: "denied",
         p_metadata: {
           status: "rate_limited",
+          responsible_member_id: "member-1",
+        },
+      }),
+    ]);
+  });
+
+  it("does not consume update quota when full edit status limit blocks before mutation", async () => {
+    const { updatePayableBill } = await import("@/app/protected/contas-a-pagar/actions");
+    mockState.rateLimitAllowedByOperation = {
+      "finance.payable.status.update": false,
+      "finance.payable.update": true,
+    };
+
+    const result = await updatePayableBill({}, createFormData({
+      id: "bill-1",
+      name: "Conta atualizada",
+      amount: "150",
+      due_date: "2026-05-25",
+      responsible_member_id: "member-1",
+      status: "pago",
+      bill_type: "avulsa",
+    }));
+
+    expect(result).toEqual({
+      error: "Muitas tentativas de alteracao de status. Tente novamente em alguns minutos.",
+    });
+    expect(mockState.updatedPayloads).toHaveLength(0);
+    expect(mockState.rateLimitChecks).toEqual([
+      expect.objectContaining({
+        operationKey: "finance.payable.status.update",
+        actorKey: "profile-1",
+        organizationId: "org-1",
+        targetKey: "bill-1",
+        consume: false,
+      }),
+    ]);
+    expect(mockState.rateLimitChecks.some(
+      (check) => check.operationKey === "finance.payable.update",
+    )).toBe(false);
+    expect(mockState.auditEvents).toEqual([
+      expect.objectContaining({
+        p_action: "finance.payable.status.update",
+        p_target_type: "payable_bill",
+        p_target_id: "bill-1",
+        p_outcome: "denied",
+        p_metadata: {
+          status: "rate_limited",
+          responsible_member_id: "member-1",
+        },
+      }),
+    ]);
+  });
+
+  it("does not consume status quota when full edit update limit blocks before mutation", async () => {
+    const { updatePayableBill } = await import("@/app/protected/contas-a-pagar/actions");
+    mockState.rateLimitAllowedByOperation = {
+      "finance.payable.status.update": true,
+      "finance.payable.update": false,
+    };
+
+    const result = await updatePayableBill({}, createFormData({
+      id: "bill-1",
+      name: "Conta atualizada",
+      amount: "150",
+      due_date: "2026-05-25",
+      responsible_member_id: "member-1",
+      status: "pago",
+      bill_type: "avulsa",
+    }));
+
+    expect(result).toEqual({
+      error: "Muitas tentativas de alteracao de conta. Tente novamente em alguns minutos.",
+    });
+    expect(mockState.updatedPayloads).toHaveLength(0);
+    expect(mockState.rateLimitChecks).toEqual([
+      expect.objectContaining({
+        operationKey: "finance.payable.status.update",
+        actorKey: "profile-1",
+        organizationId: "org-1",
+        targetKey: "bill-1",
+        consume: false,
+      }),
+      expect.objectContaining({
+        operationKey: "finance.payable.update",
+        actorKey: "profile-1",
+        organizationId: "org-1",
+        targetKey: "bill-1",
+        consume: false,
+      }),
+    ]);
+    expect(mockState.rateLimitChecks.some(
+      (check) => check.operationKey === "finance.payable.status.update" && check.consume !== false,
+    )).toBe(false);
+    expect(mockState.auditEvents).toEqual([
+      expect.objectContaining({
+        p_action: "finance.payable.update",
+        p_target_type: "payable_bill",
+        p_target_id: "bill-1",
+        p_outcome: "denied",
+        p_metadata: {
+          status: "rate_limited",
+          payable_changed: true,
           responsible_member_id: "member-1",
         },
       }),
