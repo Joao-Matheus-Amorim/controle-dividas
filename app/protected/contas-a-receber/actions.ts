@@ -313,12 +313,67 @@ export async function updateReceivableIncome(
       await assertCanAccessMember("CONTAS_A_RECEBER", "can_edit", input.receiverMemberId);
     }
 
-    if (String(income.status) !== input.status) {
+    const statusChanged = String(income.status) !== input.status;
+    const receivableStatusRateLimitInput = {
+      ...receivableStatusRateLimit,
+      actorKey: profile.id,
+      organizationId: organization.id,
+      targetKey: id,
+    };
+    const receivableUpdateRateLimitInput = {
+      ...receivableUpdateRateLimit,
+      actorKey: profile.id,
+      organizationId: organization.id,
+      targetKey: id,
+    };
+
+    if (statusChanged && incomeChanged) {
+      const statusRateLimit = checkSensitiveOperationRateLimit({
+        ...receivableStatusRateLimitInput,
+        consume: false,
+      });
+
+      if (!statusRateLimit.allowed) {
+        await recordReceivableIncomeAuditEvent({
+          organizationId: organization.id,
+          action: "finance.receivable.status.update",
+          incomeId: id,
+          outcome: "denied",
+          metadata: {
+            status: "rate_limited",
+            receiver_member_id: String(income.receiver_member_id),
+          },
+        });
+
+        return { error: "Muitas tentativas de alteracao de status. Tente novamente em alguns minutos." };
+      }
+
+      const updateRateLimit = checkSensitiveOperationRateLimit({
+        ...receivableUpdateRateLimitInput,
+        consume: false,
+      });
+
+      if (!updateRateLimit.allowed) {
+        await recordReceivableIncomeAuditEvent({
+          organizationId: organization.id,
+          action: "finance.receivable.update",
+          incomeId: id,
+          outcome: "denied",
+          metadata: {
+            status: "rate_limited",
+            receivable_changed: true,
+            receiver_member_id: input.receiverMemberId,
+          },
+        });
+
+        return { error: "Muitas tentativas de alteracao de recebimento. Tente novamente em alguns minutos." };
+      }
+
+      checkSensitiveOperationRateLimit(receivableStatusRateLimitInput);
+      checkSensitiveOperationRateLimit(receivableUpdateRateLimitInput);
+    } else if (statusChanged) {
       const rateLimit = checkSensitiveOperationRateLimit({
-        ...receivableStatusRateLimit,
-        actorKey: profile.id,
-        organizationId: organization.id,
-        targetKey: id,
+        ...receivableStatusRateLimitInput,
       });
 
       if (!rateLimit.allowed) {
@@ -335,14 +390,9 @@ export async function updateReceivableIncome(
 
         return { error: "Muitas tentativas de alteracao de status. Tente novamente em alguns minutos." };
       }
-    }
-
-    if (incomeChanged) {
+    } else if (incomeChanged) {
       const rateLimit = checkSensitiveOperationRateLimit({
-        ...receivableUpdateRateLimit,
-        actorKey: profile.id,
-        organizationId: organization.id,
-        targetKey: id,
+        ...receivableUpdateRateLimitInput,
       });
 
       if (!rateLimit.allowed) {
@@ -400,7 +450,7 @@ export async function updateReceivableIncome(
       });
     }
 
-    if (String(income.status) !== input.status) {
+    if (statusChanged) {
       await recordReceivableIncomeAuditEvent({
         organizationId: organization.id,
         action: "finance.receivable.status.update",
