@@ -56,7 +56,7 @@ describe("sensitive operation rate limit plan guards", () => {
     expect(plan).toContain("no schema change");
     expect(plan).toContain("no rls change");
     expect(plan).toContain("no e2e change");
-    expect(plan).toContain("broader or public-auth limits still need a durable/cache-backed storage decision");
+    expect(plan).toContain("additional broader or public-auth limits still need a durable/cache-backed storage decision");
   });
 
   it("defines required rate limit implementation decisions", () => {

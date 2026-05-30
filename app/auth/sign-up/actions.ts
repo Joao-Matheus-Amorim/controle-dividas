@@ -1,12 +1,36 @@
 "use server";
 
-import { findAuthorizedProfilesByEmail } from "@/lib/finance/authorized-profile-lookup";
+import {
+  findAuthorizedProfilesByEmail,
+  normalizeAuthorizedEmail,
+} from "@/lib/finance/authorized-profile-lookup";
+import { checkSensitiveOperationRateLimit } from "@/lib/security/sensitive-rate-limit";
 
-export async function checkAuthorizedFamilyEmail(email: string) {
+const signupAuthorizedEmailRateLimit = {
+  operationKey: "auth.signup.authorized_email.check",
+  limit: 10,
+  windowMs: 10 * 60 * 1000,
+};
+
+export async function checkAuthorizedFamilyEmail(email: unknown) {
+  const normalizedEmail = normalizeAuthorizedEmail(typeof email === "string" ? email : null);
+  const rateLimit = checkSensitiveOperationRateLimit({
+    ...signupAuthorizedEmailRateLimit,
+    actorKey: normalizedEmail || "missing-email",
+    organizationId: "public-auth",
+  });
+
+  if (!rateLimit.allowed) {
+    return {
+      allowed: false,
+      error: "Muitas tentativas de validacao de email. Tente novamente em alguns minutos.",
+    };
+  }
+
   let lookup: Awaited<ReturnType<typeof findAuthorizedProfilesByEmail>>;
 
   try {
-    lookup = await findAuthorizedProfilesByEmail(email);
+    lookup = await findAuthorizedProfilesByEmail(normalizedEmail);
   } catch (error) {
     return {
       allowed: false,
