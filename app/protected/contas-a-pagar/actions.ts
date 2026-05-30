@@ -14,6 +14,16 @@ import { createClient } from "@/lib/supabase/server";
 
 const payableBillTypes: PayableBillType[] = ["avulsa", "fixa"];
 const payableBillStatuses = ["pago", "pendente", "atrasado"] as const;
+const payableCreateRateLimit = {
+  operationKey: "finance.payable.create",
+  limit: 10,
+  windowMs: 10 * 60 * 1000,
+};
+const payableUpdateRateLimit = {
+  operationKey: "finance.payable.update",
+  limit: 10,
+  windowMs: 10 * 60 * 1000,
+};
 const payableDeleteRateLimit = {
   operationKey: "finance.payable.delete",
   limit: 5,
@@ -38,8 +48,12 @@ async function recordPayableBillAuditEvent({
   metadata,
 }: {
   organizationId: string;
-  action: "finance.payable.status.update" | "finance.payable.delete";
-  billId: string;
+  action:
+    | "finance.payable.create"
+    | "finance.payable.update"
+    | "finance.payable.status.update"
+    | "finance.payable.delete";
+  billId: string | null;
   outcome?: "success" | "denied";
   metadata?: Record<string, string | number | boolean | null>;
 }) {
@@ -89,7 +103,7 @@ async function assertCanManagePayableBill(
 
   const { data: bill, error } = await supabase
     .from("payable_bills")
-    .select("id, owner_id, responsible_member_id, status")
+    .select("id, owner_id, responsible_member_id, name, category, amount, due_date, status, bill_type, bank_used, recurrence, notes")
     .eq("id", billId)
     .eq("owner_id", profile.owner_id)
     .eq("organization_id", organization.id)
@@ -171,6 +185,23 @@ function validatePayableBillInput(input: ReturnType<typeof parsePayableBillForm>
   return null;
 }
 
+function hasPayableBillWriteChanges(
+  bill: Record<string, unknown>,
+  input: ReturnType<typeof parsePayableBillForm>,
+) {
+  return (
+    String(bill.name ?? "").trim() !== input.name ||
+    String(bill.category ?? "").trim() !== input.category ||
+    Number(bill.amount ?? 0) !== input.amount ||
+    String(bill.due_date ?? "") !== input.dueDate ||
+    String(bill.responsible_member_id ?? "") !== input.responsibleMemberId ||
+    String(bill.bill_type ?? "avulsa") !== input.billType ||
+    String(bill.bank_used ?? "").trim() !== input.bankUsed ||
+    String(bill.recurrence ?? "").trim() !== input.recurrence ||
+    String(bill.notes ?? "").trim() !== input.notes
+  );
+}
+
 export async function createPayableBill(
   _prevState: PayableBillFormState,
   formData: FormData,
@@ -202,7 +233,29 @@ export async function createPayableBill(
     };
   }
 
-  const { error } = await supabase.from("payable_bills").insert({
+  const rateLimit = checkSensitiveOperationRateLimit({
+    ...payableCreateRateLimit,
+    actorKey: profile.id,
+    organizationId: organization.id,
+  });
+
+  if (!rateLimit.allowed) {
+    await recordPayableBillAuditEvent({
+      organizationId: organization.id,
+      action: "finance.payable.create",
+      billId: null,
+      outcome: "denied",
+      metadata: {
+        status: "rate_limited",
+        payable_created: true,
+        responsible_member_id: input.responsibleMemberId,
+      },
+    });
+
+    return { error: "Muitas tentativas de cadastro de conta. Tente novamente em alguns minutos." };
+  }
+
+  const { data: createdBill, error } = await supabase.from("payable_bills").insert({
     owner_id: profile.owner_id,
     organization_id: organization.id,
     name: input.name,
@@ -215,11 +268,21 @@ export async function createPayableBill(
     bank_used: input.bankUsed || null,
     recurrence: input.recurrence || null,
     notes: input.notes || null,
-  });
+  }).select("id").single();
 
   if (error) {
     return { error: error.message };
   }
+
+  await recordPayableBillAuditEvent({
+    organizationId: organization.id,
+    action: "finance.payable.create",
+    billId: createdBill?.id ? String(createdBill.id) : null,
+    metadata: {
+      payable_created: true,
+      responsible_member_id: input.responsibleMemberId,
+    },
+  });
 
   revalidateOrganizationPaths(["/protected/contas-a-pagar", "/protected"], organization.slug);
 
@@ -249,6 +312,7 @@ export async function updatePayableBill(
 
   try {
     const { profile, organization, bill } = await assertCanManagePayableBill(id, "can_edit");
+    const billChanged = hasPayableBillWriteChanges(bill, input);
 
     if (String(bill.responsible_member_id) !== input.responsibleMemberId) {
       await assertResponsibleMemberBelongsToOrganization(
@@ -283,28 +347,72 @@ export async function updatePayableBill(
       }
     }
 
+    if (billChanged) {
+      const rateLimit = checkSensitiveOperationRateLimit({
+        ...payableUpdateRateLimit,
+        actorKey: profile.id,
+        organizationId: organization.id,
+        targetKey: id,
+      });
+
+      if (!rateLimit.allowed) {
+        await recordPayableBillAuditEvent({
+          organizationId: organization.id,
+          action: "finance.payable.update",
+          billId: id,
+          outcome: "denied",
+          metadata: {
+            status: "rate_limited",
+            payable_changed: true,
+            responsible_member_id: input.responsibleMemberId,
+          },
+        });
+
+        return { error: "Muitas tentativas de alteracao de conta. Tente novamente em alguns minutos." };
+      }
+    }
+
     const supabase = await createClient();
-    const { error } = await supabase
+    const { error, count } = await supabase
       .from("payable_bills")
-      .update({
-        name: input.name,
-        category: input.category || null,
-        amount: input.amount,
-        due_date: input.dueDate,
-        responsible_member_id: input.responsibleMemberId,
-        status: input.status,
-        bill_type: input.billType,
-        bank_used: input.bankUsed || null,
-        recurrence: input.recurrence || null,
-        notes: input.notes || null,
-        organization_id: organization.id,
-      })
+      .update(
+        {
+          name: input.name,
+          category: input.category || null,
+          amount: input.amount,
+          due_date: input.dueDate,
+          responsible_member_id: input.responsibleMemberId,
+          status: input.status,
+          bill_type: input.billType,
+          bank_used: input.bankUsed || null,
+          recurrence: input.recurrence || null,
+          notes: input.notes || null,
+          organization_id: organization.id,
+        },
+        { count: "exact" },
+      )
       .eq("id", id)
       .eq("owner_id", profile.owner_id)
       .eq("organization_id", organization.id);
 
     if (error) {
       return { error: error.message };
+    }
+
+    if (count !== 1) {
+      return { error: "Conta nao encontrada." };
+    }
+
+    if (billChanged) {
+      await recordPayableBillAuditEvent({
+        organizationId: organization.id,
+        action: "finance.payable.update",
+        billId: id,
+        metadata: {
+          payable_changed: true,
+          responsible_member_id: input.responsibleMemberId,
+        },
+      });
     }
 
     if (String(bill.status) !== input.status) {

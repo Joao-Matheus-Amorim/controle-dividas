@@ -17,13 +17,26 @@ const mockState = vi.hoisted(() => ({
     id: "bill-1",
     owner_id: "owner-1",
     responsible_member_id: "member-1",
+    name: "Boleto atual",
+    category: "Outros",
+    amount: 90.5,
+    due_date: "2026-05-20",
     status: "pendente",
+    bill_type: "avulsa",
+    bank_used: null,
+    recurrence: null,
+    notes: null,
+  } as Record<string, unknown> | null,
+  insertedBill: {
+    id: "bill-new",
   } as Record<string, unknown> | null,
   memberLookup: {
     id: "member-1",
     organization_id: "org-1",
   } as Record<string, unknown> | null,
   insertError: null as { message: string } | null,
+  mutationCount: 1 as number | null,
+  mutationError: null as { message: string } | null,
   deleteCount: 1 as number | null,
   deleteError: null as { message: string } | null,
   accessError: null as Error | null,
@@ -60,6 +73,13 @@ function makeQuery(table: string) {
 
       if (updatePayload) {
         mockState.updatedPayloads.push({ ...updatePayload, filters: { ...filters } });
+
+        if (key === "organization_id") {
+          return Promise.resolve({
+            error: mockState.mutationError,
+            count: mockState.mutationCount,
+          });
+        }
       }
 
       if (deleteMode && key === "id") {
@@ -92,9 +112,12 @@ function makeQuery(table: string) {
 
       return Promise.resolve({ data: null, error: null });
     },
+    single() {
+      return Promise.resolve({ data: mockState.insertedBill, error: mockState.insertError });
+    },
     insert(payload: Record<string, unknown>) {
       mockState.insertedPayloads.push(payload);
-      return Promise.resolve({ error: mockState.insertError });
+      return query;
     },
     update(payload: Record<string, unknown>) {
       updatePayload = payload;
@@ -179,13 +202,26 @@ describe("payable bill actions", () => {
       id: "bill-1",
       owner_id: "owner-1",
       responsible_member_id: "member-1",
+      name: "Boleto atual",
+      category: "Outros",
+      amount: 90.5,
+      due_date: "2026-05-20",
       status: "pendente",
+      bill_type: "avulsa",
+      bank_used: null,
+      recurrence: null,
+      notes: null,
+    };
+    mockState.insertedBill = {
+      id: "bill-new",
     };
     mockState.memberLookup = {
       id: "member-1",
       organization_id: "org-1",
     };
     mockState.insertError = null;
+    mockState.mutationCount = 1;
+    mockState.mutationError = null;
     mockState.deleteCount = 1;
     mockState.deleteError = null;
     mockState.accessError = null;
@@ -247,6 +283,28 @@ describe("payable bill actions", () => {
         recurrence: null,
       }),
     ]);
+    expect(mockState.rateLimitChecks).toEqual([
+      {
+        operationKey: "finance.payable.create",
+        limit: 10,
+        windowMs: 10 * 60 * 1000,
+        actorKey: "profile-1",
+        organizationId: "org-1",
+      },
+    ]);
+    expect(mockState.auditEvents).toEqual([
+      expect.objectContaining({
+        p_organization_id: "org-1",
+        p_action: "finance.payable.create",
+        p_target_type: "payable_bill",
+        p_target_id: "bill-new",
+        p_outcome: "success",
+        p_metadata: {
+          payable_created: true,
+          responsible_member_id: "member-1",
+        },
+      }),
+    ]);
   });
 
   it("creates fixed payable bill as fixa with monthly recurrence by default", async () => {
@@ -270,6 +328,40 @@ describe("payable bill actions", () => {
         bill_type: "fixa",
         recurrence: "mensal",
         organization_id: "org-1",
+      }),
+    ]);
+  });
+
+  it("does not create payable bill when the create rate limit blocks the action", async () => {
+    const { createPayableBill } = await import("@/app/protected/contas-a-pagar/actions");
+    mockState.rateLimitAllowed = false;
+
+    const result = await createPayableBill({}, createFormData({
+      name: "Aluguel",
+      category: "Aluguel",
+      amount: "850",
+      due_date: "2026-05-05",
+      responsible_member_id: "member-1",
+      status: "pendente",
+      bill_type: "fixa",
+    }));
+
+    expect(result).toEqual({
+      error: "Muitas tentativas de cadastro de conta. Tente novamente em alguns minutos.",
+    });
+    expect(mockState.insertedPayloads).toHaveLength(0);
+    expect(mockState.auditEvents).toEqual([
+      expect.objectContaining({
+        p_organization_id: "org-1",
+        p_action: "finance.payable.create",
+        p_target_type: "payable_bill",
+        p_target_id: null,
+        p_outcome: "denied",
+        p_metadata: {
+          status: "rate_limited",
+          payable_created: true,
+          responsible_member_id: "member-1",
+        },
       }),
     ]);
   });
@@ -323,6 +415,29 @@ describe("payable bill actions", () => {
       organization_id: "org-1",
       filters: expect.objectContaining({ id: "bill-1", owner_id: "owner-1" }),
     }));
+    expect(mockState.rateLimitChecks).toEqual([
+      {
+        operationKey: "finance.payable.update",
+        limit: 10,
+        windowMs: 10 * 60 * 1000,
+        actorKey: "profile-1",
+        organizationId: "org-1",
+        targetKey: "bill-1",
+      },
+    ]);
+    expect(mockState.auditEvents).toEqual([
+      expect.objectContaining({
+        p_organization_id: "org-1",
+        p_action: "finance.payable.update",
+        p_target_type: "payable_bill",
+        p_target_id: "bill-1",
+        p_outcome: "success",
+        p_metadata: {
+          payable_changed: true,
+          responsible_member_id: "member-1",
+        },
+      }),
+    ]);
   });
 
   it("updates fixed payable bill with monthly recurrence", async () => {
@@ -347,6 +462,67 @@ describe("payable bill actions", () => {
       organization_id: "org-1",
       filters: expect.objectContaining({ id: "bill-1", owner_id: "owner-1" }),
     }));
+  });
+
+  it("does not update payable bill fields when the update rate limit blocks the action", async () => {
+    const { updatePayableBill } = await import("@/app/protected/contas-a-pagar/actions");
+    mockState.rateLimitAllowed = false;
+
+    const result = await updatePayableBill({}, createFormData({
+      id: "bill-1",
+      name: "Boleto atualizado",
+      category: "Outros",
+      amount: "99.90",
+      due_date: "2026-05-22",
+      responsible_member_id: "member-1",
+      status: "pendente",
+      bill_type: "avulsa",
+      bank_used: "Wise",
+      recurrence: "mensal",
+      notes: "Observacao nova",
+    }));
+
+    expect(result).toEqual({
+      error: "Muitas tentativas de alteracao de conta. Tente novamente em alguns minutos.",
+    });
+    expect(mockState.updatedPayloads).toHaveLength(0);
+    expect(mockState.auditEvents).toEqual([
+      expect.objectContaining({
+        p_organization_id: "org-1",
+        p_action: "finance.payable.update",
+        p_target_type: "payable_bill",
+        p_target_id: "bill-1",
+        p_outcome: "denied",
+        p_metadata: {
+          status: "rate_limited",
+          payable_changed: true,
+          responsible_member_id: "member-1",
+        },
+      }),
+    ]);
+  });
+
+  it("does not audit payable bill update when no row was updated", async () => {
+    const { updatePayableBill } = await import("@/app/protected/contas-a-pagar/actions");
+    mockState.mutationCount = 0;
+
+    const result = await updatePayableBill({}, createFormData({
+      id: "bill-1",
+      name: "Boleto atualizado",
+      category: "Outros",
+      amount: "99.90",
+      due_date: "2026-05-22",
+      responsible_member_id: "member-1",
+      status: "pendente",
+      bill_type: "avulsa",
+      bank_used: "Wise",
+      recurrence: "mensal",
+      notes: "Observacao nova",
+    }));
+
+    expect(result).toEqual({ error: "Conta nao encontrada." });
+    expect(mockState.updatedPayloads).toHaveLength(3);
+    expect(mockState.auditEvents).toHaveLength(0);
   });
 
   it("records status audit event when full payable bill edit changes status", async () => {
@@ -378,8 +554,27 @@ describe("payable bill actions", () => {
         organizationId: "org-1",
         targetKey: "bill-1",
       },
+      {
+        operationKey: "finance.payable.update",
+        limit: 10,
+        windowMs: 10 * 60 * 1000,
+        actorKey: "profile-1",
+        organizationId: "org-1",
+        targetKey: "bill-1",
+      },
     ]);
     expect(mockState.auditEvents).toEqual([
+      expect.objectContaining({
+        p_organization_id: "org-1",
+        p_action: "finance.payable.update",
+        p_target_type: "payable_bill",
+        p_target_id: "bill-1",
+        p_outcome: "success",
+        p_metadata: {
+          payable_changed: true,
+          responsible_member_id: "member-1",
+        },
+      }),
       expect.objectContaining({
         p_organization_id: "org-1",
         p_action: "finance.payable.status.update",

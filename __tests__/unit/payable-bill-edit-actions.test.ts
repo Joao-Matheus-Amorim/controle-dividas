@@ -11,10 +11,21 @@ const mockState = vi.hoisted(() => ({
     slug: "amorim",
   },
   updatedPayloads: [] as Array<Record<string, unknown>>,
+  auditEvents: [] as Array<Record<string, unknown>>,
+  rateLimitChecks: [] as Array<Record<string, unknown>>,
   billLookup: {
     id: "bill-1",
     owner_id: "owner-1",
     responsible_member_id: "member-1",
+    name: "Aluguel",
+    category: "Casa",
+    amount: 850,
+    due_date: "2026-05-05",
+    status: "pendente",
+    bill_type: "fixa",
+    bank_used: null,
+    recurrence: "mensal",
+    notes: null,
   } as Record<string, unknown> | null,
   memberLookup: {
     id: "member-1",
@@ -46,6 +57,10 @@ function makeQuery(table: string) {
 
       if (updatePayload) {
         mockState.updatedPayloads.push({ ...updatePayload, filters: { ...filters } });
+
+        if (key === "organization_id") {
+          return Promise.resolve({ error: null, count: 1 });
+        }
       }
 
       return query;
@@ -81,6 +96,14 @@ function makeQuery(table: string) {
 
 function makeSupabaseClient() {
   return {
+    rpc(name: string, payload: Record<string, unknown>) {
+      if (name !== "record_audit_event") {
+        throw new Error(`Unexpected rpc: ${name}`);
+      }
+
+      mockState.auditEvents.push(payload);
+      return Promise.resolve({ error: null });
+    },
     from(table: string) {
       if (!["payable_bills", "family_members"].includes(table)) {
         throw new Error(`Unexpected table: ${table}`);
@@ -118,13 +141,32 @@ vi.mock("@/lib/finance/access-control", () => ({
   }),
 }));
 
+vi.mock("@/lib/security/sensitive-rate-limit", () => ({
+  checkSensitiveOperationRateLimit: vi.fn((input: Record<string, unknown>) => {
+    mockState.rateLimitChecks.push(input);
+
+    return { allowed: true, remaining: 9, resetAt: 1000 };
+  }),
+}));
+
 describe("payable bill edit action", () => {
   beforeEach(() => {
     mockState.updatedPayloads = [];
+    mockState.auditEvents = [];
+    mockState.rateLimitChecks = [];
     mockState.billLookup = {
       id: "bill-1",
       owner_id: "owner-1",
       responsible_member_id: "member-1",
+      name: "Aluguel",
+      category: "Casa",
+      amount: 850,
+      due_date: "2026-05-05",
+      status: "pendente",
+      bill_type: "fixa",
+      bank_used: null,
+      recurrence: "mensal",
+      notes: null,
     };
     mockState.memberLookup = {
       id: "member-1",
