@@ -293,7 +293,65 @@ export async function updateBankAccount(
       await assertCanAccessMember("BANCOS", "can_edit", input.familyMemberId);
     }
 
-    if (bankChanged) {
+    const bankUpdateRateLimitInput = {
+      ...bankUpdateRateLimit,
+      actorKey: profile.id,
+      organizationId: organization.id,
+      targetKey: id,
+    };
+    const bankBalanceRateLimitInput = {
+      ...bankBalanceRateLimit,
+      actorKey: profile.id,
+      organizationId: organization.id,
+      targetKey: id,
+    };
+
+    if (bankChanged && balanceChanged) {
+      const bankRateLimit = checkSensitiveOperationRateLimit({
+        ...bankUpdateRateLimitInput,
+        consume: false,
+      });
+
+      if (!bankRateLimit.allowed) {
+        await recordBankAuditEvent({
+          organizationId: organization.id,
+          action: "finance.bank.update",
+          bankId: id,
+          outcome: "denied",
+          metadata: {
+            status: "rate_limited",
+            bank_changed: true,
+            family_member_id: input.familyMemberId,
+          },
+        });
+
+        return { error: "Muitas tentativas de alteracao de banco. Tente novamente em alguns minutos." };
+      }
+
+      const balanceRateLimit = checkSensitiveOperationRateLimit({
+        ...bankBalanceRateLimitInput,
+        consume: false,
+      });
+
+      if (!balanceRateLimit.allowed) {
+        await recordBankAuditEvent({
+          organizationId: organization.id,
+          action: "finance.bank.balance.update",
+          bankId: id,
+          outcome: "denied",
+          metadata: {
+            status: "rate_limited",
+            balance_changed: true,
+            family_member_id: input.familyMemberId,
+          },
+        });
+
+        return { error: "Muitas tentativas de alteracao de saldo. Tente novamente em alguns minutos." };
+      }
+
+      checkSensitiveOperationRateLimit(bankUpdateRateLimitInput);
+      checkSensitiveOperationRateLimit(bankBalanceRateLimitInput);
+    } else if (bankChanged) {
       const rateLimit = checkSensitiveOperationRateLimit({
         ...bankUpdateRateLimit,
         actorKey: profile.id,
@@ -316,9 +374,7 @@ export async function updateBankAccount(
 
         return { error: "Muitas tentativas de alteracao de banco. Tente novamente em alguns minutos." };
       }
-    }
-
-    if (balanceChanged) {
+    } else if (balanceChanged) {
       const rateLimit = checkSensitiveOperationRateLimit({
         ...bankBalanceRateLimit,
         actorKey: profile.id,

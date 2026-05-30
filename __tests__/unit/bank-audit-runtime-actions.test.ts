@@ -482,6 +482,7 @@ describe("bank audit runtime actions", () => {
         actorKey: "profile-1",
         organizationId: "org-1",
         targetKey: "bank-1",
+        consume: false,
       }),
     ]);
     expect(mockState.rateLimitChecks.some(
@@ -496,6 +497,60 @@ describe("bank audit runtime actions", () => {
         p_metadata: {
           status: "rate_limited",
           bank_changed: true,
+          family_member_id: "member-1",
+        },
+      }),
+    ]);
+  });
+
+  it("does not consume bank update quota when full edit balance limit blocks before mutation", async () => {
+    const { updateBankAccount } = await import("@/app/protected/bancos/actions");
+    mockState.rateLimitAllowedByOperation = {
+      "finance.bank.update": true,
+      "finance.bank.balance.update": false,
+    };
+
+    const result = await updateBankAccount({}, createFormData({
+      id: "bank-1",
+      family_member_id: "member-1",
+      bank_name: "Banco Inter",
+      account_type: "Conta corrente",
+      current_balance: "180",
+      currency: "BRL",
+    }));
+
+    expect(result).toEqual({
+      error: "Muitas tentativas de alteracao de saldo. Tente novamente em alguns minutos.",
+    });
+    expect(mockState.updatedRows).toHaveLength(0);
+    expect(mockState.rateLimitChecks).toEqual([
+      expect.objectContaining({
+        operationKey: "finance.bank.update",
+        actorKey: "profile-1",
+        organizationId: "org-1",
+        targetKey: "bank-1",
+        consume: false,
+      }),
+      expect.objectContaining({
+        operationKey: "finance.bank.balance.update",
+        actorKey: "profile-1",
+        organizationId: "org-1",
+        targetKey: "bank-1",
+        consume: false,
+      }),
+    ]);
+    expect(mockState.rateLimitChecks.some(
+      (check) => check.operationKey === "finance.bank.update" && check.consume !== false,
+    )).toBe(false);
+    expect(mockState.auditEvents).toEqual([
+      expect.objectContaining({
+        p_action: "finance.bank.balance.update",
+        p_target_type: "bank",
+        p_target_id: "bank-1",
+        p_outcome: "denied",
+        p_metadata: {
+          status: "rate_limited",
+          balance_changed: true,
           family_member_id: "member-1",
         },
       }),
