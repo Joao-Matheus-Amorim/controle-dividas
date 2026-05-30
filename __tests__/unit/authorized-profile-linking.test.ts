@@ -5,6 +5,8 @@ const mockState = vi.hoisted(() => ({
   updates: [] as Array<{ table: string; payload: Record<string, unknown>; filters: Record<string, unknown> }>,
   selectError: null as { message: string } | null,
   updateError: null as { message: string } | null,
+  rateLimitAllowed: true,
+  rateLimitChecks: [] as Array<Record<string, unknown>>,
 }));
 
 function makeProfilesQuery() {
@@ -60,6 +62,16 @@ vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: vi.fn(() => makeAdminClient()),
 }));
 
+vi.mock("@/lib/security/sensitive-rate-limit", () => ({
+  checkSensitiveOperationRateLimit: vi.fn((input: Record<string, unknown>) => {
+    mockState.rateLimitChecks.push(input);
+
+    return mockState.rateLimitAllowed
+      ? { allowed: true, remaining: 9, resetAt: 1000 }
+      : { allowed: false, retryAfterMs: 1000, resetAt: 1000 };
+  }),
+}));
+
 function profile(overrides: Record<string, unknown> = {}) {
   return {
     id: "profile-1",
@@ -81,6 +93,8 @@ describe("authorized profile email lookup", () => {
     mockState.updates = [];
     mockState.selectError = null;
     mockState.updateError = null;
+    mockState.rateLimitAllowed = true;
+    mockState.rateLimitChecks = [];
     vi.resetModules();
   });
 
@@ -162,6 +176,63 @@ describe("authorized profile email lookup", () => {
       allowed: false,
       error: "profile lookup unavailable",
     });
+  });
+
+  it("rate limits public signup authorization checks by normalized email before lookup", async () => {
+    const { checkAuthorizedFamilyEmail } = await import("@/app/auth/sign-up/actions");
+    mockState.profiles = [profile()];
+
+    await expect(checkAuthorizedFamilyEmail("  MARIA@example.com  ")).resolves.toEqual({
+      allowed: true,
+      name: "Maria",
+      role: "user",
+    });
+
+    expect(mockState.rateLimitChecks).toEqual([
+      expect.objectContaining({
+        operationKey: "auth.signup.authorized_email.check",
+        actorKey: "maria@example.com",
+        organizationId: "public-auth",
+        limit: 10,
+        windowMs: 10 * 60 * 1000,
+      }),
+    ]);
+  });
+
+  it("does not query authorized profiles when signup authorization rate limit denies", async () => {
+    const { checkAuthorizedFamilyEmail } = await import("@/app/auth/sign-up/actions");
+    mockState.rateLimitAllowed = false;
+    mockState.selectError = { message: "lookup should not run" };
+
+    await expect(checkAuthorizedFamilyEmail("maria@example.com")).resolves.toEqual({
+      allowed: false,
+      error: "Muitas tentativas de validacao de email. Tente novamente em alguns minutos.",
+    });
+
+    expect(mockState.rateLimitChecks).toEqual([
+      expect.objectContaining({
+        operationKey: "auth.signup.authorized_email.check",
+        actorKey: "maria@example.com",
+        organizationId: "public-auth",
+      }),
+    ]);
+  });
+
+  it("handles malformed signup authorization email arguments without throwing before rate limit", async () => {
+    const { checkAuthorizedFamilyEmail } = await import("@/app/auth/sign-up/actions");
+
+    await expect(checkAuthorizedFamilyEmail(null)).resolves.toEqual({
+      allowed: false,
+      error: "Informe o email autorizado pelo Admin.",
+    });
+
+    expect(mockState.rateLimitChecks).toEqual([
+      expect.objectContaining({
+        operationKey: "auth.signup.authorized_email.check",
+        actorKey: "missing-email",
+        organizationId: "public-auth",
+      }),
+    ]);
   });
 
   it("does not link when email is ambiguous", async () => {
