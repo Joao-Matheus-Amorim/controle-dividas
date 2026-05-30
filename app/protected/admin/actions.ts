@@ -667,6 +667,7 @@ export async function saveProfilePermissions(
     ...adminPermissionUpdateRateLimit,
     actorKey: adminProfile.id,
     organizationId: organization.id,
+    targetKey: profileId,
   });
 
   if (!rateLimit.allowed) {
@@ -752,6 +753,7 @@ export async function saveProfileFeaturePermissions(
     ...adminFeaturePermissionUpdateRateLimit,
     actorKey: adminProfile.id,
     organizationId: organization.id,
+    targetKey: profileId,
   });
 
   if (!rateLimit.allowed) {

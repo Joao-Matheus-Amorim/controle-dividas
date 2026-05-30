@@ -160,6 +160,7 @@ describe("admin permission rate limit actions", () => {
         windowMs: 10 * 60 * 1000,
         actorKey: "admin-profile-1",
         organizationId: "org-1",
+        targetKey: "profile-1",
       },
     ]);
     expect(mockState.upsertRows).toEqual([
@@ -227,6 +228,7 @@ describe("admin permission rate limit actions", () => {
         windowMs: 10 * 60 * 1000,
         actorKey: "admin-profile-1",
         organizationId: "org-1",
+        targetKey: "profile-1",
       },
     ]);
     expect(mockState.upsertRows).toEqual([

@@ -44,6 +44,7 @@ describe("admin permission audit runtime guards", () => {
     expect(actions).toContain('operationkey: "admin.feature_permission.update"');
     expect(actions).toContain("actorkey: adminprofile.id");
     expect(actions).toContain("organizationid: organization.id");
+    expect(actions).toContain("targetkey: profileid");
     expect(actions).toContain('outcome: "denied"');
     expect(actions).toContain('status: "rate_limited"');
     expect(actions).not.toContain("retention");
