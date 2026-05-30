@@ -323,12 +323,67 @@ export async function updatePayableBill(
       await assertCanAccessMember("CONTAS_A_PAGAR", "can_edit", input.responsibleMemberId);
     }
 
-    if (String(bill.status) !== input.status) {
+    const statusChanged = String(bill.status) !== input.status;
+    const payableStatusRateLimitInput = {
+      ...payableStatusRateLimit,
+      actorKey: profile.id,
+      organizationId: organization.id,
+      targetKey: id,
+    };
+    const payableUpdateRateLimitInput = {
+      ...payableUpdateRateLimit,
+      actorKey: profile.id,
+      organizationId: organization.id,
+      targetKey: id,
+    };
+
+    if (statusChanged && billChanged) {
+      const statusRateLimit = checkSensitiveOperationRateLimit({
+        ...payableStatusRateLimitInput,
+        consume: false,
+      });
+
+      if (!statusRateLimit.allowed) {
+        await recordPayableBillAuditEvent({
+          organizationId: organization.id,
+          action: "finance.payable.status.update",
+          billId: id,
+          outcome: "denied",
+          metadata: {
+            status: "rate_limited",
+            responsible_member_id: String(bill.responsible_member_id),
+          },
+        });
+
+        return { error: "Muitas tentativas de alteracao de status. Tente novamente em alguns minutos." };
+      }
+
+      const updateRateLimit = checkSensitiveOperationRateLimit({
+        ...payableUpdateRateLimitInput,
+        consume: false,
+      });
+
+      if (!updateRateLimit.allowed) {
+        await recordPayableBillAuditEvent({
+          organizationId: organization.id,
+          action: "finance.payable.update",
+          billId: id,
+          outcome: "denied",
+          metadata: {
+            status: "rate_limited",
+            payable_changed: true,
+            responsible_member_id: input.responsibleMemberId,
+          },
+        });
+
+        return { error: "Muitas tentativas de alteracao de conta. Tente novamente em alguns minutos." };
+      }
+
+      checkSensitiveOperationRateLimit(payableStatusRateLimitInput);
+      checkSensitiveOperationRateLimit(payableUpdateRateLimitInput);
+    } else if (statusChanged) {
       const rateLimit = checkSensitiveOperationRateLimit({
-        ...payableStatusRateLimit,
-        actorKey: profile.id,
-        organizationId: organization.id,
-        targetKey: id,
+        ...payableStatusRateLimitInput,
       });
 
       if (!rateLimit.allowed) {
@@ -345,14 +400,9 @@ export async function updatePayableBill(
 
         return { error: "Muitas tentativas de alteracao de status. Tente novamente em alguns minutos." };
       }
-    }
-
-    if (billChanged) {
+    } else if (billChanged) {
       const rateLimit = checkSensitiveOperationRateLimit({
-        ...payableUpdateRateLimit,
-        actorKey: profile.id,
-        organizationId: organization.id,
-        targetKey: id,
+        ...payableUpdateRateLimitInput,
       });
 
       if (!rateLimit.allowed) {
@@ -415,7 +465,7 @@ export async function updatePayableBill(
       });
     }
 
-    if (String(bill.status) !== input.status) {
+    if (statusChanged) {
       await recordPayableBillAuditEvent({
         organizationId: organization.id,
         action: "finance.payable.status.update",
