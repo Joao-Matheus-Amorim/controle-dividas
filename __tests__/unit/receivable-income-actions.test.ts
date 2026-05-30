@@ -39,6 +39,7 @@ const mockState = vi.hoisted(() => ({
   deleteCount: 1 as number | null,
   accessError: null as Error | null,
   rateLimitAllowed: true,
+  rateLimitAllowedByOperation: {} as Record<string, boolean>,
   rateLimitChecks: [] as Array<Record<string, unknown>>,
   auditEvents: [] as Array<Record<string, unknown>>,
 }));
@@ -194,8 +195,12 @@ vi.mock("@/lib/finance/access-control", () => ({
 vi.mock("@/lib/security/sensitive-rate-limit", () => ({
   checkSensitiveOperationRateLimit: vi.fn((input: Record<string, unknown>) => {
     mockState.rateLimitChecks.push(input);
+    const operationKey = String(input.operationKey);
+    const allowed = operationKey in mockState.rateLimitAllowedByOperation
+      ? mockState.rateLimitAllowedByOperation[operationKey]
+      : mockState.rateLimitAllowed;
 
-    return mockState.rateLimitAllowed
+    return allowed
       ? { allowed: true, remaining: 4, resetAt: 1000 }
       : { allowed: false, retryAfterMs: 1000, resetAt: 1000 };
   }),
@@ -232,6 +237,7 @@ describe("receivable income actions", () => {
     mockState.deleteCount = 1;
     mockState.accessError = null;
     mockState.rateLimitAllowed = true;
+    mockState.rateLimitAllowedByOperation = {};
     mockState.rateLimitChecks = [];
     mockState.auditEvents = [];
   });
@@ -545,6 +551,82 @@ describe("receivable income actions", () => {
     ]);
   });
 
+  it("preflights and consumes paired limits when full receivable edit changes status and fields", async () => {
+    const { updateReceivableIncome } = await import("@/app/protected/contas-a-receber/actions");
+
+    const result = await updateReceivableIncome({}, createFormData({
+      id: "income-1",
+      receiver_member_id: "member-1",
+      source: "Freelance",
+      income_type: "variavel",
+      amount: "2000",
+      expected_date: "2026-06-30",
+      status: "recebido",
+      receiving_bank: "Banco B",
+    }));
+
+    expect(result).toEqual({ success: "Recebimento atualizado com sucesso." });
+    expect(mockState.rateLimitChecks).toEqual([
+      {
+        operationKey: "finance.receivable.status.update",
+        limit: 10,
+        windowMs: 10 * 60 * 1000,
+        actorKey: "profile-1",
+        organizationId: "org-1",
+        targetKey: "income-1",
+        consume: false,
+      },
+      {
+        operationKey: "finance.receivable.update",
+        limit: 10,
+        windowMs: 10 * 60 * 1000,
+        actorKey: "profile-1",
+        organizationId: "org-1",
+        targetKey: "income-1",
+        consume: false,
+      },
+      {
+        operationKey: "finance.receivable.status.update",
+        limit: 10,
+        windowMs: 10 * 60 * 1000,
+        actorKey: "profile-1",
+        organizationId: "org-1",
+        targetKey: "income-1",
+      },
+      {
+        operationKey: "finance.receivable.update",
+        limit: 10,
+        windowMs: 10 * 60 * 1000,
+        actorKey: "profile-1",
+        organizationId: "org-1",
+        targetKey: "income-1",
+      },
+    ]);
+    expect(mockState.auditEvents).toEqual([
+      expect.objectContaining({
+        p_action: "finance.receivable.update",
+        p_target_type: "receivable_income",
+        p_target_id: "income-1",
+        p_outcome: "success",
+        p_metadata: {
+          receivable_changed: true,
+          receiver_member_id: "member-1",
+        },
+      }),
+      expect.objectContaining({
+        p_action: "finance.receivable.status.update",
+        p_target_type: "receivable_income",
+        p_target_id: "income-1",
+        p_outcome: "success",
+        p_metadata: {
+          previous_status: "previsto",
+          next_status: "recebido",
+          receiver_member_id: "member-1",
+        },
+      }),
+    ]);
+  });
+
   it("does not update or audit full receivable edits when the write rate limit blocks the action", async () => {
     const { updateReceivableIncome } = await import("@/app/protected/contas-a-receber/actions");
     mockState.rateLimitAllowed = false;
@@ -571,6 +653,110 @@ describe("receivable income actions", () => {
         targetKey: "income-1",
       }),
     ]);
+    expect(mockState.auditEvents).toEqual([
+      expect.objectContaining({
+        p_action: "finance.receivable.update",
+        p_target_type: "receivable_income",
+        p_target_id: "income-1",
+        p_outcome: "denied",
+        p_metadata: {
+          status: "rate_limited",
+          receivable_changed: true,
+          receiver_member_id: "member-1",
+        },
+      }),
+    ]);
+  });
+
+  it("does not consume update quota when full edit status limit blocks before mutation", async () => {
+    const { updateReceivableIncome } = await import("@/app/protected/contas-a-receber/actions");
+    mockState.rateLimitAllowedByOperation = {
+      "finance.receivable.status.update": false,
+      "finance.receivable.update": true,
+    };
+
+    const result = await updateReceivableIncome({}, createFormData({
+      id: "income-1",
+      receiver_member_id: "member-1",
+      source: "Freelance",
+      income_type: "variavel",
+      amount: "2000",
+      expected_date: "2026-06-30",
+      status: "recebido",
+      receiving_bank: "Banco B",
+    }));
+
+    expect(result).toEqual({
+      error: "Muitas tentativas de alteracao de status. Tente novamente em alguns minutos.",
+    });
+    expect(mockState.updatedPayloads).toHaveLength(0);
+    expect(mockState.rateLimitChecks).toEqual([
+      expect.objectContaining({
+        operationKey: "finance.receivable.status.update",
+        actorKey: "profile-1",
+        organizationId: "org-1",
+        targetKey: "income-1",
+        consume: false,
+      }),
+    ]);
+    expect(mockState.rateLimitChecks.some(
+      (check) => check.operationKey === "finance.receivable.update",
+    )).toBe(false);
+    expect(mockState.auditEvents).toEqual([
+      expect.objectContaining({
+        p_action: "finance.receivable.status.update",
+        p_target_type: "receivable_income",
+        p_target_id: "income-1",
+        p_outcome: "denied",
+        p_metadata: {
+          status: "rate_limited",
+          receiver_member_id: "member-1",
+        },
+      }),
+    ]);
+  });
+
+  it("does not consume status quota when full edit update limit blocks before mutation", async () => {
+    const { updateReceivableIncome } = await import("@/app/protected/contas-a-receber/actions");
+    mockState.rateLimitAllowedByOperation = {
+      "finance.receivable.status.update": true,
+      "finance.receivable.update": false,
+    };
+
+    const result = await updateReceivableIncome({}, createFormData({
+      id: "income-1",
+      receiver_member_id: "member-1",
+      source: "Freelance",
+      income_type: "variavel",
+      amount: "2000",
+      expected_date: "2026-06-30",
+      status: "recebido",
+      receiving_bank: "Banco B",
+    }));
+
+    expect(result).toEqual({
+      error: "Muitas tentativas de alteracao de recebimento. Tente novamente em alguns minutos.",
+    });
+    expect(mockState.updatedPayloads).toHaveLength(0);
+    expect(mockState.rateLimitChecks).toEqual([
+      expect.objectContaining({
+        operationKey: "finance.receivable.status.update",
+        actorKey: "profile-1",
+        organizationId: "org-1",
+        targetKey: "income-1",
+        consume: false,
+      }),
+      expect.objectContaining({
+        operationKey: "finance.receivable.update",
+        actorKey: "profile-1",
+        organizationId: "org-1",
+        targetKey: "income-1",
+        consume: false,
+      }),
+    ]);
+    expect(mockState.rateLimitChecks.some(
+      (check) => check.operationKey === "finance.receivable.status.update" && check.consume !== false,
+    )).toBe(false);
     expect(mockState.auditEvents).toEqual([
       expect.objectContaining({
         p_action: "finance.receivable.update",
