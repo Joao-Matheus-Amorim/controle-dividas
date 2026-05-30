@@ -19,6 +19,11 @@ const payableDeleteRateLimit = {
   limit: 5,
   windowMs: 10 * 60 * 1000,
 };
+const payableStatusRateLimit = {
+  operationKey: "finance.payable.status.update",
+  limit: 10,
+  windowMs: 10 * 60 * 1000,
+};
 
 export type PayableBillActionState = {
   error?: string;
@@ -254,6 +259,30 @@ export async function updatePayableBill(
       await assertCanAccessMember("CONTAS_A_PAGAR", "can_edit", input.responsibleMemberId);
     }
 
+    if (String(bill.status) !== input.status) {
+      const rateLimit = checkSensitiveOperationRateLimit({
+        ...payableStatusRateLimit,
+        actorKey: profile.id,
+        organizationId: organization.id,
+        targetKey: id,
+      });
+
+      if (!rateLimit.allowed) {
+        await recordPayableBillAuditEvent({
+          organizationId: organization.id,
+          action: "finance.payable.status.update",
+          billId: id,
+          outcome: "denied",
+          metadata: {
+            status: "rate_limited",
+            responsible_member_id: String(bill.responsible_member_id),
+          },
+        });
+
+        return { error: "Muitas tentativas de alteracao de status. Tente novamente em alguns minutos." };
+      }
+    }
+
     const supabase = await createClient();
     const { error } = await supabase
       .from("payable_bills")
@@ -321,6 +350,28 @@ export async function updatePayableBillStatus(
 
   try {
     const { profile, organization, bill } = await assertCanManagePayableBill(id, "can_edit");
+    const rateLimit = checkSensitiveOperationRateLimit({
+      ...payableStatusRateLimit,
+      actorKey: profile.id,
+      organizationId: organization.id,
+      targetKey: id,
+    });
+
+    if (!rateLimit.allowed) {
+      await recordPayableBillAuditEvent({
+        organizationId: organization.id,
+        action: "finance.payable.status.update",
+        billId: id,
+        outcome: "denied",
+        metadata: {
+          status: "rate_limited",
+          responsible_member_id: String(bill.responsible_member_id),
+        },
+      });
+
+      return { error: "Muitas tentativas de alteracao de status. Tente novamente em alguns minutos." };
+    }
+
     const supabase = await createClient();
 
     const { error } = await supabase

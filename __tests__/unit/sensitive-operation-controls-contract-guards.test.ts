@@ -24,6 +24,7 @@ describe("sensitive operation controls contract guards", () => {
     expect(contract).toContain("billing checkout rate limit runtime exists");
     expect(contract).toContain("expense delete rate limit runtime exists");
     expect(contract).toContain("payable delete rate limit runtime exists");
+    expect(contract).toContain("payable status rate limit runtime exists");
     expect(contract).toContain("receivable delete rate limit runtime exists");
     expect(contract).toContain("bank delete rate limit runtime exists");
     expect(contract).toContain("category delete rate limit runtime exists");
@@ -73,6 +74,7 @@ describe("sensitive operation controls contract guards", () => {
     expect(gapRegister).toContain("billing checkout rate limit runtime");
     expect(gapRegister).toContain("expense delete rate limit runtime");
     expect(gapRegister).toContain("payable delete rate limit runtime");
+    expect(gapRegister).toContain("payable status rate limit runtime");
     expect(gapRegister).toContain("receivable delete rate limit runtime");
     expect(gapRegister).toContain("bank delete rate limit runtime");
     expect(gapRegister).toContain("category delete rate limit runtime");

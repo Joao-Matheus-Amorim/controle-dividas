@@ -14,6 +14,7 @@ It follows `docs/audits/SENSITIVE_OPERATION_CONTROLS_CONTRACT.md` and complement
 Billing checkout rate limit runtime exists for `billing.checkout.start`.
 Expense delete rate limit runtime exists for `finance.expense.delete`.
 Payable delete rate limit runtime exists for `finance.payable.delete`.
+Payable status rate limit runtime exists for `finance.payable.status.update`.
 Receivable delete rate limit runtime exists for `finance.receivable.delete`.
 Bank delete rate limit runtime exists for `finance.bank.delete`.
 Category delete rate limit runtime exists for `finance.category.delete`.
@@ -29,7 +30,7 @@ No billing behavior change.
 No E2E change.
 ```
 
-Rate limiting is implemented only for billing checkout start attempts, expense delete attempts, payable delete attempts, receivable delete attempts, bank delete attempts, category delete attempts, admin permission update attempts, and admin user lifecycle attempts.
+Rate limiting is implemented only for billing checkout start attempts, expense delete attempts, payable delete attempts, payable status update attempts, receivable delete attempts, bank delete attempts, category delete attempts, admin permission update attempts, and admin user lifecycle attempts.
 
 ## Control model
 
@@ -60,6 +61,7 @@ Initial limits should be grouped by risk:
 | Billing checkout | `billing.checkout.start` | Authenticated and organization-scoped. |
 | Expense delete | `finance.expense.delete` | Authenticated, organization-scoped, permission-gated. |
 | Payable delete | `finance.payable.delete` | Authenticated, organization-scoped, permission-gated. |
+| Payable status update | `finance.payable.status.update` | Authenticated, organization-scoped, permission-gated. |
 | Receivable delete | `finance.receivable.delete` | Authenticated, organization-scoped, permission-gated. |
 | Bank delete | `finance.bank.delete` | Authenticated, organization-scoped, permission-gated. |
 | Category delete | `finance.category.delete` | Authenticated and organization-scoped. |
@@ -109,7 +111,7 @@ Before implementation, choose and document one storage model:
 | External cache | Better for short windows, but needs operational dependency and env handling. |
 | Platform limiter | Acceptable only if limits can include actor and organization dimensions. |
 
-The first runtime limiter uses process-local memory to keep the rollout schema-free and reversible. It sweeps expired buckets before tracking new traffic so long-lived processes do not retain stale actor/organization/target entries forever. This is acceptable for the initial billing checkout, expense delete, payable delete, receivable delete, bank delete, category delete, admin permission update, and admin user lifecycle boundaries because they are authenticated, organization-scoped, and protected by `DISABLE_SENSITIVE_RATE_LIMITS=true` rollback. Broader or public-auth limits still need a durable/cache-backed storage decision before implementation.
+The first runtime limiter uses process-local memory to keep the rollout schema-free and reversible. It sweeps expired buckets before tracking new traffic so long-lived processes do not retain stale actor/organization/target entries forever. This is acceptable for the initial billing checkout, expense delete, payable delete, payable status update, receivable delete, bank delete, category delete, admin permission update, and admin user lifecycle boundaries because they are authenticated, organization-scoped, and protected by `DISABLE_SENSITIVE_RATE_LIMITS=true` rollback. Broader or public-auth limits still need a durable/cache-backed storage decision before implementation.
 
 ## Sequencing
 
@@ -124,9 +126,10 @@ Rate limiting should move in this order:
 7. Add category delete limit in one PR using the same server-side limiter.
 8. Add admin permission update limits in one PR using the same server-side limiter.
 9. Add admin user lifecycle limits in one PR using the same server-side limiter.
-10. Expand to durable/cache-backed storage before public auth flow limits.
-11. Add audit outcome events after audit event storage exists.
-12. Expand to remaining admin mutations.
+10. Add payable status update limit in one PR using the same server-side limiter.
+11. Expand to durable/cache-backed storage before public auth flow limits.
+12. Add audit outcome events after audit event storage exists.
+13. Expand to remaining status transitions.
 
 ## Non-goals
 

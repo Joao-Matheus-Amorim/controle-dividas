@@ -25,6 +25,8 @@ describe("sensitive operation rate limit plan guards", () => {
     expect(plan).toContain("finance.expense.delete");
     expect(plan).toContain("payable delete rate limit runtime exists");
     expect(plan).toContain("finance.payable.delete");
+    expect(plan).toContain("payable status rate limit runtime exists");
+    expect(plan).toContain("finance.payable.status.update");
     expect(plan).toContain("receivable delete rate limit runtime exists");
     expect(plan).toContain("finance.receivable.delete");
     expect(plan).toContain("bank delete rate limit runtime exists");
@@ -73,6 +75,7 @@ describe("sensitive operation rate limit plan guards", () => {
     expect(plan).toContain("billing.checkout.start");
     expect(plan).toContain("finance.expense.delete");
     expect(plan).toContain("finance.payable.delete");
+    expect(plan).toContain("finance.payable.status.update");
     expect(plan).toContain("finance.receivable.delete");
     expect(plan).toContain("finance.bank.delete");
     expect(plan).toContain("finance.category.delete");
@@ -103,6 +106,7 @@ describe("sensitive operation rate limit plan guards", () => {
     expect(gapRegister).toContain("billing checkout rate limit runtime");
     expect(gapRegister).toContain("expense delete rate limit runtime");
     expect(gapRegister).toContain("payable delete rate limit runtime");
+    expect(gapRegister).toContain("payable status rate limit runtime");
     expect(gapRegister).toContain("receivable delete rate limit runtime");
     expect(gapRegister).toContain("bank delete rate limit runtime");
     expect(gapRegister).toContain("category delete rate limit runtime");
