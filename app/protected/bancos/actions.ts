@@ -23,6 +23,12 @@ const bankDeleteRateLimit = {
   windowMs: 10 * 60 * 1000,
 };
 
+const bankBalanceRateLimit = {
+  operationKey: "finance.bank.balance.update",
+  limit: 10,
+  windowMs: 10 * 60 * 1000,
+};
+
 async function recordBankAuditEvent({
   organizationId,
   action,
@@ -214,6 +220,7 @@ export async function updateBankAccount(
 
   try {
     const { profile, organization, account } = await assertCanManageBankAccount(id, "can_edit");
+    const balanceChanged = Number(account.current_balance) !== input.currentBalance;
 
     if (String(account.family_member_id) !== input.familyMemberId) {
       await assertMemberBelongsToOrganization(
@@ -222,6 +229,31 @@ export async function updateBankAccount(
         input.familyMemberId,
       );
       await assertCanAccessMember("BANCOS", "can_edit", input.familyMemberId);
+    }
+
+    if (balanceChanged) {
+      const rateLimit = checkSensitiveOperationRateLimit({
+        ...bankBalanceRateLimit,
+        actorKey: profile.id,
+        organizationId: organization.id,
+        targetKey: id,
+      });
+
+      if (!rateLimit.allowed) {
+        await recordBankAuditEvent({
+          organizationId: organization.id,
+          action: "finance.bank.balance.update",
+          bankId: id,
+          outcome: "denied",
+          metadata: {
+            status: "rate_limited",
+            balance_changed: true,
+            family_member_id: input.familyMemberId,
+          },
+        });
+
+        return { error: "Muitas tentativas de alteracao de saldo. Tente novamente em alguns minutos." };
+      }
     }
 
     const supabase = await createClient();
@@ -248,7 +280,7 @@ export async function updateBankAccount(
       return { error: "Banco nao encontrado." };
     }
 
-    if (Number(account.current_balance) !== input.currentBalance) {
+    if (balanceChanged) {
       await recordBankAuditEvent({
         organizationId: organization.id,
         action: "finance.bank.balance.update",
@@ -289,6 +321,33 @@ export async function updateBankAccountBalance(
 
   try {
     const { profile, organization, account } = await assertCanManageBankAccount(id, "can_edit");
+    const balanceChanged = Number(account.current_balance) !== currentBalance;
+
+    if (balanceChanged) {
+      const rateLimit = checkSensitiveOperationRateLimit({
+        ...bankBalanceRateLimit,
+        actorKey: profile.id,
+        organizationId: organization.id,
+        targetKey: id,
+      });
+
+      if (!rateLimit.allowed) {
+        await recordBankAuditEvent({
+          organizationId: organization.id,
+          action: "finance.bank.balance.update",
+          bankId: id,
+          outcome: "denied",
+          metadata: {
+            status: "rate_limited",
+            balance_changed: true,
+            family_member_id: String(account.family_member_id),
+          },
+        });
+
+        return { error: "Muitas tentativas de alteracao de saldo. Tente novamente em alguns minutos." };
+      }
+    }
+
     const supabase = await createClient();
 
     const { error, count } = await supabase
@@ -309,7 +368,7 @@ export async function updateBankAccountBalance(
       return { error: "Banco nao encontrado." };
     }
 
-    if (Number(account.current_balance) !== currentBalance) {
+    if (balanceChanged) {
       await recordBankAuditEvent({
         organizationId: organization.id,
         action: "finance.bank.balance.update",
