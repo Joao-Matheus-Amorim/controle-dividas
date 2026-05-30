@@ -4,7 +4,7 @@ GAP: GAP-015
 
 ## Purpose
 
-This document defines the planning contract for sensitive operation controls before any runtime implementation.
+This document defines the planning contract for sensitive operation controls and tracks each focused runtime boundary as it lands.
 
 It covers:
 
@@ -37,14 +37,14 @@ Bank balance rate limit runtime exists for finance.bank.balance.update.
 Category delete rate limit runtime exists for finance.category.delete.
 Admin permission rate limit runtime exists for admin.permission.update and admin.feature_permission.update.
 Admin user rate limit runtime exists for admin.user.create, admin.user.update, admin.user.auth_link.sync, admin.user.delete, and admin.user.status.update.
-No data retention cleanup runtime.
-Audit event retention preflight runtime exists for owner/admin-only organization-scoped `audit_events` older than 365 days, with no cleanup job and no destructive deletion.
+Audit event retention cleanup runtime exists for confirmed owner/admin-only cleanup of expired audit_events through cleanup_expired_audit_events.
+Audit event retention preflight runtime exists for owner/admin-only organization-scoped `audit_events` older than 365 days, with confirmed cleanup runtime and no cleanup job.
 No UI change.
 No billing webhook, portal, or commercial enforcement change.
 No E2E change.
 ```
 
-Remaining runtime controls are not implemented yet. This document exists to prevent later PRs from claiming GAP-015 runtime coverage without a specific implementation surface, validation plan, and rollback plan.
+Remaining broader runtime controls are not implemented yet. This document exists to prevent later PRs from claiming GAP-015 runtime coverage without a specific implementation surface, validation plan, and rollback plan.
 
 ## Sensitive operation inventory
 
@@ -57,7 +57,7 @@ Initial candidates that need explicit control decisions before runtime work:
 | Billing checkout | `app/protected/configuracoes/billing-actions.ts` and checkout session creation | Billing checkout rate limit runtime exists; Stripe metadata boundaries and audit events are covered for this step. |
 | Finance mutations | create/update/delete/status transitions in expenses, payables, receivables, banks, categories, and people | Audit event categories and payload redaction. Expense delete, payable delete, payable status update, receivable delete, receivable status update, bank delete, bank balance update, and category delete rate limit runtime exist for this step. |
 | Destructive actions | deletes and irreversible state transitions | Confirmation, audit event, rate limit, retention, and recovery decision. |
-| Audit event retention | `app/protected/configuracoes/audit-retention-actions.ts` | Preflight-only count for owner/admin-only organization-scoped `audit_events` older than 365 days; no cleanup, anonymization, or destructive deletion exists. |
+| Audit event retention | `app/protected/configuracoes/audit-retention-actions.ts` and `supabase/migrations/042_audit_events_retention_cleanup.sql` | Owner/admin-only preflight and confirmed cleanup through `cleanup_expired_audit_events` for organization-scoped `audit_events` older than 365 days; no anonymization or cleanup job exists. |
 
 ## Rate limiting contract
 
@@ -112,7 +112,7 @@ Each retention PR must define:
 - audit event for retention actions;
 - rollback or recovery path.
 
-Destructive retention work must not be bundled with unrelated runtime, RLS, billing, or UI changes. The current audit event retention preflight is read-only and does not implement cleanup or anonymization.
+Destructive retention work must not be bundled with unrelated runtime, RLS, billing, or UI changes. The current audit event retention cleanup is limited to confirmed owner/admin-only `audit_events` cleanup and does not implement anonymization or cleanup jobs.
 
 ## Sequencing
 
@@ -122,7 +122,7 @@ GAP-015 should move in this order:
 2. Define the audit event schema and redaction model using `docs/audits/SENSITIVE_ACTION_AUDIT_EVENT_SCHEMA_PLAN.md`, `supabase/migrations/040_audit_events_schema.sql`, and `supabase/migrations/041_audit_events_write_boundary.sql` via `record_audit_event`.
 3. Implement rate limits for one server boundary at a time using `docs/audits/SENSITIVE_OPERATION_RATE_LIMIT_PLAN.md`; billing checkout, expense delete, payable delete, payable status update, receivable delete, receivable status update, bank delete, bank balance update, category delete, admin permission updates, and admin user lifecycle are the first runtime boundaries.
 4. Add audit logging for one sensitive operation family at a time.
-5. Define retention policy before any destructive cleanup automation using `docs/audits/SENSITIVE_DATA_RETENTION_PLAN.md`.
+5. Define retention policy before any destructive cleanup automation using `docs/audits/SENSITIVE_DATA_RETENTION_PLAN.md`; audit_events now have the first confirmed owner/admin-only cleanup boundary.
 
 ## Non-goals
 

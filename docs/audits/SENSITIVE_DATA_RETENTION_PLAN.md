@@ -4,7 +4,7 @@ GAP: GAP-015
 
 ## Purpose
 
-This document defines the planning contract for sensitive data retention before any cleanup automation, anonymization, or destructive deletion exists.
+This document defines the planning contract for sensitive data retention and tracks the narrow audit event cleanup boundary before any broader cleanup automation or anonymization exists.
 
 It follows:
 
@@ -17,18 +17,18 @@ It follows:
 ```txt
 Audit event retention preflight runtime exists.
 Audit events use a 365-day candidate retention cutoff for preflight counting only.
-No retention cleanup runtime.
+Audit event retention cleanup runtime exists for confirmed owner/admin-only cleanup of expired audit_events.
 No cleanup job.
 No anonymization job.
-No destructive deletion.
-No schema change.
-No RLS change.
+No destructive deletion outside confirmed audit_events retention cleanup.
+No audit_events table schema change.
+No RLS policy change.
 No UI change.
 No billing behavior change.
 No E2E change.
 ```
 
-Data retention cleanup controls are not implemented yet. The current runtime only counts organization-scoped `audit_events` older than the candidate cutoff in `app/protected/configuracoes/audit-retention-actions.ts`.
+Broader data retention cleanup controls are not implemented yet. The current runtime counts and deletes only owner/admin-scoped `audit_events` older than the candidate cutoff through `app/protected/configuracoes/audit-retention-actions.ts` and `public.cleanup_expired_audit_events`.
 
 ## Data classes
 
@@ -40,7 +40,7 @@ Future retention work must classify data before any runtime change:
 | Organization membership | membership roles, active status, organization ownership | Retain while organization exists; deletion needs ownership transfer/closure decision. |
 | Financial records | expenses, payable bills, receivable incomes, banks, categories, family members | User-owned financial history; no automatic deletion until product policy exists. |
 | Billing references | plan, Stripe customer id, checkout/session references | Keep minimal references needed for billing support and reconciliation. |
-| Audit events | sensitive-action event summaries | Preflight counts owner/admin-only organization-scoped events older than 365 days; no cleanup or anonymization exists yet. |
+| Audit events | sensitive-action event summaries | Preflight counts owner/admin-only organization-scoped events older than 365 days; confirmed cleanup exists; no anonymization or cleanup job exists. |
 | Operational evidence | gated test artifacts, CI summaries, docs evidence | Retain as repo/CI evidence; do not mix with user data retention. |
 
 ## Required decisions
@@ -58,7 +58,7 @@ Every future retention implementation must define:
 - backup/restore implication;
 - rollback or recovery path.
 
-No retention cleanup runtime should be added until these decisions are documented for the specific data class.
+No additional retention cleanup runtime should be added until these decisions are documented for the specific data class.
 
 ## Destructive action rules
 
@@ -74,12 +74,12 @@ Retention work that deletes or anonymizes data must:
 
 ## Candidate retention policies
 
-These are planning candidates, not active policies:
+These are planning candidates. Audit events have the first active cleanup boundary.
 
 | Candidate | Notes |
 | --- | --- |
 | Soft-deleted operational entities | Decide whether soft delete is needed before physical deletion. |
-| Audit events | Candidate retention window must balance accountability and privacy. |
+| Audit events | Active owner/admin-only cleanup uses a 365-day candidate cutoff and records `audit.retention.cleanup`. |
 | Closed organizations | Requires ownership, billing, export, and legal decision before cleanup. |
 | Inactive members | Must preserve financial record references unless an anonymization policy exists. |
 | Billing metadata | Must not delete data required for Stripe reconciliation or support. |
@@ -92,9 +92,9 @@ This plan does not implement:
 - cron schedules;
 - queue workers;
 - anonymization runtime;
-- destructive delete flows;
+- destructive delete flows outside confirmed audit_events retention cleanup;
 - export flows;
-- schema changes;
+- additional schema changes;
 - RLS changes;
 - billing cancellation or portal behavior;
 - UI changes;
@@ -107,8 +107,8 @@ Data retention should move in this order:
 1. Decide product/legal retention policy per data class.
 2. Define audit event storage before destructive retention actions.
 3. Add dry-run/preflight query for one data class. Audit event retention preflight now exists for `audit_events` with a 365-day cutoff.
-4. Add runtime cleanup or anonymization for one data class.
-5. Add focused tests and rollback instructions.
+4. Add runtime cleanup or anonymization for one data class. Audit event retention cleanup now exists for `audit_events` through `cleanup_expired_audit_events`.
+5. Add focused tests and rollback instructions. Audit event cleanup can be rolled back by removing the server action/RPC entry point before running further cleanup.
 6. Update live docs and gap register only after implementation evidence.
 
 ## Acceptance
