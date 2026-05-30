@@ -136,13 +136,64 @@ export async function updateFamilyMember(
   const profileChanged =
     String(member.name ?? "").trim() !== name || currentRole !== role;
   const limitChanged = Number(member.monthly_limit ?? 0) !== monthlyLimit;
+  const memberUpdateRateLimitInput = {
+    ...familyMemberUpdateRateLimit,
+    actorKey: profile.id,
+    organizationId: organization.id,
+    targetKey: id,
+  };
+  const memberLimitRateLimitInput = {
+    ...familyMemberLimitRateLimit,
+    actorKey: profile.id,
+    organizationId: organization.id,
+    targetKey: id,
+  };
 
-  if (profileChanged) {
+  if (profileChanged && limitChanged) {
+    const profileRateLimit = checkSensitiveOperationRateLimit({
+      ...memberUpdateRateLimitInput,
+      consume: false,
+    });
+
+    if (!profileRateLimit.allowed) {
+      await recordFamilyMemberWriteAuditEvent({
+        organizationId: organization.id,
+        action: "finance.member.update",
+        familyMemberId: id,
+        outcome: "denied",
+        metadata: {
+          status: "rate_limited",
+          member_profile_changed: true,
+        },
+      });
+
+      return { error: "Muitas tentativas de alteracao de pessoa. Tente novamente em alguns minutos." };
+    }
+
+    const limitRateLimit = checkSensitiveOperationRateLimit({
+      ...memberLimitRateLimitInput,
+      consume: false,
+    });
+
+    if (!limitRateLimit.allowed) {
+      await recordFamilyMemberLimitAuditEvent({
+        organizationId: organization.id,
+        familyMemberId: id,
+        outcome: "denied",
+        metadata: {
+          status: "rate_limited",
+          limit_changed: true,
+        },
+      });
+
+      return { error: "Muitas tentativas de alteracao de limite. Tente novamente em alguns minutos." };
+    }
+
+    checkSensitiveOperationRateLimit(memberUpdateRateLimitInput);
+    checkSensitiveOperationRateLimit(memberLimitRateLimitInput);
+  } else if (profileChanged) {
     const rateLimit = checkSensitiveOperationRateLimit({
-      ...familyMemberUpdateRateLimit,
-      actorKey: profile.id,
-      organizationId: organization.id,
-      targetKey: id,
+      ...memberUpdateRateLimitInput,
     });
 
     if (!rateLimit.allowed) {
@@ -159,14 +210,9 @@ export async function updateFamilyMember(
 
       return { error: "Muitas tentativas de alteracao de pessoa. Tente novamente em alguns minutos." };
     }
-  }
-
-  if (limitChanged) {
+  } else if (limitChanged) {
     const rateLimit = checkSensitiveOperationRateLimit({
-      ...familyMemberLimitRateLimit,
-      actorKey: profile.owner_id,
-      organizationId: organization.id,
-      targetKey: id,
+      ...memberLimitRateLimitInput,
     });
 
     if (!rateLimit.allowed) {

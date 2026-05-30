@@ -24,6 +24,7 @@ const mockState = vi.hoisted(() => ({
   mutationCount: 1 as number | null,
   mutationError: null as { message: string } | null,
   rateLimitAllowed: true,
+  rateLimitAllowedByOperation: {} as Record<string, boolean>,
   rateLimitChecks: [] as Array<Record<string, unknown>>,
   auditEvents: [] as Array<Record<string, unknown>>,
 }));
@@ -126,8 +127,12 @@ vi.mock("@/lib/finance/access-control", () => ({
 vi.mock("@/lib/security/sensitive-rate-limit", () => ({
   checkSensitiveOperationRateLimit: vi.fn((input: Record<string, unknown>) => {
     mockState.rateLimitChecks.push(input);
+    const operationKey = String(input.operationKey);
+    const allowed = operationKey in mockState.rateLimitAllowedByOperation
+      ? mockState.rateLimitAllowedByOperation[operationKey]
+      : mockState.rateLimitAllowed;
 
-    return mockState.rateLimitAllowed
+    return allowed
       ? { allowed: true, remaining: 9, resetAt: 1000 }
       : { allowed: false, retryAfterMs: 1000, resetAt: 1000 };
   }),
@@ -149,6 +154,7 @@ describe("family member write audit runtime actions", () => {
     mockState.mutationCount = 1;
     mockState.mutationError = null;
     mockState.rateLimitAllowed = true;
+    mockState.rateLimitAllowedByOperation = {};
     mockState.rateLimitChecks = [];
     mockState.auditEvents = [];
   });
@@ -304,6 +310,75 @@ describe("family member write audit runtime actions", () => {
     ]);
   });
 
+  it("preflights and consumes paired limits when member profile and limit both change", async () => {
+    const { updateFamilyMember } = await import("@/app/protected/pessoas/actions");
+
+    const result = await updateFamilyMember(createFormData({
+      id: "member-1",
+      name: "Maria Silva",
+      role: "Responsavel",
+      monthly_limit: "750",
+    }));
+
+    expect(result).toEqual({ success: "Pessoa atualizada com sucesso." });
+    expect(mockState.rateLimitChecks).toEqual([
+      {
+        operationKey: "finance.member.update",
+        limit: 10,
+        windowMs: 10 * 60 * 1000,
+        actorKey: "profile-1",
+        organizationId: "org-1",
+        targetKey: "member-1",
+        consume: false,
+      },
+      {
+        operationKey: "finance.member.limit.update",
+        limit: 10,
+        windowMs: 10 * 60 * 1000,
+        actorKey: "profile-1",
+        organizationId: "org-1",
+        targetKey: "member-1",
+        consume: false,
+      },
+      {
+        operationKey: "finance.member.update",
+        limit: 10,
+        windowMs: 10 * 60 * 1000,
+        actorKey: "profile-1",
+        organizationId: "org-1",
+        targetKey: "member-1",
+      },
+      {
+        operationKey: "finance.member.limit.update",
+        limit: 10,
+        windowMs: 10 * 60 * 1000,
+        actorKey: "profile-1",
+        organizationId: "org-1",
+        targetKey: "member-1",
+      },
+    ]);
+    expect(mockState.auditEvents).toEqual([
+      expect.objectContaining({
+        p_action: "finance.member.limit.update",
+        p_target_type: "family_member",
+        p_target_id: "member-1",
+        p_outcome: "success",
+        p_metadata: {
+          limit_changed: true,
+        },
+      }),
+      expect.objectContaining({
+        p_action: "finance.member.update",
+        p_target_type: "family_member",
+        p_target_id: "member-1",
+        p_outcome: "success",
+        p_metadata: {
+          member_profile_changed: true,
+        },
+      }),
+    ]);
+  });
+
   it("does not update member profile data when the member update rate limit blocks the action", async () => {
     const { updateFamilyMember } = await import("@/app/protected/pessoas/actions");
     mockState.rateLimitAllowed = false;
@@ -329,6 +404,101 @@ describe("family member write audit runtime actions", () => {
         p_metadata: {
           status: "rate_limited",
           member_profile_changed: true,
+        },
+      }),
+    ]);
+  });
+
+  it("does not consume limit quota when paired member update limit blocks before mutation", async () => {
+    const { updateFamilyMember } = await import("@/app/protected/pessoas/actions");
+    mockState.rateLimitAllowedByOperation = {
+      "finance.member.update": false,
+      "finance.member.limit.update": true,
+    };
+
+    const result = await updateFamilyMember(createFormData({
+      id: "member-1",
+      name: "Maria Silva",
+      role: "Responsavel",
+      monthly_limit: "750",
+    }));
+
+    expect(result).toEqual({
+      error: "Muitas tentativas de alteracao de pessoa. Tente novamente em alguns minutos.",
+    });
+    expect(mockState.updatedRows).toHaveLength(0);
+    expect(mockState.rateLimitChecks).toEqual([
+      expect.objectContaining({
+        operationKey: "finance.member.update",
+        actorKey: "profile-1",
+        organizationId: "org-1",
+        targetKey: "member-1",
+        consume: false,
+      }),
+    ]);
+    expect(mockState.rateLimitChecks.some(
+      (check) => check.operationKey === "finance.member.limit.update",
+    )).toBe(false);
+    expect(mockState.auditEvents).toEqual([
+      expect.objectContaining({
+        p_action: "finance.member.update",
+        p_target_type: "family_member",
+        p_target_id: "member-1",
+        p_outcome: "denied",
+        p_metadata: {
+          status: "rate_limited",
+          member_profile_changed: true,
+        },
+      }),
+    ]);
+  });
+
+  it("does not consume member update quota when paired limit update blocks before mutation", async () => {
+    const { updateFamilyMember } = await import("@/app/protected/pessoas/actions");
+    mockState.rateLimitAllowedByOperation = {
+      "finance.member.update": true,
+      "finance.member.limit.update": false,
+    };
+
+    const result = await updateFamilyMember(createFormData({
+      id: "member-1",
+      name: "Maria Silva",
+      role: "Responsavel",
+      monthly_limit: "750",
+    }));
+
+    expect(result).toEqual({
+      error: "Muitas tentativas de alteracao de limite. Tente novamente em alguns minutos.",
+    });
+    expect(mockState.updatedRows).toHaveLength(0);
+    expect(mockState.rateLimitChecks).toEqual([
+      expect.objectContaining({
+        operationKey: "finance.member.update",
+        actorKey: "profile-1",
+        organizationId: "org-1",
+        targetKey: "member-1",
+        consume: false,
+      }),
+      expect.objectContaining({
+        operationKey: "finance.member.limit.update",
+        actorKey: "profile-1",
+        organizationId: "org-1",
+        targetKey: "member-1",
+        consume: false,
+      }),
+    ]);
+    expect(mockState.rateLimitChecks.some(
+      (check) => check.operationKey === "finance.member.update" && check.consume !== false,
+    )).toBe(false);
+    expect(mockState.auditEvents).toEqual([
+      expect.objectContaining({
+        p_action: "finance.member.limit.update",
+        p_target_type: "family_member",
+        p_target_id: "member-1",
+        p_outcome: "denied",
+        p_metadata: {
+          status: "rate_limited",
+          limit_changed: true,
         },
       }),
     ]);
