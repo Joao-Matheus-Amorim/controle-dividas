@@ -33,6 +33,34 @@ const adminFeaturePermissionUpdateRateLimit = {
   windowMs: 10 * 60 * 1000,
 };
 
+const adminUserRateLimits = {
+  create: {
+    operationKey: "admin.user.create",
+    limit: 5,
+    windowMs: 10 * 60 * 1000,
+  },
+  update: {
+    operationKey: "admin.user.update",
+    limit: 5,
+    windowMs: 10 * 60 * 1000,
+  },
+  authLinkSync: {
+    operationKey: "admin.user.auth_link.sync",
+    limit: 5,
+    windowMs: 10 * 60 * 1000,
+  },
+  delete: {
+    operationKey: "admin.user.delete",
+    limit: 5,
+    windowMs: 10 * 60 * 1000,
+  },
+  status: {
+    operationKey: "admin.user.status.update",
+    limit: 5,
+    windowMs: 10 * 60 * 1000,
+  },
+};
+
 function normalizeScope(value: FormDataEntryValue | null): PermissionScope {
   if (value === "selected" || value === "family") {
     return value;
@@ -85,6 +113,8 @@ async function recordAdminUserAuditEvent({
   organizationId,
   action,
   profileId,
+  targetType = "profile",
+  outcome = "success",
   metadata,
 }: {
   organizationId: string;
@@ -96,14 +126,16 @@ async function recordAdminUserAuditEvent({
     | "admin.user.delete"
     | "admin.user.auth_link.sync";
   profileId: string;
+  targetType?: "profile" | "family_member";
+  outcome?: "success" | "denied";
   metadata?: Record<string, string | number | boolean | null>;
 }) {
   await recordAuditEvent({
     organizationId,
     action,
-    targetType: "profile",
+    targetType,
     targetId: profileId,
-    outcome: "success",
+    outcome,
     metadata,
   });
 }
@@ -326,6 +358,28 @@ export async function createFamilyUser(
     return { error: error instanceof Error ? error.message : "Nao foi possivel validar o acesso." };
   }
 
+  const rateLimit = checkSensitiveOperationRateLimit({
+    ...adminUserRateLimits.create,
+    actorKey: adminProfile.id,
+    organizationId: organization.id,
+    targetKey: linkedFamilyMemberId,
+  });
+
+  if (!rateLimit.allowed) {
+    await recordAdminUserAuditEvent({
+      organizationId: organization.id,
+      action: "admin.user.create",
+      profileId: linkedFamilyMemberId,
+      targetType: "family_member",
+      outcome: "denied",
+      metadata: {
+        status: "rate_limited",
+      },
+    });
+
+    return { error: "Muitas tentativas de cadastro de acesso familiar. Tente novamente em alguns minutos." };
+  }
+
   const { data: profile, error } = await supabase
     .from("profiles")
     .insert({
@@ -435,6 +489,27 @@ export async function updateFamilyUser(formData: FormData): Promise<FamilyUserAc
     };
   }
 
+  const rateLimit = checkSensitiveOperationRateLimit({
+    ...adminUserRateLimits.update,
+    actorKey: adminProfile.id,
+    organizationId: organization.id,
+    targetKey: id,
+  });
+
+  if (!rateLimit.allowed) {
+    await recordAdminUserAuditEvent({
+      organizationId: organization.id,
+      action: "admin.user.update",
+      profileId: id,
+      outcome: "denied",
+      metadata: {
+        status: "rate_limited",
+      },
+    });
+
+    return { error: "Muitas tentativas de alteracao de acesso familiar. Tente novamente em alguns minutos." };
+  }
+
   const { error } = await supabase
     .from("profiles")
     .update({ name, email, linked_family_member_id: linkedFamilyMemberId, organization_id: organization.id })
@@ -485,6 +560,27 @@ export async function syncFamilyUserAuthLink(formData: FormData): Promise<Family
   if (profileError) return { error: profileError.message };
   if (!profile?.email) return { error: "Acesso familiar nao encontrado ou sem email." };
   if (profile.role === "admin") return { error: "Nao e possivel sincronizar o Admin familiar por esta acao." };
+
+  const rateLimit = checkSensitiveOperationRateLimit({
+    ...adminUserRateLimits.authLinkSync,
+    actorKey: adminProfile.id,
+    organizationId: organization.id,
+    targetKey: id,
+  });
+
+  if (!rateLimit.allowed) {
+    await recordAdminUserAuditEvent({
+      organizationId: organization.id,
+      action: "admin.user.auth_link.sync",
+      profileId: id,
+      outcome: "denied",
+      metadata: {
+        status: "rate_limited",
+      },
+    });
+
+    return { error: "Muitas tentativas de sincronizacao de login. Tente novamente em alguns minutos." };
+  }
 
   const authUserId = await findAuthUserIdByEmail(profile.email);
 
@@ -549,6 +645,27 @@ export async function deleteFamilyUser(formData: FormData): Promise<FamilyUserAc
   if (!profile) return { error: "Acesso familiar nao encontrado." };
   if (profile.role === "admin") return { error: "Nao e possivel excluir o Admin familiar." };
 
+  const rateLimit = checkSensitiveOperationRateLimit({
+    ...adminUserRateLimits.delete,
+    actorKey: adminProfile.id,
+    organizationId: organization.id,
+    targetKey: id,
+  });
+
+  if (!rateLimit.allowed) {
+    await recordAdminUserAuditEvent({
+      organizationId: organization.id,
+      action: "admin.user.delete",
+      profileId: id,
+      outcome: "denied",
+      metadata: {
+        status: "rate_limited",
+      },
+    });
+
+    return { error: "Muitas tentativas de exclusao de acesso familiar. Tente novamente em alguns minutos." };
+  }
+
   const { error } = await supabase
     .from("profiles")
     .delete()
@@ -608,6 +725,27 @@ export async function toggleFamilyUserStatus(formData: FormData): Promise<Family
   }
 
   const nextActive = !currentActive;
+
+  const rateLimit = checkSensitiveOperationRateLimit({
+    ...adminUserRateLimits.status,
+    actorKey: adminProfile.id,
+    organizationId: organization.id,
+    targetKey: id,
+  });
+
+  if (!rateLimit.allowed) {
+    await recordAdminUserAuditEvent({
+      organizationId: organization.id,
+      action: currentActive ? "admin.user.deactivate" : "admin.user.activate",
+      profileId: id,
+      outcome: "denied",
+      metadata: {
+        status: "rate_limited",
+      },
+    });
+
+    return { error: "Muitas tentativas de alteracao de status. Tente novamente em alguns minutos." };
+  }
 
   const { error } = await supabase
     .from("profiles")

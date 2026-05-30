@@ -34,6 +34,12 @@ describe("sensitive operation rate limit plan guards", () => {
     expect(plan).toContain("admin permission rate limit runtime exists");
     expect(plan).toContain("admin.permission.update");
     expect(plan).toContain("admin.feature_permission.update");
+    expect(plan).toContain("admin user rate limit runtime exists");
+    expect(plan).toContain("admin.user.create");
+    expect(plan).toContain("admin.user.update");
+    expect(plan).toContain("admin.user.auth_link.sync");
+    expect(plan).toContain("admin.user.delete");
+    expect(plan).toContain("admin.user.status.update");
     expect(plan).toContain("process-local memory");
     expect(plan).toContain("disable_sensitive_rate_limits=true");
     expect(plan).toContain("no middleware change");
@@ -72,6 +78,8 @@ describe("sensitive operation rate limit plan guards", () => {
     expect(plan).toContain("finance.category.delete");
     expect(plan).toContain("admin.permission.update");
     expect(plan).toContain("admin.feature_permission.update");
+    expect(plan).toContain("admin.user.create");
+    expect(plan).toContain("admin.user.status.update");
     expect(plan).toContain("admin mutations");
     expect(plan).toContain("destructive finance actions");
     expect(plan).toContain("rate_limit:{operation_key}:{actor_key}:{organization_key}:{target_key?}");
@@ -99,6 +107,7 @@ describe("sensitive operation rate limit plan guards", () => {
     expect(gapRegister).toContain("bank delete rate limit runtime");
     expect(gapRegister).toContain("category delete rate limit runtime");
     expect(gapRegister).toContain("admin permission rate limit runtime");
+    expect(gapRegister).toContain("admin user rate limit runtime");
     expect(gapRegister).toContain("remaining broader rate limiting and data retention runtime controls are not implemented");
   });
 });

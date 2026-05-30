@@ -33,6 +33,7 @@ Receivable delete rate limit runtime exists for finance.receivable.delete.
 Bank delete rate limit runtime exists for finance.bank.delete.
 Category delete rate limit runtime exists for finance.category.delete.
 Admin permission rate limit runtime exists for admin.permission.update and admin.feature_permission.update.
+Admin user rate limit runtime exists for admin.user.create, admin.user.update, admin.user.auth_link.sync, admin.user.delete, and admin.user.status.update.
 No data retention runtime.
 No UI change.
 No billing webhook, portal, or commercial enforcement change.
@@ -48,7 +49,7 @@ Initial candidates that need explicit control decisions before runtime work:
 | Surface | Examples | Control decision needed |
 | --- | --- | --- |
 | Auth and session flows | login, signup, password reset, password update | Rate limits and audit outcome model. |
-| Organization administration | membership role changes, user activation/deactivation, permission changes | Admin permission audit and rate limit runtime exist for permission changes; remaining admin mutations still need rate limit and retention decisions. |
+| Organization administration | membership role changes, user activation/deactivation, permission changes | Admin permission and admin user audit/rate limit runtime exist; remaining organization administration work still needs retention decisions. |
 | Billing checkout | `app/protected/configuracoes/billing-actions.ts` and checkout session creation | Billing checkout rate limit runtime exists; Stripe metadata boundaries and audit events are covered for this step. |
 | Finance mutations | create/update/delete/status transitions in expenses, payables, receivables, banks, categories, and people | Audit event categories and payload redaction. Expense delete, payable delete, receivable delete, bank delete, and category delete rate limit runtime exist for this step. |
 | Destructive actions | deletes and irreversible state transitions | Confirmation, audit event, rate limit, retention, and recovery decision. |
@@ -69,7 +70,7 @@ Each implementation PR must define:
 - bypass policy for internal/admin flows;
 - rollback strategy.
 
-Rate limiting must be enforced server-side. Client-only throttling is not a GAP-015 control. The current runtime implementations are scoped to `billing.checkout.start`, `finance.expense.delete`, `finance.payable.delete`, `finance.receivable.delete`, `finance.bank.delete`, `finance.category.delete`, `admin.permission.update`, and `admin.feature_permission.update` and can be disabled with `DISABLE_SENSITIVE_RATE_LIMITS=true`.
+Rate limiting must be enforced server-side. Client-only throttling is not a GAP-015 control. The current runtime implementations are scoped to `billing.checkout.start`, `finance.expense.delete`, `finance.payable.delete`, `finance.receivable.delete`, `finance.bank.delete`, `finance.category.delete`, `admin.permission.update`, `admin.feature_permission.update`, `admin.user.create`, `admin.user.update`, `admin.user.auth_link.sync`, `admin.user.delete`, and `admin.user.status.update` and can be disabled with `DISABLE_SENSITIVE_RATE_LIMITS=true`.
 
 ## Sensitive-action audit logging contract
 
@@ -114,7 +115,7 @@ GAP-015 should move in this order:
 
 1. Create planning issues for rate limits, audit events, and retention policy.
 2. Define the audit event schema and redaction model using `docs/audits/SENSITIVE_ACTION_AUDIT_EVENT_SCHEMA_PLAN.md`, `supabase/migrations/040_audit_events_schema.sql`, and `supabase/migrations/041_audit_events_write_boundary.sql` via `record_audit_event`.
-3. Implement rate limits for one server boundary at a time using `docs/audits/SENSITIVE_OPERATION_RATE_LIMIT_PLAN.md`; billing checkout, expense delete, payable delete, receivable delete, bank delete, category delete, and admin permission updates are the first runtime boundaries.
+3. Implement rate limits for one server boundary at a time using `docs/audits/SENSITIVE_OPERATION_RATE_LIMIT_PLAN.md`; billing checkout, expense delete, payable delete, receivable delete, bank delete, category delete, admin permission updates, and admin user lifecycle are the first runtime boundaries.
 4. Add audit logging for one sensitive operation family at a time.
 5. Define retention policy before any destructive cleanup automation using `docs/audits/SENSITIVE_DATA_RETENTION_PLAN.md`.
 
