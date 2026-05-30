@@ -30,6 +30,32 @@ describe("admin user audit runtime guards", () => {
     expect(actions).toContain('outcome: "success"');
   });
 
+  it("keeps admin user lifecycle changes rate limited by server actor, organization, and target", () => {
+    expect(actions).toContain("adminuserratelimits");
+    expect(actions).toContain("checksensitiveoperationratelimit");
+    expect(actions).toContain('operationkey: "admin.user.create"');
+    expect(actions).toContain('operationkey: "admin.user.update"');
+    expect(actions).toContain('operationkey: "admin.user.auth_link.sync"');
+    expect(actions).toContain('operationkey: "admin.user.delete"');
+    expect(actions).toContain('operationkey: "admin.user.status.update"');
+    expect(actions).toContain("actorkey: adminprofile.id");
+    expect(actions).toContain("organizationid: organization.id");
+    expect(actions).toContain("targetkey: id");
+    expect(actions).toContain("targetkey: linkedfamilymemberid");
+    expect(actions).toContain('outcome: "denied"');
+    expect(actions).toContain('status: "rate_limited"');
+
+    const deleteRateLimitStart = actions.indexOf("...adminuserratelimits.delete");
+    const deleteRateLimitBody = actions.slice(
+      deleteRateLimitStart,
+      actions.indexOf("if (!ratelimit.allowed)", deleteRateLimitStart),
+    );
+
+    expect(deleteRateLimitBody).toContain("actorkey: adminprofile.id");
+    expect(deleteRateLimitBody).toContain("organizationid: organization.id");
+    expect(deleteRateLimitBody).not.toContain("targetkey");
+  });
+
   it("keeps lifecycle events scoped after organization-owned profile writes", () => {
     expect(actions).toContain("requireorganizationaccess");
     expect(actions).toContain("ensureadminprofile");
@@ -76,6 +102,9 @@ describe("admin user audit runtime guards", () => {
     expect(gapRegister).toContain("bank audit runtime");
     expect(gapRegister).toContain("category delete audit runtime");
     expect(gapRegister).toContain("billing checkout rate limit runtime");
+    expect(gapRegister).toContain("admin user rate limit runtime");
+    expect(roadmap).toContain("admin user rate limit runtime");
+    expect(liveStatus).toContain("admin user rate limit runtime");
     expect(roadmap).toContain("broader rate limiting e data retention ainda nao tem runtime implementado");
     expect(liveStatus).toContain("broader rate limiting e data retention runtime controls ainda nao foram implementados");
   });

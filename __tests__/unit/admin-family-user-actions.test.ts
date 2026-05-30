@@ -16,11 +16,17 @@ const mockState = vi.hoisted(() => ({
     role: "user",
     is_active: true,
   } as Record<string, unknown> | null,
+  memberLookup: {
+    id: "member-1",
+    organization_id: "org-1",
+  } as Record<string, unknown> | null,
   profileLookupError: null as { message: string } | null,
   updatedPayloads: [] as Array<Record<string, unknown>>,
   deletedIds: [] as string[],
   updateError: null as { message: string } | null,
   deleteError: null as { message: string } | null,
+  rateLimitAllowed: true,
+  rateLimitChecks: [] as Array<Record<string, unknown>>,
   recordAuditEvent: vi.fn(async () => true),
 }));
 
@@ -92,6 +98,10 @@ function makeProfilesQuery() {
       return query;
     },
     maybeSingle() {
+      if (filters.id === "member-1") {
+        return Promise.resolve({ data: mockState.memberLookup, error: null });
+      }
+
       return Promise.resolve({ data: mockState.profileLookup, error: mockState.profileLookupError });
     },
     update(payload: Record<string, unknown>) {
@@ -110,7 +120,7 @@ function makeProfilesQuery() {
 function makeSupabaseClient() {
   return {
     from(table: string) {
-      if (table !== "profiles") {
+      if (!["profiles", "family_members"].includes(table)) {
         throw new Error(`Unexpected table: ${table}`);
       }
 
@@ -145,6 +155,16 @@ vi.mock("@/lib/audit/events", () => ({
   recordAuditEvent: mockState.recordAuditEvent,
 }));
 
+vi.mock("@/lib/security/sensitive-rate-limit", () => ({
+  checkSensitiveOperationRateLimit: vi.fn((input: Record<string, unknown>) => {
+    mockState.rateLimitChecks.push(input);
+
+    return mockState.rateLimitAllowed
+      ? { allowed: true, remaining: 4, resetAt: 1000 }
+      : { allowed: false, retryAfterMs: 1000, resetAt: 1000 };
+  }),
+}));
+
 vi.mock("@/lib/finance/permissions", () => ({
   FINANCE_MODULES: [
     { key: "DASHBOARD" },
@@ -159,11 +179,17 @@ describe("admin family user actions", () => {
       role: "user",
       is_active: true,
     };
+    mockState.memberLookup = {
+      id: "member-1",
+      organization_id: "org-1",
+    };
     mockState.profileLookupError = null;
     mockState.updatedPayloads = [];
     mockState.deletedIds = [];
     mockState.updateError = null;
     mockState.deleteError = null;
+    mockState.rateLimitAllowed = true;
+    mockState.rateLimitChecks = [];
     mockState.recordAuditEvent.mockClear();
   });
 
@@ -178,6 +204,41 @@ describe("admin family user actions", () => {
 
     expect(result).toEqual({ error: "Informe o email de acesso." });
     expect(mockState.updatedPayloads).toHaveLength(0);
+  });
+
+  it("blocks updates when the admin user rate limit is exceeded", async () => {
+    const { updateFamilyUser } = await import("@/app/protected/admin/actions");
+    mockState.rateLimitAllowed = false;
+
+    const result = await updateFamilyUser(createFormData({
+      id: "profile-1",
+      name: "Maria",
+      email: "maria@example.com",
+      linked_family_member_id: "member-1",
+    }));
+
+    expect(result).toEqual({
+      error: "Muitas tentativas de alteracao de acesso familiar. Tente novamente em alguns minutos.",
+    });
+    expect(mockState.updatedPayloads).toHaveLength(0);
+    expect(mockState.rateLimitChecks).toEqual([
+      expect.objectContaining({
+        operationKey: "admin.user.update",
+        actorKey: "admin-profile-1",
+        organizationId: "org-1",
+        targetKey: "profile-1",
+      }),
+    ]);
+    expect(mockState.recordAuditEvent).toHaveBeenCalledWith(expect.objectContaining({
+      organizationId: "org-1",
+      action: "admin.user.update",
+      targetType: "profile",
+      targetId: "profile-1",
+      outcome: "denied",
+      metadata: {
+        status: "rate_limited",
+      },
+    }));
   });
 
   it("blocks status changes for admin profiles with an explicit error", async () => {
@@ -216,6 +277,14 @@ describe("admin family user actions", () => {
         organization_id: "org-1",
       }),
     }));
+    expect(mockState.rateLimitChecks).toEqual([
+      expect.objectContaining({
+        operationKey: "admin.user.status.update",
+        actorKey: "admin-profile-1",
+        organizationId: "org-1",
+        targetKey: "profile-1",
+      }),
+    ]);
   });
 
   it("updates family user status successfully", async () => {
@@ -254,6 +323,39 @@ describe("admin family user actions", () => {
     expect(result).toEqual({ error: "O status deste acesso mudou. Atualize a pagina e tente novamente." });
     expect(mockState.updatedPayloads).toHaveLength(0);
     expect(mockState.recordAuditEvent).not.toHaveBeenCalled();
+  });
+
+  it("blocks status changes when the admin user rate limit is exceeded", async () => {
+    const { toggleFamilyUserStatus } = await import("@/app/protected/admin/actions");
+    mockState.rateLimitAllowed = false;
+
+    const result = await toggleFamilyUserStatus(createFormData({
+      id: "profile-1",
+      is_active: "true",
+    }));
+
+    expect(result).toEqual({
+      error: "Muitas tentativas de alteracao de status. Tente novamente em alguns minutos.",
+    });
+    expect(mockState.updatedPayloads).toHaveLength(0);
+    expect(mockState.rateLimitChecks).toEqual([
+      expect.objectContaining({
+        operationKey: "admin.user.status.update",
+        actorKey: "admin-profile-1",
+        organizationId: "org-1",
+        targetKey: "profile-1",
+      }),
+    ]);
+    expect(mockState.recordAuditEvent).toHaveBeenCalledWith(expect.objectContaining({
+      organizationId: "org-1",
+      action: "admin.user.deactivate",
+      targetType: "profile",
+      targetId: "profile-1",
+      outcome: "denied",
+      metadata: {
+        status: "rate_limited",
+      },
+    }));
   });
 
   it("derives status update and audit event from persisted profile state", async () => {
@@ -297,6 +399,38 @@ describe("admin family user actions", () => {
 
     expect(result).toEqual({ error: "database delete failed" });
     expect(mockState.deletedIds).toEqual(["profile-1"]);
+  });
+
+  it("blocks deletes when the admin user rate limit is exceeded", async () => {
+    const { deleteFamilyUser } = await import("@/app/protected/admin/actions");
+    mockState.rateLimitAllowed = false;
+
+    const result = await deleteFamilyUser(createFormData({
+      id: "profile-1",
+    }));
+
+    expect(result).toEqual({
+      error: "Muitas tentativas de exclusao de acesso familiar. Tente novamente em alguns minutos.",
+    });
+    expect(mockState.deletedIds).toHaveLength(0);
+    expect(mockState.rateLimitChecks).toEqual([
+      expect.objectContaining({
+        operationKey: "admin.user.delete",
+        actorKey: "admin-profile-1",
+        organizationId: "org-1",
+      }),
+    ]);
+    expect(mockState.rateLimitChecks[0]).not.toHaveProperty("targetKey");
+    expect(mockState.recordAuditEvent).toHaveBeenCalledWith(expect.objectContaining({
+      organizationId: "org-1",
+      action: "admin.user.delete",
+      targetType: "profile",
+      targetId: "profile-1",
+      outcome: "denied",
+      metadata: {
+        status: "rate_limited",
+      },
+    }));
   });
 
   it("deletes family user successfully", async () => {
