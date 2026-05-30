@@ -16,6 +16,7 @@ Expense delete rate limit runtime exists for `finance.expense.delete`.
 Expense write rate limit runtime exists for `finance.expense.create` and `finance.expense.update`.
 Payable delete rate limit runtime exists for `finance.payable.delete`.
 Payable status rate limit runtime exists for `finance.payable.status.update`.
+Payable write rate limit runtime exists for `finance.payable.create` and `finance.payable.update`.
 Receivable delete rate limit runtime exists for `finance.receivable.delete`.
 Receivable status rate limit runtime exists for `finance.receivable.status.update`.
 Bank delete rate limit runtime exists for `finance.bank.delete`.
@@ -37,7 +38,7 @@ No billing behavior change.
 No E2E change.
 ```
 
-Rate limiting is implemented only for billing checkout start attempts, expense delete attempts, expense write attempts, payable delete attempts, payable status update attempts, receivable delete attempts, receivable status update attempts, bank delete attempts, bank balance update attempts, member limit update attempts, member status update attempts, member write attempts, category delete attempts, category write attempts, admin permission update attempts, and admin user lifecycle attempts.
+Rate limiting is implemented only for billing checkout start attempts, expense delete attempts, expense write attempts, payable delete attempts, payable status update attempts, payable write attempts, receivable delete attempts, receivable status update attempts, bank delete attempts, bank balance update attempts, member limit update attempts, member status update attempts, member write attempts, category delete attempts, category write attempts, admin permission update attempts, and admin user lifecycle attempts.
 
 ## Control model
 
@@ -70,6 +71,7 @@ Initial limits should be grouped by risk:
 | Expense writes | `finance.expense.create`, `finance.expense.update` | Authenticated and organization-scoped; create is actor/organization-scoped, and update is target-scoped. |
 | Payable delete | `finance.payable.delete` | Authenticated, organization-scoped, permission-gated. |
 | Payable status update | `finance.payable.status.update` | Authenticated, organization-scoped, permission-gated. |
+| Payable writes | `finance.payable.create`, `finance.payable.update` | Authenticated and organization-scoped; create is actor/organization-scoped, and update is target-scoped only when payable fields change. |
 | Receivable delete | `finance.receivable.delete` | Authenticated, organization-scoped, permission-gated. |
 | Receivable status update | `finance.receivable.status.update` | Authenticated, organization-scoped, permission-gated. |
 | Bank delete | `finance.bank.delete` | Authenticated, organization-scoped, permission-gated. |
@@ -125,7 +127,7 @@ Before implementation, choose and document one storage model:
 | External cache | Better for short windows, but needs operational dependency and env handling. |
 | Platform limiter | Acceptable only if limits can include actor and organization dimensions. |
 
-The first runtime limiter uses process-local memory to keep the rollout schema-free and reversible. It sweeps expired buckets before tracking new traffic so long-lived processes do not retain stale actor/organization/target entries forever. This is acceptable for the initial billing checkout, expense delete, expense write, payable delete, payable status update, receivable delete, receivable status update, bank delete, bank balance update, member limit update, member status update, member write, category delete, category write, admin permission update, and admin user lifecycle boundaries because they are authenticated, organization-scoped, and protected by `DISABLE_SENSITIVE_RATE_LIMITS=true` rollback. Broader or public-auth limits still need a durable/cache-backed storage decision before implementation.
+The first runtime limiter uses process-local memory to keep the rollout schema-free and reversible. It sweeps expired buckets before tracking new traffic so long-lived processes do not retain stale actor/organization/target entries forever. This is acceptable for the initial billing checkout, expense delete, expense write, payable delete, payable status update, payable write, receivable delete, receivable status update, bank delete, bank balance update, member limit update, member status update, member write, category delete, category write, admin permission update, and admin user lifecycle boundaries because they are authenticated, organization-scoped, and protected by `DISABLE_SENSITIVE_RATE_LIMITS=true` rollback. Broader or public-auth limits still need a durable/cache-backed storage decision before implementation.
 
 ## Sequencing
 
@@ -148,9 +150,10 @@ Rate limiting should move in this order:
 15. Add member write limits in one PR using the same server-side limiter.
 16. Add category write limits in one PR using the same server-side limiter.
 17. Add expense write limits in one PR using the same server-side limiter.
-18. Expand to durable/cache-backed storage before public auth flow limits.
-19. Add audit outcome events after audit event storage exists.
-20. Expand to remaining status transitions.
+18. Add payable write limits in one PR using the same server-side limiter.
+19. Expand to durable/cache-backed storage before public auth flow limits.
+20. Add audit outcome events after audit event storage exists.
+21. Expand to remaining status transitions.
 
 ## Non-goals
 
