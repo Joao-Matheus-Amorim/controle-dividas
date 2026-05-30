@@ -168,7 +168,7 @@ describe("family member write audit runtime actions", () => {
         operationKey: "finance.member.create",
         limit: 10,
         windowMs: 10 * 60 * 1000,
-        actorKey: "owner-1",
+        actorKey: "profile-1",
         organizationId: "org-1",
       },
     ]);
@@ -245,7 +245,7 @@ describe("family member write audit runtime actions", () => {
         operationKey: "finance.member.update",
         limit: 10,
         windowMs: 10 * 60 * 1000,
-        actorKey: "owner-1",
+        actorKey: "profile-1",
         organizationId: "org-1",
         targetKey: "member-1",
       },

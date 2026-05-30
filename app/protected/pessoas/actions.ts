@@ -46,7 +46,7 @@ export async function createFamilyMember(
   const { organization } = await requireOrganizationAccess();
   const rateLimit = checkSensitiveOperationRateLimit({
     ...familyMemberCreateRateLimit,
-    actorKey: profile.owner_id,
+    actorKey: profile.id,
     organizationId: organization.id,
   });
 
@@ -140,7 +140,7 @@ export async function updateFamilyMember(
   if (profileChanged) {
     const rateLimit = checkSensitiveOperationRateLimit({
       ...familyMemberUpdateRateLimit,
-      actorKey: profile.owner_id,
+      actorKey: profile.id,
       organizationId: organization.id,
       targetKey: id,
     });
