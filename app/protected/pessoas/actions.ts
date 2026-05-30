@@ -177,9 +177,14 @@ export async function toggleFamilyMemberStatus(
   formData: FormData,
 ): Promise<FamilyMemberActionState> {
   const id = String(formData.get("id") ?? "");
+  const submittedActiveValue = String(formData.get("is_active") ?? "");
 
   if (!id) {
     return { error: "Pessoa nao encontrada." };
+  }
+
+  if (!["true", "false"].includes(submittedActiveValue)) {
+    return { error: "Status invalido para esta pessoa." };
   }
 
   const supabase = await createClient();
@@ -203,6 +208,12 @@ export async function toggleFamilyMemberStatus(
   }
 
   const currentActive = Boolean(member.is_active);
+  const submittedActive = submittedActiveValue === "true";
+
+  if (currentActive !== submittedActive) {
+    return { error: "O status desta pessoa mudou. Atualize a lista antes de tentar novamente." };
+  }
+
   const nextActive = !currentActive;
   const rateLimit = checkSensitiveOperationRateLimit({
     ...familyMemberStatusRateLimit,
