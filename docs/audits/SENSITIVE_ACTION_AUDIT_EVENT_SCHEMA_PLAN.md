@@ -21,7 +21,8 @@ Receivable income audit runtime exists in app/protected/contas-a-receber/actions
 Expense audit runtime exists in app/protected/gastos/actions.ts using record_audit_event.
 Category delete audit runtime exists in app/protected/configuracoes/actions.ts using record_audit_event.
 Bank audit runtime exists in app/protected/bancos/actions.ts using record_audit_event.
-Member limit audit runtime exists in app/protected/configuracoes/actions.ts using record_audit_event.
+Member limit audit runtime exists in lib/finance/member-limit-controls.ts, app/protected/configuracoes/actions.ts, and app/protected/pessoas/actions.ts using record_audit_event.
+Member status audit runtime exists in lib/finance/member-status-controls.ts and app/protected/pessoas/actions.ts using record_audit_event.
 Read-side RLS exists for organization owner/admin.
 No insert/update/delete policy for authenticated users.
 No UI.
@@ -29,7 +30,7 @@ No billing webhook, portal, or commercial enforcement change.
 No E2E change.
 ```
 
-Audit event storage is versioned. Billing checkout, admin permission, admin user, payable bill, receivable income, expense, category delete, bank, and member limit audit logging are implemented. Other operation families remain pending.
+Audit event storage is versioned. Billing checkout, admin permission, admin user, payable bill, receivable income, expense, category delete, bank, member limit, and member status audit logging are implemented. Other operation families remain pending.
 
 ## Event shape candidate
 
@@ -61,7 +62,7 @@ Initial operation keys should be stable strings, not translated UI labels:
 | Admin users | `admin.user.create`, `admin.user.update`, `admin.user.activate`, `admin.user.deactivate`, `admin.user.delete`, `admin.user.auth_link.sync` |
 | Permissions | `admin.permission.update`, `admin.feature_permission.update` |
 | Finance deletes | `finance.expense.delete`, `finance.payable.delete`, `finance.receivable.delete`, `finance.bank.delete`, `finance.category.delete` |
-| Finance status/balance/limit changes | `finance.payable.status.update`, `finance.receivable.status.update`, `finance.bank.balance.update`, `finance.member.limit.update` |
+| Finance status/balance/limit changes | `finance.payable.status.update`, `finance.receivable.status.update`, `finance.bank.balance.update`, `finance.member.limit.update`, `finance.member.status.update` |
 | Organization membership | `organization.membership.role.update`, `organization.membership.status.update` |
 
 Each runtime PR should add only the keys it actually emits.
