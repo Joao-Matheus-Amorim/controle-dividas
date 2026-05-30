@@ -9,6 +9,11 @@ const mockState = vi.hoisted(() => ({
     sub: "owner-1",
     email: "admin@example.com",
   },
+  currentProfile: {
+    id: "profile-1",
+    owner_id: "owner-1",
+    role: "admin",
+  },
   categoryLookup: {
     id: "category-1",
     name: "Mercado",
@@ -126,6 +131,10 @@ vi.mock("@/lib/organizations/server", () => ({
       is_active: true,
     },
   })),
+}));
+
+vi.mock("@/lib/finance/access-control", () => ({
+  getCurrentProfile: vi.fn(async () => mockState.currentProfile),
 }));
 
 vi.mock("@/lib/security/sensitive-rate-limit", () => ({

@@ -9,6 +9,11 @@ const mockState = vi.hoisted(() => ({
     sub: "owner-1",
     email: "admin@example.com",
   },
+  currentProfile: {
+    id: "profile-1",
+    owner_id: "owner-1",
+    role: "admin",
+  },
   deletedRows: [] as Array<{ table: string; filters: Record<string, unknown> }>,
   deleteCount: 1 as number | null,
   deleteError: null as { message: string } | null,
@@ -103,6 +108,10 @@ vi.mock("@/lib/organizations/server", () => ({
       is_active: true,
     },
   })),
+}));
+
+vi.mock("@/lib/finance/access-control", () => ({
+  getCurrentProfile: vi.fn(async () => mockState.currentProfile),
 }));
 
 vi.mock("@/lib/security/sensitive-rate-limit", () => ({
