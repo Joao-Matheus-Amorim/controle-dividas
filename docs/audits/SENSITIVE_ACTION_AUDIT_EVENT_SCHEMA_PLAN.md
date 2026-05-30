@@ -16,6 +16,12 @@ Write boundary exists in supabase/migrations/041_audit_events_write_boundary.sql
 Billing checkout audit runtime exists in app/protected/configuracoes/billing-actions.ts using record_audit_event.
 Admin permission audit runtime exists in app/protected/admin/actions.ts using record_audit_event.
 Admin user audit runtime exists in app/protected/admin/actions.ts using record_audit_event.
+Payable bill audit runtime exists in app/protected/contas-a-pagar/actions.ts using record_audit_event.
+Receivable income audit runtime exists in app/protected/contas-a-receber/actions.ts using record_audit_event.
+Expense audit runtime exists in app/protected/gastos/actions.ts using record_audit_event.
+Category delete audit runtime exists in app/protected/configuracoes/actions.ts using record_audit_event.
+Bank audit runtime exists in app/protected/bancos/actions.ts using record_audit_event.
+Member limit audit runtime exists in app/protected/configuracoes/actions.ts using record_audit_event.
 Read-side RLS exists for organization owner/admin.
 No insert/update/delete policy for authenticated users.
 No UI.
@@ -23,7 +29,7 @@ No billing webhook, portal, or commercial enforcement change.
 No E2E change.
 ```
 
-Audit event storage is versioned. Billing checkout, admin permission, and admin user audit logging are implemented; other operation families remain pending.
+Audit event storage is versioned. Billing checkout, admin permission, admin user, payable bill, receivable income, expense, category delete, bank, and member limit audit logging are implemented. Other operation families remain pending.
 
 ## Event shape candidate
 
@@ -55,7 +61,7 @@ Initial operation keys should be stable strings, not translated UI labels:
 | Admin users | `admin.user.create`, `admin.user.update`, `admin.user.activate`, `admin.user.deactivate`, `admin.user.delete`, `admin.user.auth_link.sync` |
 | Permissions | `admin.permission.update`, `admin.feature_permission.update` |
 | Finance deletes | `finance.expense.delete`, `finance.payable.delete`, `finance.receivable.delete`, `finance.bank.delete`, `finance.category.delete` |
-| Finance status/balance changes | `finance.payable.status.update`, `finance.receivable.status.update`, `finance.bank.balance.update` |
+| Finance status/balance/limit changes | `finance.payable.status.update`, `finance.receivable.status.update`, `finance.bank.balance.update`, `finance.member.limit.update` |
 | Organization membership | `organization.membership.role.update`, `organization.membership.status.update` |
 
 Each runtime PR should add only the keys it actually emits.
@@ -96,6 +102,12 @@ The initial audit event storage decision is:
 - Billing checkout runtime calls `record_audit_event` for checkout session creation and checkout setup failures.
 - Admin permission runtime calls `record_audit_event` for module and feature permission updates.
 - Admin user runtime calls `record_audit_event` for family access creation, update, auth link sync, activation/deactivation, and deletion.
+- Payable bill runtime calls `record_audit_event` for status updates and deletion.
+- Receivable income runtime calls `record_audit_event` for status updates and deletion.
+- Expense runtime calls `record_audit_event` for deletion.
+- Category delete runtime calls `record_audit_event` for deletion.
+- Bank runtime calls `record_audit_event` for balance updates and deletion.
+- Member limit runtime calls `record_audit_event` for monthly limit updates without storing previous or next amounts.
 
 Runtime logging PRs must call the write boundary from one operation family at a time.
 
@@ -108,8 +120,9 @@ Audit logging should be added incrementally:
 3. Billing checkout audit runtime is wired through `record_audit_event`.
 4. Admin permission audit runtime is wired through `record_audit_event`.
 5. Admin user audit runtime is wired through `record_audit_event`.
-6. Add destructive finance audit events one family at a time.
-7. Add status-transition audit events after delete coverage is stable.
+6. Finance delete, status, bank balance, and category delete audit runtimes are wired through `record_audit_event`.
+7. Member limit audit runtime is wired through `record_audit_event` without storing financial amounts.
+8. Add any remaining operation family only after documenting its redaction model.
 
 ## Acceptance
 
