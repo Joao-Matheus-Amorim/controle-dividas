@@ -120,6 +120,6 @@ describe("sensitive operation rate limit plan guards", () => {
     expect(gapRegister).toContain("category delete rate limit runtime");
     expect(gapRegister).toContain("admin permission rate limit runtime");
     expect(gapRegister).toContain("admin user rate limit runtime");
-    expect(gapRegister).toContain("remaining broader rate limiting and data retention runtime controls are not implemented");
+    expect(gapRegister).toContain("remaining broader rate limiting and data retention cleanup runtime controls are not implemented");
   });
 });

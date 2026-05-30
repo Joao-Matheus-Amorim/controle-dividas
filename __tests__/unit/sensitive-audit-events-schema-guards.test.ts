@@ -89,6 +89,6 @@ describe("sensitive audit events schema guards", () => {
     expect(gapRegister).toContain("bank audit runtime");
     expect(gapRegister).toContain("category delete audit runtime");
     expect(gapRegister).toContain("billing checkout rate limit runtime");
-    expect(gapRegister).toContain("remaining broader rate limiting and data retention runtime controls are not implemented");
+    expect(gapRegister).toContain("remaining broader rate limiting and data retention cleanup runtime controls are not implemented");
   });
 });
