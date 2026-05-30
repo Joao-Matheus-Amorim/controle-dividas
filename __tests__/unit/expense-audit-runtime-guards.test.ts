@@ -12,6 +12,7 @@ function read(path: string) {
 
 describe("expense audit runtime guards", () => {
   const actions = read("app/protected/gastos/actions.ts");
+  const deleteAction = actions.slice(actions.indexOf("export async function deleteexpense"));
   const roadmap = read("docs/SAAS_OPERATIONAL_ROADMAP.md");
   const liveStatus = read("docs/SAAS_RLS_LIVE_STATUS.md");
   const gapRegister = read("docs/SAAS_GAP_REGISTER.md");
@@ -25,6 +26,7 @@ describe("expense audit runtime guards", () => {
     expect(actions).toContain('outcome = "success"');
     expect(actions).toContain("checksensitiveoperationratelimit");
     expect(actions).toContain('operationkey: "finance.expense.delete"');
+    expect(deleteAction).not.toContain("targetkey: id");
     expect(actions).toContain('outcome: "denied"');
     expect(actions).toContain("rate_limited");
   });

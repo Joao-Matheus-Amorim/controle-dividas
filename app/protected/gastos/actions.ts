@@ -432,7 +432,6 @@ export async function deleteExpense(
       ...expenseDeleteRateLimit,
       actorKey: profile.id,
       organizationId: organization.id,
-      targetKey: id,
     });
 
     if (!rateLimit.allowed) {

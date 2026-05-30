@@ -161,12 +161,13 @@ describe("expense audit runtime actions", () => {
 
     expect(result).toEqual({ success: "Gasto excluido com sucesso." });
     expect(mockState.rateLimitChecks).toEqual([
-      expect.objectContaining({
+      {
         operationKey: "finance.expense.delete",
+        limit: 5,
+        windowMs: 10 * 60 * 1000,
         actorKey: "profile-1",
         organizationId: "org-1",
-        targetKey: "expense-1",
-      }),
+      },
     ]);
     expect(mockState.deletedRows).toEqual([
       {
