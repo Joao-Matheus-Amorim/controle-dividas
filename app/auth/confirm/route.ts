@@ -23,39 +23,40 @@ export async function GET(request: NextRequest) {
   const token_hash = searchParams.get("token_hash");
   const type = searchParams.get("type") as EmailOtpType | null;
   const next = searchParams.get("next") ?? "/protected";
+
+  if (!token_hash || !type) {
+    redirect(`/auth/error?error=No token hash or type`);
+  }
+
   const rateLimit = checkSensitiveOperationRateLimit({
     ...authConfirmRateLimit,
     actorKey: getPublicAuthActorKey(request),
     organizationId: "public-auth",
-    targetKey: type ?? "missing-type",
+    targetKey: type,
   });
 
   if (!rateLimit.allowed) {
     redirect("/auth/error?error=Muitas tentativas de confirmacao. Tente novamente em alguns minutos.");
   }
 
-  if (token_hash && type) {
-    const supabase = await createClient();
+  const supabase = await createClient();
 
-    const { error } = await supabase.auth.verifyOtp({
-      type,
-      token_hash,
-    });
+  const { error } = await supabase.auth.verifyOtp({
+    type,
+    token_hash,
+  });
 
-    if (!error) {
-      const { data } = await supabase.auth.getClaims();
-      const authUserId = data?.claims?.sub ? String(data.claims.sub) : null;
-      const email = typeof data?.claims?.email === "string" ? data.claims.email : null;
+  if (!error) {
+    const { data } = await supabase.auth.getClaims();
+    const authUserId = data?.claims?.sub ? String(data.claims.sub) : null;
+    const email = typeof data?.claims?.email === "string" ? data.claims.email : null;
 
-      if (authUserId) {
-        await linkAuthUserToFamilyProfile({ authUserId, email });
-      }
-
-      redirect(next);
+    if (authUserId) {
+      await linkAuthUserToFamilyProfile({ authUserId, email });
     }
 
-    redirect(`/auth/error?error=${error?.message}`);
+    redirect(next);
   }
 
-  redirect(`/auth/error?error=No token hash or type`);
+  redirect(`/auth/error?error=${error?.message}`);
 }

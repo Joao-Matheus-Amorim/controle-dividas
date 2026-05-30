@@ -23,9 +23,15 @@ describe("auth confirm rate limit runtime guards", () => {
     expect(confirmRoute).toContain('operationkey: "auth.confirm.verify"');
     expect(confirmRoute).toContain("getpublicauthactorkey");
     expect(confirmRoute).toContain('organizationid: "public-auth"');
-    expect(confirmRoute).toContain('targetkey: type ?? "missing-type"');
+    expect(confirmRoute).toContain('if (!token_hash || !type)');
+    expect(confirmRoute).toContain("no token hash or type");
+    expect(confirmRoute).toContain("targetkey: type");
+    expect(confirmRoute).not.toContain("missing-type");
     expect(confirmRoute).toContain("limit: 10");
     expect(confirmRoute).toContain("windowms: 10 * 60 * 1000");
+    expect(confirmRoute.indexOf("if (!token_hash || !type)")).toBeLessThan(
+      confirmRoute.indexOf("const ratelimit = checksensitiveoperationratelimit"),
+    );
     expect(confirmRoute.indexOf("const ratelimit = checksensitiveoperationratelimit")).toBeLessThan(
       confirmRoute.indexOf("verifyotp"),
     );

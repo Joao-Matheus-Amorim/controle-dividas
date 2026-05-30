@@ -122,4 +122,19 @@ describe("auth confirm rate limit runtime actions", () => {
     expect(mockState.verifyOtpCalls).toHaveLength(0);
     expect(mockState.linkCalls).toHaveLength(0);
   });
+
+  it("does not consume auth confirmation quota when required params are missing", async () => {
+    const { GET } = await import("@/app/auth/confirm/route");
+
+    await expect(
+      GET(makeRequest(
+        "https://app.example.com/auth/confirm?type=signup",
+        { "x-forwarded-for": "203.0.113.10" },
+      ) as never),
+    ).rejects.toThrow("redirect:/auth/error?error=No token hash or type");
+
+    expect(mockState.rateLimitChecks).toHaveLength(0);
+    expect(mockState.verifyOtpCalls).toHaveLength(0);
+    expect(mockState.linkCalls).toHaveLength(0);
+  });
 });
