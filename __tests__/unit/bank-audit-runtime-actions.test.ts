@@ -180,6 +180,16 @@ describe("bank audit runtime actions", () => {
     }));
 
     expect(result).toEqual({ success: "Saldo atualizado com sucesso." });
+    expect(mockState.rateLimitChecks).toEqual([
+      {
+        operationKey: "finance.bank.balance.update",
+        limit: 10,
+        windowMs: 10 * 60 * 1000,
+        actorKey: "profile-1",
+        organizationId: "org-1",
+        targetKey: "bank-1",
+      },
+    ]);
     expect(mockState.auditEvents).toEqual([
       expect.objectContaining({
         p_organization_id: "org-1",
@@ -205,6 +215,7 @@ describe("bank audit runtime actions", () => {
 
     expect(result).toEqual({ success: "Saldo atualizado com sucesso." });
     expect(mockState.updatedRows).toHaveLength(1);
+    expect(mockState.rateLimitChecks).toHaveLength(0);
     expect(mockState.auditEvents).toHaveLength(0);
   });
 
@@ -220,6 +231,16 @@ describe("bank audit runtime actions", () => {
     }));
 
     expect(result).toEqual({ success: "Banco atualizado com sucesso." });
+    expect(mockState.rateLimitChecks).toEqual([
+      {
+        operationKey: "finance.bank.balance.update",
+        limit: 10,
+        windowMs: 10 * 60 * 1000,
+        actorKey: "profile-1",
+        organizationId: "org-1",
+        targetKey: "bank-1",
+      },
+    ]);
     expect(mockState.auditEvents).toEqual([
       expect.objectContaining({
         p_action: "finance.bank.balance.update",
@@ -246,7 +267,69 @@ describe("bank audit runtime actions", () => {
 
     expect(result).toEqual({ success: "Banco atualizado com sucesso." });
     expect(mockState.updatedRows).toHaveLength(1);
+    expect(mockState.rateLimitChecks).toHaveLength(0);
     expect(mockState.auditEvents).toHaveLength(0);
+  });
+
+  it("does not update quick bank balance when the balance rate limit blocks the action", async () => {
+    const { updateBankAccountBalance } = await import("@/app/protected/bancos/actions");
+    mockState.rateLimitAllowed = false;
+
+    const result = await updateBankAccountBalance(createFormData({
+      id: "bank-1",
+      current_balance: "125.50",
+    }));
+
+    expect(result).toEqual({
+      error: "Muitas tentativas de alteracao de saldo. Tente novamente em alguns minutos.",
+    });
+    expect(mockState.updatedRows).toHaveLength(0);
+    expect(mockState.auditEvents).toEqual([
+      expect.objectContaining({
+        p_organization_id: "org-1",
+        p_action: "finance.bank.balance.update",
+        p_target_type: "bank",
+        p_target_id: "bank-1",
+        p_outcome: "denied",
+        p_metadata: {
+          status: "rate_limited",
+          balance_changed: true,
+          family_member_id: "member-1",
+        },
+      }),
+    ]);
+  });
+
+  it("does not update full edit bank balance when the balance rate limit blocks the action", async () => {
+    const { updateBankAccount } = await import("@/app/protected/bancos/actions");
+    mockState.rateLimitAllowed = false;
+
+    const result = await updateBankAccount({}, createFormData({
+      id: "bank-1",
+      family_member_id: "member-1",
+      bank_name: "Wise",
+      current_balance: "180",
+      currency: "EUR",
+    }));
+
+    expect(result).toEqual({
+      error: "Muitas tentativas de alteracao de saldo. Tente novamente em alguns minutos.",
+    });
+    expect(mockState.updatedRows).toHaveLength(0);
+    expect(mockState.auditEvents).toEqual([
+      expect.objectContaining({
+        p_organization_id: "org-1",
+        p_action: "finance.bank.balance.update",
+        p_target_type: "bank",
+        p_target_id: "bank-1",
+        p_outcome: "denied",
+        p_metadata: {
+          status: "rate_limited",
+          balance_changed: true,
+          family_member_id: "member-1",
+        },
+      }),
+    ]);
   });
 
   it("does not record bank balance audit event when no row was updated", async () => {
