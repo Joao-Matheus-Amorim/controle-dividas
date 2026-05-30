@@ -12,12 +12,25 @@ import {
 } from "@/lib/finance/permissions";
 import { revalidateOrganizationPaths } from "@/lib/organizations/revalidation";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
+import { checkSensitiveOperationRateLimit } from "@/lib/security/sensitive-rate-limit";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 export type FamilyUserActionState = {
   error?: string;
   success?: string;
+};
+
+const adminPermissionUpdateRateLimit = {
+  operationKey: "admin.permission.update",
+  limit: 5,
+  windowMs: 10 * 60 * 1000,
+};
+
+const adminFeaturePermissionUpdateRateLimit = {
+  operationKey: "admin.feature_permission.update",
+  limit: 5,
+  windowMs: 10 * 60 * 1000,
 };
 
 function normalizeScope(value: FormDataEntryValue | null): PermissionScope {
@@ -44,19 +57,24 @@ async function recordAdminPermissionAuditEvent({
   action,
   profileId,
   changedCount,
+  outcome = "success",
+  metadata,
 }: {
   organizationId: string;
   action: "admin.permission.update" | "admin.feature_permission.update";
   profileId: string;
   changedCount: number;
+  outcome?: "success" | "denied";
+  metadata?: Record<string, string | number | boolean | null>;
 }) {
   await recordAuditEvent({
     organizationId,
     action,
     targetType: "profile",
     targetId: profileId,
-    outcome: "success",
+    outcome,
     metadata: {
+      ...metadata,
       profile_id: profileId,
       changed_count: changedCount,
     },
@@ -645,6 +663,28 @@ export async function saveProfilePermissions(
     };
   }
 
+  const rateLimit = checkSensitiveOperationRateLimit({
+    ...adminPermissionUpdateRateLimit,
+    actorKey: adminProfile.id,
+    organizationId: organization.id,
+    targetKey: profileId,
+  });
+
+  if (!rateLimit.allowed) {
+    await recordAdminPermissionAuditEvent({
+      organizationId: organization.id,
+      action: "admin.permission.update",
+      profileId,
+      changedCount: 0,
+      outcome: "denied",
+      metadata: {
+        status: "rate_limited",
+      },
+    });
+
+    return { error: "Muitas tentativas de alteracao de permissoes. Tente novamente em alguns minutos." };
+  }
+
   const rows = FINANCE_MODULES.map((module) => {
     const key = module.key as FinanceModuleKey;
     const scope = normalizeScope(formData.get(`${key}.scope`));
@@ -675,6 +715,7 @@ export async function saveProfilePermissions(
     action: "admin.permission.update",
     profileId,
     changedCount: rows.length,
+    outcome: "success",
   });
 
   revalidateOrganizationPaths(
@@ -708,6 +749,28 @@ export async function saveProfileFeaturePermissions(
     };
   }
 
+  const rateLimit = checkSensitiveOperationRateLimit({
+    ...adminFeaturePermissionUpdateRateLimit,
+    actorKey: adminProfile.id,
+    organizationId: organization.id,
+    targetKey: profileId,
+  });
+
+  if (!rateLimit.allowed) {
+    await recordAdminPermissionAuditEvent({
+      organizationId: organization.id,
+      action: "admin.feature_permission.update",
+      profileId,
+      changedCount: 0,
+      outcome: "denied",
+      metadata: {
+        status: "rate_limited",
+      },
+    });
+
+    return { error: "Muitas tentativas de alteracao de funcionalidades. Tente novamente em alguns minutos." };
+  }
+
   const rows = FEATURE_PERMISSIONS.map((feature) => ({
     owner_id: adminProfile.owner_id,
     organization_id: organization.id,
@@ -728,6 +791,7 @@ export async function saveProfileFeaturePermissions(
     action: "admin.feature_permission.update",
     profileId,
     changedCount: rows.length,
+    outcome: "success",
   });
 
   revalidateOrganizationPaths(

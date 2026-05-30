@@ -38,8 +38,15 @@ describe("admin permission audit runtime guards", () => {
     expect(actions).toContain(".upsert(rows");
   });
 
-  it("keeps admin permission audit runtime free of rate limit, retention, webhook, and portal work", () => {
-    expect(actions).not.toContain("rate_limit");
+  it("keeps admin permission runtime limited without retention, webhook, and portal work", () => {
+    expect(actions).toContain("checksensitiveoperationratelimit");
+    expect(actions).toContain('operationkey: "admin.permission.update"');
+    expect(actions).toContain('operationkey: "admin.feature_permission.update"');
+    expect(actions).toContain("actorkey: adminprofile.id");
+    expect(actions).toContain("organizationid: organization.id");
+    expect(actions).toContain("targetkey: profileid");
+    expect(actions).toContain('outcome: "denied"');
+    expect(actions).toContain('status: "rate_limited"');
     expect(actions).not.toContain("retention");
     expect(actions).not.toContain("stripe.webhooks");
     expect(actions).not.toContain("billing portal");
@@ -61,6 +68,9 @@ describe("admin permission audit runtime guards", () => {
     expect(gapRegister).toContain("bank audit runtime");
     expect(gapRegister).toContain("category delete audit runtime");
     expect(gapRegister).toContain("billing checkout rate limit runtime");
+    expect(gapRegister).toContain("admin permission rate limit runtime");
+    expect(roadmap).toContain("admin permission rate limit runtime");
+    expect(liveStatus).toContain("admin permission rate limit runtime");
     expect(roadmap).toContain("broader rate limiting e data retention ainda nao tem runtime implementado");
     expect(liveStatus).toContain("broader rate limiting e data retention runtime controls ainda nao foram implementados");
   });
