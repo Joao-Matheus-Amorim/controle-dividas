@@ -17,6 +17,18 @@ export type ExpenseActionState = {
   success?: string;
 };
 
+const expenseCreateRateLimit = {
+  operationKey: "finance.expense.create",
+  limit: 10,
+  windowMs: 10 * 60 * 1000,
+};
+
+const expenseUpdateRateLimit = {
+  operationKey: "finance.expense.update",
+  limit: 10,
+  windowMs: 10 * 60 * 1000,
+};
+
 const expenseDeleteRateLimit = {
   operationKey: "finance.expense.delete",
   limit: 5,
@@ -31,8 +43,11 @@ async function recordExpenseAuditEvent({
   metadata,
 }: {
   organizationId: string;
-  action: "finance.expense.delete";
-  expenseId: string;
+  action:
+    | "finance.expense.create"
+    | "finance.expense.update"
+    | "finance.expense.delete";
+  expenseId: string | null;
   outcome?: "success" | "denied";
   metadata?: Record<string, string | number | boolean | null>;
 }) {
@@ -223,23 +238,58 @@ export async function createExpense(
     };
   }
 
-  const { error } = await supabase.from("expenses").insert({
-    owner_id: profile.owner_id,
-    organization_id: organization.id,
-    family_member_id: input.familyMemberId,
-    category_id: input.categoryId || null,
-    expense_date: input.expenseDate,
-    description: input.description,
-    purchase_location: input.purchaseLocation || null,
-    amount: input.amount,
-    payment_method: input.paymentMethod || null,
-    bank_or_card: input.bankOrCard || null,
-    notes: input.notes || null,
+  const rateLimit = checkSensitiveOperationRateLimit({
+    ...expenseCreateRateLimit,
+    actorKey: profile.id,
+    organizationId: organization.id,
   });
+
+  if (!rateLimit.allowed) {
+    await recordExpenseAuditEvent({
+      organizationId: organization.id,
+      action: "finance.expense.create",
+      expenseId: null,
+      outcome: "denied",
+      metadata: {
+        status: "rate_limited",
+        expense_created: true,
+        family_member_id: input.familyMemberId,
+      },
+    });
+
+    return { error: "Muitas tentativas de cadastro de gasto. Tente novamente em alguns minutos." };
+  }
+
+  const { data: createdExpense, error } = await supabase
+    .from("expenses").insert({
+      owner_id: profile.owner_id,
+      organization_id: organization.id,
+      family_member_id: input.familyMemberId,
+      category_id: input.categoryId || null,
+      expense_date: input.expenseDate,
+      description: input.description,
+      purchase_location: input.purchaseLocation || null,
+      amount: input.amount,
+      payment_method: input.paymentMethod || null,
+      bank_or_card: input.bankOrCard || null,
+      notes: input.notes || null,
+    })
+    .select("id")
+    .single();
 
   if (error) {
     return { error: error.message };
   }
+
+  await recordExpenseAuditEvent({
+    organizationId: organization.id,
+    action: "finance.expense.create",
+    expenseId: createdExpense?.id ? String(createdExpense.id) : null,
+    metadata: {
+      expense_created: true,
+      family_member_id: input.familyMemberId,
+    },
+  });
 
   revalidateOrganizationPaths(["/protected/gastos", "/protected"], organization.slug);
 
@@ -283,21 +333,47 @@ export async function updateExpense(
       input.categoryId,
     );
 
+    const rateLimit = checkSensitiveOperationRateLimit({
+      ...expenseUpdateRateLimit,
+      actorKey: profile.id,
+      organizationId: organization.id,
+      targetKey: id,
+    });
+
+    if (!rateLimit.allowed) {
+      await recordExpenseAuditEvent({
+        organizationId: organization.id,
+        action: "finance.expense.update",
+        expenseId: id,
+        outcome: "denied",
+        metadata: {
+          status: "rate_limited",
+          expense_changed: true,
+          family_member_id: input.familyMemberId,
+        },
+      });
+
+      return { error: "Muitas tentativas de alteracao de gasto. Tente novamente em alguns minutos." };
+    }
+
     const supabase = await createClient();
-    const { error } = await supabase
+    const { error, count } = await supabase
       .from("expenses")
-      .update({
-        family_member_id: input.familyMemberId,
-        category_id: input.categoryId || null,
-        expense_date: input.expenseDate,
-        description: input.description,
-        purchase_location: input.purchaseLocation || null,
-        amount: input.amount,
-        payment_method: input.paymentMethod || null,
-        bank_or_card: input.bankOrCard || null,
-        notes: input.notes || null,
-        organization_id: organization.id,
-      })
+      .update(
+        {
+          family_member_id: input.familyMemberId,
+          category_id: input.categoryId || null,
+          expense_date: input.expenseDate,
+          description: input.description,
+          purchase_location: input.purchaseLocation || null,
+          amount: input.amount,
+          payment_method: input.paymentMethod || null,
+          bank_or_card: input.bankOrCard || null,
+          notes: input.notes || null,
+          organization_id: organization.id,
+        },
+        { count: "exact" },
+      )
       .eq("id", id)
       .eq("owner_id", profile.owner_id)
       .eq("organization_id", organization.id);
@@ -305,6 +381,20 @@ export async function updateExpense(
     if (error) {
       return { error: error.message };
     }
+
+    if (count !== 1) {
+      return { error: "Gasto nao encontrado." };
+    }
+
+    await recordExpenseAuditEvent({
+      organizationId: organization.id,
+      action: "finance.expense.update",
+      expenseId: id,
+      metadata: {
+        expense_changed: true,
+        family_member_id: input.familyMemberId,
+      },
+    });
 
     revalidateOrganizationPaths(["/protected/gastos", "/protected"], organization.slug);
 
