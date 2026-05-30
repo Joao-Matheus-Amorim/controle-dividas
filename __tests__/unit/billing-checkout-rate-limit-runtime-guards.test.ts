@@ -56,6 +56,6 @@ describe("billing checkout rate limit runtime guards", () => {
       expect(source).toContain("disable_sensitive_rate_limits");
     }
 
-    expect(gapRegister).toContain("data retention runtime controls are not implemented");
+    expect(gapRegister).toContain("data retention cleanup runtime controls are not implemented");
   });
 });

@@ -15,8 +15,9 @@ It follows:
 ## Current status
 
 ```txt
-Planning only.
-No retention runtime.
+Audit event retention preflight runtime exists.
+Audit events use a 365-day candidate retention cutoff for preflight counting only.
+No retention cleanup runtime.
 No cleanup job.
 No anonymization job.
 No destructive deletion.
@@ -27,7 +28,7 @@ No billing behavior change.
 No E2E change.
 ```
 
-Data retention controls are not implemented yet.
+Data retention cleanup controls are not implemented yet. The current runtime only counts organization-scoped `audit_events` older than the candidate cutoff in `app/protected/configuracoes/audit-retention-actions.ts`.
 
 ## Data classes
 
@@ -39,7 +40,7 @@ Future retention work must classify data before any runtime change:
 | Organization membership | membership roles, active status, organization ownership | Retain while organization exists; deletion needs ownership transfer/closure decision. |
 | Financial records | expenses, payable bills, receivable incomes, banks, categories, family members | User-owned financial history; no automatic deletion until product policy exists. |
 | Billing references | plan, Stripe customer id, checkout/session references | Keep minimal references needed for billing support and reconciliation. |
-| Audit events | sensitive-action event summaries | Retain according to audit policy after audit storage exists. |
+| Audit events | sensitive-action event summaries | Preflight counts owner/admin-only organization-scoped events older than 365 days; no cleanup or anonymization exists yet. |
 | Operational evidence | gated test artifacts, CI summaries, docs evidence | Retain as repo/CI evidence; do not mix with user data retention. |
 
 ## Required decisions
@@ -57,7 +58,7 @@ Every future retention implementation must define:
 - backup/restore implication;
 - rollback or recovery path.
 
-No retention runtime should be added until these decisions are documented for the specific data class.
+No retention cleanup runtime should be added until these decisions are documented for the specific data class.
 
 ## Destructive action rules
 
@@ -105,7 +106,7 @@ Data retention should move in this order:
 
 1. Decide product/legal retention policy per data class.
 2. Define audit event storage before destructive retention actions.
-3. Add dry-run/preflight query for one data class.
+3. Add dry-run/preflight query for one data class. Audit event retention preflight now exists for `audit_events` with a 365-day cutoff.
 4. Add runtime cleanup or anonymization for one data class.
 5. Add focused tests and rollback instructions.
 6. Update live docs and gap register only after implementation evidence.

@@ -105,7 +105,7 @@ describe("admin user audit runtime guards", () => {
     expect(gapRegister).toContain("admin user rate limit runtime");
     expect(roadmap).toContain("admin user rate limit runtime");
     expect(liveStatus).toContain("admin user rate limit runtime");
-    expect(roadmap).toContain("broader rate limiting e data retention ainda nao tem runtime implementado");
-    expect(liveStatus).toContain("broader rate limiting e data retention runtime controls ainda nao foram implementados");
+    expect(roadmap).toContain("broader rate limiting e data retention cleanup ainda nao tem runtime implementado");
+    expect(liveStatus).toContain("broader rate limiting e data retention cleanup runtime controls ainda nao foram implementados");
   });
 });

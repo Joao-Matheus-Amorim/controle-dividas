@@ -17,14 +17,16 @@ describe("sensitive data retention plan guards", () => {
   const liveStatus = read("docs/SAAS_RLS_LIVE_STATUS.md");
   const gapRegister = read("docs/SAAS_GAP_REGISTER.md");
 
-  it("keeps data retention planning-only before runtime cleanup", () => {
+  it("keeps data retention preflight-only before runtime cleanup", () => {
     expect(plan).toContain("gap-015");
-    expect(plan).toContain("planning only");
-    expect(plan).toContain("no retention runtime");
+    expect(plan).toContain("audit event retention preflight runtime exists");
+    expect(plan).toContain("365-day candidate retention cutoff");
+    expect(plan).toContain("no retention cleanup runtime");
     expect(plan).toContain("no cleanup job");
     expect(plan).toContain("no anonymization job");
     expect(plan).toContain("no destructive deletion");
-    expect(plan).toContain("data retention controls are not implemented yet");
+    expect(plan).toContain("data retention cleanup controls are not implemented yet");
+    expect(plan).toContain("app/protected/configuracoes/audit-retention-actions.ts");
   });
 
   it("documents data classes and required retention decisions", () => {
@@ -64,6 +66,7 @@ describe("sensitive data retention plan guards", () => {
     expect(roadmap).toContain("plano de data retention");
     expect(liveStatus).toContain("plano de data retention");
     expect(gapRegister).toContain("data retention planning exists");
-    expect(gapRegister).toContain("runtime controls are not implemented");
+    expect(gapRegister).toContain("audit event retention preflight runtime");
+    expect(gapRegister).toContain("data retention cleanup runtime controls are not implemented");
   });
 });

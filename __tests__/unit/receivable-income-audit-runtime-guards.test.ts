@@ -65,7 +65,7 @@ describe("receivable income audit runtime guards", () => {
     expect(gapRegister).toContain("billing checkout rate limit runtime");
     expect(gapRegister).toContain("receivable delete rate limit runtime");
     expect(gapRegister).toContain("receivable status rate limit runtime");
-    expect(roadmap).toContain("remaining broader rate limiting e data retention ainda nao tem runtime implementado");
-    expect(liveStatus).toContain("remaining broader rate limiting e data retention runtime controls ainda nao foram implementados");
+    expect(roadmap).toContain("remaining broader rate limiting e data retention cleanup ainda nao tem runtime implementado");
+    expect(liveStatus).toContain("remaining broader rate limiting e data retention cleanup runtime controls ainda nao foram implementados");
   });
 });

@@ -37,7 +37,8 @@ Bank balance rate limit runtime exists for finance.bank.balance.update.
 Category delete rate limit runtime exists for finance.category.delete.
 Admin permission rate limit runtime exists for admin.permission.update and admin.feature_permission.update.
 Admin user rate limit runtime exists for admin.user.create, admin.user.update, admin.user.auth_link.sync, admin.user.delete, and admin.user.status.update.
-No data retention runtime.
+No data retention cleanup runtime.
+Audit event retention preflight runtime exists for owner/admin-only organization-scoped `audit_events` older than 365 days, with no cleanup job and no destructive deletion.
 No UI change.
 No billing webhook, portal, or commercial enforcement change.
 No E2E change.
@@ -56,6 +57,7 @@ Initial candidates that need explicit control decisions before runtime work:
 | Billing checkout | `app/protected/configuracoes/billing-actions.ts` and checkout session creation | Billing checkout rate limit runtime exists; Stripe metadata boundaries and audit events are covered for this step. |
 | Finance mutations | create/update/delete/status transitions in expenses, payables, receivables, banks, categories, and people | Audit event categories and payload redaction. Expense delete, payable delete, payable status update, receivable delete, receivable status update, bank delete, bank balance update, and category delete rate limit runtime exist for this step. |
 | Destructive actions | deletes and irreversible state transitions | Confirmation, audit event, rate limit, retention, and recovery decision. |
+| Audit event retention | `app/protected/configuracoes/audit-retention-actions.ts` | Preflight-only count for owner/admin-only organization-scoped `audit_events` older than 365 days; no cleanup, anonymization, or destructive deletion exists. |
 
 ## Rate limiting contract
 
@@ -110,7 +112,7 @@ Each retention PR must define:
 - audit event for retention actions;
 - rollback or recovery path.
 
-Destructive retention work must not be bundled with unrelated runtime, RLS, billing, or UI changes.
+Destructive retention work must not be bundled with unrelated runtime, RLS, billing, or UI changes. The current audit event retention preflight is read-only and does not implement cleanup or anonymization.
 
 ## Sequencing
 
