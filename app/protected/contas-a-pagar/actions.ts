@@ -350,26 +350,29 @@ export async function updatePayableBillStatus(
 
   try {
     const { profile, organization, bill } = await assertCanManagePayableBill(id, "can_edit");
-    const rateLimit = checkSensitiveOperationRateLimit({
-      ...payableStatusRateLimit,
-      actorKey: profile.id,
-      organizationId: organization.id,
-      targetKey: id,
-    });
 
-    if (!rateLimit.allowed) {
-      await recordPayableBillAuditEvent({
+    if (String(bill.status) !== status) {
+      const rateLimit = checkSensitiveOperationRateLimit({
+        ...payableStatusRateLimit,
+        actorKey: profile.id,
         organizationId: organization.id,
-        action: "finance.payable.status.update",
-        billId: id,
-        outcome: "denied",
-        metadata: {
-          status: "rate_limited",
-          responsible_member_id: String(bill.responsible_member_id),
-        },
+        targetKey: id,
       });
 
-      return { error: "Muitas tentativas de alteracao de status. Tente novamente em alguns minutos." };
+      if (!rateLimit.allowed) {
+        await recordPayableBillAuditEvent({
+          organizationId: organization.id,
+          action: "finance.payable.status.update",
+          billId: id,
+          outcome: "denied",
+          metadata: {
+            status: "rate_limited",
+            responsible_member_id: String(bill.responsible_member_id),
+          },
+        });
+
+        return { error: "Muitas tentativas de alteracao de status. Tente novamente em alguns minutos." };
+      }
     }
 
     const supabase = await createClient();
@@ -388,15 +391,17 @@ export async function updatePayableBillStatus(
       return { error: error.message };
     }
 
-    await recordPayableBillAuditEvent({
-      organizationId: organization.id,
-      action: "finance.payable.status.update",
-      billId: id,
-      metadata: {
-        next_status: status,
-        responsible_member_id: String(bill.responsible_member_id),
-      },
-    });
+    if (String(bill.status) !== status) {
+      await recordPayableBillAuditEvent({
+        organizationId: organization.id,
+        action: "finance.payable.status.update",
+        billId: id,
+        metadata: {
+          next_status: status,
+          responsible_member_id: String(bill.responsible_member_id),
+        },
+      });
+    }
 
     revalidateOrganizationPaths(["/protected/contas-a-pagar", "/protected"], organization.slug);
 

@@ -504,6 +504,30 @@ describe("payable bill actions", () => {
     ]);
   });
 
+  it("does not consume status rate limit or audit when quick status save is unchanged", async () => {
+    const { updatePayableBillStatus } = await import("@/app/protected/contas-a-pagar/actions");
+    mockState.billLookup = {
+      id: "bill-1",
+      owner_id: "owner-1",
+      responsible_member_id: "member-1",
+      status: "pago",
+    };
+
+    const result = await updatePayableBillStatus({}, createFormData({
+      id: "bill-1",
+      status: "pago",
+    }));
+
+    expect(result).toEqual({ success: "Status atualizado com sucesso." });
+    expect(mockState.rateLimitChecks).toHaveLength(0);
+    expect(lastUpdatePayload()).toEqual(expect.objectContaining({
+      status: "pago",
+      organization_id: "org-1",
+      filters: expect.objectContaining({ id: "bill-1", owner_id: "owner-1" }),
+    }));
+    expect(mockState.auditEvents).toHaveLength(0);
+  });
+
   it("does not update payable bill status when the status rate limit blocks the action", async () => {
     const { updatePayableBillStatus } = await import("@/app/protected/contas-a-pagar/actions");
     mockState.rateLimitAllowed = false;
