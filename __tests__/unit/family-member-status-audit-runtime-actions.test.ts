@@ -137,7 +137,7 @@ describe("family member status audit runtime actions", () => {
 
     const result = await toggleFamilyMemberStatus(createFormData({
       id: "member-1",
-      is_active: "false",
+      is_active: "true",
     }));
 
     expect(result).toEqual({ success: "Pessoa desativada com sucesso." });
@@ -179,7 +179,26 @@ describe("family member status audit runtime actions", () => {
     ]);
   });
 
-  it("activates an inactive persisted member without trusting the submitted status", async () => {
+  it("activates an inactive persisted member when the submitted status matches the database state", async () => {
+    const { toggleFamilyMemberStatus } = await import("@/app/protected/pessoas/actions");
+    mockState.memberLookup = {
+      id: "member-1",
+      is_active: false,
+    };
+
+    const result = await toggleFamilyMemberStatus(createFormData({
+      id: "member-1",
+      is_active: "false",
+    }));
+
+    expect(result).toEqual({ success: "Pessoa ativada com sucesso." });
+    expect(mockState.updatedRows.at(-1)?.payload).toEqual({
+      is_active: true,
+      organization_id: "org-1",
+    });
+  });
+
+  it("rejects stale status forms without toggling the opposite action", async () => {
     const { toggleFamilyMemberStatus } = await import("@/app/protected/pessoas/actions");
     mockState.memberLookup = {
       id: "member-1",
@@ -191,11 +210,34 @@ describe("family member status audit runtime actions", () => {
       is_active: "true",
     }));
 
-    expect(result).toEqual({ success: "Pessoa ativada com sucesso." });
-    expect(mockState.updatedRows.at(-1)?.payload).toEqual({
-      is_active: true,
-      organization_id: "org-1",
+    expect(result).toEqual({
+      error: "O status desta pessoa mudou. Atualize a lista antes de tentar novamente.",
     });
+    expect(mockState.updatedRows).toHaveLength(0);
+    expect(mockState.rateLimitChecks).toHaveLength(0);
+    expect(mockState.auditEvents).toHaveLength(0);
+  });
+
+  it("rejects missing or malformed submitted status values before reading or mutating", async () => {
+    const { toggleFamilyMemberStatus } = await import("@/app/protected/pessoas/actions");
+
+    for (const isActive of ["", "yes"]) {
+      const result = await toggleFamilyMemberStatus(createFormData({
+        id: "member-1",
+        is_active: isActive,
+      }));
+
+      expect(result).toEqual({ error: "Status invalido para esta pessoa." });
+    }
+
+    const resultWithoutField = await toggleFamilyMemberStatus(createFormData({
+      id: "member-1",
+    }));
+
+    expect(resultWithoutField).toEqual({ error: "Status invalido para esta pessoa." });
+    expect(mockState.updatedRows).toHaveLength(0);
+    expect(mockState.rateLimitChecks).toHaveLength(0);
+    expect(mockState.auditEvents).toHaveLength(0);
   });
 
   it("does not update member status when the rate limit blocks the action", async () => {

@@ -40,8 +40,12 @@ describe("family member status audit runtime guards", () => {
     expect(actions).toContain("checksensitiveoperationratelimit");
     expect(actions).toContain('operationkey: "finance.member.status.update"');
     expect(toggleAction).toContain('select("id, is_active")');
+    expect(toggleAction).toContain('formdata.get("is_active")');
+    expect(toggleAction).toContain('!["true", "false"].includes(submittedactivevalue)');
+    expect(toggleAction).toContain("status invalido para esta pessoa");
     expect(toggleAction).toContain("const currentactive = boolean(member.is_active)");
-    expect(toggleAction).not.toContain('formdata.get("is_active")');
+    expect(toggleAction).toContain("currentactive !== submittedactive");
+    expect(toggleAction).toContain("o status desta pessoa mudou");
     expect(toggleAction).toContain("actorkey: profile.owner_id");
     expect(toggleAction).toContain("organizationid: organization.id");
     expect(toggleAction).toContain("targetkey: id");
