@@ -21,11 +21,27 @@ function functionBlock(source: string, functionName: string) {
   return source.slice(start, next >= 0 ? next : source.length);
 }
 
+function rateLimitCallBlock(source: string, spreadName: string) {
+  const spreadStart = source.indexOf(`...${spreadName}`);
+
+  expect(spreadStart, `missing rate limit ${spreadName}`).toBeGreaterThanOrEqual(0);
+
+  const callStart = source.lastIndexOf("checksensitiveoperationratelimit({", spreadStart);
+  const callEnd = source.indexOf("});", spreadStart);
+
+  expect(callStart, `missing call start for ${spreadName}`).toBeGreaterThanOrEqual(0);
+  expect(callEnd, `missing call end for ${spreadName}`).toBeGreaterThanOrEqual(0);
+
+  return source.slice(callStart, callEnd);
+}
+
 describe("family member write audit runtime guards", () => {
   const peopleActions = read("app/protected/pessoas/actions.ts");
   const writeControls = read("lib/finance/member-write-controls.ts");
   const createAction = functionBlock(peopleActions, "createfamilymember");
   const updateAction = functionBlock(peopleActions, "updatefamilymember");
+  const memberCreateRateLimitCall = rateLimitCallBlock(createAction, "familymembercreateratelimit");
+  const memberUpdateRateLimitCall = rateLimitCallBlock(updateAction, "familymemberupdateratelimit");
   const actions = [peopleActions, writeControls].join("\n");
   const schemaPlan = read("docs/audits/SENSITIVE_ACTION_AUDIT_EVENT_SCHEMA_PLAN.md");
   const rateLimitPlan = read("docs/audits/SENSITIVE_OPERATION_RATE_LIMIT_PLAN.md");
@@ -44,7 +60,7 @@ describe("family member write audit runtime guards", () => {
     expect(actions).toContain('operationkey: "finance.member.update"');
 
     expect(createAction).toContain("familymembercreateratelimit");
-    expect(createAction).toContain("actorkey: profile.owner_id");
+    expect(createAction).toContain("actorkey: profile.id");
     expect(createAction).toContain("organizationid: organization.id");
     expect(createAction).not.toContain("targetkey:");
     expect(createAction).toContain(".select(\"id\").single()");
@@ -53,6 +69,7 @@ describe("family member write audit runtime guards", () => {
     expect(updateAction).toContain('select("id, name, role, monthly_limit")');
     expect(updateAction).toContain("const profilechanged");
     expect(updateAction).toContain("familymemberupdateratelimit");
+    expect(updateAction).toContain("actorkey: profile.id");
     expect(updateAction).toContain("targetkey: id");
     expect(updateAction).toContain("member_profile_changed");
     expect(updateAction).toContain('outcome: "denied"');
@@ -71,6 +88,13 @@ describe("family member write audit runtime guards", () => {
     expect(actions).not.toContain("next_limit");
     expect(actions).not.toContain("full_payload");
     expect(actions).not.toContain("raw_payload");
+  });
+
+  it("does not share member write rate limit buckets through the family owner id", () => {
+    expect(memberCreateRateLimitCall).toContain("actorkey: profile.id");
+    expect(memberUpdateRateLimitCall).toContain("actorkey: profile.id");
+    expect(memberCreateRateLimitCall).not.toContain("actorkey: profile.owner_id");
+    expect(memberUpdateRateLimitCall).not.toContain("actorkey: profile.owner_id");
   });
 
   it("keeps docs aligned with member write runtime coverage", () => {
