@@ -19,6 +19,11 @@ const receivableDeleteRateLimit = {
   limit: 5,
   windowMs: 10 * 60 * 1000,
 };
+const receivableStatusRateLimit = {
+  operationKey: "finance.receivable.status.update",
+  limit: 10,
+  windowMs: 10 * 60 * 1000,
+};
 
 export type ReceivableIncomeActionState = {
   error?: string;
@@ -246,6 +251,30 @@ export async function updateReceivableIncome(
       await assertCanAccessMember("CONTAS_A_RECEBER", "can_edit", input.receiverMemberId);
     }
 
+    if (String(income.status) !== input.status) {
+      const rateLimit = checkSensitiveOperationRateLimit({
+        ...receivableStatusRateLimit,
+        actorKey: profile.id,
+        organizationId: organization.id,
+        targetKey: id,
+      });
+
+      if (!rateLimit.allowed) {
+        await recordReceivableIncomeAuditEvent({
+          organizationId: organization.id,
+          action: "finance.receivable.status.update",
+          incomeId: id,
+          outcome: "denied",
+          metadata: {
+            status: "rate_limited",
+            receiver_member_id: String(income.receiver_member_id),
+          },
+        });
+
+        return { error: "Muitas tentativas de alteracao de status. Tente novamente em alguns minutos." };
+      }
+    }
+
     const supabase = await createClient();
     const { error } = await supabase
       .from("receivable_incomes")
@@ -310,6 +339,31 @@ export async function updateReceivableIncomeStatus(
 
   try {
     const { profile, organization, income } = await assertCanManageReceivableIncome(id, "can_edit");
+
+    if (String(income.status) !== status) {
+      const rateLimit = checkSensitiveOperationRateLimit({
+        ...receivableStatusRateLimit,
+        actorKey: profile.id,
+        organizationId: organization.id,
+        targetKey: id,
+      });
+
+      if (!rateLimit.allowed) {
+        await recordReceivableIncomeAuditEvent({
+          organizationId: organization.id,
+          action: "finance.receivable.status.update",
+          incomeId: id,
+          outcome: "denied",
+          metadata: {
+            status: "rate_limited",
+            receiver_member_id: String(income.receiver_member_id),
+          },
+        });
+
+        return { error: "Muitas tentativas de alteracao de status. Tente novamente em alguns minutos." };
+      }
+    }
+
     const supabase = await createClient();
 
     const { error } = await supabase
@@ -326,15 +380,17 @@ export async function updateReceivableIncomeStatus(
       return { error: error.message };
     }
 
-    await recordReceivableIncomeAuditEvent({
-      organizationId: organization.id,
-      action: "finance.receivable.status.update",
-      incomeId: id,
-      metadata: {
-        next_status: status,
-        receiver_member_id: String(income.receiver_member_id),
-      },
-    });
+    if (String(income.status) !== status) {
+      await recordReceivableIncomeAuditEvent({
+        organizationId: organization.id,
+        action: "finance.receivable.status.update",
+        incomeId: id,
+        metadata: {
+          next_status: status,
+          receiver_member_id: String(income.receiver_member_id),
+        },
+      });
+    }
 
     revalidateOrganizationPaths(["/protected/contas-a-receber", "/protected"], organization.slug);
 

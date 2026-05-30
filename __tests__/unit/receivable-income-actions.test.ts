@@ -216,6 +216,16 @@ describe("receivable income actions", () => {
     }));
 
     expect(result).toEqual({ error: "database status update failed" });
+    expect(mockState.rateLimitChecks).toEqual([
+      {
+        operationKey: "finance.receivable.status.update",
+        limit: 10,
+        windowMs: 10 * 60 * 1000,
+        actorKey: "profile-1",
+        organizationId: "org-1",
+        targetKey: "income-1",
+      },
+    ]);
     expect(lastUpdatePayload()).toEqual(expect.objectContaining({
       status: "recebido",
       organization_id: "org-1",
@@ -232,6 +242,16 @@ describe("receivable income actions", () => {
     }));
 
     expect(result).toEqual({ success: "Status atualizado com sucesso." });
+    expect(mockState.rateLimitChecks).toEqual([
+      {
+        operationKey: "finance.receivable.status.update",
+        limit: 10,
+        windowMs: 10 * 60 * 1000,
+        actorKey: "profile-1",
+        organizationId: "org-1",
+        targetKey: "income-1",
+      },
+    ]);
     expect(lastUpdatePayload()).toEqual(expect.objectContaining({
       status: "recebido",
       organization_id: "org-1",
@@ -252,6 +272,65 @@ describe("receivable income actions", () => {
     ]);
   });
 
+  it("does not consume status rate limit or audit when quick status save is unchanged", async () => {
+    const { updateReceivableIncomeStatus } = await import("@/app/protected/contas-a-receber/actions");
+    mockState.incomeLookup = {
+      id: "income-1",
+      owner_id: "owner-1",
+      receiver_member_id: "member-1",
+      status: "recebido",
+    };
+
+    const result = await updateReceivableIncomeStatus(createFormData({
+      id: "income-1",
+      status: "recebido",
+    }));
+
+    expect(result).toEqual({ success: "Status atualizado com sucesso." });
+    expect(mockState.rateLimitChecks).toHaveLength(0);
+    expect(lastUpdatePayload()).toEqual(expect.objectContaining({
+      status: "recebido",
+      organization_id: "org-1",
+      filters: expect.objectContaining({ id: "income-1", owner_id: "owner-1" }),
+    }));
+    expect(mockState.auditEvents).toHaveLength(0);
+  });
+
+  it("does not update receivable income status when the status rate limit blocks the action", async () => {
+    const { updateReceivableIncomeStatus } = await import("@/app/protected/contas-a-receber/actions");
+    mockState.rateLimitAllowed = false;
+
+    const result = await updateReceivableIncomeStatus(createFormData({
+      id: "income-1",
+      status: "recebido",
+    }));
+
+    expect(result).toEqual({
+      error: "Muitas tentativas de alteracao de status. Tente novamente em alguns minutos.",
+    });
+    expect(mockState.updatedPayloads).toHaveLength(0);
+    expect(mockState.rateLimitChecks).toEqual([
+      expect.objectContaining({
+        operationKey: "finance.receivable.status.update",
+        actorKey: "profile-1",
+        organizationId: "org-1",
+        targetKey: "income-1",
+      }),
+    ]);
+    expect(mockState.auditEvents).toEqual([
+      expect.objectContaining({
+        p_action: "finance.receivable.status.update",
+        p_target_type: "receivable_income",
+        p_target_id: "income-1",
+        p_outcome: "denied",
+        p_metadata: {
+          status: "rate_limited",
+          receiver_member_id: "member-1",
+        },
+      }),
+    ]);
+  });
+
   it("records status audit event when full receivable edit changes status", async () => {
     const { updateReceivableIncome } = await import("@/app/protected/contas-a-receber/actions");
 
@@ -266,6 +345,16 @@ describe("receivable income actions", () => {
     }));
 
     expect(result).toEqual({ success: "Recebimento atualizado com sucesso." });
+    expect(mockState.rateLimitChecks).toEqual([
+      {
+        operationKey: "finance.receivable.status.update",
+        limit: 10,
+        windowMs: 10 * 60 * 1000,
+        actorKey: "profile-1",
+        organizationId: "org-1",
+        targetKey: "income-1",
+      },
+    ]);
     expect(mockState.auditEvents).toEqual([
       expect.objectContaining({
         p_organization_id: "org-1",
@@ -276,6 +365,46 @@ describe("receivable income actions", () => {
         p_metadata: {
           previous_status: "previsto",
           next_status: "recebido",
+          receiver_member_id: "member-1",
+        },
+      }),
+    ]);
+  });
+
+  it("does not update or audit full receivable status changes when the status rate limit blocks the action", async () => {
+    const { updateReceivableIncome } = await import("@/app/protected/contas-a-receber/actions");
+    mockState.rateLimitAllowed = false;
+
+    const result = await updateReceivableIncome({}, createFormData({
+      id: "income-1",
+      receiver_member_id: "member-1",
+      source: "Salario",
+      income_type: "fixa",
+      amount: "1800",
+      expected_date: "2026-05-31",
+      status: "recebido",
+    }));
+
+    expect(result).toEqual({
+      error: "Muitas tentativas de alteracao de status. Tente novamente em alguns minutos.",
+    });
+    expect(mockState.updatedPayloads).toHaveLength(0);
+    expect(mockState.rateLimitChecks).toEqual([
+      expect.objectContaining({
+        operationKey: "finance.receivable.status.update",
+        actorKey: "profile-1",
+        organizationId: "org-1",
+        targetKey: "income-1",
+      }),
+    ]);
+    expect(mockState.auditEvents).toEqual([
+      expect.objectContaining({
+        p_action: "finance.receivable.status.update",
+        p_target_type: "receivable_income",
+        p_target_id: "income-1",
+        p_outcome: "denied",
+        p_metadata: {
+          status: "rate_limited",
           receiver_member_id: "member-1",
         },
       }),
