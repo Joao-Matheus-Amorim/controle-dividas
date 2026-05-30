@@ -10,19 +10,31 @@ const mockState = vi.hoisted(() => ({
     id: "org-1",
     slug: "amorim",
   },
+  insertedPayloads: [] as Array<Record<string, unknown>>,
+  insertedIncome: {
+    id: "income-created-1",
+  } as Record<string, unknown> | null,
   updatedPayloads: [] as Array<Record<string, unknown>>,
   deletedIds: [] as string[],
   incomeLookup: {
     id: "income-1",
     owner_id: "owner-1",
     receiver_member_id: "member-1",
+    source: "Salario",
+    income_type: "fixa",
+    amount: 1800,
+    expected_date: "2026-05-31",
     status: "previsto",
+    receiving_bank: null,
+    notes: null,
   } as Record<string, unknown> | null,
   memberLookup: {
     id: "member-1",
     organization_id: "org-1",
   } as Record<string, unknown> | null,
+  insertError: null as { message: string } | null,
   updateError: null as { message: string } | null,
+  updateCount: 1 as number | null,
   deleteError: null as { message: string } | null,
   deleteCount: 1 as number | null,
   accessError: null as Error | null,
@@ -47,6 +59,7 @@ function lastUpdatePayload() {
 
 function makeQuery(table: string) {
   const filters: Record<string, unknown> = {};
+  let insertPayload: Record<string, unknown> | null = null;
   let updatePayload: Record<string, unknown> | null = null;
   let deleteMode = false;
 
@@ -59,7 +72,7 @@ function makeQuery(table: string) {
 
       if (updatePayload && key === "organization_id") {
         mockState.updatedPayloads.push({ ...updatePayload, filters: { ...filters } });
-        return Promise.resolve({ error: mockState.updateError });
+        return Promise.resolve({ error: mockState.updateError, count: mockState.updateCount });
       }
 
       if (deleteMode && key === "organization_id") {
@@ -97,7 +110,24 @@ function makeQuery(table: string) {
 
       return Promise.resolve({ data: null, error: null });
     },
-    update(payload: Record<string, unknown>) {
+    single() {
+      if (insertPayload) {
+        return Promise.resolve({ data: mockState.insertedIncome, error: mockState.insertError });
+      }
+
+      return Promise.resolve({ data: null, error: null });
+    },
+    insert(payload: Record<string, unknown>) {
+      insertPayload = payload;
+      mockState.insertedPayloads.push(payload);
+
+      return query;
+    },
+    update(payload: Record<string, unknown>, options?: Record<string, unknown>) {
+      if (options && options.count !== "exact") {
+        throw new Error("Expected exact update count");
+      }
+
       updatePayload = payload;
       return query;
     },
@@ -173,25 +203,119 @@ vi.mock("@/lib/security/sensitive-rate-limit", () => ({
 
 describe("receivable income actions", () => {
   beforeEach(() => {
+    mockState.insertedPayloads = [];
+    mockState.insertedIncome = {
+      id: "income-created-1",
+    };
     mockState.updatedPayloads = [];
     mockState.deletedIds = [];
     mockState.incomeLookup = {
       id: "income-1",
       owner_id: "owner-1",
       receiver_member_id: "member-1",
+      source: "Salario",
+      income_type: "fixa",
+      amount: 1800,
+      expected_date: "2026-05-31",
       status: "previsto",
+      receiving_bank: null,
+      notes: null,
     };
     mockState.memberLookup = {
       id: "member-1",
       organization_id: "org-1",
     };
+    mockState.insertError = null;
     mockState.updateError = null;
+    mockState.updateCount = 1;
     mockState.deleteError = null;
     mockState.deleteCount = 1;
     mockState.accessError = null;
     mockState.rateLimitAllowed = true;
     mockState.rateLimitChecks = [];
     mockState.auditEvents = [];
+  });
+
+  it("creates receivable income through audit and rate limit boundaries", async () => {
+    const { createReceivableIncome } = await import("@/app/protected/contas-a-receber/actions");
+
+    const result = await createReceivableIncome({}, createFormData({
+      receiver_member_id: "member-1",
+      source: "Freelance",
+      income_type: "variavel",
+      amount: "1500",
+      expected_date: "2026-06-10",
+      status: "previsto",
+      receiving_bank: "Banco A",
+      notes: "observacao local",
+    }));
+
+    expect(result).toEqual({ success: "Conta a receber cadastrada com sucesso." });
+    expect(mockState.rateLimitChecks).toEqual([
+      {
+        operationKey: "finance.receivable.create",
+        limit: 10,
+        windowMs: 10 * 60 * 1000,
+        actorKey: "profile-1",
+        organizationId: "org-1",
+      },
+    ]);
+    expect(mockState.insertedPayloads).toEqual([
+      expect.objectContaining({
+        owner_id: "owner-1",
+        organization_id: "org-1",
+        receiver_member_id: "member-1",
+        source: "Freelance",
+        income_type: "variavel",
+        amount: 1500,
+        expected_date: "2026-06-10",
+        status: "previsto",
+      }),
+    ]);
+    expect(mockState.auditEvents).toEqual([
+      expect.objectContaining({
+        p_action: "finance.receivable.create",
+        p_target_type: "receivable_income",
+        p_target_id: "income-created-1",
+        p_outcome: "success",
+        p_metadata: {
+          receivable_created: true,
+          receiver_member_id: "member-1",
+        },
+      }),
+    ]);
+  });
+
+  it("does not create receivable income when the create rate limit blocks the action", async () => {
+    const { createReceivableIncome } = await import("@/app/protected/contas-a-receber/actions");
+    mockState.rateLimitAllowed = false;
+
+    const result = await createReceivableIncome({}, createFormData({
+      receiver_member_id: "member-1",
+      source: "Freelance",
+      income_type: "variavel",
+      amount: "1500",
+      expected_date: "2026-06-10",
+      status: "previsto",
+    }));
+
+    expect(result).toEqual({
+      error: "Muitas tentativas de cadastro de recebimento. Tente novamente em alguns minutos.",
+    });
+    expect(mockState.insertedPayloads).toHaveLength(0);
+    expect(mockState.auditEvents).toEqual([
+      expect.objectContaining({
+        p_action: "finance.receivable.create",
+        p_target_type: "receivable_income",
+        p_target_id: null,
+        p_outcome: "denied",
+        p_metadata: {
+          status: "rate_limited",
+          receivable_created: true,
+          receiver_member_id: "member-1",
+        },
+      }),
+    ]);
   });
 
   it("blocks status update with invalid status", async () => {
@@ -369,6 +493,116 @@ describe("receivable income actions", () => {
         },
       }),
     ]);
+  });
+
+  it("records write audit event when full receivable edit changes receivable fields", async () => {
+    const { updateReceivableIncome } = await import("@/app/protected/contas-a-receber/actions");
+
+    const result = await updateReceivableIncome({}, createFormData({
+      id: "income-1",
+      receiver_member_id: "member-1",
+      source: "Freelance",
+      income_type: "variavel",
+      amount: "2000",
+      expected_date: "2026-06-30",
+      status: "previsto",
+      receiving_bank: "Banco B",
+    }));
+
+    expect(result).toEqual({ success: "Recebimento atualizado com sucesso." });
+    expect(mockState.rateLimitChecks).toEqual([
+      {
+        operationKey: "finance.receivable.update",
+        limit: 10,
+        windowMs: 10 * 60 * 1000,
+        actorKey: "profile-1",
+        organizationId: "org-1",
+        targetKey: "income-1",
+      },
+    ]);
+    expect(lastUpdatePayload()).toEqual(expect.objectContaining({
+      receiver_member_id: "member-1",
+      source: "Freelance",
+      income_type: "variavel",
+      amount: 2000,
+      expected_date: "2026-06-30",
+      status: "previsto",
+      receiving_bank: "Banco B",
+      organization_id: "org-1",
+      filters: expect.objectContaining({ id: "income-1", owner_id: "owner-1" }),
+    }));
+    expect(mockState.auditEvents).toEqual([
+      expect.objectContaining({
+        p_action: "finance.receivable.update",
+        p_target_type: "receivable_income",
+        p_target_id: "income-1",
+        p_outcome: "success",
+        p_metadata: {
+          receivable_changed: true,
+          receiver_member_id: "member-1",
+        },
+      }),
+    ]);
+  });
+
+  it("does not update or audit full receivable edits when the write rate limit blocks the action", async () => {
+    const { updateReceivableIncome } = await import("@/app/protected/contas-a-receber/actions");
+    mockState.rateLimitAllowed = false;
+
+    const result = await updateReceivableIncome({}, createFormData({
+      id: "income-1",
+      receiver_member_id: "member-1",
+      source: "Freelance",
+      income_type: "variavel",
+      amount: "2000",
+      expected_date: "2026-06-30",
+      status: "previsto",
+    }));
+
+    expect(result).toEqual({
+      error: "Muitas tentativas de alteracao de recebimento. Tente novamente em alguns minutos.",
+    });
+    expect(mockState.updatedPayloads).toHaveLength(0);
+    expect(mockState.rateLimitChecks).toEqual([
+      expect.objectContaining({
+        operationKey: "finance.receivable.update",
+        actorKey: "profile-1",
+        organizationId: "org-1",
+        targetKey: "income-1",
+      }),
+    ]);
+    expect(mockState.auditEvents).toEqual([
+      expect.objectContaining({
+        p_action: "finance.receivable.update",
+        p_target_type: "receivable_income",
+        p_target_id: "income-1",
+        p_outcome: "denied",
+        p_metadata: {
+          status: "rate_limited",
+          receivable_changed: true,
+          receiver_member_id: "member-1",
+        },
+      }),
+    ]);
+  });
+
+  it("does not audit full receivable edit when no row was updated", async () => {
+    const { updateReceivableIncome } = await import("@/app/protected/contas-a-receber/actions");
+    mockState.updateCount = 0;
+
+    const result = await updateReceivableIncome({}, createFormData({
+      id: "income-1",
+      receiver_member_id: "member-1",
+      source: "Freelance",
+      income_type: "variavel",
+      amount: "2000",
+      expected_date: "2026-06-30",
+      status: "previsto",
+    }));
+
+    expect(result).toEqual({ error: "Recebimento nao encontrado." });
+    expect(mockState.updatedPayloads).toHaveLength(1);
+    expect(mockState.auditEvents).toHaveLength(0);
   });
 
   it("does not update or audit full receivable status changes when the status rate limit blocks the action", async () => {

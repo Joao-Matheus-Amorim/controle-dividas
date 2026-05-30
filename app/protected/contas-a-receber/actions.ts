@@ -14,6 +14,16 @@ import { createClient } from "@/lib/supabase/server";
 
 const receivableIncomeTypes = ["fixa", "variavel"] as const;
 const receivableIncomeStatuses = ["previsto", "recebido", "atrasado"] as const;
+const receivableCreateRateLimit = {
+  operationKey: "finance.receivable.create",
+  limit: 10,
+  windowMs: 10 * 60 * 1000,
+};
+const receivableUpdateRateLimit = {
+  operationKey: "finance.receivable.update",
+  limit: 10,
+  windowMs: 10 * 60 * 1000,
+};
 const receivableDeleteRateLimit = {
   operationKey: "finance.receivable.delete",
   limit: 5,
@@ -38,8 +48,12 @@ async function recordReceivableIncomeAuditEvent({
   metadata,
 }: {
   organizationId: string;
-  action: "finance.receivable.status.update" | "finance.receivable.delete";
-  incomeId: string;
+  action:
+    | "finance.receivable.create"
+    | "finance.receivable.update"
+    | "finance.receivable.status.update"
+    | "finance.receivable.delete";
+  incomeId: string | null;
   outcome?: "success" | "denied";
   metadata?: Record<string, string | number | boolean | null>;
 }) {
@@ -89,7 +103,7 @@ async function assertCanManageReceivableIncome(
 
   const { data: income, error } = await supabase
     .from("receivable_incomes")
-    .select("id, owner_id, receiver_member_id, status")
+    .select("id, owner_id, receiver_member_id, source, income_type, amount, expected_date, status, receiving_bank, notes")
     .eq("id", incomeId)
     .eq("owner_id", profile.owner_id)
     .eq("organization_id", organization.id)
@@ -170,6 +184,21 @@ function validateReceivableIncomeInput(
   return null;
 }
 
+function hasReceivableIncomeWriteChanges(
+  income: Record<string, unknown>,
+  input: ReturnType<typeof parseReceivableIncomeForm>,
+) {
+  return (
+    String(income.receiver_member_id ?? "") !== input.receiverMemberId ||
+    String(income.source ?? "").trim() !== input.source ||
+    String(income.income_type ?? "fixa") !== input.incomeType ||
+    Number(income.amount ?? 0) !== input.amount ||
+    String(income.expected_date ?? "") !== input.expectedDate ||
+    String(income.receiving_bank ?? "").trim() !== input.receivingBank ||
+    String(income.notes ?? "").trim() !== input.notes
+  );
+}
+
 export async function createReceivableIncome(
   _prevState: ReceivableIncomeFormState,
   formData: FormData,
@@ -201,7 +230,29 @@ export async function createReceivableIncome(
     };
   }
 
-  const { error } = await supabase.from("receivable_incomes").insert({
+  const rateLimit = checkSensitiveOperationRateLimit({
+    ...receivableCreateRateLimit,
+    actorKey: profile.id,
+    organizationId: organization.id,
+  });
+
+  if (!rateLimit.allowed) {
+    await recordReceivableIncomeAuditEvent({
+      organizationId: organization.id,
+      action: "finance.receivable.create",
+      incomeId: null,
+      outcome: "denied",
+      metadata: {
+        status: "rate_limited",
+        receivable_created: true,
+        receiver_member_id: input.receiverMemberId,
+      },
+    });
+
+    return { error: "Muitas tentativas de cadastro de recebimento. Tente novamente em alguns minutos." };
+  }
+
+  const { data: createdIncome, error } = await supabase.from("receivable_incomes").insert({
     owner_id: profile.owner_id,
     organization_id: organization.id,
     receiver_member_id: input.receiverMemberId,
@@ -212,11 +263,21 @@ export async function createReceivableIncome(
     status: input.status,
     receiving_bank: input.receivingBank || null,
     notes: input.notes || null,
-  });
+  }).select("id").single();
 
   if (error) {
     return { error: error.message };
   }
+
+  await recordReceivableIncomeAuditEvent({
+    organizationId: organization.id,
+    action: "finance.receivable.create",
+    incomeId: createdIncome?.id ? String(createdIncome.id) : null,
+    metadata: {
+      receivable_created: true,
+      receiver_member_id: input.receiverMemberId,
+    },
+  });
 
   revalidateOrganizationPaths(["/protected/contas-a-receber", "/protected"], organization.slug);
 
@@ -241,6 +302,7 @@ export async function updateReceivableIncome(
 
   try {
     const { profile, organization, income } = await assertCanManageReceivableIncome(id, "can_edit");
+    const incomeChanged = hasReceivableIncomeWriteChanges(income, input);
 
     if (String(income.receiver_member_id) !== input.receiverMemberId) {
       await assertReceiverMemberBelongsToOrganization(
@@ -275,8 +337,33 @@ export async function updateReceivableIncome(
       }
     }
 
+    if (incomeChanged) {
+      const rateLimit = checkSensitiveOperationRateLimit({
+        ...receivableUpdateRateLimit,
+        actorKey: profile.id,
+        organizationId: organization.id,
+        targetKey: id,
+      });
+
+      if (!rateLimit.allowed) {
+        await recordReceivableIncomeAuditEvent({
+          organizationId: organization.id,
+          action: "finance.receivable.update",
+          incomeId: id,
+          outcome: "denied",
+          metadata: {
+            status: "rate_limited",
+            receivable_changed: true,
+            receiver_member_id: input.receiverMemberId,
+          },
+        });
+
+        return { error: "Muitas tentativas de alteracao de recebimento. Tente novamente em alguns minutos." };
+      }
+    }
+
     const supabase = await createClient();
-    const { error } = await supabase
+    const { error, count } = await supabase
       .from("receivable_incomes")
       .update({
         receiver_member_id: input.receiverMemberId,
@@ -288,13 +375,29 @@ export async function updateReceivableIncome(
         receiving_bank: input.receivingBank || null,
         notes: input.notes || null,
         organization_id: organization.id,
-      })
+      }, { count: "exact" })
       .eq("id", id)
       .eq("owner_id", profile.owner_id)
       .eq("organization_id", organization.id);
 
     if (error) {
       return { error: error.message };
+    }
+
+    if (count !== 1) {
+      return { error: "Recebimento nao encontrado." };
+    }
+
+    if (incomeChanged) {
+      await recordReceivableIncomeAuditEvent({
+        organizationId: organization.id,
+        action: "finance.receivable.update",
+        incomeId: id,
+        metadata: {
+          receivable_changed: true,
+          receiver_member_id: input.receiverMemberId,
+        },
+      });
     }
 
     if (String(income.status) !== input.status) {
