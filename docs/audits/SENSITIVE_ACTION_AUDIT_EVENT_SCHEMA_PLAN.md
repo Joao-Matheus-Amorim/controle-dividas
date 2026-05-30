@@ -20,6 +20,7 @@ Payable bill audit runtime exists in app/protected/contas-a-pagar/actions.ts usi
 Receivable income audit runtime exists in app/protected/contas-a-receber/actions.ts using record_audit_event.
 Expense audit runtime exists in app/protected/gastos/actions.ts using record_audit_event.
 Category delete audit runtime exists in app/protected/configuracoes/actions.ts using record_audit_event.
+Category write audit runtime exists in app/protected/configuracoes/actions.ts using record_audit_event.
 Bank audit runtime exists in app/protected/bancos/actions.ts using record_audit_event.
 Member limit audit runtime exists in lib/finance/member-limit-controls.ts, app/protected/configuracoes/actions.ts, and app/protected/pessoas/actions.ts using record_audit_event.
 Member status audit runtime exists in lib/finance/member-status-controls.ts and app/protected/pessoas/actions.ts using record_audit_event.
@@ -31,7 +32,7 @@ No billing webhook, portal, or commercial enforcement change.
 No E2E change.
 ```
 
-Audit event storage is versioned. Billing checkout, admin permission, admin user, payable bill, receivable income, expense, category delete, bank, member limit, member status, and member write audit logging are implemented. Other operation families remain pending.
+Audit event storage is versioned. Billing checkout, admin permission, admin user, payable bill, receivable income, expense, category delete, category write, bank, member limit, member status, and member write audit logging are implemented. Other operation families remain pending.
 
 ## Event shape candidate
 
@@ -63,6 +64,7 @@ Initial operation keys should be stable strings, not translated UI labels:
 | Admin users | `admin.user.create`, `admin.user.update`, `admin.user.activate`, `admin.user.deactivate`, `admin.user.delete`, `admin.user.auth_link.sync` |
 | Permissions | `admin.permission.update`, `admin.feature_permission.update` |
 | Finance deletes | `finance.expense.delete`, `finance.payable.delete`, `finance.receivable.delete`, `finance.bank.delete`, `finance.category.delete` |
+| Finance category writes | `finance.category.create`, `finance.category.update` |
 | Finance status/balance/limit changes | `finance.payable.status.update`, `finance.receivable.status.update`, `finance.bank.balance.update`, `finance.member.limit.update`, `finance.member.status.update` |
 | Finance member writes | `finance.member.create`, `finance.member.update` |
 | Organization membership | `organization.membership.role.update`, `organization.membership.status.update` |
@@ -109,6 +111,7 @@ The initial audit event storage decision is:
 - Receivable income runtime calls `record_audit_event` for status updates and deletion.
 - Expense runtime calls `record_audit_event` for deletion.
 - Category delete runtime calls `record_audit_event` for deletion.
+- Category write runtime calls `record_audit_event` for category creation and update without storing names or descriptions.
 - Bank runtime calls `record_audit_event` for balance updates and deletion.
 - Member limit runtime calls `record_audit_event` for monthly limit updates without storing previous or next amounts.
 - Member write runtime calls `record_audit_event` for family member creation and profile updates without storing names, roles, or financial amounts.
