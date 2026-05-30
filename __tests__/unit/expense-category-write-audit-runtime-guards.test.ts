@@ -43,6 +43,7 @@ describe("expense category write audit runtime guards", () => {
     expect(createAction).toContain("categorycreateratelimit");
     expect(createAction).toContain("checksensitiveoperationratelimit");
     expect(createAction).toContain("actorkey: ownerid");
+    expect(createAction).toContain("owner_id: ownerid");
     expect(createAction).toContain("organizationid: organization.id");
     expect(createAction).not.toContain("targetkey:");
     expect(createAction).toContain(".select(\"id\").single()");
@@ -51,6 +52,8 @@ describe("expense category write audit runtime guards", () => {
     expect(updateAction).toContain('select("id, name, description, is_default")');
     expect(updateAction).toContain("const categorychanged");
     expect(updateAction).toContain("categoryupdateratelimit");
+    expect(updateAction).toContain("actorkey: ownerid");
+    expect(updateAction).toContain("owner_id\", ownerid");
     expect(updateAction).toContain("targetkey: id");
     expect(updateAction).toContain('{ count: "exact" }');
     expect(updateAction).toContain("if (count !== 1)");
