@@ -33,6 +33,7 @@ const mockState = vi.hoisted(() => ({
   mutationCount: 1 as number | null,
   mutationError: null as { message: string } | null,
   rateLimitAllowed: true,
+  rateLimitAllowedByOperation: {} as Record<string, boolean>,
   rateLimitChecks: [] as Array<Record<string, unknown>>,
   auditEvents: [] as Array<Record<string, unknown>>,
 }));
@@ -165,8 +166,12 @@ vi.mock("@/lib/finance/access-control", () => ({
 vi.mock("@/lib/security/sensitive-rate-limit", () => ({
   checkSensitiveOperationRateLimit: vi.fn((input: Record<string, unknown>) => {
     mockState.rateLimitChecks.push(input);
+    const operationKey = String(input.operationKey);
+    const allowed = operationKey in mockState.rateLimitAllowedByOperation
+      ? mockState.rateLimitAllowedByOperation[operationKey]
+      : mockState.rateLimitAllowed;
 
-    return mockState.rateLimitAllowed
+    return allowed
       ? { allowed: true, remaining: 4, resetAt: 1000 }
       : { allowed: false, retryAfterMs: 1000, resetAt: 1000 };
   }),
@@ -197,6 +202,7 @@ describe("bank audit runtime actions", () => {
     mockState.mutationCount = 1;
     mockState.mutationError = null;
     mockState.rateLimitAllowed = true;
+    mockState.rateLimitAllowedByOperation = {};
     mockState.rateLimitChecks = [];
     mockState.auditEvents = [];
   });
@@ -435,6 +441,52 @@ describe("bank audit runtime actions", () => {
       error: "Muitas tentativas de alteracao de banco. Tente novamente em alguns minutos.",
     });
     expect(mockState.updatedRows).toHaveLength(0);
+    expect(mockState.auditEvents).toEqual([
+      expect.objectContaining({
+        p_action: "finance.bank.update",
+        p_target_type: "bank",
+        p_target_id: "bank-1",
+        p_outcome: "denied",
+        p_metadata: {
+          status: "rate_limited",
+          bank_changed: true,
+          family_member_id: "member-1",
+        },
+      }),
+    ]);
+  });
+
+  it("does not consume balance quota when full edit bank write limit blocks before balance check", async () => {
+    const { updateBankAccount } = await import("@/app/protected/bancos/actions");
+    mockState.rateLimitAllowedByOperation = {
+      "finance.bank.update": false,
+      "finance.bank.balance.update": true,
+    };
+
+    const result = await updateBankAccount({}, createFormData({
+      id: "bank-1",
+      family_member_id: "member-1",
+      bank_name: "Banco Inter",
+      account_type: "Conta corrente",
+      current_balance: "180",
+      currency: "BRL",
+    }));
+
+    expect(result).toEqual({
+      error: "Muitas tentativas de alteracao de banco. Tente novamente em alguns minutos.",
+    });
+    expect(mockState.updatedRows).toHaveLength(0);
+    expect(mockState.rateLimitChecks).toEqual([
+      expect.objectContaining({
+        operationKey: "finance.bank.update",
+        actorKey: "profile-1",
+        organizationId: "org-1",
+        targetKey: "bank-1",
+      }),
+    ]);
+    expect(mockState.rateLimitChecks.some(
+      (check) => check.operationKey === "finance.bank.balance.update",
+    )).toBe(false);
     expect(mockState.auditEvents).toEqual([
       expect.objectContaining({
         p_action: "finance.bank.update",
