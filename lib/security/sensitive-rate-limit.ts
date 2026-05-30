@@ -11,6 +11,7 @@ type SensitiveOperationRateLimitInput = {
   limit: number;
   windowMs: number;
   now?: number;
+  consume?: boolean;
 };
 
 type SensitiveOperationRateLimitResult =
@@ -66,6 +67,7 @@ export function checkSensitiveOperationRateLimit({
   limit,
   windowMs,
   now = Date.now(),
+  consume = true,
 }: SensitiveOperationRateLimitInput): SensitiveOperationRateLimitResult {
   if (disableSensitiveRateLimits()) {
     return {
@@ -81,6 +83,14 @@ export function checkSensitiveOperationRateLimit({
   const currentBucket = buckets.get(key);
 
   if (!currentBucket || currentBucket.resetAt <= now) {
+    if (!consume) {
+      return {
+        allowed: true,
+        remaining: limit,
+        resetAt: now + windowMs,
+      };
+    }
+
     buckets.set(key, {
       count: 1,
       resetAt: now + windowMs,
@@ -97,6 +107,14 @@ export function checkSensitiveOperationRateLimit({
     return {
       allowed: false,
       retryAfterMs: Math.max(currentBucket.resetAt - now, 0),
+      resetAt: currentBucket.resetAt,
+    };
+  }
+
+  if (!consume) {
+    return {
+      allowed: true,
+      remaining: Math.max(limit - currentBucket.count, 0),
       resetAt: currentBucket.resetAt,
     };
   }

@@ -109,6 +109,41 @@ describe("sensitive operation rate limit runtime", () => {
     expect(getSensitiveOperationRateLimitBucketCountForTests()).toBe(1);
   });
 
+  it("can check a bucket without consuming quota", () => {
+    const input = {
+      operationKey: "finance.bank.update",
+      actorKey: "user-1",
+      organizationId: "org-1",
+      targetKey: "bank-1",
+      limit: 2,
+      windowMs: 1000,
+      now: 100,
+    };
+
+    expect(checkSensitiveOperationRateLimit({ ...input, consume: false })).toEqual({
+      allowed: true,
+      remaining: 2,
+      resetAt: 1100,
+    });
+    expect(getSensitiveOperationRateLimitBucketCountForTests()).toBe(0);
+
+    expect(checkSensitiveOperationRateLimit(input)).toEqual({
+      allowed: true,
+      remaining: 1,
+      resetAt: 1100,
+    });
+    expect(checkSensitiveOperationRateLimit({ ...input, now: 200, consume: false })).toEqual({
+      allowed: true,
+      remaining: 1,
+      resetAt: 1100,
+    });
+    expect(checkSensitiveOperationRateLimit({ ...input, now: 300 })).toEqual({
+      allowed: true,
+      remaining: 0,
+      resetAt: 1100,
+    });
+  });
+
   it("can be disabled through the documented rollback env flag", () => {
     process.env.DISABLE_SENSITIVE_RATE_LIMITS = "true";
 
