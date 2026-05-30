@@ -369,6 +369,16 @@ describe("payable bill actions", () => {
     }));
 
     expect(result).toEqual({ success: "Conta atualizada com sucesso." });
+    expect(mockState.rateLimitChecks).toEqual([
+      {
+        operationKey: "finance.payable.status.update",
+        limit: 10,
+        windowMs: 10 * 60 * 1000,
+        actorKey: "profile-1",
+        organizationId: "org-1",
+        targetKey: "bill-1",
+      },
+    ]);
     expect(mockState.auditEvents).toEqual([
       expect.objectContaining({
         p_organization_id: "org-1",
@@ -379,6 +389,46 @@ describe("payable bill actions", () => {
         p_metadata: {
           previous_status: "pendente",
           next_status: "pago",
+          responsible_member_id: "member-1",
+        },
+      }),
+    ]);
+  });
+
+  it("does not update or audit full payable bill status changes when the status rate limit blocks the action", async () => {
+    const { updatePayableBill } = await import("@/app/protected/contas-a-pagar/actions");
+    mockState.rateLimitAllowed = false;
+
+    const result = await updatePayableBill({}, createFormData({
+      id: "bill-1",
+      name: "Conta atualizada",
+      amount: "150",
+      due_date: "2026-05-25",
+      responsible_member_id: "member-1",
+      status: "pago",
+      bill_type: "avulsa",
+    }));
+
+    expect(result).toEqual({
+      error: "Muitas tentativas de alteracao de status. Tente novamente em alguns minutos.",
+    });
+    expect(mockState.updatedPayloads).toHaveLength(0);
+    expect(mockState.rateLimitChecks).toEqual([
+      expect.objectContaining({
+        operationKey: "finance.payable.status.update",
+        actorKey: "profile-1",
+        organizationId: "org-1",
+        targetKey: "bill-1",
+      }),
+    ]);
+    expect(mockState.auditEvents).toEqual([
+      expect.objectContaining({
+        p_action: "finance.payable.status.update",
+        p_target_type: "payable_bill",
+        p_target_id: "bill-1",
+        p_outcome: "denied",
+        p_metadata: {
+          status: "rate_limited",
           responsible_member_id: "member-1",
         },
       }),
@@ -424,6 +474,16 @@ describe("payable bill actions", () => {
     }));
 
     expect(result).toEqual({ success: "Status atualizado com sucesso." });
+    expect(mockState.rateLimitChecks).toEqual([
+      {
+        operationKey: "finance.payable.status.update",
+        limit: 10,
+        windowMs: 10 * 60 * 1000,
+        actorKey: "profile-1",
+        organizationId: "org-1",
+        targetKey: "bill-1",
+      },
+    ]);
     expect(lastUpdatePayload()).toEqual(expect.objectContaining({
       status: "pago",
       organization_id: "org-1",
@@ -438,6 +498,41 @@ describe("payable bill actions", () => {
         p_outcome: "success",
         p_metadata: {
           next_status: "pago",
+          responsible_member_id: "member-1",
+        },
+      }),
+    ]);
+  });
+
+  it("does not update payable bill status when the status rate limit blocks the action", async () => {
+    const { updatePayableBillStatus } = await import("@/app/protected/contas-a-pagar/actions");
+    mockState.rateLimitAllowed = false;
+
+    const result = await updatePayableBillStatus({}, createFormData({
+      id: "bill-1",
+      status: "pago",
+    }));
+
+    expect(result).toEqual({
+      error: "Muitas tentativas de alteracao de status. Tente novamente em alguns minutos.",
+    });
+    expect(mockState.updatedPayloads).toHaveLength(0);
+    expect(mockState.rateLimitChecks).toEqual([
+      expect.objectContaining({
+        operationKey: "finance.payable.status.update",
+        actorKey: "profile-1",
+        organizationId: "org-1",
+        targetKey: "bill-1",
+      }),
+    ]);
+    expect(mockState.auditEvents).toEqual([
+      expect.objectContaining({
+        p_action: "finance.payable.status.update",
+        p_target_type: "payable_bill",
+        p_target_id: "bill-1",
+        p_outcome: "denied",
+        p_metadata: {
+          status: "rate_limited",
           responsible_member_id: "member-1",
         },
       }),
