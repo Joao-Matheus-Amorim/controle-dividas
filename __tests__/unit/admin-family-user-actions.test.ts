@@ -418,9 +418,9 @@ describe("admin family user actions", () => {
         operationKey: "admin.user.delete",
         actorKey: "admin-profile-1",
         organizationId: "org-1",
-        targetKey: "profile-1",
       }),
     ]);
+    expect(mockState.rateLimitChecks[0]).not.toHaveProperty("targetKey");
     expect(mockState.recordAuditEvent).toHaveBeenCalledWith(expect.objectContaining({
       organizationId: "org-1",
       action: "admin.user.delete",

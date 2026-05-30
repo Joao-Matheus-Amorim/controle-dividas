@@ -44,6 +44,16 @@ describe("admin user audit runtime guards", () => {
     expect(actions).toContain("targetkey: linkedfamilymemberid");
     expect(actions).toContain('outcome: "denied"');
     expect(actions).toContain('status: "rate_limited"');
+
+    const deleteRateLimitStart = actions.indexOf("...adminuserratelimits.delete");
+    const deleteRateLimitBody = actions.slice(
+      deleteRateLimitStart,
+      actions.indexOf("if (!ratelimit.allowed)", deleteRateLimitStart),
+    );
+
+    expect(deleteRateLimitBody).toContain("actorkey: adminprofile.id");
+    expect(deleteRateLimitBody).toContain("organizationid: organization.id");
+    expect(deleteRateLimitBody).not.toContain("targetkey");
   });
 
   it("keeps lifecycle events scoped after organization-owned profile writes", () => {

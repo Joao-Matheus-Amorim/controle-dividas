@@ -649,7 +649,6 @@ export async function deleteFamilyUser(formData: FormData): Promise<FamilyUserAc
     ...adminUserRateLimits.delete,
     actorKey: adminProfile.id,
     organizationId: organization.id,
-    targetKey: id,
   });
 
   if (!rateLimit.allowed) {
