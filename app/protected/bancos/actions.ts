@@ -23,6 +23,18 @@ const bankDeleteRateLimit = {
   windowMs: 10 * 60 * 1000,
 };
 
+const bankCreateRateLimit = {
+  operationKey: "finance.bank.create",
+  limit: 10,
+  windowMs: 10 * 60 * 1000,
+};
+
+const bankUpdateRateLimit = {
+  operationKey: "finance.bank.update",
+  limit: 10,
+  windowMs: 10 * 60 * 1000,
+};
+
 const bankBalanceRateLimit = {
   operationKey: "finance.bank.balance.update",
   limit: 10,
@@ -37,8 +49,12 @@ async function recordBankAuditEvent({
   metadata,
 }: {
   organizationId: string;
-  action: "finance.bank.balance.update" | "finance.bank.delete";
-  bankId: string;
+  action:
+    | "finance.bank.create"
+    | "finance.bank.update"
+    | "finance.bank.balance.update"
+    | "finance.bank.delete";
+  bankId: string | null;
   outcome?: "success" | "denied";
   metadata?: Record<string, string | number | boolean | null>;
 }) {
@@ -88,7 +104,7 @@ async function assertCanManageBankAccount(
 
   const { data: account, error } = await supabase
     .from("banks")
-    .select("id, owner_id, family_member_id, current_balance")
+    .select("id, owner_id, family_member_id, bank_name, account_type, current_balance, currency, notes")
     .eq("id", accountId)
     .eq("owner_id", profile.owner_id)
     .eq("organization_id", organization.id)
@@ -151,6 +167,19 @@ function validateBankAccountInput(input: ReturnType<typeof parseBankAccountForm>
   return null;
 }
 
+function hasBankAccountWriteChanges(
+  account: Record<string, unknown>,
+  input: ReturnType<typeof parseBankAccountForm>,
+) {
+  return (
+    String(account.family_member_id ?? "") !== input.familyMemberId ||
+    String(account.bank_name ?? "").trim() !== input.bankName ||
+    String(account.account_type ?? "").trim() !== input.accountType ||
+    String(account.currency ?? "EUR").trim() !== input.currency ||
+    String(account.notes ?? "").trim() !== input.notes
+  );
+}
+
 export async function createBankAccount(
   _prevState: BankAccountFormState,
   formData: FormData,
@@ -182,7 +211,29 @@ export async function createBankAccount(
     };
   }
 
-  const { error } = await supabase.from("banks").insert({
+  const rateLimit = checkSensitiveOperationRateLimit({
+    ...bankCreateRateLimit,
+    actorKey: profile.id,
+    organizationId: organization.id,
+  });
+
+  if (!rateLimit.allowed) {
+    await recordBankAuditEvent({
+      organizationId: organization.id,
+      action: "finance.bank.create",
+      bankId: null,
+      outcome: "denied",
+      metadata: {
+        status: "rate_limited",
+        bank_created: true,
+        family_member_id: input.familyMemberId,
+      },
+    });
+
+    return { error: "Muitas tentativas de cadastro de banco. Tente novamente em alguns minutos." };
+  }
+
+  const { data: createdBank, error } = await supabase.from("banks").insert({
     owner_id: profile.owner_id,
     organization_id: organization.id,
     family_member_id: input.familyMemberId,
@@ -191,11 +242,21 @@ export async function createBankAccount(
     current_balance: input.currentBalance,
     currency: input.currency,
     notes: input.notes || null,
-  });
+  }).select("id").single();
 
   if (error) {
     return { error: error.message };
   }
+
+  await recordBankAuditEvent({
+    organizationId: organization.id,
+    action: "finance.bank.create",
+    bankId: createdBank?.id ? String(createdBank.id) : null,
+    metadata: {
+      bank_created: true,
+      family_member_id: input.familyMemberId,
+    },
+  });
 
   revalidateOrganizationPaths(["/protected/bancos", "/protected"], organization.slug);
 
@@ -221,6 +282,7 @@ export async function updateBankAccount(
   try {
     const { profile, organization, account } = await assertCanManageBankAccount(id, "can_edit");
     const balanceChanged = Number(account.current_balance) !== input.currentBalance;
+    const bankChanged = hasBankAccountWriteChanges(account, input);
 
     if (String(account.family_member_id) !== input.familyMemberId) {
       await assertMemberBelongsToOrganization(
@@ -256,6 +318,31 @@ export async function updateBankAccount(
       }
     }
 
+    if (bankChanged) {
+      const rateLimit = checkSensitiveOperationRateLimit({
+        ...bankUpdateRateLimit,
+        actorKey: profile.id,
+        organizationId: organization.id,
+        targetKey: id,
+      });
+
+      if (!rateLimit.allowed) {
+        await recordBankAuditEvent({
+          organizationId: organization.id,
+          action: "finance.bank.update",
+          bankId: id,
+          outcome: "denied",
+          metadata: {
+            status: "rate_limited",
+            bank_changed: true,
+            family_member_id: input.familyMemberId,
+          },
+        });
+
+        return { error: "Muitas tentativas de alteracao de banco. Tente novamente em alguns minutos." };
+      }
+    }
+
     const supabase = await createClient();
     const { error, count } = await supabase
       .from("banks")
@@ -278,6 +365,18 @@ export async function updateBankAccount(
 
     if (count !== 1) {
       return { error: "Banco nao encontrado." };
+    }
+
+    if (bankChanged) {
+      await recordBankAuditEvent({
+        organizationId: organization.id,
+        action: "finance.bank.update",
+        bankId: id,
+        metadata: {
+          bank_changed: true,
+          family_member_id: input.familyMemberId,
+        },
+      });
     }
 
     if (balanceChanged) {

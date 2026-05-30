@@ -14,11 +14,19 @@ const mockState = vi.hoisted(() => ({
     id: "bank-1",
     owner_id: "owner-1",
     family_member_id: "member-1",
+    bank_name: "Wise",
+    account_type: "",
     current_balance: 100,
+    currency: "EUR",
+    notes: null,
   } as Record<string, unknown> | null,
   memberLookup: {
     id: "member-1",
     organization_id: "org-1",
+  } as Record<string, unknown> | null,
+  insertedRows: [] as Array<{ table: string; payload: Record<string, unknown> }>,
+  insertedBank: {
+    id: "bank-created-1",
   } as Record<string, unknown> | null,
   updatedRows: [] as Array<{ table: string; payload: Record<string, unknown>; filters: Record<string, unknown> }>,
   deletedRows: [] as Array<{ table: string; filters: Record<string, unknown> }>,
@@ -41,6 +49,7 @@ function createFormData(values: Record<string, string>) {
 
 function makeQuery(table: string) {
   const filters: Record<string, unknown> = {};
+  let insertPayload: Record<string, unknown> | null = null;
   let updatePayload: Record<string, unknown> | null = null;
   let deleteMode = false;
 
@@ -76,6 +85,19 @@ function makeQuery(table: string) {
 
       return Promise.resolve({ data: null, error: null });
     },
+    single() {
+      if (insertPayload) {
+        return Promise.resolve({ data: mockState.insertedBank, error: mockState.mutationError });
+      }
+
+      return Promise.resolve({ data: null, error: null });
+    },
+    insert(payload: Record<string, unknown>) {
+      insertPayload = payload;
+      mockState.insertedRows.push({ table, payload });
+
+      return query;
+    },
     update(payload: Record<string, unknown>, options?: Record<string, unknown>) {
       if (options?.count !== "exact") {
         throw new Error("Expected exact update count");
@@ -108,7 +130,7 @@ function makeSupabaseClient() {
       return Promise.resolve({ error: null });
     },
     from(table: string) {
-      if (!["banks", "family_members"].includes(table)) {
+    if (!["banks", "family_members"].includes(table)) {
         throw new Error(`Unexpected table: ${table}`);
       }
 
@@ -156,19 +178,107 @@ describe("bank audit runtime actions", () => {
       id: "bank-1",
       owner_id: "owner-1",
       family_member_id: "member-1",
+      bank_name: "Wise",
+      account_type: "",
       current_balance: 100,
+      currency: "EUR",
+      notes: null,
     };
     mockState.memberLookup = {
       id: "member-1",
       organization_id: "org-1",
     };
     mockState.updatedRows = [];
+    mockState.insertedRows = [];
+    mockState.insertedBank = {
+      id: "bank-created-1",
+    };
     mockState.deletedRows = [];
     mockState.mutationCount = 1;
     mockState.mutationError = null;
     mockState.rateLimitAllowed = true;
     mockState.rateLimitChecks = [];
     mockState.auditEvents = [];
+  });
+
+  it("records bank create audit event through rate limit boundary", async () => {
+    const { createBankAccount } = await import("@/app/protected/bancos/actions");
+
+    const result = await createBankAccount({}, createFormData({
+      family_member_id: "member-1",
+      bank_name: "Nubank",
+      account_type: "Conta corrente",
+      current_balance: "250",
+      currency: "BRL",
+      notes: "uso diario",
+    }));
+
+    expect(result).toEqual({ success: "Banco cadastrado com sucesso." });
+    expect(mockState.rateLimitChecks).toEqual([
+      {
+        operationKey: "finance.bank.create",
+        limit: 10,
+        windowMs: 10 * 60 * 1000,
+        actorKey: "profile-1",
+        organizationId: "org-1",
+      },
+    ]);
+    expect(mockState.insertedRows).toEqual([
+      {
+        table: "banks",
+        payload: expect.objectContaining({
+          owner_id: "owner-1",
+          organization_id: "org-1",
+          family_member_id: "member-1",
+          bank_name: "Nubank",
+          account_type: "Conta corrente",
+          current_balance: 250,
+          currency: "BRL",
+        }),
+      },
+    ]);
+    expect(mockState.auditEvents).toEqual([
+      expect.objectContaining({
+        p_action: "finance.bank.create",
+        p_target_type: "bank",
+        p_target_id: "bank-created-1",
+        p_outcome: "success",
+        p_metadata: {
+          bank_created: true,
+          family_member_id: "member-1",
+        },
+      }),
+    ]);
+  });
+
+  it("does not create bank account when the create rate limit blocks the action", async () => {
+    const { createBankAccount } = await import("@/app/protected/bancos/actions");
+    mockState.rateLimitAllowed = false;
+
+    const result = await createBankAccount({}, createFormData({
+      family_member_id: "member-1",
+      bank_name: "Nubank",
+      current_balance: "250",
+      currency: "BRL",
+    }));
+
+    expect(result).toEqual({
+      error: "Muitas tentativas de cadastro de banco. Tente novamente em alguns minutos.",
+    });
+    expect(mockState.insertedRows).toHaveLength(0);
+    expect(mockState.auditEvents).toEqual([
+      expect.objectContaining({
+        p_action: "finance.bank.create",
+        p_target_type: "bank",
+        p_target_id: null,
+        p_outcome: "denied",
+        p_metadata: {
+          status: "rate_limited",
+          bank_created: true,
+          family_member_id: "member-1",
+        },
+      }),
+    ]);
   });
 
   it("records bank balance audit event from the quick balance action", async () => {
@@ -269,6 +379,75 @@ describe("bank audit runtime actions", () => {
     expect(mockState.updatedRows).toHaveLength(1);
     expect(mockState.rateLimitChecks).toHaveLength(0);
     expect(mockState.auditEvents).toHaveLength(0);
+  });
+
+  it("records bank update audit event when full edit changes bank fields", async () => {
+    const { updateBankAccount } = await import("@/app/protected/bancos/actions");
+
+    const result = await updateBankAccount({}, createFormData({
+      id: "bank-1",
+      family_member_id: "member-1",
+      bank_name: "Banco Inter",
+      account_type: "Conta corrente",
+      current_balance: "100",
+      currency: "BRL",
+    }));
+
+    expect(result).toEqual({ success: "Banco atualizado com sucesso." });
+    expect(mockState.rateLimitChecks).toEqual([
+      {
+        operationKey: "finance.bank.update",
+        limit: 10,
+        windowMs: 10 * 60 * 1000,
+        actorKey: "profile-1",
+        organizationId: "org-1",
+        targetKey: "bank-1",
+      },
+    ]);
+    expect(mockState.auditEvents).toEqual([
+      expect.objectContaining({
+        p_action: "finance.bank.update",
+        p_target_type: "bank",
+        p_target_id: "bank-1",
+        p_outcome: "success",
+        p_metadata: {
+          bank_changed: true,
+          family_member_id: "member-1",
+        },
+      }),
+    ]);
+  });
+
+  it("does not update full edit bank fields when the write rate limit blocks the action", async () => {
+    const { updateBankAccount } = await import("@/app/protected/bancos/actions");
+    mockState.rateLimitAllowed = false;
+
+    const result = await updateBankAccount({}, createFormData({
+      id: "bank-1",
+      family_member_id: "member-1",
+      bank_name: "Banco Inter",
+      account_type: "Conta corrente",
+      current_balance: "100",
+      currency: "BRL",
+    }));
+
+    expect(result).toEqual({
+      error: "Muitas tentativas de alteracao de banco. Tente novamente em alguns minutos.",
+    });
+    expect(mockState.updatedRows).toHaveLength(0);
+    expect(mockState.auditEvents).toEqual([
+      expect.objectContaining({
+        p_action: "finance.bank.update",
+        p_target_type: "bank",
+        p_target_id: "bank-1",
+        p_outcome: "denied",
+        p_metadata: {
+          status: "rate_limited",
+          bank_changed: true,
+          family_member_id: "member-1",
+        },
+      }),
+    ]);
   });
 
   it("does not update quick bank balance when the balance rate limit blocks the action", async () => {
