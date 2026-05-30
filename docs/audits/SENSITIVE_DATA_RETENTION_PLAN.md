@@ -40,7 +40,7 @@ Future retention work must classify data before any runtime change:
 | Organization membership | membership roles, active status, organization ownership | Retain while organization exists; deletion needs ownership transfer/closure decision. |
 | Financial records | expenses, payable bills, receivable incomes, banks, categories, family members | User-owned financial history; no automatic deletion until product policy exists. |
 | Billing references | plan, Stripe customer id, checkout/session references | Keep minimal references needed for billing support and reconciliation. |
-| Audit events | sensitive-action event summaries | Preflight counts organization-scoped events older than 365 days; no cleanup or anonymization exists yet. |
+| Audit events | sensitive-action event summaries | Preflight counts owner/admin-only organization-scoped events older than 365 days; no cleanup or anonymization exists yet. |
 | Operational evidence | gated test artifacts, CI summaries, docs evidence | Retain as repo/CI evidence; do not mix with user data retention. |
 
 ## Required decisions

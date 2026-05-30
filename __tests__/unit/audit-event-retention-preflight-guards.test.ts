@@ -22,7 +22,8 @@ describe("audit event retention preflight guards", () => {
     expect(actions).toContain("getauditeventretentionpreflight");
     expect(actions).toContain('dataclass: "audit_events"');
     expect(actions).toContain("retentiondays: 365");
-    expect(actions).toContain("requireorganizationaccess");
+    expect(actions).toContain("requireorganizationadmin");
+    expect(actions).not.toContain("requireorganizationaccess");
     expect(actions).toContain('from("audit_events")');
     expect(actions).toContain('select("id", { count: "exact", head: true })');
     expect(actions).toContain('eq("organization_id", organization.id)');
@@ -38,6 +39,7 @@ describe("audit event retention preflight guards", () => {
     for (const source of [plan, contract, roadmap, liveStatus, gapRegister]) {
       expect(source).toContain("audit event retention preflight");
       expect(source).toContain("365");
+      expect(source).toContain("owner/admin");
     }
 
     for (const source of [plan, contract, roadmap, liveStatus]) {
@@ -46,10 +48,11 @@ describe("audit event retention preflight guards", () => {
 
     expect(gapRegister).toContain("audit_events");
 
-    for (const source of [plan, contract, roadmap]) {
-      expect(source).toContain("no cleanup job");
-      expect(source).toContain("no destructive deletion");
-    }
+    expect(plan).toContain("no cleanup job");
+    expect(plan).toContain("no destructive deletion");
+    expect(contract).toContain("no cleanup job");
+    expect(contract).toContain("no destructive deletion");
+    expect(roadmap).toContain("sem cleanup job ou destructive deletion");
 
     expect(gapRegister).toContain("without cleanup or destructive deletion");
     expect(gapRegister).toContain("data retention cleanup runtime controls are not implemented");

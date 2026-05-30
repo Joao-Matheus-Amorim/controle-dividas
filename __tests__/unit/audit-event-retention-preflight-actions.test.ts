@@ -7,6 +7,7 @@ const mockState = vi.hoisted(() => ({
   },
   count: 7 as number | null,
   error: null as { message: string } | null,
+  adminError: null as Error | null,
   queries: [] as Array<{
     table: string;
     select: { columns: string; options: Record<string, unknown> };
@@ -68,13 +69,19 @@ vi.mock("@/lib/supabase/server", () => ({
 }));
 
 vi.mock("@/lib/organizations/server", () => ({
-  requireOrganizationAccess: vi.fn(async () => ({
-    organization: mockState.organization,
-    membership: {
-      role: "owner",
-      is_active: true,
-    },
-  })),
+  requireOrganizationAdmin: vi.fn(async () => {
+    if (mockState.adminError) {
+      throw mockState.adminError;
+    }
+
+    return {
+      organization: mockState.organization,
+      membership: {
+        role: "owner",
+        is_active: true,
+      },
+    };
+  }),
 }));
 
 describe("audit event retention preflight actions", () => {
@@ -83,6 +90,7 @@ describe("audit event retention preflight actions", () => {
     vi.setSystemTime(new Date("2026-05-30T12:00:00.000Z"));
     mockState.count = 7;
     mockState.error = null;
+    mockState.adminError = null;
     mockState.queries = [];
     mockState.destructiveCalls = [];
   });
@@ -131,6 +139,19 @@ describe("audit event retention preflight actions", () => {
     const result = await getAuditEventRetentionPreflight();
 
     expect(result).toEqual({ error: "permission denied" });
+    expect(mockState.destructiveCalls).toHaveLength(0);
+  });
+
+  it("requires organization admin access before counting audit events", async () => {
+    const { getAuditEventRetentionPreflight } = await import(
+      "@/app/protected/configuracoes/audit-retention-actions"
+    );
+    mockState.adminError = new Error("Voce nao tem permissao administrativa nesta organizacao.");
+
+    await expect(getAuditEventRetentionPreflight()).rejects.toThrow(
+      "Voce nao tem permissao administrativa nesta organizacao.",
+    );
+    expect(mockState.queries).toHaveLength(0);
     expect(mockState.destructiveCalls).toHaveLength(0);
   });
 });

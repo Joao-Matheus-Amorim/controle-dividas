@@ -1,6 +1,6 @@
 "use server";
 
-import { requireOrganizationAccess } from "@/lib/organizations/server";
+import { requireOrganizationAdmin } from "@/lib/organizations/server";
 import { createClient } from "@/lib/supabase/server";
 
 export type AuditEventRetentionPreflightState = {
@@ -25,7 +25,7 @@ function getAuditEventRetentionCutoff(now = Date.now()) {
 }
 
 export async function getAuditEventRetentionPreflight(): Promise<AuditEventRetentionPreflightState> {
-  const { organization } = await requireOrganizationAccess();
+  const { organization } = await requireOrganizationAdmin();
   const supabase = await createClient();
   const cutoffIso = getAuditEventRetentionCutoff();
 
