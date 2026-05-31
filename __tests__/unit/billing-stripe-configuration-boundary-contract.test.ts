@@ -27,7 +27,7 @@ describe("billing stripe configuration boundary contract", () => {
     expect(helper).toContain("shouldfailfastformissingruntimeenv");
   });
 
-  it("documents the boundary with checkout still separated from webhook and portal", () => {
+  it("documents checkout and portal runtime as separated from webhook", () => {
     expect(contract).toContain("gap-006");
     expect(contract).toContain("enable_stripe_checkout");
     expect(contract).toContain("lib/billing/stripe-config.ts");
