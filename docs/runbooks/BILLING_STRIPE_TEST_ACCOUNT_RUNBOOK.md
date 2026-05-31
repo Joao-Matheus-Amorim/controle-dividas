@@ -48,7 +48,7 @@ STRIPE_PRICE_FAMILY_PRO=<test price id>
 
 ## Preflight
 
-Antes de validar checkout real:
+Antes de validar checkout e portal reais:
 
 1. Confirmar que a conta Stripe esta em modo teste.
 2. Confirmar que os tres price ids de teste existem.
