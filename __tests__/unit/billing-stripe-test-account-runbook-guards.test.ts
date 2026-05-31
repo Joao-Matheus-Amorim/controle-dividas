@@ -32,6 +32,8 @@ describe("billing Stripe test account runbook", () => {
   it("keeps webhook, schema, RLS, and commercial enforcement out of scope", () => {
     expect(runbook).toContain("nao implementa");
     expect(runbook).toContain("webhook runtime");
+    expect(runbook).toContain("subscription sync");
+    expect(runbook).not.toContain("sync de " + "assinatura");
     expect(runbook).toContain("enforcement comercial");
     expect(runbook).toContain("migrations");
     expect(runbook).toContain("rls");
@@ -46,6 +48,6 @@ describe("billing Stripe test account runbook", () => {
     expect(boundaryContract).toContain(runbookPath);
     expect(roadmap).toContain("evidencia real de checkout e portal stripe ainda esta pendente");
     expect(liveStatus).toContain("evidencia real de checkout e portal stripe ainda esta pendente");
-    expect(runbook).toContain("nao iniciar webhook");
+    expect(runbook).toContain("nao iniciar webhook, subscription sync ou enforcement comercial");
   });
 });
