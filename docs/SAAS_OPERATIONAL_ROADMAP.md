@@ -201,7 +201,7 @@ Resultado esperado:
 - registrar evidencia real de checkout e portal Stripe antes de qualquer webhook;
 - criar/configurar conta Stripe de teste e credenciais;
 - validar checkout runtime e billing portal runtime com ambiente Stripe de teste antes de qualquer webhook;
-- implementar webhook e assinatura em PRs separados depois do contrato pre-runtime e da evidencia real de checkout/portal.
+- implementar webhook e subscription sync em PRs separados depois do contrato pre-runtime e da evidencia real de checkout/portal.
 
 ### GAP-011 - Contratos de UI financeira
 
