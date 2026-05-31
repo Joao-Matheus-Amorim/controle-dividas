@@ -25,6 +25,7 @@ describe("billing Stripe test account runbook", () => {
     expect(runbook).toContain("stripe_price_family_pro");
     expect(runbook).toContain("enable_stripe_checkout=true");
     expect(runbook).toContain("stripe billing portal");
+    expect(runbook).toContain("antes de validar checkout e portal reais");
     expect(runbook).toContain("organizations.plan nao mudou");
   });
 
