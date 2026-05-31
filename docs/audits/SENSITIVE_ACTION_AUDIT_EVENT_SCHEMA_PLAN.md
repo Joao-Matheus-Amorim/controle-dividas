@@ -36,7 +36,7 @@ No billing webhook or commercial enforcement change.
 No E2E change.
 ```
 
-Audit event storage is versioned. Billing checkout, admin permission, admin user, payable bill, payable write, receivable income, receivable write, expense, expense write, category delete, category write, bank, bank write, member limit, member status, and member write audit logging are implemented. Other operation families remain pending.
+Audit event storage is versioned. Billing checkout, billing portal, admin permission, admin user, payable bill, payable write, receivable income, receivable write, expense, expense write, category delete, category write, bank, bank write, member limit, member status, and member write audit logging are implemented. Other operation families remain pending.
 
 ## Event shape candidate
 
@@ -65,6 +65,7 @@ Initial operation keys should be stable strings, not translated UI labels:
 | Operation family | Candidate keys |
 | --- | --- |
 | Billing checkout | `billing.checkout.start`, `billing.checkout.denied`, `billing.checkout.failed` |
+| Billing portal | `billing.portal.start`, `billing.portal.failed` |
 | Admin users | `admin.user.create`, `admin.user.update`, `admin.user.activate`, `admin.user.deactivate`, `admin.user.delete`, `admin.user.auth_link.sync` |
 | Permissions | `admin.permission.update`, `admin.feature_permission.update` |
 | Finance deletes | `finance.expense.delete`, `finance.payable.delete`, `finance.receivable.delete`, `finance.bank.delete`, `finance.category.delete` |
@@ -113,7 +114,7 @@ The initial audit event storage decision is:
 - Authenticated users do not receive insert, update, or delete grants.
 - `public.record_audit_event(...)` is the authenticated member-scoped write boundary.
 - Billing checkout runtime calls `record_audit_event` for checkout session creation and checkout setup failures.
-- Billing portal runtime calls `record_audit_event` for portal session creation and portal setup failures.
+- Billing portal runtime calls `record_audit_event` for `billing.portal.start` session creation and `billing.portal.failed` setup failures.
 - Admin permission runtime calls `record_audit_event` for module and feature permission updates.
 - Admin user runtime calls `record_audit_event` for family access creation, update, auth link sync, activation/deactivation, and deletion.
 - Payable bill runtime calls `record_audit_event` for creation, update, status updates, and deletion without storing amounts, names, notes, or full payloads.
@@ -133,7 +134,7 @@ Audit logging should be added incrementally:
 
 1. Keep `040_audit_events_schema.sql` as schema/read-side RLS only.
 2. Keep `041_audit_events_write_boundary.sql` as the authenticated write boundary.
-3. Billing checkout audit runtime is wired through `record_audit_event`.
+3. Billing checkout and billing portal audit runtime are wired through `record_audit_event`.
 4. Admin permission audit runtime is wired through `record_audit_event`.
 5. Admin user audit runtime is wired through `record_audit_event`.
 6. Finance delete, status, bank balance, and category delete audit runtimes are wired through `record_audit_event`.

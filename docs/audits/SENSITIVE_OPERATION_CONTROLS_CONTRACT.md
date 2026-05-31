@@ -147,7 +147,7 @@ GAP-015 should move in this order:
 
 1. Create planning issues for rate limits, audit events, and retention policy.
 2. Define the audit event schema and redaction model using `docs/audits/SENSITIVE_ACTION_AUDIT_EVENT_SCHEMA_PLAN.md`, `supabase/migrations/040_audit_events_schema.sql`, and `supabase/migrations/041_audit_events_write_boundary.sql` via `record_audit_event`.
-3. Implement rate limits for one server boundary at a time using `docs/audits/SENSITIVE_OPERATION_RATE_LIMIT_PLAN.md`; billing checkout, expense delete, expense write, payable delete, payable status update, payable write, receivable delete, receivable status update, receivable write, bank delete, bank balance update, bank write, member limit update, member status update, member write, category delete, category write, admin permission updates, and admin user lifecycle are the first runtime boundaries.
+3. Implement rate limits for one server boundary at a time using `docs/audits/SENSITIVE_OPERATION_RATE_LIMIT_PLAN.md`; billing checkout, billing portal, expense delete, expense write, payable delete, payable status update, payable write, receivable delete, receivable status update, receivable write, bank delete, bank balance update, bank write, member limit update, member status update, member write, category delete, category write, admin permission updates, and admin user lifecycle are the first runtime boundaries.
 4. Add audit logging for one sensitive operation family at a time.
 5. Define retention policy before any destructive cleanup automation using `docs/audits/SENSITIVE_DATA_RETENTION_PLAN.md`; audit_events now have the first confirmed owner/admin-only cleanup boundary.
 
@@ -157,7 +157,7 @@ This contract does not implement:
 
 - additional audit event runtime logging outside the documented covered families;
 - retention jobs;
-- billing webhook or portal behavior;
+- billing webhook behavior;
 - commercial enforcement;
 - new UI flows;
 - broad E2E coverage.

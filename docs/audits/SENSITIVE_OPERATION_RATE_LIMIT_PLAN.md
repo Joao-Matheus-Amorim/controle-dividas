@@ -141,7 +141,7 @@ Before implementation, choose and document one storage model:
 | External cache | Better for short windows, but needs operational dependency and env handling. |
 | Platform limiter | Acceptable only if limits can include actor and organization dimensions. |
 
-The first runtime limiter uses process-local memory to keep the rollout schema-free and reversible. It sweeps expired buckets before tracking new traffic so long-lived processes do not retain stale actor/organization/target entries forever. This is acceptable for the initial billing checkout, login password, signup authorized email preflight, signup submit, auth confirm verify, password reset request, password update submit, onboarding organization create, expense delete, expense write, payable delete, payable status update, payable write, receivable delete, receivable status update, receivable write, bank delete, bank balance update, bank write, member limit update, member status update, member write, category delete, category write, admin permission update, and admin user lifecycle boundaries because they are focused, server-side, and protected by `DISABLE_SENSITIVE_RATE_LIMITS=true` rollback. Additional broader or public-auth limits still need a durable/cache-backed storage decision before implementation.
+The first runtime limiter uses process-local memory to keep the rollout schema-free and reversible. It sweeps expired buckets before tracking new traffic so long-lived processes do not retain stale actor/organization/target entries forever. This is acceptable for the initial billing checkout, billing portal, login password, signup authorized email preflight, signup submit, auth confirm verify, password reset request, password update submit, onboarding organization create, expense delete, expense write, payable delete, payable status update, payable write, receivable delete, receivable status update, receivable write, bank delete, bank balance update, bank write, member limit update, member status update, member write, category delete, category write, admin permission update, and admin user lifecycle boundaries because they are focused, server-side, and protected by `DISABLE_SENSITIVE_RATE_LIMITS=true` rollback. Additional broader or public-auth limits still need a durable/cache-backed storage decision before implementation.
 
 ## Sequencing
 
@@ -178,7 +178,7 @@ This plan does not implement:
 - storage tables;
 - external cache configuration;
 - UI copy changes;
-- billing checkout behavior changes;
+- billing checkout or portal behavior changes;
 - E2E coverage.
 
 ## Acceptance
