@@ -47,9 +47,8 @@ describe("billing checkout runtime contract", () => {
     expect(component).toContain("checkoutready");
   });
 
-  it("does not implement webhook, portal, schema, RLS, retention, or commercial enforcement", () => {
+  it("does not implement webhook, schema, RLS, retention, or commercial enforcement", () => {
     for (const source of [checkoutHelper, action, component]) {
-      expect(source).not.toContain("billing portal");
       expect(source).not.toContain("alter table");
       expect(source).not.toContain("create policy");
       expect(source).not.toContain("stripe.webhooks");
@@ -59,13 +58,16 @@ describe("billing checkout runtime contract", () => {
 
   it("keeps live docs aligned with the dedicated checkout-runtime step", () => {
     expect(flowContract).toContain("checkout runtime implementado");
+    expect(flowContract).toContain("billing portal runtime implementado");
     expect(flowContract).toContain("evidencia real pendente");
     expect(flowContract).toContain("nao ha conta stripe de teste");
     expect(flowContract).toContain("sem webhook runtime");
-    expect(flowContract).toContain("sem portal runtime");
+    expect(flowContract).toContain("billing.portal.start");
     expect(roadmap).toContain("checkout runtime esta implementado");
+    expect(roadmap).toContain("billing portal runtime");
     expect(roadmap).toContain("criar/configurar conta stripe de teste");
     expect(gapRegister).toContain("stripe checkout runtime");
+    expect(gapRegister).toContain("billing portal runtime");
     expect(gapRegister).toContain("real stripe checkout evidence is pending");
   });
 });

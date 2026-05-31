@@ -27,7 +27,6 @@ Este contrato fecha a fronteira tecnica do GAP-006 para habilitar/desabilitar St
 
 Este contrato de fronteira nao implementa:
 
-- rota de portal;
 - endpoint webhook;
 - tabela de subscriptions;
 - cobranca real;
@@ -46,7 +45,17 @@ lib/billing/stripe-checkout.ts
 components/settings/settings-billing-plan-status.tsx
 ```
 
-Ele respeita `ENABLE_STRIPE_CHECKOUT`, resolve owner/admin no servidor e nao implementa webhook, portal ou enforcement comercial.
+Ele respeita `ENABLE_STRIPE_CHECKOUT`, resolve owner/admin no servidor e nao implementa webhook ou enforcement comercial.
+
+O billing portal runtime dedicado fica em:
+
+```txt
+app/protected/configuracoes/billing-actions.ts
+lib/billing/stripe-portal.ts
+components/settings/settings-billing-plan-status.tsx
+```
+
+Ele usa a mesma fronteira Stripe, exige `stripe_customer_id` resolvido no servidor e nao aceita customer id vindo do client.
 
 ## Evidencia Stripe pendente
 
@@ -56,7 +65,7 @@ Enquanto essa evidencia nao existir:
 
 - manter `ENABLE_STRIPE_CHECKOUT=false` por padrao;
 - nao declarar checkout Stripe validado;
-- nao iniciar webhook, portal ou enforcement comercial como se checkout real ja tivesse evidencia.
+- nao iniciar webhook ou enforcement comercial como se checkout/portal real ja tivesse evidencia.
 
 Runbook para criar/configurar conta Stripe de teste:
 

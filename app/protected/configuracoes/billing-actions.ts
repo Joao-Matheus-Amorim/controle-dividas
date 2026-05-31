@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 
 import { recordAuditEvent, type AuditEventOutcome } from "@/lib/audit/events";
 import { createStripeCheckoutSession } from "@/lib/billing/stripe-checkout";
+import { createStripeBillingPortalSession } from "@/lib/billing/stripe-portal";
 import { getOrgPathFromProtectedPath } from "@/lib/organizations/paths";
 import { requireOrganizationAdmin } from "@/lib/organizations/server";
 import { checkSensitiveOperationRateLimit } from "@/lib/security/sensitive-rate-limit";
@@ -13,6 +14,12 @@ import type { BillingPlanKey } from "@/lib/billing/plans";
 const billingCheckoutRateLimit = {
   operationKey: "billing.checkout.start",
   limit: 5,
+  windowMs: 10 * 60 * 1000,
+};
+
+const billingPortalRateLimit = {
+  operationKey: "billing.portal.start",
+  limit: 10,
   windowMs: 10 * 60 * 1000,
 };
 
@@ -28,6 +35,12 @@ function redirectToSettings(orgSlug: string | undefined, status: string) {
   const path = getOrgPathFromProtectedPath("/protected/configuracoes", orgSlug);
 
   redirect(`${path}?billing_checkout=${encodeURIComponent(status)}`);
+}
+
+function redirectToPortalStatus(orgSlug: string | undefined, status: string) {
+  const path = getOrgPathFromProtectedPath("/protected/configuracoes", orgSlug);
+
+  redirect(`${path}?billing_portal=${encodeURIComponent(status)}`);
 }
 
 function getCheckoutAuditOutcome(status: string): AuditEventOutcome {
@@ -58,6 +71,28 @@ async function recordBillingCheckoutAuditEvent({
       plan,
       status,
       missing_price_env_var: missingPriceEnvVar ?? null,
+    },
+  });
+}
+
+async function recordBillingPortalAuditEvent({
+  organizationId,
+  action,
+  outcome,
+  status,
+}: {
+  organizationId: string;
+  action: "billing.portal.start" | "billing.portal.failed";
+  outcome: AuditEventOutcome;
+  status: string;
+}) {
+  await recordAuditEvent({
+    organizationId,
+    action,
+    targetType: "billing_portal",
+    outcome,
+    metadata: {
+      status,
     },
   });
 }
@@ -116,4 +151,49 @@ export async function startBillingCheckout(
   });
 
   redirectToSettings(orgSlug, session.reason);
+}
+
+export async function startBillingPortal(orgSlug?: string): Promise<void> {
+  const { organization, membership } = await requireOrganizationAdmin(orgSlug);
+  const rateLimit = checkSensitiveOperationRateLimit({
+    ...billingPortalRateLimit,
+    actorKey: membership.auth_user_id,
+    organizationId: organization.id,
+  });
+
+  if (!rateLimit.allowed) {
+    await recordBillingPortalAuditEvent({
+      organizationId: organization.id,
+      action: "billing.portal.failed",
+      outcome: "denied",
+      status: "rate_limited",
+    });
+
+    redirectToPortalStatus(orgSlug, "rate_limited");
+  }
+
+  const session = await createStripeBillingPortalSession({
+    organization,
+    orgSlug,
+  });
+
+  if (session.ok) {
+    await recordBillingPortalAuditEvent({
+      organizationId: organization.id,
+      action: "billing.portal.start",
+      outcome: "success",
+      status: "session_created",
+    });
+
+    redirect(session.url);
+  }
+
+  await recordBillingPortalAuditEvent({
+    organizationId: organization.id,
+    action: "billing.portal.failed",
+    outcome: "failure",
+    status: session.reason,
+  });
+
+  redirectToPortalStatus(orgSlug, session.reason);
 }

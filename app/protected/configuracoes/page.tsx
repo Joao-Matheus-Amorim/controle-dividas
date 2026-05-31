@@ -10,6 +10,19 @@ function getCheckoutStatus(searchParams?: Record<string, string | string[] | und
   return typeof value === "string" ? value : undefined;
 }
 
+function getPortalStatus(searchParams?: Record<string, string | string[] | undefined>) {
+  const value = searchParams?.billing_portal;
+
+  return typeof value === "string" ? value : undefined;
+}
+
 export default async function ProtectedConfiguracoesPage({ searchParams }: PageProps) {
-  return <ConfiguracoesPage checkoutStatus={getCheckoutStatus(await searchParams)} />;
+  const resolvedSearchParams = await searchParams;
+
+  return (
+    <ConfiguracoesPage
+      checkoutStatus={getCheckoutStatus(resolvedSearchParams)}
+      portalStatus={getPortalStatus(resolvedSearchParams)}
+    />
+  );
 }

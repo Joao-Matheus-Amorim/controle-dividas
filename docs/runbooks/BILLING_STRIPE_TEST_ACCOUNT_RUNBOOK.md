@@ -4,9 +4,9 @@ Atualizado em: 2026-05-28
 
 ## Objetivo
 
-Este runbook define o passo operacional para criar/configurar uma conta Stripe de teste e validar a evidencia real do checkout runtime do GAP-006.
+Este runbook define o passo operacional para criar/configurar uma conta Stripe de teste e validar a evidencia real do checkout runtime e do billing portal runtime do GAP-006.
 
-Ele existe porque o checkout runtime ja esta implementado, mas ainda nao ha conta Stripe de teste/credenciais configuradas.
+Ele existe porque checkout runtime e billing portal runtime ja estao implementados, mas ainda nao ha conta Stripe de teste/credenciais configuradas.
 
 ## Escopo
 
@@ -16,14 +16,14 @@ Este runbook cobre apenas:
 - criar price ids de teste para os planos pagos;
 - configurar variaveis de ambiente de teste;
 - validar que o checkout abre uma Stripe Checkout Session real;
-- registrar evidencia antes de qualquer webhook ou portal.
+- validar que o portal abre uma Stripe Billing Portal Session real quando a organizacao possui `stripe_customer_id`;
+- registrar evidencia antes de qualquer webhook.
 
 ## Fora de escopo
 
 Este runbook nao implementa:
 
 - webhook runtime;
-- billing portal runtime;
 - sync de assinatura;
 - enforcement comercial;
 - migrations;
@@ -57,7 +57,7 @@ Antes de validar checkout real:
 5. Confirmar que usuario sem `owner/admin` ve CTA desabilitado.
 6. Confirmar que `ENABLE_STRIPE_CHECKOUT=false` ainda mantem o app funcional sem Stripe.
 
-## Validacao manual minima
+## Validacao manual minima de checkout
 
 Com as variaveis de teste configuradas:
 
@@ -68,6 +68,17 @@ Com as variaveis de teste configuradas:
 5. Cancelar o checkout.
 6. Confirmar retorno para Configuracoes com `billing_checkout=cancelled`.
 7. Confirmar que `organizations.plan` nao mudou localmente.
+
+## Validacao manual minima de portal
+
+Com uma organizacao de teste que ja possua `stripe_customer_id` apontando para um customer Stripe em modo teste:
+
+1. Entrar no app com usuario `owner/admin`.
+2. Abrir `Configuracoes > Plano da organizacao`.
+3. Acionar `Abrir portal`.
+4. Confirmar redirecionamento para Stripe Billing Portal em modo teste.
+5. Sair do portal.
+6. Confirmar retorno para Configuracoes com `billing_portal=returned`.
 
 ## Evidencia esperada
 
@@ -81,9 +92,11 @@ ENABLE_STRIPE_CHECKOUT:
 Plano testado:
 Resultado do redirect para Stripe Checkout:
 Resultado do cancel_url:
+Resultado do redirect para Stripe Billing Portal:
+Resultado do return_url:
 Confirmacao de que organizations.plan nao mudou:
 ```
 
 ## Regra de sequenciamento
 
-Nao iniciar webhook, portal, sync de assinatura ou enforcement comercial antes de existir evidencia real de checkout Stripe em modo teste.
+Nao iniciar webhook, sync de assinatura ou enforcement comercial antes de existir evidencia real de checkout e portal Stripe em modo teste.

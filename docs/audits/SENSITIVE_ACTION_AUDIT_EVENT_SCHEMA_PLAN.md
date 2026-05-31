@@ -32,7 +32,7 @@ Member write audit runtime exists in lib/finance/member-write-controls.ts and ap
 Read-side RLS exists for organization owner/admin.
 No insert/update/delete policy for authenticated users.
 No UI.
-No billing webhook, portal, or commercial enforcement change.
+No billing webhook or commercial enforcement change.
 No E2E change.
 ```
 
@@ -113,6 +113,7 @@ The initial audit event storage decision is:
 - Authenticated users do not receive insert, update, or delete grants.
 - `public.record_audit_event(...)` is the authenticated member-scoped write boundary.
 - Billing checkout runtime calls `record_audit_event` for checkout session creation and checkout setup failures.
+- Billing portal runtime calls `record_audit_event` for portal session creation and portal setup failures.
 - Admin permission runtime calls `record_audit_event` for module and feature permission updates.
 - Admin user runtime calls `record_audit_event` for family access creation, update, auth link sync, activation/deactivation, and deletion.
 - Payable bill runtime calls `record_audit_event` for creation, update, status updates, and deletion without storing amounts, names, notes, or full payloads.
