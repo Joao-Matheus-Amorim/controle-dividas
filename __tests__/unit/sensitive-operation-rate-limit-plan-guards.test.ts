@@ -21,6 +21,8 @@ describe("sensitive operation rate limit plan guards", () => {
     expect(plan).toContain("gap-015");
     expect(plan).toContain("billing checkout rate limit runtime exists");
     expect(plan).toContain("billing.checkout.start");
+    expect(plan).toContain("billing portal rate limit runtime exists");
+    expect(plan).toContain("billing.portal.start");
     expect(plan).toContain("expense delete rate limit runtime exists");
     expect(plan).toContain("finance.expense.delete");
     expect(plan).toContain("payable delete rate limit runtime exists");
@@ -81,6 +83,7 @@ describe("sensitive operation rate limit plan guards", () => {
 
   it("protects key design, operation tiers, and storage decisions", () => {
     expect(plan).toContain("billing.checkout.start");
+    expect(plan).toContain("billing.portal.start");
     expect(plan).toContain("finance.expense.delete");
     expect(plan).toContain("finance.payable.delete");
     expect(plan).toContain("finance.payable.status.update");
@@ -116,6 +119,7 @@ describe("sensitive operation rate limit plan guards", () => {
     expect(liveStatus).toContain("plano de rate limiting");
     expect(gapRegister).toContain("rate limit planning exists");
     expect(gapRegister).toContain("billing checkout rate limit runtime");
+    expect(gapRegister).toContain("billing portal rate limit runtime");
     expect(gapRegister).toContain("expense delete rate limit runtime");
     expect(gapRegister).toContain("payable delete rate limit runtime");
     expect(gapRegister).toContain("payable status rate limit runtime");

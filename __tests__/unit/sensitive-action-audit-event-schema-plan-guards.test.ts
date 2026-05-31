@@ -22,6 +22,7 @@ describe("sensitive-action audit event schema plan guards", () => {
     expect(plan).toContain("schema migration exists in supabase/migrations/040_audit_events_schema.sql");
     expect(plan).toContain("write boundary exists in supabase/migrations/041_audit_events_write_boundary.sql");
     expect(plan).toContain("billing checkout audit runtime exists");
+    expect(plan).toContain("billing portal");
     expect(plan).toContain("admin permission audit runtime exists");
     expect(plan).toContain("admin user audit runtime exists");
     expect(plan).toContain("payable bill audit runtime exists");
@@ -58,6 +59,7 @@ describe("sensitive-action audit event schema plan guards", () => {
 
   it("protects operation keys and redaction boundaries", () => {
     expect(plan).toContain("billing.checkout.start");
+    expect(plan).toContain("billing.portal");
     expect(plan).toContain("admin.permission.update");
     expect(plan).toContain("finance.expense.delete");
     expect(plan).toContain("finance.payable.status.update");
@@ -94,6 +96,7 @@ describe("sensitive-action audit event schema plan guards", () => {
     expect(gapRegister).toContain("bank audit runtime");
     expect(gapRegister).toContain("category delete audit runtime");
     expect(gapRegister).toContain("billing checkout rate limit runtime");
+    expect(gapRegister).toContain("billing portal audit runtime");
     expect(gapRegister).toContain("remaining broader rate limiting and data retention cleanup runtime controls are not implemented");
   });
 });
