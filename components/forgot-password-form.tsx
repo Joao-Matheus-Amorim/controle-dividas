@@ -4,10 +4,10 @@ import { ArrowLeft, Mail, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
+import { requestPasswordReset } from "@/app/auth/forgot-password/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
 function getFriendlyAuthError(error: unknown) {
@@ -29,17 +29,16 @@ export function ForgotPasswordForm({
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    const supabase = createClient();
     setIsLoading(true);
     setError(null);
     setSuccess(false);
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
-        redirectTo: `${window.location.origin}/auth/update-password`,
-      });
+      const result = await requestPasswordReset(email);
 
-      if (error) throw error;
+      if (!result.success) {
+        throw new Error(result.error);
+      }
 
       setSuccess(true);
     } catch (error: unknown) {
