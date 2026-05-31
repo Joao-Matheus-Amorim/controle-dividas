@@ -46,6 +46,8 @@ describe("sensitive operation controls contract guards", () => {
     expect(contract).toContain("no ui change");
     expect(contract).toContain("no billing webhook, subscription sync, or commercial enforcement change");
     expect(contract).not.toContain("no billing webhook or " + "commercial enforcement change");
+    expect(contract).toContain("subscription sync");
+    expect(contract).not.toContain("billing webhook behavior;\n- commercial enforcement");
     expect(contract).toContain("billing portal");
     expect(contract).toContain("no e2e change");
     expect(contract).toContain("remaining broader runtime controls are not implemented yet");
