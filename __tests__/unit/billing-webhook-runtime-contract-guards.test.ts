@@ -48,6 +48,8 @@ describe("billing webhook runtime contract guards", () => {
     expect(flowContract).toContain("endpoint dedicado valida assinatura");
     expect(gapRegister).toContain("webhook pre-runtime contract");
     expect(gapRegister).toContain("billing webhook and subscription sync work should not start");
+    expect(gapRegister).toContain("implement webhook and subscription sync in dedicated prs");
+    expect(gapRegister).not.toContain("implement webhook in a dedicated " + "pr");
     expect(gapRegister).not.toContain("billing webhook and subscription " + "work should not start");
     expect(gapRegister).toContain("checkout and portal evidence gates have real stripe test evidence");
     expect(gapRegister).not.toContain("explicitly deferred");
