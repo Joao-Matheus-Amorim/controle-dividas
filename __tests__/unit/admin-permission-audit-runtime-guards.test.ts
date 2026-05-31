@@ -38,7 +38,7 @@ describe("admin permission audit runtime guards", () => {
     expect(actions).toContain(".upsert(rows");
   });
 
-  it("keeps admin permission runtime limited without retention, webhook, and portal work", () => {
+  it("keeps admin permission runtime limited without retention or billing webhook work", () => {
     expect(actions).toContain("checksensitiveoperationratelimit");
     expect(actions).toContain('operationkey: "admin.permission.update"');
     expect(actions).toContain('operationkey: "admin.feature_permission.update"');
@@ -50,6 +50,7 @@ describe("admin permission audit runtime guards", () => {
     expect(actions).not.toContain("retention");
     expect(actions).not.toContain("stripe.webhooks");
     expect(actions).not.toContain("billing portal");
+    expect(actions).not.toContain("billing.portal.start");
     expect(actions).not.toContain("setinterval");
     expect(actions).not.toContain("cron.schedule");
   });
