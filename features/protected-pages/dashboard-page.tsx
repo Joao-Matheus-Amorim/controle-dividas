@@ -54,7 +54,15 @@ type DashboardPageProps = {
 };
 
 export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
-  const [visibleModuleKeys, expenseData, payableData, receivableData, bankData, periodContextLabel, currentOrganization] = await Promise.all([
+  const [
+    visibleModuleKeysResult,
+    expenseDataResult,
+    payableDataResult,
+    receivableDataResult,
+    bankDataResult,
+    periodContextLabelResult,
+    currentOrganizationResult,
+  ] = await Promise.allSettled([
     getVisibleModuleKeys(dashboardModules, orgSlug),
     getOrganizationExpenseDashboardData(orgSlug),
     getOrganizationPayableBillsDashboardData(orgSlug),
@@ -63,6 +71,81 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
     getCurrentPeriodContextLabel(),
     getCurrentOrganization(orgSlug),
   ]);
+
+  const logDashboardLoadError = (source: string, reason: unknown) => {
+    console.error(`[dashboard] ${source} failed`, reason);
+  };
+
+  const visibleModuleKeys =
+    visibleModuleKeysResult.status === "fulfilled"
+      ? visibleModuleKeysResult.value
+      : (logDashboardLoadError("visible modules", visibleModuleKeysResult.reason), []);
+
+  const expenseData =
+    expenseDataResult.status === "fulfilled"
+      ? expenseDataResult.value
+      : (logDashboardLoadError("expenses", expenseDataResult.reason), {
+          members: [],
+          categories: [],
+          expenses: [],
+          memberSummaries: [],
+          totalExpenses: 0,
+        });
+
+  const payableData =
+    payableDataResult.status === "fulfilled"
+      ? payableDataResult.value
+      : (logDashboardLoadError("payables", payableDataResult.reason), {
+          members: [],
+          bills: [],
+          totalPending: 0,
+          totalOverdue: 0,
+          totalPaid: 0,
+          totalOneOff: 0,
+          totalFixed: 0,
+          pendingCount: 0,
+          overdueCount: 0,
+          paidCount: 0,
+          oneOffCount: 0,
+          fixedCount: 0,
+        });
+
+  const receivableData =
+    receivableDataResult.status === "fulfilled"
+      ? receivableDataResult.value
+      : (logDashboardLoadError("receivables", receivableDataResult.reason), {
+          members: [],
+          incomes: [],
+          totalExpected: 0,
+          totalOverdue: 0,
+          totalReceived: 0,
+          totalFixed: 0,
+          totalVariable: 0,
+          expectedCount: 0,
+          overdueCount: 0,
+          receivedCount: 0,
+        });
+
+  const bankData =
+    bankDataResult.status === "fulfilled"
+      ? bankDataResult.value
+      : (logDashboardLoadError("banks", bankDataResult.reason), {
+          members: [],
+          accounts: [],
+          accountsByMember: [],
+          totalBalance: 0,
+          totalAccounts: 0,
+        });
+
+  const periodContextLabel =
+    periodContextLabelResult.status === "fulfilled"
+      ? periodContextLabelResult.value
+      : (logDashboardLoadError("period context", periodContextLabelResult.reason), "Periodo atual");
+
+  const currentOrganization =
+    currentOrganizationResult.status === "fulfilled"
+      ? currentOrganizationResult.value
+      : (logDashboardLoadError("current organization", currentOrganizationResult.reason), null);
 
   const visibleModules = new Set(visibleModuleKeys);
   const canPeople = visibleModules.has("PESSOAS");
