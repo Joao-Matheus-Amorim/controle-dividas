@@ -41,6 +41,7 @@ Isso significa:
 - Signup submit rate limit runtime existe em `app/auth/sign-up/actions.ts` para `auth.signup.submit`, com actor por email normalizado, escopo `public-auth`, buckets compartilhados para email ausente/invalido, lookup server-side de perfil autorizado antes do Supabase signup, rollback por `DISABLE_SENSITIVE_RATE_LIMITS=true` e sem audit runtime porque o write boundary de audit events exige usuario autenticado e membership.
 - Auth confirm rate limit runtime existe em `app/auth/confirm/route.ts` para `auth.confirm.verify`, com actor por cliente publico, target por tipo OTP, escopo `public-auth`, rollback por `DISABLE_SENSITIVE_RATE_LIMITS=true` e sem audit runtime porque o write boundary de audit events exige usuario autenticado e membership.
 - Password reset rate limit runtime existe em `app/auth/forgot-password/actions.ts` para `auth.password_reset.request`, com actor por email normalizado, escopo `public-auth`, rollback por `DISABLE_SENSITIVE_RATE_LIMITS=true` e sem audit runtime porque o write boundary de audit events exige usuario autenticado e membership.
+- Password update rate limit runtime existe em `app/auth/update-password/actions.ts` para `auth.password_update.submit`, com actor pelo auth user id atual, bucket compartilhado `missing-session`, escopo `public-auth`, rollback por `DISABLE_SENSITIVE_RATE_LIMITS=true` e sem audit runtime porque o write boundary de audit events exige usuario autenticado e membership.
 
 ## 3. Migrations SaaS/RLS/hardening atuais
 

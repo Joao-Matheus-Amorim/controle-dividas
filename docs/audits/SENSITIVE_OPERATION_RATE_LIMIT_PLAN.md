@@ -17,6 +17,7 @@ Signup authorized email rate limit runtime exists for `auth.signup.authorized_em
 Signup submit rate limit runtime exists for `auth.signup.submit`.
 Auth confirm rate limit runtime exists for `auth.confirm.verify`.
 Password reset rate limit runtime exists for `auth.password_reset.request`.
+Password update rate limit runtime exists for `auth.password_update.submit`.
 Expense delete rate limit runtime exists for `finance.expense.delete`.
 Expense write rate limit runtime exists for `finance.expense.create` and `finance.expense.update`.
 Payable delete rate limit runtime exists for `finance.payable.delete`.
@@ -45,7 +46,7 @@ No billing behavior change.
 No E2E change.
 ```
 
-Rate limiting is implemented only for billing checkout start attempts, login password attempts, signup authorized email checks, signup submit attempts, auth confirm verify attempts, password reset requests, expense delete attempts, expense write attempts, payable delete attempts, payable status update attempts, payable write attempts, receivable delete attempts, receivable status update attempts, receivable write attempts, bank delete attempts, bank balance update attempts, bank write attempts, member limit update attempts, member status update attempts, member write attempts, category delete attempts, category write attempts, admin permission update attempts, and admin user lifecycle attempts.
+Rate limiting is implemented only for billing checkout start attempts, login password attempts, signup authorized email checks, signup submit attempts, auth confirm verify attempts, password reset requests, password update attempts, expense delete attempts, expense write attempts, payable delete attempts, payable status update attempts, payable write attempts, receivable delete attempts, receivable status update attempts, receivable write attempts, bank delete attempts, bank balance update attempts, bank write attempts, member limit update attempts, member status update attempts, member write attempts, category delete attempts, category write attempts, admin permission update attempts, and admin user lifecycle attempts.
 
 ## Control model
 
@@ -72,7 +73,7 @@ Initial limits should be grouped by risk:
 
 | Tier | Operation examples | Initial posture |
 | --- | --- | --- |
-| Public auth | `auth.login.password`, `auth.signup.authorized_email.check`, `auth.signup.submit`, `auth.confirm.verify`, `auth.password_reset.request`; password update still pending | Highest abuse risk; actor may be anonymous. Runtime public-auth boundaries use organization key `public-auth`; login password, signup authorized email preflight, signup submit, and password reset request key by normalized email, with shared buckets for missing/malformed emails, and auth confirm verify keys by public client actor plus OTP type without using the token hash as a rate-limit key. Additional broader public-auth limits still need a durable/cache-backed storage decision. |
+| Public auth | `auth.login.password`, `auth.signup.authorized_email.check`, `auth.signup.submit`, `auth.confirm.verify`, `auth.password_reset.request`, `auth.password_update.submit` | Highest abuse risk; actor may be anonymous. Runtime public-auth boundaries use organization key `public-auth`; login password, signup authorized email preflight, signup submit, and password reset request key by normalized email, with shared buckets for missing/malformed emails, auth confirm verify keys by public client actor plus OTP type without using the token hash as a rate-limit key, and password update keys by current auth user id or a shared missing-session bucket. Additional broader public-auth limits still need a durable/cache-backed storage decision. |
 | Billing checkout | `billing.checkout.start` | Authenticated and organization-scoped. |
 | Expense delete | `finance.expense.delete` | Authenticated, organization-scoped, permission-gated. |
 | Expense writes | `finance.expense.create`, `finance.expense.update` | Authenticated and organization-scoped; create is actor/organization-scoped, and update is target-scoped. |
@@ -136,7 +137,7 @@ Before implementation, choose and document one storage model:
 | External cache | Better for short windows, but needs operational dependency and env handling. |
 | Platform limiter | Acceptable only if limits can include actor and organization dimensions. |
 
-The first runtime limiter uses process-local memory to keep the rollout schema-free and reversible. It sweeps expired buckets before tracking new traffic so long-lived processes do not retain stale actor/organization/target entries forever. This is acceptable for the initial billing checkout, login password, signup authorized email preflight, signup submit, auth confirm verify, password reset request, expense delete, expense write, payable delete, payable status update, payable write, receivable delete, receivable status update, receivable write, bank delete, bank balance update, bank write, member limit update, member status update, member write, category delete, category write, admin permission update, and admin user lifecycle boundaries because they are focused, server-side, and protected by `DISABLE_SENSITIVE_RATE_LIMITS=true` rollback. Additional broader or public-auth limits still need a durable/cache-backed storage decision before implementation.
+The first runtime limiter uses process-local memory to keep the rollout schema-free and reversible. It sweeps expired buckets before tracking new traffic so long-lived processes do not retain stale actor/organization/target entries forever. This is acceptable for the initial billing checkout, login password, signup authorized email preflight, signup submit, auth confirm verify, password reset request, password update submit, expense delete, expense write, payable delete, payable status update, payable write, receivable delete, receivable status update, receivable write, bank delete, bank balance update, bank write, member limit update, member status update, member write, category delete, category write, admin permission update, and admin user lifecycle boundaries because they are focused, server-side, and protected by `DISABLE_SENSITIVE_RATE_LIMITS=true` rollback. Additional broader or public-auth limits still need a durable/cache-backed storage decision before implementation.
 
 ## Sequencing
 
