@@ -32,7 +32,7 @@ Member write audit runtime exists in lib/finance/member-write-controls.ts and ap
 Read-side RLS exists for organization owner/admin.
 No insert/update/delete policy for authenticated users.
 No UI.
-No billing webhook or commercial enforcement change.
+No billing webhook, subscription sync, or commercial enforcement change.
 No E2E change.
 ```
 

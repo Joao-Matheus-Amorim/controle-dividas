@@ -44,7 +44,8 @@ describe("sensitive operation controls contract guards", () => {
     expect(contract).toContain("audit event retention cleanup runtime exists");
     expect(contract).toContain("cleanup_expired_audit_events");
     expect(contract).toContain("no ui change");
-    expect(contract).toContain("no billing webhook or commercial enforcement change");
+    expect(contract).toContain("no billing webhook, subscription sync, or commercial enforcement change");
+    expect(contract).not.toContain("no billing webhook or " + "commercial enforcement change");
     expect(contract).toContain("billing portal");
     expect(contract).toContain("no e2e change");
     expect(contract).toContain("remaining broader runtime controls are not implemented yet");
