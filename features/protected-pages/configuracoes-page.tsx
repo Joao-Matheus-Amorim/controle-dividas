@@ -13,11 +13,13 @@ import { getOrganizationFamilyMembers } from "@/lib/organizations/people";
 type ConfiguracoesPageProps = {
   orgSlug?: string;
   checkoutStatus?: string;
+  portalStatus?: string;
 };
 
 export async function ConfiguracoesPage({
   orgSlug,
   checkoutStatus,
+  portalStatus,
 }: ConfiguracoesPageProps = {}) {
   const [members, categories, organization] = await Promise.all([
     getOrganizationFamilyMembers(orgSlug),
@@ -56,6 +58,8 @@ export async function ConfiguracoesPage({
           checkoutEnabled={stripeBoundary.checkoutEnabled}
           checkoutReady={stripeBoundary.ready}
           checkoutStatus={checkoutStatus}
+          portalStatus={portalStatus}
+          hasStripeCustomer={Boolean(organization.organization.stripe_customer_id)}
           orgSlug={orgSlug}
         />
       ) : null}

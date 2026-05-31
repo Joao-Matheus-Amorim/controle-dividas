@@ -15,16 +15,24 @@ function getCheckoutStatus(searchParams?: Record<string, string | string[] | und
   return typeof value === "string" ? value : undefined;
 }
 
+function getPortalStatus(searchParams?: Record<string, string | string[] | undefined>) {
+  const value = searchParams?.billing_portal;
+
+  return typeof value === "string" ? value : undefined;
+}
+
 export default async function OrgProtectedConfiguracoesPage({
   params,
   searchParams,
 }: PageProps) {
   const { orgSlug } = await params;
+  const resolvedSearchParams = await searchParams;
 
   return (
     <ConfiguracoesPage
       orgSlug={orgSlug}
-      checkoutStatus={getCheckoutStatus(await searchParams)}
+      checkoutStatus={getCheckoutStatus(resolvedSearchParams)}
+      portalStatus={getPortalStatus(resolvedSearchParams)}
     />
   );
 }

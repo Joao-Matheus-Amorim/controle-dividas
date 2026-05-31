@@ -12,6 +12,8 @@ It follows `docs/audits/SENSITIVE_OPERATION_CONTROLS_CONTRACT.md` and complement
 
 ```txt
 Billing checkout rate limit runtime exists for `billing.checkout.start`.
+Billing portal rate limit runtime exists for `billing.portal.start`.
+Billing portal runtime is limited by `billing.portal.start`.
 Login rate limit runtime exists for `auth.login.password`.
 Signup authorized email rate limit runtime exists for `auth.signup.authorized_email.check`.
 Signup submit rate limit runtime exists for `auth.signup.submit`.
@@ -47,7 +49,7 @@ No billing behavior change.
 No E2E change.
 ```
 
-Rate limiting is implemented only for billing checkout start attempts, login password attempts, signup authorized email checks, signup submit attempts, auth confirm verify attempts, password reset requests, password update attempts, onboarding organization creation attempts, expense delete attempts, expense write attempts, payable delete attempts, payable status update attempts, payable write attempts, receivable delete attempts, receivable status update attempts, receivable write attempts, bank delete attempts, bank balance update attempts, bank write attempts, member limit update attempts, member status update attempts, member write attempts, category delete attempts, category write attempts, admin permission update attempts, and admin user lifecycle attempts.
+Rate limiting is implemented only for billing checkout start attempts, billing portal start attempts, login password attempts, signup authorized email checks, signup submit attempts, auth confirm verify attempts, password reset requests, password update attempts, onboarding organization creation attempts, expense delete attempts, expense write attempts, payable delete attempts, payable status update attempts, payable write attempts, receivable delete attempts, receivable status update attempts, receivable write attempts, bank delete attempts, bank balance update attempts, bank write attempts, member limit update attempts, member status update attempts, member write attempts, category delete attempts, category write attempts, admin permission update attempts, and admin user lifecycle attempts.
 
 ## Control model
 
@@ -76,7 +78,7 @@ Initial limits should be grouped by risk:
 | --- | --- | --- |
 | Public auth | `auth.login.password`, `auth.signup.authorized_email.check`, `auth.signup.submit`, `auth.confirm.verify`, `auth.password_reset.request`, `auth.password_update.submit` | Highest abuse risk; actor may be anonymous. Runtime public-auth boundaries use organization key `public-auth`; login password, signup authorized email preflight, signup submit, and password reset request key by normalized email, with shared buckets for missing/malformed emails, auth confirm verify keys by public client actor plus OTP type without using the token hash as a rate-limit key, and password update keys by current auth user id or a shared missing-session bucket. Additional broader public-auth limits still need a durable/cache-backed storage decision. |
 | Initial organization onboarding | `onboarding.organization.create` | Authenticated onboarding boundary before an active organization exists. Runtime uses organization key `onboarding`, actor by current auth user id, and a shared `missing-session` bucket; no onboarding audit runtime exists for this step because the organization context is created by the RPC. |
-| Billing checkout | `billing.checkout.start` | Authenticated and organization-scoped. |
+| Billing checkout and portal | `billing.checkout.start`, `billing.portal.start` | Authenticated and organization-scoped. Portal requires server-resolved `stripe_customer_id`. |
 | Expense delete | `finance.expense.delete` | Authenticated, organization-scoped, permission-gated. |
 | Expense writes | `finance.expense.create`, `finance.expense.update` | Authenticated and organization-scoped; create is actor/organization-scoped, and update is target-scoped. |
 | Payable delete | `finance.payable.delete` | Authenticated, organization-scoped, permission-gated. |

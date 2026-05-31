@@ -101,7 +101,8 @@ A limpeza final de policies antigas owner/family foi versionada em:
 - O contrato de fluxo de assinatura esta documentado em `docs/audits/BILLING_SUBSCRIPTION_FLOW_CONTRACT.md`, cobrindo checkout, portal, webhook idempotente, secrets e rollback antes de runtime Stripe.
 - A fronteira de configuracao Stripe esta implementada em `lib/billing/stripe-config.ts` e documentada em `docs/audits/BILLING_STRIPE_CONFIGURATION_BOUNDARY.md`.
 - O runbook de conta Stripe de teste esta em `docs/runbooks/BILLING_STRIPE_TEST_ACCOUNT_RUNBOOK.md`.
-- Checkout runtime esta implementado em `lib/billing/stripe-checkout.ts` e `app/protected/configuracoes/billing-actions.ts`, sem webhook, portal ou enforcement comercial.
+- Checkout runtime esta implementado em `lib/billing/stripe-checkout.ts` e `app/protected/configuracoes/billing-actions.ts`, sem webhook ou enforcement comercial.
+- Billing portal runtime esta implementado em `lib/billing/stripe-portal.ts` e `app/protected/configuracoes/billing-actions.ts` para `billing.portal.start`, sem webhook, subscription sync ou enforcement comercial.
 - Evidencia real de checkout Stripe ainda esta pendente porque nao ha conta Stripe de teste/credenciais configuradas.
 - O contrato de planejamento para GAP-015 esta documentado em `docs/audits/SENSITIVE_OPERATION_CONTROLS_CONTRACT.md`, com schema/read-side RLS de audit events em `supabase/migrations/040_audit_events_schema.sql`, write boundary de audit events em `supabase/migrations/041_audit_events_write_boundary.sql` via `record_audit_event`, billing checkout audit runtime e billing checkout rate limit runtime em `app/protected/configuracoes/billing-actions.ts`, admin permission audit runtime e admin permission rate limit runtime em `app/protected/admin/actions.ts` para `admin.permission.update` e `admin.feature_permission.update`, admin user audit runtime e admin user rate limit runtime em `app/protected/admin/actions.ts` para `admin.user.create`, `admin.user.update`, `admin.user.auth_link.sync`, `admin.user.delete` e `admin.user.status.update`, payable bill audit runtime, payable delete rate limit runtime, payable status rate limit runtime, payable write audit runtime e payable write rate limit runtime em `app/protected/contas-a-pagar/actions.ts` para `finance.payable.status.update`, `finance.payable.delete`, `finance.payable.create` e `finance.payable.update`, receivable income audit runtime, receivable delete rate limit runtime, receivable status rate limit runtime, receivable write audit runtime e receivable write rate limit runtime em `app/protected/contas-a-receber/actions.ts` para `finance.receivable.status.update`, `finance.receivable.delete`, `finance.receivable.create` e `finance.receivable.update`, expense audit runtime, expense delete rate limit runtime, expense write audit runtime e expense write rate limit runtime em `app/protected/gastos/actions.ts` para `finance.expense.delete`, `finance.expense.create` e `finance.expense.update`, category delete audit runtime e category delete rate limit runtime em `app/protected/configuracoes/actions.ts` para `finance.category.delete`, category write audit runtime e category write rate limit runtime em `app/protected/configuracoes/actions.ts` para `finance.category.create` e `finance.category.update`, bank audit runtime, bank delete rate limit runtime, bank balance rate limit runtime, bank write audit runtime e bank write rate limit runtime em `app/protected/bancos/actions.ts` para `finance.bank.balance.update`, `finance.bank.delete`, `finance.bank.create` e `finance.bank.update`, member limit audit runtime e member limit rate limit runtime em `lib/finance/member-limit-controls.ts`, `app/protected/configuracoes/actions.ts` e `app/protected/pessoas/actions.ts` para `finance.member.limit.update`, member status audit runtime e member status rate limit runtime em `lib/finance/member-status-controls.ts` e `app/protected/pessoas/actions.ts` para `finance.member.status.update`, member write audit runtime e member write rate limit runtime em `lib/finance/member-write-controls.ts` e `app/protected/pessoas/actions.ts` para `finance.member.create` e `finance.member.update`, plano de rate limiting em `docs/audits/SENSITIVE_OPERATION_RATE_LIMIT_PLAN.md` e plano de data retention em `docs/audits/SENSITIVE_DATA_RETENTION_PLAN.md`, com audit event retention preflight e cleanup runtime em `app/protected/configuracoes/audit-retention-actions.ts` e `supabase/migrations/042_audit_events_retention_cleanup.sql` para contagem e limpeza confirmada owner/admin de `audit_events` da organizacao ativa acima de 365 dias; remaining broader rate limiting e data retention cleanup ainda nao tem runtime implementado.
 - Login rate limit runtime esta versionado em `app/auth/login/actions.ts` para `auth.login.password`, com actor por email normalizado, escopo `public-auth`, buckets compartilhados para email ausente/invalido, rollback por `DISABLE_SENSITIVE_RATE_LIMITS=true` e sem audit runtime porque `record_audit_event` exige usuario autenticado e membership.
@@ -182,7 +183,7 @@ Resultado atual:
 
 ### GAP-003 - Billing
 
-`organizations` possui campos como `plan` e `stripe_customer_id`. Checkout runtime esta implementado; evidencia real com Stripe de teste, subscription sync, portal, webhook e enforcement comercial ainda nao.
+`organizations` possui campos como `plan` e `stripe_customer_id`. Checkout runtime e billing portal runtime estao implementados; evidencia real com Stripe de teste, subscription sync, webhook e enforcement comercial ainda nao.
 
 Contrato local de planos:
 
@@ -198,8 +199,8 @@ Resultado esperado:
 
 - registrar evidencia externa pendente ou decidir deferimento explicito;
 - criar/configurar conta Stripe de teste e credenciais;
-- validar checkout runtime com ambiente Stripe de teste antes de qualquer webhook/portal;
-- implementar webhook, portal e assinatura em PRs separados.
+- validar checkout runtime e billing portal runtime com ambiente Stripe de teste antes de qualquer webhook;
+- implementar webhook e assinatura em PRs separados.
 
 ### GAP-011 - Contratos de UI financeira
 
@@ -238,8 +239,9 @@ Resultado atual:
 - plano de schema/redaction para audit events documentado em `docs/audits/SENSITIVE_ACTION_AUDIT_EVENT_SCHEMA_PLAN.md`;
 - schema/read-side RLS de audit events versionado em `supabase/migrations/040_audit_events_schema.sql`;
 - write boundary de audit events versionado em `supabase/migrations/041_audit_events_write_boundary.sql` via `record_audit_event`;
-- billing checkout audit runtime versionado em `app/protected/configuracoes/billing-actions.ts`, sem webhook, portal ou retention;
+- billing checkout audit runtime versionado em `app/protected/configuracoes/billing-actions.ts`, sem webhook ou retention;
 - billing checkout rate limit runtime versionado em `app/protected/configuracoes/billing-actions.ts` para `billing.checkout.start` via `lib/security/sensitive-rate-limit.ts`, com storage em memoria de processo, limpeza de buckets expirados e rollback por `DISABLE_SENSITIVE_RATE_LIMITS=true`;
+- billing portal runtime e billing portal rate limit runtime versionados em `app/protected/configuracoes/billing-actions.ts` para `billing.portal.start` via `lib/security/sensitive-rate-limit.ts`, com storage em memoria de processo e rollback por `DISABLE_SENSITIVE_RATE_LIMITS=true`;
 - login rate limit runtime versionado em `app/auth/login/actions.ts` para `auth.login.password`, com actor por email normalizado, storage em memoria de processo e sem audit runtime;
 - signup authorized email rate limit runtime versionado em `app/auth/sign-up/actions.ts` para `auth.signup.authorized_email.check`, com actor por email normalizado, escopo `public-auth`, storage em memoria de processo e sem audit runtime;
 - signup submit rate limit runtime versionado em `app/auth/sign-up/actions.ts` para `auth.signup.submit`, com actor por email normalizado, lookup server-side de perfil autorizado, storage em memoria de processo e sem audit runtime;
@@ -305,8 +307,8 @@ Resultado esperado:
    - Usar `docs/audits/BILLING_STRIPE_CONFIGURATION_BOUNDARY.md`.
    - Usar `docs/runbooks/BILLING_STRIPE_TEST_ACCOUNT_RUNBOOK.md`.
    - Criar/configurar conta Stripe de teste e credenciais.
-   - Validar checkout runtime com Stripe de teste.
-   - Implementar webhook e portal em PRs proprios.
+   - Validar checkout runtime e billing portal runtime com Stripe de teste.
+   - Implementar webhook em PR proprio.
    - Planejar Stripe sem misturar com RLS/rotas.
 
 5. **Primeiro snapshot visual seletivo**

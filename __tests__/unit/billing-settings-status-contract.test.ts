@@ -29,9 +29,8 @@ describe("billing settings status contract", () => {
     expect(settingsPage).toContain("canmanagebilling");
   });
 
-  it("keeps checkout separated from portal, webhook, and commercial enforcement", () => {
+  it("keeps billing actions separated from webhook and commercial enforcement", () => {
     for (const source of [component, settingsPage]) {
-      expect(source).not.toContain("billing portal");
       expect(source).not.toContain("createcustomer");
       expect(source).not.toContain("stripe.webhooks");
     }
@@ -45,8 +44,10 @@ describe("billing settings status contract", () => {
     expect(contract).toContain("requireorganizationaccess(orgslug)");
     expect(contract).toContain("permissao de billing por membership");
     expect(contract).toContain("checkout");
+    expect(contract).toContain("billing portal runtime");
+    expect(contract).toContain("billing.portal.start");
     expect(contract).toContain("webhooks");
-    expect(contract).toContain("evidencia real de checkout stripe segue pendente");
+    expect(contract).toContain("evidencia real de checkout e portal stripe segue pendente");
     expect(contract).toContain("contratos relacionados");
   });
 
@@ -57,6 +58,7 @@ describe("billing settings status contract", () => {
     expect(gapRegister).toContain("subscription flow contract");
     expect(gapRegister).toContain("stripe configuration boundary");
     expect(gapRegister).toContain("stripe checkout runtime");
+    expect(gapRegister).toContain("billing portal runtime");
     expect(gapRegister).toContain("stripe test account runbook");
   });
 });

@@ -6,7 +6,9 @@ Atualizado em: 2026-05-28
 
 Este contrato define o fluxo de assinatura do GAP-006 e registra o primeiro runtime Stripe permitido.
 
-Checkout runtime implementado neste passo: server action em Configuracoes cria uma Stripe Checkout Session para a organizacao resolvida no servidor. O objetivo continua sendo manter a mudanca pequena, auditavel e sem falso verde.
+Checkout runtime implementado: server action em Configuracoes cria uma Stripe Checkout Session para a organizacao resolvida no servidor.
+
+Billing portal runtime implementado: server action em Configuracoes cria uma Stripe Billing Portal Session somente para organizacao resolvida no servidor com `stripe_customer_id`. O objetivo continua sendo manter cada mudanca pequena, auditavel e sem falso verde.
 
 Evidencia real pendente: ainda nao ha conta Stripe de teste/credenciais configuradas para validar o checkout contra Stripe. Enquanto isso, `ENABLE_STRIPE_CHECKOUT=false` deve permanecer como padrao operacional.
 
@@ -49,12 +51,20 @@ Price ids por plano pago:
 
 ### 2. Portal de billing
 
-Comportamento esperado quando portal runtime existir:
+Comportamento implementado:
 
 - usuario owner/admin abre portal somente se a organizacao possuir customer externo;
 - servidor resolve a organizacao ativa antes de criar a sessao;
 - portal nao recebe customer id do client;
 - retorno volta para Configuracoes.
+- portal usa rate limit `billing.portal.start` antes de chamar Stripe;
+- portal registra eventos `billing.portal.start` e `billing.portal.failed` sem payload sensivel.
+
+Arquivos:
+
+- `components/settings/settings-billing-plan-status.tsx`;
+- `app/protected/configuracoes/billing-actions.ts`;
+- `lib/billing/stripe-portal.ts`.
 
 ### 3. Webhook
 
@@ -105,7 +115,6 @@ Rollback minimo esperado:
 
 Este passo nao implementa:
 
-- rota de portal;
 - endpoint webhook;
 - tabelas de assinatura;
 - cobranca real;
@@ -128,14 +137,15 @@ Resumo do estado atual:
 - `ENABLE_STRIPE_CHECKOUT=false` por padrao;
 - fail-fast em runtime de producao quando `ENABLE_STRIPE_CHECKOUT=true` e env vars obrigatorias estiverem ausentes;
 - checkout runtime cria sessao Stripe somente quando a fronteira esta habilitada e pronta.
+- billing portal runtime cria sessao Stripe somente quando a fronteira esta habilitada, pronta e a organizacao possui `stripe_customer_id`.
 
 ## Pendencias apos checkout runtime
 
 - sem conta Stripe de teste/credenciais configuradas;
 - sem evidencia real de checkout Stripe;
+- sem evidencia real de billing portal Stripe;
 - sem webhook runtime;
-- sem portal runtime;
 - sem atualizacao automatica de `organizations.plan`;
 - sem enforcement comercial final;
-- manter webhook/portal separados em passos explicitos;
+- manter webhook em passo explicito;
 - preservar rollback operacional definido neste contrato.

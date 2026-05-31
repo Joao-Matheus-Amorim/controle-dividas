@@ -59,6 +59,10 @@ GAP-015 public auth note: password update rate limit runtime covers `auth.passwo
 
 GAP-015 onboarding note: onboarding organization rate limit runtime covers `onboarding.organization.create` in `app/onboarding/organizacao/actions.ts` using the current auth user id as actor key, a shared `missing-session` bucket when no session is present, and `onboarding` as organization key before calling `create_initial_organization_onboarding`. This step has sem audit runtime because the organization context is created by this boundary.
 
+GAP-006 billing portal note: billing portal runtime covers `billing.portal.start` in `app/protected/configuracoes/billing-actions.ts` using server-resolved organization context and `stripe_customer_id` only from the active organization. Webhook, subscriptions, and commercial enforcement are not implemented.
+
+GAP-015 billing portal note: billing portal audit runtime uses `record_audit_event` and billing portal rate limit runtime covers `billing.portal.start` with process-local storage and `DISABLE_SENSITIVE_RATE_LIMITS` rollback.
+
 ## Recently closed gaps
 
 | ID | Area | Closed by | Notes |

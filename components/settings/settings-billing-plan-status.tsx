@@ -2,7 +2,10 @@ import { CreditCard, ShieldCheck } from "lucide-react";
 
 import { AppCard, AppSectionTitle } from "@/components/app/app-card";
 import { Button } from "@/components/ui/button";
-import { startBillingCheckout } from "@/app/protected/configuracoes/billing-actions";
+import {
+  startBillingCheckout,
+  startBillingPortal,
+} from "@/app/protected/configuracoes/billing-actions";
 import {
   BILLING_PLANS,
   getBillingPlan,
@@ -18,6 +21,8 @@ interface SettingsBillingPlanStatusProps {
   checkoutEnabled: boolean;
   checkoutReady: boolean;
   checkoutStatus?: string;
+  portalStatus?: string;
+  hasStripeCustomer: boolean;
   orgSlug?: string;
 }
 
@@ -52,6 +57,25 @@ function getCheckoutStatusMessage(status: string | undefined) {
   }
 }
 
+function getPortalStatusMessage(status: string | undefined) {
+  switch (status) {
+    case "returned":
+      return "Portal de billing encerrado. Alteracoes de assinatura dependem do webhook.";
+    case "portal_disabled":
+      return "Portal de billing esta desativado por configuracao.";
+    case "stripe_not_configured":
+      return "Portal de billing esta habilitado, mas a configuracao server-side esta incompleta.";
+    case "missing_customer":
+      return "Portal de billing indisponivel ate a organizacao ter um customer Stripe.";
+    case "missing_portal_url":
+      return "Stripe nao retornou URL de portal.";
+    case "rate_limited":
+      return "Muitas tentativas de abertura do portal. Tente novamente em alguns minutos.";
+    default:
+      return null;
+  }
+}
+
 export function SettingsBillingPlanStatus({
   organizationName,
   plan,
@@ -61,6 +85,8 @@ export function SettingsBillingPlanStatus({
   checkoutEnabled,
   checkoutReady,
   checkoutStatus,
+  portalStatus,
+  hasStripeCustomer,
   orgSlug,
 }: SettingsBillingPlanStatusProps) {
   const billingPlan = getBillingPlan(plan);
@@ -71,6 +97,9 @@ export function SettingsBillingPlanStatus({
   ];
   const checkoutAvailable = canManageBilling && checkoutEnabled && checkoutReady;
   const checkoutStatusMessage = getCheckoutStatusMessage(checkoutStatus);
+  const portalStatusMessage = getPortalStatusMessage(portalStatus);
+  const portalAvailable = checkoutAvailable && hasStripeCustomer;
+  const portalAction = startBillingPortal.bind(null, orgSlug);
 
   return (
     <AppCard className="space-y-4">
@@ -125,6 +154,28 @@ export function SettingsBillingPlanStatus({
         </div>
       ) : null}
 
+      {portalStatusMessage ? (
+        <div className="rounded-2xl border border-white/10 bg-[#080810]/55 p-3 text-sm text-white/65">
+          {portalStatusMessage}
+        </div>
+      ) : null}
+
+      <form
+        action={portalAction}
+        className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-[#080810]/55 p-3 sm:flex-row sm:items-center sm:justify-between"
+      >
+        <div>
+          <p className="text-sm font-bold text-white">Portal de billing</p>
+          <p className="mt-1 text-sm leading-6 text-white/40">
+            Gerencie metodo de pagamento e assinatura no Stripe.
+          </p>
+        </div>
+        <Button disabled={!portalAvailable} type="submit">
+          <CreditCard className="h-4 w-4" />
+          Abrir portal
+        </Button>
+      </form>
+
       <div className="grid gap-3 lg:grid-cols-3">
         {paidPlans.map((paidPlan) => {
           const formAction = startBillingCheckout.bind(null, paidPlan.key, orgSlug);
@@ -169,6 +220,12 @@ export function SettingsBillingPlanStatus({
       {checkoutEnabled && !checkoutReady ? (
         <p className="text-sm text-white/40">
           Checkout indisponivel por configuracao incompleta.
+        </p>
+      ) : null}
+
+      {checkoutEnabled && checkoutReady && canManageBilling && !hasStripeCustomer ? (
+        <p className="text-sm text-white/40">
+          Portal indisponivel ate a organizacao ter um customer Stripe.
         </p>
       ) : null}
     </AppCard>
