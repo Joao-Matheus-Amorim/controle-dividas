@@ -62,13 +62,12 @@ docs/audits/BILLING_STRIPE_CONFIGURATION_BOUNDARY.md
 
 Essa fronteira versiona helper de configuracao server-side, flag de habilitacao e fail-fast de env vars obrigatorias em runtime de producao.
 
-Depois dessa fronteira, checkout runtime foi implementado em PR proprio, mantendo webhooks, portal, cobranca real e enforcement comercial fora do mesmo passo.
+Depois dessa fronteira, checkout runtime e billing portal runtime foram implementados em PRs proprios, mantendo webhooks, assinatura Stripe, cobranca real e enforcement comercial fora desses passos.
 
 ## Limites
 
 Este ADR e sua sequencia nao implementam:
 
-- billing portal;
 - webhooks;
 - tabelas `subscriptions`;
 - cobranca real;
@@ -82,7 +81,9 @@ Este ADR e sua sequencia nao implementam:
 4. Definir UI e fluxo de assinatura.
 5. Implementar fronteira de configuracao Stripe.
 6. Implementar checkout runtime em PR proprio.
-7. Implementar webhook/portal em PRs separados com testes e rollback.
+7. Implementar billing portal runtime em PR proprio.
+8. Validar evidencia real de checkout e portal com Stripe de teste.
+9. Implementar webhook em PR proprio com testes e rollback.
 
 ## Relacao com docs vivos
 

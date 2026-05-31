@@ -57,5 +57,7 @@ describe("billing subscription flow contract", () => {
     expect(billingAdr).toContain("billing_subscription_flow_contract.md");
     expect(billingAdr).toContain("fronteira de configuracao stripe");
     expect(billingAdr).toContain("billing_stripe_configuration_boundary.md");
+    expect(billingAdr).toContain("checkout runtime e billing portal runtime foram implementados");
+    expect(billingAdr).toContain("implementar webhook em pr proprio");
   });
 });
