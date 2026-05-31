@@ -59,9 +59,12 @@ describe("billing subscription flow contract", () => {
     expect(gapRegister).toContain("stripe checkout runtime");
     expect(gapRegister).toContain("billing portal runtime");
     expect(billingAdr).toContain("billing_subscription_flow_contract.md");
+    expect(billingAdr).toContain("webhook idempotente, subscription sync, secrets e rollback");
     expect(billingAdr).toContain("fronteira de configuracao stripe");
     expect(billingAdr).toContain("billing_stripe_configuration_boundary.md");
     expect(billingAdr).toContain("checkout runtime e billing portal runtime foram implementados");
-    expect(billingAdr).toContain("implementar webhook em pr proprio");
+    expect(billingAdr).toContain("subscription sync");
+    expect(billingAdr).not.toContain("assinatura " + "stripe");
+    expect(billingAdr).toContain("implementar webhook e subscription sync em prs separados");
   });
 });

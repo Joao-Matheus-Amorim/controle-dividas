@@ -12,7 +12,7 @@ Aceito
 
 `organizations` ja possui os campos `plan`, `trial_ends_at` e `stripe_customer_id` desde a migration `006_organizations_memberships.sql`.
 
-No inicio desta decisao, o app ainda nao possuia checkout, webhook, portal de billing, assinatura Stripe ou enforcement comercial por plano. Implementar Stripe diretamente em um pacote amplo aumentaria risco porque os evidence gates externos ainda precisam de execucao dedicada:
+No inicio desta decisao, o app ainda nao possuia checkout, webhook, portal de billing, subscription sync ou enforcement comercial por plano. Implementar Stripe diretamente em um pacote amplo aumentaria risco porque os evidence gates externos ainda precisam de execucao dedicada:
 
 - RLS Live Gate;
 - E2E dedicado de `orgSlug`.
@@ -52,7 +52,7 @@ O fluxo de assinatura antes do runtime Stripe esta documentado em:
 docs/audits/BILLING_SUBSCRIPTION_FLOW_CONTRACT.md
 ```
 
-Esse contrato define entrada de checkout, retorno, portal, webhook idempotente, secrets e rollback antes da primeira implementacao runtime.
+Esse contrato define entrada de checkout, retorno, portal, webhook idempotente, subscription sync, secrets e rollback antes da primeira implementacao runtime.
 
 A fronteira de configuracao Stripe antes de checkout runtime esta documentada em:
 
@@ -62,7 +62,7 @@ docs/audits/BILLING_STRIPE_CONFIGURATION_BOUNDARY.md
 
 Essa fronteira versiona helper de configuracao server-side, flag de habilitacao e fail-fast de env vars obrigatorias em runtime de producao.
 
-Depois dessa fronteira, checkout runtime e billing portal runtime foram implementados em PRs proprios, mantendo webhooks, assinatura Stripe, cobranca real e enforcement comercial fora desses passos.
+Depois dessa fronteira, checkout runtime e billing portal runtime foram implementados em PRs proprios, mantendo webhooks, subscription sync, cobranca real e enforcement comercial fora desses passos.
 
 ## Limites
 
@@ -70,6 +70,7 @@ Este ADR e sua sequencia nao implementam:
 
 - webhooks;
 - tabelas `subscriptions`;
+- subscription sync;
 - cobranca real;
 - limites comerciais por plano.
 
@@ -83,7 +84,7 @@ Este ADR e sua sequencia nao implementam:
 6. Implementar checkout runtime em PR proprio.
 7. Implementar billing portal runtime em PR proprio.
 8. Validar evidencia real de checkout e portal com Stripe de teste.
-9. Implementar webhook em PR proprio com testes e rollback.
+9. Implementar webhook e subscription sync em PRs separados com testes e rollback.
 
 ## Relacao com docs vivos
 
