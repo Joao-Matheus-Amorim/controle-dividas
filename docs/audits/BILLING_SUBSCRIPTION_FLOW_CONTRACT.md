@@ -148,8 +148,7 @@ Resumo do estado atual:
 ## Pendencias apos checkout runtime
 
 - sem conta Stripe de teste/credenciais configuradas;
-- sem evidencia real de checkout Stripe;
-- sem evidencia real de billing portal Stripe;
+- sem evidencia real de checkout e billing portal Stripe;
 - sem webhook runtime;
 - sem atualizacao automatica de `organizations.plan`;
 - sem enforcement comercial final;

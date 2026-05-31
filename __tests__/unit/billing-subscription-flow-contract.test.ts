@@ -31,6 +31,8 @@ describe("billing subscription flow contract", () => {
     expect(contract).toContain("checkout runtime implementado");
     expect(contract).toContain("app/protected/configuracoes/billing-actions.ts");
     expect(contract).toContain("lib/billing/stripe-checkout.ts");
+    expect(contract).toContain("sem evidencia real de checkout e billing portal stripe");
+    expect(contract).not.toContain("sem evidencia real de checkout " + "stripe");
     expect(contract).toContain("endpoint webhook");
     expect(contract).toContain("tabelas de assinatura");
     expect(contract).toContain("mudanca rls");
