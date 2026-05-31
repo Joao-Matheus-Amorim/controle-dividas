@@ -98,7 +98,7 @@ A limpeza final de policies antigas owner/family foi versionada em:
 - A estrategia de snapshot visual seletivo esta documentada em `docs/audits/SELECTIVE_VISUAL_SNAPSHOT_STRATEGY.md`; nenhum snapshot visual amplo foi implementado neste passo.
 - A fixture deterministica do dashboard summary acima da dobra esta documentada em `docs/audits/DASHBOARD_SUMMARY_VISUAL_FIXTURE.md`, versionada em `__tests__/fixtures/dashboard-summary-visual-snapshot.ts` e coberta por screenshot gated em `tests/e2e/dashboard-summary-visual-snapshot-gated.spec.ts`.
 - O status de billing em Configuracoes mostra o plano atual da organizacao usando `lib/billing/plans.ts` e expoe entrada de checkout e billing portal controladas por `ENABLE_STRIPE_CHECKOUT`, documentado em `docs/audits/BILLING_SETTINGS_STATUS_CONTRACT.md`.
-- O contrato de fluxo de assinatura esta documentado em `docs/audits/BILLING_SUBSCRIPTION_FLOW_CONTRACT.md`, cobrindo checkout, portal, webhook idempotente, secrets e rollback para os runtimes Stripe dedicados.
+- O contrato de fluxo de assinatura esta documentado em `docs/audits/BILLING_SUBSCRIPTION_FLOW_CONTRACT.md`, cobrindo checkout, portal, webhook idempotente, subscription sync, secrets e rollback para os runtimes Stripe dedicados.
 - O contrato pre-runtime do futuro webhook Stripe esta documentado em `docs/audits/BILLING_WEBHOOK_RUNTIME_CONTRACT.md`, mantendo endpoint, idempotencia, assinatura, rollback e decisoes de storage/write boundary explicitos antes de runtime.
 - A fronteira de configuracao Stripe esta implementada em `lib/billing/stripe-config.ts` e documentada em `docs/audits/BILLING_STRIPE_CONFIGURATION_BOUNDARY.md`.
 - O runbook de conta Stripe de teste esta em `docs/runbooks/BILLING_STRIPE_TEST_ACCOUNT_RUNBOOK.md`.

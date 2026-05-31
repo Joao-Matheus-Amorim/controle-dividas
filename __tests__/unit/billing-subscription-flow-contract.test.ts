@@ -35,6 +35,7 @@ describe("billing subscription flow contract", () => {
     expect(contract).not.toContain("sem evidencia real de checkout " + "stripe");
     expect(contract).toContain("endpoint webhook");
     expect(contract).toContain("tabelas de assinatura");
+    expect(contract).toContain("subscription sync");
     expect(contract).toContain("mudanca rls");
     expect(contract).toContain("e2e data-changing");
   });
@@ -52,6 +53,7 @@ describe("billing subscription flow contract", () => {
   it("keeps roadmap, gap register, and ADR 0008 aligned with the next Stripe-safe step", () => {
     expect(roadmap).toContain("docs/audits/billing_subscription_flow_contract.md");
     expect(roadmap).toContain("fronteira de configuracao stripe");
+    expect(roadmap).toContain("webhook idempotente, subscription sync, secrets e rollback");
     expect(gapRegister).toContain("subscription flow contract");
     expect(gapRegister).toContain("stripe configuration boundary");
     expect(gapRegister).toContain("stripe checkout runtime");

@@ -123,6 +123,7 @@ Este passo nao implementa:
 
 - endpoint webhook;
 - tabelas de assinatura;
+- subscription sync;
 - cobranca real;
 - enforcement comercial por plano;
 - migracao de schema;
@@ -150,6 +151,7 @@ Resumo do estado atual:
 - sem conta Stripe de teste/credenciais configuradas;
 - sem evidencia real de checkout e billing portal Stripe;
 - sem webhook runtime;
+- sem subscription sync;
 - sem atualizacao automatica de `organizations.plan`;
 - sem enforcement comercial final;
 - manter webhook em passo explicito;
