@@ -77,6 +77,12 @@ Comportamento esperado quando webhook runtime existir:
 - falha de evento nao deve expor secrets em logs;
 - atualizacao de `organizations.plan` ocorre somente depois de evento confiavel.
 
+Contrato dedicado antes do runtime:
+
+```txt
+docs/audits/BILLING_WEBHOOK_RUNTIME_CONTRACT.md
+```
+
 ### 4. Estados locais
 
 O runtime local deve tratar:
