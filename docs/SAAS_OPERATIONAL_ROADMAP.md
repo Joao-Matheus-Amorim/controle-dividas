@@ -240,7 +240,7 @@ Resultado atual:
 - plano de schema/redaction para audit events documentado em `docs/audits/SENSITIVE_ACTION_AUDIT_EVENT_SCHEMA_PLAN.md`;
 - schema/read-side RLS de audit events versionado em `supabase/migrations/040_audit_events_schema.sql`;
 - write boundary de audit events versionado em `supabase/migrations/041_audit_events_write_boundary.sql` via `record_audit_event`;
-- billing checkout audit runtime versionado em `app/protected/configuracoes/billing-actions.ts`, sem billing webhook ou data retention runtime;
+- billing checkout audit runtime versionado em `app/protected/configuracoes/billing-actions.ts`, sem billing webhook, subscription sync ou data retention runtime;
 - billing checkout rate limit runtime versionado em `app/protected/configuracoes/billing-actions.ts` para `billing.checkout.start` via `lib/security/sensitive-rate-limit.ts`, com storage em memoria de processo, limpeza de buckets expirados e rollback por `DISABLE_SENSITIVE_RATE_LIMITS=true`;
 - billing portal runtime e billing portal rate limit runtime versionados em `app/protected/configuracoes/billing-actions.ts` para `billing.portal.start` via `lib/security/sensitive-rate-limit.ts`, com storage em memoria de processo e rollback por `DISABLE_SENSITIVE_RATE_LIMITS=true`;
 - login rate limit runtime versionado em `app/auth/login/actions.ts` para `auth.login.password`, com actor por email normalizado, storage em memoria de processo e sem audit runtime;
