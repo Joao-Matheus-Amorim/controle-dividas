@@ -57,6 +57,8 @@ GAP-015 public auth note: password reset rate limit runtime covers `auth.passwor
 
 GAP-015 public auth note: password update rate limit runtime covers `auth.password_update.submit` in `app/auth/update-password/actions.ts` using the current auth user id as actor key, a shared `missing-session` bucket when no recovery session is present, and `public-auth` as organization key. This step has sem audit runtime because `record_audit_event` requires an authenticated organization member.
 
+GAP-015 onboarding note: onboarding organization rate limit runtime covers `onboarding.organization.create` in `app/onboarding/organizacao/actions.ts` using the current auth user id as actor key, a shared `missing-session` bucket when no session is present, and `onboarding` as organization key before calling `create_initial_organization_onboarding`. This step has sem audit runtime because the organization context is created by this boundary.
+
 ## Recently closed gaps
 
 | ID | Area | Closed by | Notes |

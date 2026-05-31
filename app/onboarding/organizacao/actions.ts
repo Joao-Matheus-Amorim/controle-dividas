@@ -1,5 +1,6 @@
 "use server";
 
+import { checkSensitiveOperationRateLimit } from "@/lib/security/sensitive-rate-limit";
 import { createClient } from "@/lib/supabase/server";
 
 export type InitialOrganizationOnboardingState = {
@@ -8,6 +9,12 @@ export type InitialOrganizationOnboardingState = {
 };
 
 const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+const initialOrganizationOnboardingRateLimit = {
+  operationKey: "onboarding.organization.create",
+  limit: 5,
+  windowMs: 10 * 60 * 1000,
+};
 
 function normalizeOrganizationSlug(value: string) {
   return value
@@ -51,6 +58,20 @@ export async function createInitialOrganizationFromOnboarding(
   }
 
   const supabase = await createClient();
+  const { data } = await supabase.auth.getClaims();
+  const actorKey = data?.claims?.sub ? String(data.claims.sub) : "missing-session";
+  const rateLimit = checkSensitiveOperationRateLimit({
+    ...initialOrganizationOnboardingRateLimit,
+    actorKey,
+    organizationId: "onboarding",
+  });
+
+  if (!rateLimit.allowed) {
+    return {
+      error: "Muitas tentativas de criacao de organizacao. Tente novamente em alguns minutos.",
+    };
+  }
+
   const { error } = await supabase.rpc("create_initial_organization_onboarding", {
     p_name: name,
     p_slug: slug,
