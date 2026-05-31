@@ -145,6 +145,8 @@ describe("SaaS hardening status docs", () => {
     const billingAdr = read("docs/adr/0008-billing-plan-contract-before-stripe.md");
 
     expect(adrIndex).toContain("0008-billing-plan-contract-before-stripe.md");
+    expect(adrIndex).toContain("checkout e portal em prs proprios");
+    expect(adrIndex).toContain("webhook separado por contrato pre-runtime");
     expect(billingAdr).toContain("lib/billing/plans.ts");
     expect(billingAdr).toContain("free");
     expect(billingAdr).toContain("family_basic");

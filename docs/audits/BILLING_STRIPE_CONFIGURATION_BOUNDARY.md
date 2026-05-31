@@ -35,7 +35,7 @@ Este contrato de fronteira nao implementa:
 - alteracao de RLS;
 - E2E data-changing.
 
-## Checkout runtime
+## Checkout e portal runtime
 
 O primeiro checkout runtime dedicado fica em:
 
@@ -59,12 +59,12 @@ Ele usa a mesma fronteira Stripe, exige `stripe_customer_id` resolvido no servid
 
 ## Evidencia Stripe pendente
 
-Ainda nao ha conta Stripe de teste/credenciais configuradas para validar checkout real.
+Ainda nao ha conta Stripe de teste/credenciais configuradas para validar checkout e portal reais.
 
 Enquanto essa evidencia nao existir:
 
 - manter `ENABLE_STRIPE_CHECKOUT=false` por padrao;
-- nao declarar checkout Stripe validado;
+- nao declarar checkout ou portal Stripe validado;
 - nao iniciar webhook ou enforcement comercial como se checkout/portal real ja tivesse evidencia.
 
 Runbook para criar/configurar conta Stripe de teste:

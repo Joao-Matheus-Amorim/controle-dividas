@@ -77,4 +77,4 @@ Um ADR aceito não deve ser editado para mudar a decisão histórica. Se a decis
 | [0005](./0005-onboarding-route-layout-strategy.md) | Aceito | O onboarding inicial deve usar rota fora do layout protegido atual para não exigir organização ativa antes da criação. |
 | [0006](./0006-current-saas-transition-architecture.md) | Aceito | O estado SaaS transicional atual deve ter registro arquitetural próprio. |
 | [0007](./0007-orgslug-routing-contract.md) | Aceito | As rotas organization-aware usam `/org/[orgSlug]` com `/protected` mantido como compatibilidade transicional. |
-| [0008](./0008-billing-plan-contract-before-stripe.md) | Aceito | O contrato local de planos deve existir antes da integracao Stripe, sem checkout/webhook no mesmo passo. |
+| [0008](./0008-billing-plan-contract-before-stripe.md) | Aceito | O contrato local de planos governa billing Stripe incremental: checkout e portal em PRs proprios, webhook separado por contrato pre-runtime. |
