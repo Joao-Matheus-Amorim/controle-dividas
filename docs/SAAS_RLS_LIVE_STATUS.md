@@ -42,6 +42,7 @@ Isso significa:
 - Auth confirm rate limit runtime existe em `app/auth/confirm/route.ts` para `auth.confirm.verify`, com actor por cliente publico, target por tipo OTP, escopo `public-auth`, rollback por `DISABLE_SENSITIVE_RATE_LIMITS=true` e sem audit runtime porque o write boundary de audit events exige usuario autenticado e membership.
 - Password reset rate limit runtime existe em `app/auth/forgot-password/actions.ts` para `auth.password_reset.request`, com actor por email normalizado, escopo `public-auth`, rollback por `DISABLE_SENSITIVE_RATE_LIMITS=true` e sem audit runtime porque o write boundary de audit events exige usuario autenticado e membership.
 - Password update rate limit runtime existe em `app/auth/update-password/actions.ts` para `auth.password_update.submit`, com actor pelo auth user id atual, bucket compartilhado `missing-session`, escopo `public-auth`, rollback por `DISABLE_SENSITIVE_RATE_LIMITS=true` e sem audit runtime porque o write boundary de audit events exige usuario autenticado e membership.
+- Onboarding organization rate limit runtime existe em `app/onboarding/organizacao/actions.ts` para `onboarding.organization.create`, com actor pelo auth user id atual, bucket compartilhado `missing-session`, escopo `onboarding`, rollback por `DISABLE_SENSITIVE_RATE_LIMITS=true` e sem audit runtime porque a organizacao e criada por essa boundary.
 
 ## 3. Migrations SaaS/RLS/hardening atuais
 
