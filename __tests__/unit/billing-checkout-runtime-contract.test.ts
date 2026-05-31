@@ -64,6 +64,7 @@ describe("billing checkout runtime contract", () => {
     expect(flowContract).toContain("sem webhook runtime");
     expect(flowContract).toContain("billing.portal.start");
     expect(roadmap).toContain("checkout runtime esta implementado");
+    expect(roadmap).toContain("sem webhook, subscription sync ou enforcement comercial");
     expect(roadmap).toContain("billing portal runtime");
     expect(roadmap).toContain("criar/configurar conta stripe de teste");
     expect(gapRegister).toContain("stripe checkout runtime");
