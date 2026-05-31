@@ -45,6 +45,8 @@ A gap is not solved until a small PR is merged with green CI and the related doc
 | GAP-018 | Dashboard visualization | Dashboard chart/time-series visualization is not explicitly covered as a product capability. | Define dashboard insight requirements before adding charting dependencies. |
 | GAP-019 | Client state strategy | There is no explicit client state strategy for growing filters, pagination, optimistic updates, and local UI coordination. | Document when local state, URL state, server actions, or a store should be used. |
 
+GAP-015 public auth note: login rate limit runtime covers `auth.login.password` in `app/auth/login/actions.ts` using the normalized email as actor key and `public-auth` as organization key, with shared buckets for missing or malformed emails. This step has sem audit runtime because `record_audit_event` requires an authenticated organization member.
+
 GAP-015 public auth note: signup authorized email rate limit runtime covers `auth.signup.authorized_email.check` in `app/auth/sign-up/actions.ts` using the normalized email as actor key and `public-auth` as organization key. This step has sem audit runtime because `record_audit_event` requires an authenticated organization member.
 
 GAP-015 public auth note: auth confirm rate limit runtime covers `auth.confirm.verify` in `app/auth/confirm/route.ts` using the public client actor as actor key, OTP type as target key, and `public-auth` as organization key. This step has sem audit runtime because `record_audit_event` requires an authenticated organization member.
