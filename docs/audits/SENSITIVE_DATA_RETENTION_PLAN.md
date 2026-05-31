@@ -24,7 +24,7 @@ No destructive deletion outside confirmed audit_events retention cleanup.
 No audit_events table schema change.
 No RLS policy change.
 No UI change.
-No billing behavior change.
+No billing webhook, subscription sync, or commercial enforcement change.
 No E2E change.
 ```
 

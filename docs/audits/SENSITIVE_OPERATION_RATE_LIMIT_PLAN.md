@@ -45,7 +45,7 @@ No middleware change.
 No schema change.
 No RLS change.
 No UI change.
-No billing behavior change.
+No billing webhook, subscription sync, or commercial enforcement change.
 No E2E change.
 ```
 

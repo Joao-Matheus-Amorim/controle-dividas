@@ -26,6 +26,8 @@ describe("sensitive data retention plan guards", () => {
     expect(plan).toContain("no cleanup job");
     expect(plan).toContain("no anonymization job");
     expect(plan).toContain("no destructive deletion outside confirmed audit_events retention cleanup");
+    expect(plan).toContain("no billing webhook, subscription sync, or commercial enforcement change");
+    expect(plan).not.toContain("no billing " + "behavior change");
     expect(plan).toContain("broader data retention cleanup controls are not implemented yet");
     expect(plan).toContain("app/protected/configuracoes/audit-retention-actions.ts");
   });
