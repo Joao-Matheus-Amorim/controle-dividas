@@ -20,7 +20,7 @@ Configuracoes > Plano da organizacao
 - Os CTAs chamam server action, nao aceitam `organization_id` do client e ficam desabilitados quando `ENABLE_STRIPE_CHECKOUT` esta desligado ou incompleto.
 - O bloco exibe entrada de billing portal somente para owner/admin com configuracao Stripe pronta e organizacao com `stripe_customer_id`.
 - O billing portal runtime usa a operacao `billing.portal.start`.
-- O bloco informa que plano local, webhook e enforcement comercial continuam fora deste passo.
+- O bloco informa que plano local, webhook, subscription sync e enforcement comercial continuam fora deste passo.
 
 ## Fora de escopo
 
@@ -28,6 +28,7 @@ Este passo nao implementa:
 
 - webhooks;
 - tabelas `subscriptions`;
+- subscription sync;
 - cobranca real;
 - enforcement comercial por plano;
 - migrations;
@@ -48,6 +49,6 @@ A fronteira de configuracao Stripe fica em:
 docs/audits/BILLING_STRIPE_CONFIGURATION_BOUNDARY.md
 ```
 
-O checkout runtime inicial e o billing portal runtime estao implementados em PRs proprios. Webhook idempotente e rollback operacional continuam separados.
+O checkout runtime inicial e o billing portal runtime estao implementados em PRs proprios. Webhook idempotente, subscription sync e enforcement comercial continuam separados.
 
 Evidencia real de checkout e portal Stripe segue pendente ate existir conta Stripe de teste/credenciais configuradas.

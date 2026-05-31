@@ -29,7 +29,7 @@ describe("billing settings status contract", () => {
     expect(settingsPage).toContain("canmanagebilling");
   });
 
-  it("keeps billing actions separated from webhook and commercial enforcement", () => {
+  it("keeps billing actions separated from webhook, subscription sync, and commercial enforcement", () => {
     for (const source of [component, settingsPage]) {
       expect(source).not.toContain("createcustomer");
       expect(source).not.toContain("stripe.webhooks");
@@ -47,6 +47,9 @@ describe("billing settings status contract", () => {
     expect(contract).toContain("billing portal runtime");
     expect(contract).toContain("billing.portal.start");
     expect(contract).toContain("webhooks");
+    expect(contract).toContain("subscription sync");
+    expect(contract).toContain("webhook idempotente, subscription sync e enforcement comercial continuam separados");
+    expect(contract).not.toContain("webhook e " + "enforcement comercial continuam fora deste passo");
     expect(contract).toContain("evidencia real de checkout e portal stripe segue pendente");
     expect(contract).toContain("contratos relacionados");
   });
