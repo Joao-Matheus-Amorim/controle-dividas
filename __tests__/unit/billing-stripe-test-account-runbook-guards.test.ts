@@ -14,6 +14,7 @@ describe("billing Stripe test account runbook", () => {
   const runbook = read("docs/runbooks/BILLING_STRIPE_TEST_ACCOUNT_RUNBOOK.md");
   const roadmap = read("docs/SAAS_OPERATIONAL_ROADMAP.md");
   const gapRegister = read("docs/SAAS_GAP_REGISTER.md");
+  const liveStatus = read("docs/SAAS_RLS_LIVE_STATUS.md");
   const flowContract = read("docs/audits/BILLING_SUBSCRIPTION_FLOW_CONTRACT.md");
   const boundaryContract = read("docs/audits/BILLING_STRIPE_CONFIGURATION_BOUNDARY.md");
 
@@ -42,6 +43,8 @@ describe("billing Stripe test account runbook", () => {
     expect(gapRegister).toContain("stripe test account runbook");
     expect(flowContract).toContain(runbookPath);
     expect(boundaryContract).toContain(runbookPath);
+    expect(roadmap).toContain("evidencia real de checkout e portal stripe ainda esta pendente");
+    expect(liveStatus).toContain("evidencia real de checkout e portal stripe ainda esta pendente");
     expect(runbook).toContain("nao iniciar webhook");
   });
 });
