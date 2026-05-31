@@ -5,10 +5,17 @@ import { cn } from "@/lib/utils";
 type AppHeroTone = "primary" | "danger" | "success" | "warning";
 
 const toneClasses: Record<AppHeroTone, string> = {
-  primary: "border-[#8b72f8]/20 bg-[linear-gradient(135deg,#1a0f4e_0%,#0e0730_52%,#080520_100%)] before:bg-[#8b72f8]/10",
-  danger: "border-[#f0506e]/20 bg-[linear-gradient(135deg,#2b0f22_0%,#140814_55%,#080810_100%)] before:bg-[#f0506e]/10",
-  success: "border-[#1de9b2]/20 bg-[linear-gradient(135deg,#05332b_0%,#081816_52%,#080810_100%)] before:bg-[#1de9b2]/10",
-  warning: "border-[#f7b84b]/20 bg-[linear-gradient(135deg,#36240a_0%,#171006_52%,#080810_100%)] before:bg-[#f7b84b]/10",
+  primary: "border-primary/20 bg-ff-primary-soft",
+  danger: "border-ff-destructive/20 bg-ff-destructive-soft",
+  success: "border-ff-success/20 bg-ff-success-soft",
+  warning: "border-ff-warning/20 bg-ff-warning-soft",
+};
+
+const toneAccentText: Record<AppHeroTone, string> = {
+  primary: "text-primary",
+  danger: "text-ff-destructive",
+  success: "text-ff-success",
+  warning: "text-ff-warning",
 };
 
 interface AppHeroCardProps {
@@ -29,16 +36,21 @@ export function AppHeroCard({
   return (
     <section
       className={cn(
-        "relative overflow-hidden rounded-[1.75rem] border p-5 shadow-2xl shadow-black/30 before:pointer-events-none before:absolute before:-right-16 before:-top-16 before:h-48 before:w-48 before:rounded-full before:blur-2xl",
+        "relative overflow-hidden rounded-ff-2xl border p-5 shadow-ff-sm",
         toneClasses[tone],
         className,
       )}
     >
       <div className="relative">
-        <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/35">
+        <p
+          className={cn(
+            "text-[10px] font-bold uppercase tracking-[0.22em]",
+            toneAccentText[tone],
+          )}
+        >
           {eyebrow}
         </p>
-        <p className="mt-2 text-4xl font-semibold tracking-tight text-white md:text-5xl">
+        <p className="mt-2 text-4xl font-semibold tracking-tight text-foreground md:text-5xl">
           {value}
         </p>
         {children}
@@ -53,13 +65,13 @@ export function AppHeroSplit({
   items: Array<{ label: string; value: ReactNode; className?: string }>;
 }) {
   return (
-    <div className="mt-5 grid grid-cols-2 divide-x divide-white/10">
+    <div className="mt-5 grid grid-cols-2 divide-x divide-border">
       {items.map((item, index) => (
         <div key={item.label} className={cn(index === 0 ? "pr-4" : "pl-4", item.className)}>
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
             {item.label}
           </p>
-          <div className="mt-1 text-sm font-semibold text-white/85">{item.value}</div>
+          <div className="mt-1 text-sm font-semibold text-foreground">{item.value}</div>
         </div>
       ))}
     </div>
