@@ -34,6 +34,8 @@ describe("sensitive-action audit event schema plan guards", () => {
     expect(plan).toContain("member status audit runtime exists");
     expect(plan).toContain("read-side rls exists for organization owner/admin");
     expect(plan).toContain("no insert/update/delete policy for authenticated users");
+    expect(plan).toContain("no billing webhook, subscription sync, or commercial enforcement change");
+    expect(plan).not.toContain("no billing webhook or " + "commercial enforcement change");
     expect(plan).toContain("audit event storage is versioned");
     expect(plan).toContain("other operation families remain pending");
   });

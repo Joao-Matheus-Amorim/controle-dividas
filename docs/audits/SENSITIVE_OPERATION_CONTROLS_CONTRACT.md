@@ -66,7 +66,7 @@ Admin user rate limit runtime exists for admin.user.create, admin.user.update, a
 Audit event retention cleanup runtime exists for confirmed owner/admin-only cleanup of expired audit_events through cleanup_expired_audit_events.
 Audit event retention preflight runtime exists for owner/admin-only organization-scoped `audit_events` older than 365 days, with confirmed cleanup runtime and no cleanup job.
 No UI change.
-No billing webhook or commercial enforcement change.
+No billing webhook, subscription sync, or commercial enforcement change.
 No E2E change.
 ```
 
