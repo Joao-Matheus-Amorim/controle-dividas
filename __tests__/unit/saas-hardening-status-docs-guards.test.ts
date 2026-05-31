@@ -154,6 +154,7 @@ describe("SaaS hardening status docs", () => {
     expect(billingAdr).toContain("billing_subscription_flow_contract.md");
     expect(billingAdr).toContain("billing_stripe_configuration_boundary.md");
     expect(billingAdr).toContain("checkout runtime");
+    expect(billingAdr).toContain("billing portal runtime");
     expect(billingAdr).toContain("nao implementa");
     expect(billingAdr).toContain("webhooks");
   });
