@@ -53,7 +53,11 @@ describe("billing webhook runtime contract guards", () => {
     expect(gapRegister).not.toContain("explicitly deferred");
     expect(liveStatus).toContain("billing_webhook_runtime_contract.md");
     expect(liveStatus).toContain("runtime bloqueado ate a evidencia real de checkout e portal");
+    expect(liveStatus).toContain("webhook, subscription sync e enforcement comercial ainda nao foram implementados");
+    expect(liveStatus).not.toContain("assinatura " + "sincronizada");
     expect(roadmap).not.toContain("deferimento");
+    expect(roadmap).toContain("implementar webhook e subscription sync em prs separados");
+    expect(roadmap).not.toContain("webhook e " + "assinatura");
     expect(roadmap).toContain("billing_webhook_runtime_contract.md");
   });
 });
