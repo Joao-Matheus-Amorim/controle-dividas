@@ -158,6 +158,7 @@ This contract does not implement:
 - additional audit event runtime logging outside the documented covered families;
 - retention jobs;
 - billing webhook behavior;
+- subscription sync;
 - commercial enforcement;
 - new UI flows;
 - broad E2E coverage.
