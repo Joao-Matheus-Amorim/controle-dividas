@@ -59,9 +59,11 @@ describe("billing checkout audit runtime guards", () => {
     expect(gapRegister).toContain("category delete audit runtime");
     expect(gapRegister).toContain("billing checkout rate limit runtime");
     expect(gapRegister).toContain("remaining broader rate limiting and data retention cleanup runtime controls are not implemented");
-    expect(roadmap).toContain("sem billing webhook ou data retention runtime");
+    expect(roadmap).toContain("sem billing webhook, subscription sync ou data retention runtime");
     expect(roadmap).toContain("billing portal runtime");
-    expect(liveStatus).toContain("sem billing webhook ou data retention runtime");
+    expect(liveStatus).toContain("sem billing webhook, subscription sync ou data retention runtime");
+    expect(roadmap).not.toContain("sem billing webhook ou " + "data retention runtime");
+    expect(liveStatus).not.toContain("sem billing webhook ou " + "data retention runtime");
     expect(roadmap).not.toContain("sem webhook ou " + "retention");
     expect(liveStatus).not.toContain("sem webhook ou " + "retention");
   });
