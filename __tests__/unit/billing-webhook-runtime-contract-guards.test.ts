@@ -14,6 +14,7 @@ describe("billing webhook runtime contract guards", () => {
   const contract = read("docs/audits/BILLING_WEBHOOK_RUNTIME_CONTRACT.md");
   const flowContract = read("docs/audits/BILLING_SUBSCRIPTION_FLOW_CONTRACT.md");
   const gapRegister = read("docs/SAAS_GAP_REGISTER.md");
+  const liveStatus = read("docs/SAAS_RLS_LIVE_STATUS.md");
   const roadmap = read("docs/SAAS_OPERATIONAL_ROADMAP.md");
   const runbook = read("docs/runbooks/BILLING_STRIPE_TEST_ACCOUNT_RUNBOOK.md");
 
@@ -46,6 +47,8 @@ describe("billing webhook runtime contract guards", () => {
     expect(flowContract).toContain("billing_webhook_runtime_contract.md");
     expect(flowContract).toContain("endpoint dedicado valida assinatura");
     expect(gapRegister).toContain("webhook pre-runtime contract");
+    expect(liveStatus).toContain("billing_webhook_runtime_contract.md");
+    expect(liveStatus).toContain("runtime bloqueado ate a evidencia real de checkout e portal");
     expect(roadmap).toContain("billing_webhook_runtime_contract.md");
   });
 });
