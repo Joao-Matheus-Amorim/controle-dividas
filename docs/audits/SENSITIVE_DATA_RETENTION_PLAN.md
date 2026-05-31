@@ -96,7 +96,7 @@ This plan does not implement:
 - export flows;
 - additional schema changes;
 - RLS changes;
-- billing cancellation or portal behavior;
+- billing cancellation flows or billing portal session runtime behavior;
 - UI changes;
 - E2E coverage.
 

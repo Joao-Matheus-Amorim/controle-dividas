@@ -178,7 +178,7 @@ This plan does not implement:
 - storage tables;
 - external cache configuration;
 - UI copy changes;
-- billing checkout or portal behavior changes;
+- billing checkout or billing portal session runtime behavior changes;
 - E2E coverage.
 
 ## Acceptance

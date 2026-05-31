@@ -57,6 +57,8 @@ describe("sensitive operation rate limit plan guards", () => {
     expect(plan).toContain("no middleware change");
     expect(plan).toContain("no schema change");
     expect(plan).toContain("no rls change");
+    expect(plan).toContain("billing portal session runtime behavior changes");
+    expect(plan).not.toContain("portal " + "behavior changes");
     expect(plan).toContain("no e2e change");
     expect(plan).toContain("additional broader or public-auth limits still need a durable/cache-backed storage decision");
   });

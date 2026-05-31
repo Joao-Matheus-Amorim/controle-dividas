@@ -55,6 +55,8 @@ describe("sensitive data retention plan guards", () => {
     expect(plan).toContain("avoid trusting `organization_id` supplied by the client");
     expect(plan).toContain("define dry-run or preview behavior");
     expect(plan).toContain("emit an audit event after audit event storage exists");
+    expect(plan).toContain("billing portal session runtime behavior");
+    expect(plan).not.toContain("portal " + "behavior");
   });
 
   it("keeps live docs aligned with the data retention plan", () => {
