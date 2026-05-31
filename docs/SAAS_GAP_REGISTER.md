@@ -49,6 +49,8 @@ GAP-015 public auth note: login rate limit runtime covers `auth.login.password` 
 
 GAP-015 public auth note: signup authorized email rate limit runtime covers `auth.signup.authorized_email.check` in `app/auth/sign-up/actions.ts` using the normalized email as actor key and `public-auth` as organization key. This step has sem audit runtime because `record_audit_event` requires an authenticated organization member.
 
+GAP-015 public auth note: signup submit rate limit runtime covers `auth.signup.submit` in `app/auth/sign-up/actions.ts` using the normalized email as actor key and `public-auth` as organization key, with shared buckets for missing or malformed emails and server-side authorized-profile lookup before Supabase signup. This step has sem audit runtime because `record_audit_event` requires an authenticated organization member.
+
 GAP-015 public auth note: auth confirm rate limit runtime covers `auth.confirm.verify` in `app/auth/confirm/route.ts` using the public client actor as actor key, OTP type as target key, and `public-auth` as organization key. This step has sem audit runtime because `record_audit_event` requires an authenticated organization member.
 
 GAP-015 public auth note: password reset rate limit runtime covers `auth.password_reset.request` in `app/auth/forgot-password/actions.ts` using the normalized email as actor key and `public-auth` as organization key. This step has sem audit runtime because `record_audit_event` requires an authenticated organization member.

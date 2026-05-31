@@ -5,11 +5,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { checkAuthorizedFamilyEmail } from "@/app/auth/sign-up/actions";
+import { createAuthorizedFamilyAccess } from "@/app/auth/sign-up/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
 export function SignUpForm({
@@ -26,7 +25,6 @@ export function SignUpForm({
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    const supabase = createClient();
     setIsLoading(true);
     setError(null);
     setAuthorizedName(null);
@@ -38,7 +36,7 @@ export function SignUpForm({
     }
 
     try {
-      const authorization = await checkAuthorizedFamilyEmail(email);
+      const authorization = await createAuthorizedFamilyAccess(email, password);
 
       if (!authorization.allowed) {
         setError(authorization.error || "Este email ainda não foi autorizado pelo Admin familiar.");
@@ -47,14 +45,6 @@ export function SignUpForm({
 
       setAuthorizedName(authorization.name ?? null);
 
-      const { error } = await supabase.auth.signUp({
-        email: email.trim().toLowerCase(),
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/confirm?next=/protected`,
-        },
-      });
-      if (error) throw error;
       router.push("/auth/sign-up-success");
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "Não foi possível criar o acesso.");
