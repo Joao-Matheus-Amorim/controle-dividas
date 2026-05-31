@@ -69,6 +69,9 @@ describe("billing portal runtime guards", () => {
       expect(source).toContain("billing.portal.start");
     }
 
-    expect(gapRegister).toContain("webhook, subscriptions, and commercial enforcement are not implemented");
+    expect(gapRegister).toContain("webhook, subscription sync, and commercial enforcement are not implemented");
+    expect(gapRegister).toContain("webhook, subscription sync, and commercial enforcement are still not implemented");
+    expect(gapRegister).not.toContain("webhook, subscriptions, and " + "commercial enforcement are not implemented");
+    expect(gapRegister).not.toContain("subscription state " + "sync");
   });
 });
