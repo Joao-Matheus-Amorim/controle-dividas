@@ -32,6 +32,7 @@ Signup authorized email rate limit runtime exists for auth.signup.authorized_ema
 Signup submit rate limit runtime exists for auth.signup.submit with no auth audit runtime.
 Auth confirm rate limit runtime exists for auth.confirm.verify with no auth audit runtime.
 Password reset rate limit runtime exists for auth.password_reset.request with no auth audit runtime.
+Password update rate limit runtime exists for auth.password_update.submit with no auth audit runtime.
 Expense delete rate limit runtime exists for finance.expense.delete.
 Expense write audit runtime exists for finance.expense.create and finance.expense.update.
 Expense write rate limit runtime exists for finance.expense.create and finance.expense.update.
@@ -73,7 +74,7 @@ Initial candidates that need explicit control decisions before runtime work:
 
 | Surface | Examples | Control decision needed |
 | --- | --- | --- |
-| Auth and session flows | login, signup, password reset, password update | Login password, signup authorized email, signup submit, auth confirm, and password reset request rate limit runtime exist for public auth entry/recovery; remaining auth/session flows still need rate limits and audit outcome model. |
+| Auth and session flows | login, signup, password reset, password update | Login password, signup authorized email, signup submit, auth confirm, password reset request, and password update rate limit runtime exist for public auth entry/recovery; remaining auth/session flows still need rate limits and audit outcome model. |
 | Organization administration | membership role changes, user activation/deactivation, permission changes | Admin permission and admin user audit/rate limit runtime exist; remaining organization administration work still needs retention decisions. |
 | Billing checkout | `app/protected/configuracoes/billing-actions.ts` and checkout session creation | Billing checkout rate limit runtime exists; Stripe metadata boundaries and audit events are covered for this step. |
 | Finance mutations | create/update/delete/status transitions in expenses, payables, receivables, banks, categories, and people | Audit event categories and payload redaction. Expense delete, expense write, payable delete, payable status update, payable write, receivable delete, receivable status update, receivable write, bank delete, bank balance update, bank write, member limit update, member status update, member write, category delete, and category write rate limit runtime exist for this step. |
@@ -96,7 +97,7 @@ Each implementation PR must define:
 - bypass policy for internal/admin flows;
 - rollback strategy.
 
-Rate limiting must be enforced server-side. Client-only throttling is not a GAP-015 control. The current runtime implementations are scoped to `billing.checkout.start`, `auth.login.password`, `auth.signup.authorized_email.check`, `auth.signup.submit`, `auth.confirm.verify`, `auth.password_reset.request`, `finance.expense.delete`, `finance.expense.create`, `finance.expense.update`, `finance.payable.delete`, `finance.payable.status.update`, `finance.payable.create`, `finance.payable.update`, `finance.receivable.delete`, `finance.receivable.status.update`, `finance.receivable.create`, `finance.receivable.update`, `finance.bank.delete`, `finance.bank.balance.update`, `finance.bank.create`, `finance.bank.update`, `finance.member.limit.update`, `finance.member.status.update`, `finance.member.create`, `finance.member.update`, `finance.category.delete`, `finance.category.create`, `finance.category.update`, `admin.permission.update`, `admin.feature_permission.update`, `admin.user.create`, `admin.user.update`, `admin.user.auth_link.sync`, `admin.user.delete`, and `admin.user.status.update` and can be disabled with `DISABLE_SENSITIVE_RATE_LIMITS=true`.
+Rate limiting must be enforced server-side. Client-only throttling is not a GAP-015 control. The current runtime implementations are scoped to `billing.checkout.start`, `auth.login.password`, `auth.signup.authorized_email.check`, `auth.signup.submit`, `auth.confirm.verify`, `auth.password_reset.request`, `auth.password_update.submit`, `finance.expense.delete`, `finance.expense.create`, `finance.expense.update`, `finance.payable.delete`, `finance.payable.status.update`, `finance.payable.create`, `finance.payable.update`, `finance.receivable.delete`, `finance.receivable.status.update`, `finance.receivable.create`, `finance.receivable.update`, `finance.bank.delete`, `finance.bank.balance.update`, `finance.bank.create`, `finance.bank.update`, `finance.member.limit.update`, `finance.member.status.update`, `finance.member.create`, `finance.member.update`, `finance.category.delete`, `finance.category.create`, `finance.category.update`, `admin.permission.update`, `admin.feature_permission.update`, `admin.user.create`, `admin.user.update`, `admin.user.auth_link.sync`, `admin.user.delete`, and `admin.user.status.update` and can be disabled with `DISABLE_SENSITIVE_RATE_LIMITS=true`.
 
 ## Sensitive-action audit logging contract
 

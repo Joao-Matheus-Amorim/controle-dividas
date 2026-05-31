@@ -55,6 +55,8 @@ GAP-015 public auth note: auth confirm rate limit runtime covers `auth.confirm.v
 
 GAP-015 public auth note: password reset rate limit runtime covers `auth.password_reset.request` in `app/auth/forgot-password/actions.ts` using the normalized email as actor key and `public-auth` as organization key. This step has sem audit runtime because `record_audit_event` requires an authenticated organization member.
 
+GAP-015 public auth note: password update rate limit runtime covers `auth.password_update.submit` in `app/auth/update-password/actions.ts` using the current auth user id as actor key, a shared `missing-session` bucket when no recovery session is present, and `public-auth` as organization key. This step has sem audit runtime because `record_audit_event` requires an authenticated organization member.
+
 ## Recently closed gaps
 
 | ID | Area | Closed by | Notes |

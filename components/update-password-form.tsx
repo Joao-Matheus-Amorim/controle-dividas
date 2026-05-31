@@ -4,10 +4,10 @@ import { ArrowRight, LockKeyhole, ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { updatePassword } from "@/app/auth/update-password/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
 function getFriendlyAuthError(error: unknown) {
@@ -30,7 +30,6 @@ export function UpdatePasswordForm({
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    const supabase = createClient();
     setIsLoading(true);
     setError(null);
 
@@ -47,8 +46,13 @@ export function UpdatePasswordForm({
     }
 
     try {
-      const { error } = await supabase.auth.updateUser({ password });
-      if (error) throw error;
+      const result = await updatePassword(password);
+
+      if (!result.success) {
+        setError(result.error);
+        return;
+      }
+
       router.push("/protected");
     } catch (error: unknown) {
       setError(getFriendlyAuthError(error));
