@@ -12,73 +12,61 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
+        /* Shadcn semantic tokens. Vars hold space-separated RGB triplets
+         * (e.g. `--background: 250 248 243`) and resolve via `--ff-*` aliases.
+         * See app/globals.css and docs/design/redesign-2026-sage-cream-slate.md. */
+        background: "rgb(var(--background) / <alpha-value>)",
+        foreground: "rgb(var(--foreground) / <alpha-value>)",
         card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
+          DEFAULT: "rgb(var(--card) / <alpha-value>)",
+          foreground: "rgb(var(--card-foreground) / <alpha-value>)",
         },
         popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
+          DEFAULT: "rgb(var(--popover) / <alpha-value>)",
+          foreground: "rgb(var(--popover-foreground) / <alpha-value>)",
         },
         primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
+          DEFAULT: "rgb(var(--primary) / <alpha-value>)",
+          foreground: "rgb(var(--primary-foreground) / <alpha-value>)",
         },
         secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
+          DEFAULT: "rgb(var(--secondary) / <alpha-value>)",
+          foreground: "rgb(var(--secondary-foreground) / <alpha-value>)",
         },
         muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
+          DEFAULT: "rgb(var(--muted) / <alpha-value>)",
+          foreground: "rgb(var(--muted-foreground) / <alpha-value>)",
         },
         accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
+          DEFAULT: "rgb(var(--accent) / <alpha-value>)",
+          foreground: "rgb(var(--accent-foreground) / <alpha-value>)",
         },
         destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
+          DEFAULT: "rgb(var(--destructive) / <alpha-value>)",
+          foreground: "rgb(var(--destructive-foreground) / <alpha-value>)",
         },
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
+        border: "rgb(var(--border) / <alpha-value>)",
+        input: "rgb(var(--input) / <alpha-value>)",
+        ring: "rgb(var(--ring) / <alpha-value>)",
         chart: {
-          "1": "hsl(var(--chart-1))",
-          "2": "hsl(var(--chart-2))",
-          "3": "hsl(var(--chart-3))",
-          "4": "hsl(var(--chart-4))",
-          "5": "hsl(var(--chart-5))",
+          "1": "rgb(var(--chart-1) / <alpha-value>)",
+          "2": "rgb(var(--chart-2) / <alpha-value>)",
+          "3": "rgb(var(--chart-3) / <alpha-value>)",
+          "4": "rgb(var(--chart-4) / <alpha-value>)",
+          "5": "rgb(var(--chart-5) / <alpha-value>)",
         },
-        /* Redesign 2026 — Sage + Cream + Slate.
-         * Spec: docs/design/redesign-2026-sage-cream-slate.md
-         * Phase 1: tokens available as Tailwind utilities (bg-ff-bg,
-         * text-ff-foreground, etc.) but no component consumes them yet. */
+        /* Extended FF tokens for cases the shadcn vocabulary doesn't cover
+         * (soft variants, subtle text, hover state, info channel). */
         ff: {
-          bg: "rgb(var(--ff-bg) / <alpha-value>)",
           "bg-soft": "rgb(var(--ff-bg-soft) / <alpha-value>)",
-          card: "rgb(var(--ff-card) / <alpha-value>)",
-          popover: "rgb(var(--ff-popover) / <alpha-value>)",
-          foreground: "rgb(var(--ff-foreground) / <alpha-value>)",
-          muted: "rgb(var(--ff-muted) / <alpha-value>)",
-          "muted-foreground": "rgb(var(--ff-muted-foreground) / <alpha-value>)",
           "subtle-foreground": "rgb(var(--ff-subtle-foreground) / <alpha-value>)",
-          border: "rgb(var(--ff-border) / <alpha-value>)",
           "border-strong": "rgb(var(--ff-border-strong) / <alpha-value>)",
-          input: "rgb(var(--ff-input) / <alpha-value>)",
           primary: {
             DEFAULT: "rgb(var(--ff-primary) / <alpha-value>)",
             hover: "rgb(var(--ff-primary-hover) / <alpha-value>)",
             soft: "rgb(var(--ff-primary-soft) / <alpha-value>)",
             foreground: "rgb(var(--ff-primary-foreground) / <alpha-value>)",
           },
-          accent: {
-            DEFAULT: "rgb(var(--ff-accent) / <alpha-value>)",
-            foreground: "rgb(var(--ff-accent-foreground) / <alpha-value>)",
-          },
-          ring: "rgb(var(--ff-ring) / <alpha-value>)",
           success: {
             DEFAULT: "rgb(var(--ff-success) / <alpha-value>)",
             soft: "rgb(var(--ff-success-soft) / <alpha-value>)",
@@ -95,13 +83,6 @@ export default {
           info: {
             DEFAULT: "rgb(var(--ff-info) / <alpha-value>)",
             soft: "rgb(var(--ff-info-soft) / <alpha-value>)",
-          },
-          chart: {
-            "1": "rgb(var(--ff-chart-1) / <alpha-value>)",
-            "2": "rgb(var(--ff-chart-2) / <alpha-value>)",
-            "3": "rgb(var(--ff-chart-3) / <alpha-value>)",
-            "4": "rgb(var(--ff-chart-4) / <alpha-value>)",
-            "5": "rgb(var(--ff-chart-5) / <alpha-value>)",
           },
         },
       },

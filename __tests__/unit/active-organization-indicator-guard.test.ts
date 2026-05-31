@@ -28,8 +28,8 @@ describe("active organization indicator guard", () => {
     expect(source).toContain("@/components/ui/separator");
     expect(source).toContain("Separator");
     expect(source).toContain('orientation="vertical"');
-    expect(source).toContain("hidden h-8 bg-white/10 lg:block");
-    expect(source).toContain("hidden bg-white/5 md:block");
+    expect(source).toContain("hidden h-8 bg-border lg:block");
+    expect(source).toContain("hidden bg-border md:block");
   });
 
   it("keeps the shared app shell hierarchy SaaS-ready", () => {
@@ -39,7 +39,7 @@ describe("active organization indicator guard", () => {
     expect(source).toContain("FamilyFinance");
     expect(source).toContain("SaaS financeiro");
     expect(source).toContain("rounded-full");
-    expect(source).toContain("border-white/10");
+    expect(source).toContain("border-border");
   });
 
   it("keeps active organization indicator with explicit organization switch control", () => {

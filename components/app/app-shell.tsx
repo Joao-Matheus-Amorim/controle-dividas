@@ -1,6 +1,7 @@
 import { ActiveOrganizationIndicator } from "@/components/app/active-organization-indicator";
 import { AuthButton } from "@/components/auth-button";
 import { EnvVarWarning } from "@/components/env-var-warning";
+import { ThemeSwitcher } from "@/components/theme-switcher";
 import { Separator } from "@/components/ui/separator";
 import { getVisibleModuleKeys } from "@/lib/finance/access-control";
 import type { FinanceModuleKey } from "@/lib/finance/permissions";
@@ -69,27 +70,25 @@ export async function AppShell({ children, orgSlug }: AppShellProps) {
   const homeHref = scopedHref("/protected", orgSlug);
 
   return (
-    <main className="app-no-x-scroll dark min-h-screen bg-[#080810] text-foreground">
-      <div className="pointer-events-none fixed inset-x-0 top-0 h-72 max-w-full bg-[radial-gradient(ellipse_at_top,rgba(139,114,248,0.24),transparent_65%)]" />
-
-      <nav className="sticky top-0 z-40 max-w-full overflow-hidden border-b border-white/5 bg-[#080810]/90 shadow-2xl shadow-black/20 backdrop-blur-xl">
+    <main className="app-no-x-scroll min-h-screen bg-background text-foreground">
+      <nav className="sticky top-0 z-40 max-w-full overflow-hidden border-b border-border bg-card">
         <div className="mx-auto flex min-h-16 w-full max-w-7xl flex-col gap-3 px-4 py-3 md:px-6">
           <div className="flex min-w-0 items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
               <Link href={homeHref} className="group flex min-w-0 shrink-0 items-center gap-2">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.06] text-sm font-black text-[#b09cff] shadow-lg shadow-black/20 transition group-hover:border-[#b09cff]/30 group-hover:bg-[#b09cff]/10">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-ff-md border border-border bg-ff-bg-soft text-sm font-black text-primary transition group-hover:border-primary/40 group-hover:bg-ff-primary-soft">
                   FF
                 </span>
                 <span className="min-w-0 leading-none">
-                  <span className="block truncate text-lg font-bold tracking-tight text-white">
+                  <span className="block truncate text-lg font-bold tracking-tight text-foreground">
                     FamilyFinance
                   </span>
-                  <span className="hidden text-[10px] font-semibold uppercase tracking-[0.24em] text-white/35 sm:block">
+                  <span className="hidden text-[10px] font-semibold uppercase tracking-[0.24em] text-muted-foreground sm:block">
                     SaaS financeiro
                   </span>
                 </span>
               </Link>
-              <Separator orientation="vertical" className="hidden h-8 bg-white/10 lg:block" />
+              <Separator orientation="vertical" className="hidden h-8 bg-border lg:block" />
               <div className="hidden min-w-0 lg:block">
                 <ActiveOrganizationIndicator
                   organization={currentOrganization}
@@ -98,7 +97,8 @@ export async function AppShell({ children, orgSlug }: AppShellProps) {
                 />
               </div>
             </div>
-            <div className="flex min-w-0 shrink items-center justify-end gap-3 overflow-hidden">
+            <div className="flex min-w-0 shrink items-center justify-end gap-2 overflow-hidden">
+              <ThemeSwitcher />
               {!hasEnvVars ? (
                 <EnvVarWarning />
               ) : (
@@ -117,14 +117,14 @@ export async function AppShell({ children, orgSlug }: AppShellProps) {
           </div>
           {visibleNavigation.length > 0 ? (
             <>
-              <Separator className="hidden bg-white/5 md:block" />
+              <Separator className="hidden bg-border md:block" />
               <div className="hidden overflow-x-auto pb-1 md:block">
-                <div className="flex w-max gap-2 rounded-full border border-white/10 bg-white/[0.025] p-1 text-sm shadow-inner shadow-black/20">
+                <div className="flex w-max gap-1 rounded-full border border-border bg-muted p-1 text-sm">
                   {visibleNavigation.map((item) => (
                     <Link
                       key={item.href}
                       href={scopedHref(item.href, orgSlug)}
-                      className="whitespace-nowrap rounded-full px-3 py-1.5 text-white/55 transition hover:bg-white/[0.07] hover:text-white"
+                      className="whitespace-nowrap rounded-full px-3 py-1.5 font-medium text-muted-foreground transition hover:bg-card hover:text-foreground"
                     >
                       {item.label}
                     </Link>
@@ -141,8 +141,10 @@ export async function AppShell({ children, orgSlug }: AppShellProps) {
       </div>
 
       {visibleMobileNavigation.length > 0 ? (
-        <nav className="fixed inset-x-0 bottom-0 z-50 max-w-full overflow-hidden bg-gradient-to-t from-[#080810] via-[#080810]/98 to-transparent px-3 pb-5 pt-3 backdrop-blur md:hidden">
-          <div className="mx-auto flex w-full max-w-md items-stretch gap-1 rounded-[1.75rem] border border-white/10 bg-white/[0.05] p-1.5 shadow-2xl shadow-black/40">
+        <nav
+          className="fixed inset-x-0 bottom-0 z-50 max-w-full overflow-hidden border-t border-border bg-card pb-[env(safe-area-inset-bottom)] md:hidden"
+        >
+          <div className="mx-auto flex w-full items-stretch">
             {visibleMobileNavigation.map((item) => {
               const Icon = item.icon ?? Home;
 
@@ -150,7 +152,7 @@ export async function AppShell({ children, orgSlug }: AppShellProps) {
                 <Link
                   key={item.href}
                   href={scopedHref(item.href, orgSlug)}
-                  className="flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-2xl px-1.5 py-2 text-[10px] font-semibold uppercase tracking-wide text-white/35 transition hover:bg-white/[0.08] hover:text-[#b09cff]"
+                  className="group relative flex min-w-0 flex-1 flex-col items-center justify-center gap-1 px-1 py-2.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground transition hover:text-primary"
                 >
                   <Icon className="h-5 w-5 shrink-0" />
                   <span className="max-w-full truncate">{item.label}</span>

@@ -2,14 +2,14 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
-type AppCardVariant = "glass" | "solid" | "inner";
+type AppCardVariant = "raised" | "solid" | "inner" | "hero";
 type AppCardPadding = "none" | "sm" | "md" | "lg";
 
 const variantClasses: Record<AppCardVariant, string> = {
-  glass:
-    "border border-white/10 bg-white/[0.045] shadow-2xl shadow-black/20 backdrop-blur-xl",
-  solid: "border border-white/10 bg-[#10101a] shadow-xl shadow-black/20",
-  inner: "border border-white/10 bg-[#080810]/55",
+  raised: "border border-border bg-card shadow-ff-sm",
+  solid: "border border-border bg-card",
+  inner: "border border-border bg-muted",
+  hero: "border border-primary/20 bg-ff-primary-soft",
 };
 
 const paddingClasses: Record<AppCardPadding, string> = {
@@ -27,7 +27,7 @@ export interface AppCardProps extends React.HTMLAttributes<HTMLDivElement> {
 
 export function AppCard({
   className,
-  variant = "glass",
+  variant = "raised",
   padding = "md",
   interactive = false,
   ...props
@@ -35,11 +35,11 @@ export function AppCard({
   return (
     <div
       className={cn(
-        "rounded-[1.5rem]",
+        "rounded-ff-2xl",
         variantClasses[variant],
         paddingClasses[padding],
         interactive &&
-          "transition duration-200 hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/[0.065]",
+          "transition duration-ff-base hover:-translate-y-0.5 hover:border-border-strong hover:shadow-ff-md",
         className,
       )}
       {...props}
@@ -54,7 +54,7 @@ export function AppSectionTitle({
   return (
     <p
       className={cn(
-        "text-[11px] font-bold uppercase tracking-[0.22em] text-white/25",
+        "text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground",
         className,
       )}
       {...props}

@@ -4,32 +4,95 @@
 
 @layer base {
   :root {
-    --background: 240 18% 98%;
-    --foreground: 240 18% 8%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 18% 8%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 18% 8%;
-    --primary: 252 86% 71%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 240 12% 94%;
-    --secondary-foreground: 240 18% 10%;
-    --muted: 240 12% 94%;
-    --muted-foreground: 240 7% 46%;
-    --accent: 252 86% 96%;
-    --accent-foreground: 252 64% 42%;
-    --destructive: 350 86% 63%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 240 10% 88%;
-    --input: 240 10% 88%;
-    --ring: 252 86% 71%;
-    --chart-1: 252 86% 71%;
-    --chart-2: 164 83% 51%;
-    --chart-3: 38 92% 63%;
-    --chart-4: 350 86% 63%;
-    --chart-5: 210 100% 68%;
-    --radius: 1rem;
+    /* Redesign 2026 — Ink + Copper + Ivory (LIGHT = warm paper variant).
+     * Spec: docs/design/redesign-2026-ink-copper-ivory.md
+     * Values stored as space-separated RGB triplets to enable
+     * Tailwind's `<alpha-value>` modifier (e.g. `bg-primary/50`).
+     * --ff-* tokens are the single source of truth; shadcn semantic
+     * tokens below are aliases. */
+    --ff-bg: 250 244 230;             /* #FAF4E6 warm ivory */
+    --ff-bg-soft: 240 233 216;        /* #F0E9D8 */
+    --ff-card: 255 252 245;           /* #FFFCF5 paper white */
+    --ff-popover: 255 252 245;        /* #FFFCF5 */
+    --ff-foreground: 31 27 23;        /* #1F1B17 ink */
+    --ff-muted: 240 233 216;          /* #F0E9D8 */
+    --ff-muted-foreground: 110 102 92; /* #6E665C warm gray */
+    --ff-subtle-foreground: 156 147 136; /* #9C9388 */
+    --ff-border: 229 220 199;         /* #E5DCC7 warm beige */
+    --ff-border-strong: 208 197 172;  /* #D0C5AC */
+    --ff-input: 229 220 199;          /* #E5DCC7 */
+    --ff-primary: 166 107 46;         /* #A66B2E copper (AA on ivory) */
+    --ff-primary-hover: 140 87 35;    /* #8C5723 */
+    --ff-primary-soft: 232 213 179;   /* #E8D5B3 */
+    --ff-primary-foreground: 255 252 245;
+    --ff-accent: 232 213 179;         /* #E8D5B3 */
+    --ff-accent-foreground: 31 27 23; /* #1F1B17 */
+    --ff-ring: 166 107 46;            /* #A66B2E */
+    --ff-success: 90 138 110;         /* #5A8A6E warm sage */
+    --ff-success-soft: 224 234 213;   /* #E0EAD5 */
+    --ff-warning: 196 147 52;         /* #C49334 mustard */
+    --ff-warning-soft: 242 229 187;   /* #F2E5BB */
+    --ff-destructive: 176 84 66;      /* #B05442 terracotta */
+    --ff-destructive-soft: 240 217 208; /* #F0D9D0 */
+    --ff-destructive-foreground: 255 252 245;
+    --ff-info: 90 115 136;            /* #5A7388 muted slate-blue */
+    --ff-info-soft: 216 224 230;      /* #D8E0E6 */
+    --ff-chart-1: 198 142 77;         /* copper */
+    --ff-chart-2: 90 115 136;         /* muted slate */
+    --ff-chart-3: 196 147 52;         /* mustard */
+    --ff-chart-4: 176 84 66;          /* terracotta */
+    --ff-chart-5: 90 138 110;         /* warm sage */
 
+    /* Radius scale */
+    --ff-radius-xs: 0.375rem;
+    --ff-radius-sm: 0.5rem;
+    --ff-radius-md: 0.75rem;
+    --ff-radius-lg: 1rem;
+    --ff-radius-xl: 1.25rem;
+    --ff-radius-2xl: 1.5rem;
+
+    /* Soft warm shadows (no glow) */
+    --ff-shadow-xs: 0 1px 2px rgba(31, 27, 23, 0.04);
+    --ff-shadow-sm: 0 2px 6px rgba(31, 27, 23, 0.06);
+    --ff-shadow-md: 0 6px 16px rgba(31, 27, 23, 0.08);
+    --ff-shadow-lg: 0 16px 32px rgba(31, 27, 23, 0.10);
+
+    /* Motion */
+    --ff-motion-fast: 120ms;
+    --ff-motion-base: 200ms;
+    --ff-motion-slow: 320ms;
+    --ff-easing-spring: cubic-bezier(0.16, 1, 0.3, 1);
+
+    /* shadcn semantic tokens — aliased to FF tokens.
+     * Changing the palette = edit the --ff-* values above. */
+    --background: var(--ff-bg);
+    --foreground: var(--ff-foreground);
+    --card: var(--ff-card);
+    --card-foreground: var(--ff-foreground);
+    --popover: var(--ff-popover);
+    --popover-foreground: var(--ff-foreground);
+    --primary: var(--ff-primary);
+    --primary-foreground: var(--ff-primary-foreground);
+    --secondary: var(--ff-muted);
+    --secondary-foreground: var(--ff-foreground);
+    --muted: var(--ff-muted);
+    --muted-foreground: var(--ff-muted-foreground);
+    --accent: var(--ff-accent);
+    --accent-foreground: var(--ff-accent-foreground);
+    --destructive: var(--ff-destructive);
+    --destructive-foreground: var(--ff-destructive-foreground);
+    --border: var(--ff-border);
+    --input: var(--ff-input);
+    --ring: var(--ff-ring);
+    --chart-1: var(--ff-chart-1);
+    --chart-2: var(--ff-chart-2);
+    --chart-3: var(--ff-chart-3);
+    --chart-4: var(--ff-chart-4);
+    --chart-5: var(--ff-chart-5);
+    --radius: var(--ff-radius-xl);
+
+    /* Legacy --app-* tokens kept temporarily for non-migrated
+     * dashboard components. Phase 5 removes them entirely. */
     --app-bg: #080810;
     --app-bg-soft: #10101a;
     --app-surface: rgba(255, 255, 255, 0.045);
@@ -41,126 +104,44 @@
     --app-warning: #f7b84b;
     --app-danger: #f0506e;
     --app-info: #5caaff;
-
-    /* Redesign 2026 — Sage + Cream + Slate (light theme).
-     * Spec: docs/design/redesign-2026-sage-cream-slate.md
-     * Values stored as space-separated RGB triplets to enable
-     * Tailwind's `<alpha-value>` modifier (e.g. `bg-ff-primary/50`).
-     * Phase 1 is additive: nothing in the UI consumes these yet. */
-    --ff-bg: 250 248 243;             /* #FAF8F3 cream */
-    --ff-bg-soft: 243 239 229;        /* #F3EFE5 */
-    --ff-card: 255 255 255;           /* #FFFFFF */
-    --ff-popover: 255 255 255;        /* #FFFFFF */
-    --ff-foreground: 44 62 54;        /* #2C3E36 slate green */
-    --ff-muted: 243 239 229;          /* #F3EFE5 */
-    --ff-muted-foreground: 107 122 114; /* #6B7A72 */
-    --ff-subtle-foreground: 154 165 158; /* #9AA59E */
-    --ff-border: 232 228 217;         /* #E8E4D9 warm beige */
-    --ff-border-strong: 212 206 190;  /* #D4CEBE */
-    --ff-input: 232 228 217;          /* #E8E4D9 */
-    --ff-primary: 91 140 123;         /* #5B8C7B sage 600 */
-    --ff-primary-hover: 74 120 104;   /* #4A7868 */
-    --ff-primary-soft: 213 227 220;   /* #D5E3DC */
-    --ff-primary-foreground: 255 255 255;
-    --ff-accent: 213 227 220;         /* #D5E3DC */
-    --ff-accent-foreground: 44 62 54; /* #2C3E36 */
-    --ff-ring: 91 140 123;            /* #5B8C7B */
-    --ff-success: 74 157 110;         /* #4A9D6E */
-    --ff-success-soft: 221 240 229;   /* #DDF0E5 */
-    --ff-warning: 217 164 65;         /* #D9A441 */
-    --ff-warning-soft: 247 235 208;   /* #F7EBD0 */
-    --ff-destructive: 199 90 90;      /* #C75A5A */
-    --ff-destructive-soft: 245 221 221; /* #F5DDDD */
-    --ff-destructive-foreground: 255 255 255;
-    --ff-info: 107 157 194;           /* #6B9DC2 */
-    --ff-info-soft: 220 233 242;      /* #DCE9F2 */
-    --ff-chart-1: 91 140 123;         /* sage */
-    --ff-chart-2: 107 157 194;        /* blue */
-    --ff-chart-3: 217 164 65;         /* amber */
-    --ff-chart-4: 199 90 90;          /* coral */
-    --ff-chart-5: 155 123 184;        /* violet */
-
-    /* Radius scale */
-    --ff-radius-xs: 0.375rem;
-    --ff-radius-sm: 0.5rem;
-    --ff-radius-md: 0.75rem;
-    --ff-radius-lg: 1rem;
-    --ff-radius-xl: 1.25rem;
-    --ff-radius-2xl: 1.5rem;
-
-    /* Soft shadows (no glow) */
-    --ff-shadow-xs: 0 1px 2px rgba(44, 62, 54, 0.04);
-    --ff-shadow-sm: 0 2px 6px rgba(44, 62, 54, 0.06);
-    --ff-shadow-md: 0 6px 16px rgba(44, 62, 54, 0.08);
-    --ff-shadow-lg: 0 16px 32px rgba(44, 62, 54, 0.10);
-
-    /* Motion */
-    --ff-motion-fast: 120ms;
-    --ff-motion-base: 200ms;
-    --ff-motion-slow: 320ms;
-    --ff-easing-spring: cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .dark {
-    --background: 240 33% 5%;
-    --foreground: 240 100% 98%;
-    --card: 240 23% 8%;
-    --card-foreground: 240 100% 98%;
-    --popover: 240 23% 8%;
-    --popover-foreground: 240 100% 98%;
-    --primary: 252 86% 71%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 240 15% 13%;
-    --secondary-foreground: 240 100% 98%;
-    --muted: 240 15% 13%;
-    --muted-foreground: 240 11% 64%;
-    --accent: 252 34% 18%;
-    --accent-foreground: 252 100% 84%;
-    --destructive: 350 86% 63%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 240 15% 16%;
-    --input: 240 15% 16%;
-    --ring: 252 86% 71%;
-    --chart-1: 252 86% 71%;
-    --chart-2: 164 83% 51%;
-    --chart-3: 38 92% 63%;
-    --chart-4: 350 86% 63%;
-    --chart-5: 210 100% 68%;
+    /* Redesign 2026 — DARK = ink + copper + ivory editorial (primary mode).
+     * Spec: docs/design/redesign-2026-ink-copper-ivory.md
+     * Warm-leaning grays and accents throughout. Not black, ink. */
+    --ff-bg: 20 17 15;                /* #14110F ink */
+    --ff-bg-soft: 26 22 20;           /* #1A1614 */
+    --ff-card: 31 27 23;              /* #1F1B17 warm dark card */
+    --ff-popover: 31 27 23;           /* #1F1B17 */
+    --ff-foreground: 242 234 214;     /* #F2EAD6 ivory */
+    --ff-muted: 41 35 29;             /* #29231D */
+    --ff-muted-foreground: 138 128 119; /* #8A8077 warm gray */
+    --ff-subtle-foreground: 101 96 90;  /* #65605A */
+    --ff-border: 46 40 35;            /* #2E2823 */
+    --ff-border-strong: 66 58 51;     /* #423A33 */
+    --ff-input: 46 40 35;             /* #2E2823 */
+    --ff-primary: 198 142 77;         /* #C68E4D copper */
+    --ff-primary-hover: 213 160 99;   /* #D5A063 */
+    --ff-primary-soft: 58 46 31;      /* #3A2E1F */
+    --ff-primary-foreground: 20 17 15;
+    --ff-accent: 58 46 31;            /* #3A2E1F */
+    --ff-accent-foreground: 242 234 214;
+    --ff-ring: 198 142 77;
+    --ff-success: 107 168 138;        /* #6BA88A warm sage */
+    --ff-success-soft: 31 45 38;      /* #1F2D26 */
+    --ff-warning: 224 181 89;         /* #E0B559 mustard */
+    --ff-warning-soft: 51 43 27;      /* #332B1B */
+    --ff-destructive: 198 107 92;     /* #C66B5C terracotta */
+    --ff-destructive-soft: 47 31 26;  /* #2F1F1A */
+    --ff-destructive-foreground: 242 234 214;
+    --ff-info: 141 163 184;           /* #8DA3B8 muted slate */
+    --ff-info-soft: 30 38 46;         /* #1E262E */
 
-    /* Redesign 2026 — dark theme (forest, not pure black).
-     * Same identity as light theme, lifted contrast for night use. */
-    --ff-bg: 26 38 32;                /* #1A2620 forest dark */
-    --ff-bg-soft: 21 32 26;           /* #15201A */
-    --ff-card: 36 48 41;              /* #243029 */
-    --ff-popover: 36 48 41;           /* #243029 */
-    --ff-foreground: 232 228 217;     /* #E8E4D9 cream */
-    --ff-muted: 45 58 51;             /* #2D3A33 */
-    --ff-muted-foreground: 168 176 171; /* #A8B0AB */
-    --ff-subtle-foreground: 110 122 116; /* #6E7A74 */
-    --ff-border: 58 74 65;            /* #3A4A41 */
-    --ff-border-strong: 78 95 85;     /* #4E5F55 */
-    --ff-input: 58 74 65;             /* #3A4A41 */
-    --ff-primary: 123 174 150;        /* #7BAE96 sage 400 lifted */
-    --ff-primary-hover: 147 192 171;  /* #93C0AB */
-    --ff-primary-soft: 45 74 61;      /* #2D4A3D */
-    --ff-primary-foreground: 26 38 32;
-    --ff-accent: 45 74 61;            /* #2D4A3D */
-    --ff-accent-foreground: 232 228 217;
-    --ff-ring: 123 174 150;
-    --ff-success: 110 184 146;        /* #6EB892 */
-    --ff-success-soft: 35 69 56;      /* #234538 */
-    --ff-warning: 224 181 89;         /* #E0B559 */
-    --ff-warning-soft: 61 51 32;      /* #3D3320 */
-    --ff-destructive: 216 117 117;    /* #D87575 */
-    --ff-destructive-soft: 61 36 36;  /* #3D2424 */
-    --ff-destructive-foreground: 255 255 255;
-    --ff-info: 135 181 209;           /* #87B5D1 */
-    --ff-info-soft: 31 51 64;         /* #1F3340 */
-
-    --ff-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.2);
-    --ff-shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.3);
-    --ff-shadow-md: 0 6px 16px rgba(0, 0, 0, 0.4);
-    --ff-shadow-lg: 0 16px 32px rgba(0, 0, 0, 0.5);
+    --ff-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.25);
+    --ff-shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.35);
+    --ff-shadow-md: 0 6px 16px rgba(0, 0, 0, 0.45);
+    --ff-shadow-lg: 0 16px 32px rgba(0, 0, 0, 0.55);
   }
 }
 
@@ -192,8 +173,8 @@
   }
 
   ::selection {
-    background: rgba(139, 114, 248, 0.35);
-    color: white;
+    background: rgb(var(--ff-primary) / 0.25);
+    color: rgb(var(--ff-foreground));
   }
 }
 
@@ -227,31 +208,6 @@
   .app-soft-press {
     @apply transition duration-200 active:scale-[0.98];
   }
-
-  .dark select {
-    @apply h-11 rounded-2xl border border-white/10 bg-[#080810] px-4 py-2 text-sm text-white shadow-sm outline-none transition-colors;
-  }
-
-  .dark select:focus {
-    @apply border-[#8b72f8] ring-1 ring-[#8b72f8];
-  }
-
-  .dark select option {
-    background-color: #080810;
-    color: #f8f8ff;
-  }
-
-  .dark input:-webkit-autofill,
-  .dark input:-webkit-autofill:hover,
-  .dark input:-webkit-autofill:focus {
-    -webkit-text-fill-color: #ffffff;
-    box-shadow: 0 0 0 1000px #080810 inset;
-    caret-color: #ffffff;
-  }
-
-  .dark form button[type="submit"]:not([data-variant]) {
-    @apply rounded-2xl;
-  }
 }
 
 @layer utilities {
@@ -278,32 +234,5 @@
 
   .animate-app-pulse-soft {
     animation: app-pulse-soft 1.8s ease-in-out infinite;
-  }
-
-  .text-white\/25 {
-    color: rgba(255, 255, 255, 0.52) !important;
-  }
-
-  .text-white\/30 {
-    color: rgba(255, 255, 255, 0.56) !important;
-  }
-
-  .text-white\/35 {
-    color: rgba(255, 255, 255, 0.6) !important;
-  }
-
-  .text-white\/40 {
-    color: rgba(255, 255, 255, 0.64) !important;
-  }
-
-  .text-white\/45,
-  .text-white\/50 {
-    color: rgba(255, 255, 255, 0.7) !important;
-  }
-
-  .text-white\/55,
-  .text-white\/60,
-  .text-white\/65 {
-    color: rgba(255, 255, 255, 0.78) !important;
   }
 }

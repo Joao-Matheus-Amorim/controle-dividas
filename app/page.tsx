@@ -1,8 +1,19 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
+import { createClient } from "@/lib/supabase/server";
 
-export default function Home() {
+export default async function Home() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (user) {
+    redirect("/protected");
+  }
+
   return (
     <main className="flex min-h-svh items-center justify-center bg-muted/30 px-5 py-8">
       <div className="w-full max-w-sm rounded-[2rem] border bg-background p-6 shadow-sm">

@@ -36,6 +36,7 @@ import { getOrganizationExpenseDashboardData } from "@/lib/organizations/expense
 import { getOrganizationPayableBillsDashboardData } from "@/lib/organizations/payables";
 import { getOrganizationReceivableIncomesDashboardData } from "@/lib/organizations/receivables";
 import { getOrgPathFromProtectedPath } from "@/lib/organizations/paths";
+import { getCurrentOrganization } from "@/lib/organizations/server";
 
 const dashboardModules: FinanceModuleKey[] = [
   "DASHBOARD",
@@ -53,13 +54,14 @@ type DashboardPageProps = {
 };
 
 export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
-  const [visibleModuleKeys, expenseData, payableData, receivableData, bankData, periodContextLabel] = await Promise.all([
+  const [visibleModuleKeys, expenseData, payableData, receivableData, bankData, periodContextLabel, currentOrganization] = await Promise.all([
     getVisibleModuleKeys(dashboardModules, orgSlug),
     getOrganizationExpenseDashboardData(orgSlug),
     getOrganizationPayableBillsDashboardData(orgSlug),
     getOrganizationReceivableIncomesDashboardData(orgSlug),
     getOrganizationBanksDashboardData(orgSlug),
     getCurrentPeriodContextLabel(),
+    getCurrentOrganization(orgSlug),
   ]);
 
   const visibleModules = new Set(visibleModuleKeys);
@@ -189,6 +191,7 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
     <div className="app-container">
       <DashboardHeader
         periodContextLabel={periodContextLabel}
+        orgName={currentOrganization?.name}
         isLimitedDashboard={isLimitedDashboard}
         canAdmin={canAdmin}
       />
