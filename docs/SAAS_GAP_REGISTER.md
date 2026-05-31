@@ -87,7 +87,7 @@ GAP-014 through GAP-019 came from external review and must be handled as separat
 Reason:
 
 - RLS Live Gate evidence and orgSlug E2E evidence still need dedicated environment runs before claiming full external proof;
-- billing webhook and subscription work should not start until checkout and portal evidence gates have real Stripe test evidence;
+- billing webhook and subscription sync work should not start until checkout and portal evidence gates have real Stripe test evidence;
 - GAP-011 is reduced by dashboard, finance list, finance form, selective visual snapshot, dashboard summary deterministic fixture, and gated screenshot contracts; broad visual redesign still needs explicit evidence before any wider visual coverage;
 - GAP-015 tracks controls expected by users handling sensitive financial data; billing checkout audit, billing checkout rate limiting, billing portal audit, billing portal rate limiting, expense delete rate limiting, expense write audit and rate limiting, payable delete rate limiting, payable status rate limiting, payable write audit and rate limiting, receivable delete rate limiting, receivable status rate limiting, receivable write audit and rate limiting, bank delete rate limiting, bank balance rate limiting, bank write audit and rate limiting, member limit audit and rate limiting, member status audit and rate limiting, member write audit and rate limiting, category delete audit and rate limiting, category write audit and rate limiting, admin permission audit and rate limiting, admin user audit and rate limiting, payable bill, receivable income, expense, and bank audit runtime exist, but broader rate limiting and retention cleanup runtime are still pending.
 
