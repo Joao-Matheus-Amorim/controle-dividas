@@ -34,8 +34,12 @@ describe("billing stripe configuration boundary contract", () => {
     expect(contract).toContain("compatibilidade com vitest/vite");
     expect(contract).toContain("stripe_price_family_basic");
     expect(contract).toContain("checkout runtime");
+    expect(contract).toContain("billing portal runtime");
     expect(contract).toContain("lib/billing/stripe-checkout.ts");
+    expect(contract).toContain("lib/billing/stripe-portal.ts");
     expect(contract).toContain("endpoint webhook");
+    expect(contract).toContain("validar checkout e portal reais");
+    expect(contract).toContain("nao declarar checkout ou portal stripe validado");
   });
 
   it("keeps roadmap, gap register, and ADR aligned with the post-boundary next step", () => {
@@ -48,5 +52,6 @@ describe("billing stripe configuration boundary contract", () => {
 
     expect(billingAdr).toContain("billing_stripe_configuration_boundary.md");
     expect(billingAdr).toContain("implementar checkout runtime em pr proprio");
+    expect(billingAdr).toContain("implementar billing portal runtime em pr proprio");
   });
 });
