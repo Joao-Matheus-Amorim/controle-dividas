@@ -99,6 +99,7 @@ A limpeza final de policies antigas owner/family foi versionada em:
 - A fixture deterministica do dashboard summary acima da dobra esta documentada em `docs/audits/DASHBOARD_SUMMARY_VISUAL_FIXTURE.md`, versionada em `__tests__/fixtures/dashboard-summary-visual-snapshot.ts` e coberta por screenshot gated em `tests/e2e/dashboard-summary-visual-snapshot-gated.spec.ts`.
 - O status de billing em Configuracoes mostra o plano atual da organizacao usando `lib/billing/plans.ts` e expoe entrada de checkout e billing portal controladas por `ENABLE_STRIPE_CHECKOUT`, documentado em `docs/audits/BILLING_SETTINGS_STATUS_CONTRACT.md`.
 - O contrato de fluxo de assinatura esta documentado em `docs/audits/BILLING_SUBSCRIPTION_FLOW_CONTRACT.md`, cobrindo checkout, portal, webhook idempotente, secrets e rollback para os runtimes Stripe dedicados.
+- O contrato pre-runtime do futuro webhook Stripe esta documentado em `docs/audits/BILLING_WEBHOOK_RUNTIME_CONTRACT.md`, mantendo endpoint, idempotencia, assinatura, rollback e decisoes de storage/write boundary explicitos antes de runtime.
 - A fronteira de configuracao Stripe esta implementada em `lib/billing/stripe-config.ts` e documentada em `docs/audits/BILLING_STRIPE_CONFIGURATION_BOUNDARY.md`.
 - O runbook de conta Stripe de teste esta em `docs/runbooks/BILLING_STRIPE_TEST_ACCOUNT_RUNBOOK.md`.
 - Checkout runtime esta implementado em `lib/billing/stripe-checkout.ts` e `app/protected/configuracoes/billing-actions.ts`, sem webhook ou enforcement comercial.
@@ -200,7 +201,7 @@ Resultado esperado:
 - registrar evidencia externa pendente ou decidir deferimento explicito;
 - criar/configurar conta Stripe de teste e credenciais;
 - validar checkout runtime e billing portal runtime com ambiente Stripe de teste antes de qualquer webhook;
-- implementar webhook e assinatura em PRs separados.
+- implementar webhook e assinatura em PRs separados depois do contrato pre-runtime e da evidencia real de checkout/portal.
 
 ### GAP-011 - Contratos de UI financeira
 
@@ -308,7 +309,7 @@ Resultado esperado:
    - Usar `docs/runbooks/BILLING_STRIPE_TEST_ACCOUNT_RUNBOOK.md`.
    - Criar/configurar conta Stripe de teste e credenciais.
    - Validar checkout runtime e billing portal runtime com Stripe de teste.
-   - Implementar webhook em PR proprio.
+   - Implementar webhook em PR proprio depois do contrato pre-runtime.
    - Planejar Stripe sem misturar com RLS/rotas.
 
 5. **Primeiro snapshot visual seletivo**

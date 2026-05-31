@@ -34,7 +34,7 @@ A gap is not solved until a small PR is merged with green CI and the related doc
 | ID | Area | Current gap | Next safe action |
 | --- | --- | --- | --- |
 | GAP-005 | Compatibility | `owner_id` remains part of the transitional model. | Keep compatibility until the organization-only model is proven. |
-| GAP-006 | Billing | Billing has a local plan contract, billing settings status UI, subscription flow contract, Stripe configuration boundary, Stripe checkout runtime, billing portal runtime, and a Stripe test account runbook. Real Stripe checkout and portal evidence is pending because there is no Stripe test account/credentials configured yet. Webhook, subscriptions, subscription state sync, and commercial enforcement are not implemented. | Follow the Stripe test account runbook, validate checkout and portal runtime evidence, then implement webhook in a dedicated PR. |
+| GAP-006 | Billing | Billing has a local plan contract, billing settings status UI, subscription flow contract, Stripe configuration boundary, Stripe checkout runtime, billing portal runtime, Stripe test account runbook, and webhook pre-runtime contract. Real Stripe checkout and portal evidence is pending because there is no Stripe test account/credentials configured yet. Webhook, subscriptions, subscription state sync, and commercial enforcement are not implemented. | Follow the Stripe test account runbook, validate checkout and portal runtime evidence, then implement webhook in a dedicated PR. |
 | GAP-007 | Admin bootstrap | `ADMIN_EMAIL` remains a bootstrap mechanism. | Plan a final organization admin and invitation model. |
 | GAP-010 | Documentation freshness | Audits can become stale after implementation PRs. | Reconcile docs after each merged implementation PR. |
 | GAP-011 | UI contracts | Dashboard, primary finance lists, primary data-changing forms, selective visual snapshot strategy, dashboard summary deterministic fixture, and gated dashboard summary screenshot are documented. | Validate the first gated screenshot with the dashboard summary fixture before adding any broader visual coverage. |
@@ -78,7 +78,7 @@ GAP-015 billing portal note: billing portal audit runtime uses `record_audit_eve
 
 ## Next recommended risk
 
-GAP-006 remains a product implementation risk after evidence gates: billing status UI, subscription flow contract, Stripe configuration boundary, checkout runtime, and billing portal runtime exist, but real Stripe checkout and portal evidence is pending until a Stripe test account and credentials exist. Webhook, subscription state sync, and commercial enforcement are still not implemented.
+GAP-006 remains a product implementation risk after evidence gates: billing status UI, subscription flow contract, Stripe configuration boundary, checkout runtime, billing portal runtime, and webhook pre-runtime contract exist, but real Stripe checkout and portal evidence is pending until a Stripe test account and credentials exist. Webhook, subscription state sync, and commercial enforcement are still not implemented.
 
 GAP-011 is also a product-quality risk and should be handled as a focused test-hardening track before major UI redesigns.
 
