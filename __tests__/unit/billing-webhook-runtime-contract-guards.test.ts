@@ -55,6 +55,8 @@ describe("billing webhook runtime contract guards", () => {
     expect(liveStatus).toContain("runtime bloqueado ate a evidencia real de checkout e portal");
     expect(liveStatus).toContain("webhook, subscription sync e enforcement comercial ainda nao foram implementados");
     expect(liveStatus).not.toContain("assinatura " + "sincronizada");
+    expect(roadmap).toContain("webhook, subscription sync e enforcement comercial ainda nao");
+    expect(roadmap).not.toContain("subscription sync, " + "webhook");
     expect(roadmap).not.toContain("deferimento");
     expect(roadmap).toContain("implementar webhook e subscription sync em prs separados");
     expect(roadmap).not.toContain("webhook e " + "assinatura");

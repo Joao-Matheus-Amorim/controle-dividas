@@ -184,7 +184,7 @@ Resultado atual:
 
 ### GAP-003 - Billing
 
-`organizations` possui campos como `plan` e `stripe_customer_id`. Checkout runtime e billing portal runtime estao implementados; evidencia real com Stripe de teste, subscription sync, webhook e enforcement comercial ainda nao.
+`organizations` possui campos como `plan` e `stripe_customer_id`. Checkout runtime e billing portal runtime estao implementados; evidencia real com Stripe de teste, webhook, subscription sync e enforcement comercial ainda nao.
 
 Contrato local de planos:
 
