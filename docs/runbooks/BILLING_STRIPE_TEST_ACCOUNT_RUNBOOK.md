@@ -24,7 +24,7 @@ Este runbook cobre apenas:
 Este runbook nao implementa:
 
 - webhook runtime;
-- sync de assinatura;
+- subscription sync;
 - enforcement comercial;
 - migrations;
 - RLS;
@@ -99,4 +99,4 @@ Confirmacao de que organizations.plan nao mudou:
 
 ## Regra de sequenciamento
 
-Nao iniciar webhook, sync de assinatura ou enforcement comercial antes de existir evidencia real de checkout e portal Stripe em modo teste.
+Nao iniciar webhook, subscription sync ou enforcement comercial antes de existir evidencia real de checkout e portal Stripe em modo teste.
