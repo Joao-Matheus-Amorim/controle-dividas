@@ -1,5 +1,11 @@
 # Requisitos - FamilyFinance
 
+> Status DocDoc: Historico/PM
+> Uso seguro: requisitos de produto como contexto de gestao.
+> Observacao: status de requisito pode estar defasado; confirme implementacao
+> atual em codigo, testes, `docs/VALIDACAO_TECNICA.md` e
+> `docs/SAAS_GAP_REGISTER.md`.
+
 Este documento registra os requisitos vivos do FamilyFinance, alinhados ao estado atual do codigo.
 
 Legenda de status:

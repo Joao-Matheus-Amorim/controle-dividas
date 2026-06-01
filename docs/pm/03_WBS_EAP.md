@@ -1,5 +1,10 @@
 # WBS / EAP - FamilyFinance
 
+> Status DocDoc: Historico/PM
+> Uso seguro: estrutura analitica historica do trabalho.
+> Observacao: nao e contrato tecnico atual nem fila de execucao atual; confirme
+> prioridades em `docs/audits/CODEBASE_SCAN_GAP_CHECKLIST_2026-06-01.md`.
+
 Esta EAP representa a estrutura viva do projeto FamilyFinance no estado atual do codigo e da estrategia aprovada.
 
 Legenda:

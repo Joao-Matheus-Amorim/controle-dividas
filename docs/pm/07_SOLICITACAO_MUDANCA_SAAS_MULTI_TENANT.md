@@ -1,5 +1,10 @@
 # Solicitacao de Mudanca - Evolucao SaaS Multi-tenant
 
+> Status DocDoc: Historico/PM
+> Uso seguro: registro formal da mudanca de escopo para SaaS multi-tenant.
+> Observacao: nao e contrato tecnico atual da transicao; confirme estado em
+> ADRs vigentes, `docs/VALIDACAO_TECNICA.md` e `docs/SAAS_GAP_REGISTER.md`.
+
 ## 1. Identificacao
 
 **Projeto:** FamilyFinance  

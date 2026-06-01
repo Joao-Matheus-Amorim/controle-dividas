@@ -1,5 +1,10 @@
 # Riscos, Qualidade e Mudancas - FamilyFinance
 
+> Status DocDoc: Historico/PM
+> Uso seguro: contexto de riscos, qualidade e processo de mudancas.
+> Observacao: nao e evidencia atual de CI, seguranca, deploy ou runtime; cruzar
+> com `docs/VALIDACAO_TECNICA.md` e workflows atuais.
+
 Este documento registra os riscos, controles de qualidade e regras de mudanca do FamilyFinance conforme o estado atual do codigo e da estrategia aprovada.
 
 ## Estado atual de referencia

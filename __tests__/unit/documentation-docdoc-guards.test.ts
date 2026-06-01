@@ -29,6 +29,10 @@ describe("Operacao DocDoc documentation guards", () => {
   const runbookFiles = readdirSync(join(process.cwd(), "docs/runbooks"))
     .filter((file) => file.endsWith(".md"))
     .sort();
+  const pmReadme = read("docs/pm/README.md");
+  const pmFiles = readdirSync(join(process.cwd(), "docs/pm"))
+    .filter((file) => file.endsWith(".md"))
+    .sort();
 
   it("keeps a documentation entrypoint and status map", () => {
     expect(docsReadme).toContain("status docdoc: atual");
@@ -120,5 +124,28 @@ describe("Operacao DocDoc documentation guards", () => {
 
     expect(runbooksReadme).toContain("todos os runbooks neste diretorio possuem nota");
     expect(statusMap).toContain("marcar todos os runbooks com nota `status docdoc`");
+  });
+
+  it("keeps PM documentation historical instead of technical-current", () => {
+    expect(pmReadme).toContain("status docdoc: atual");
+    expect(pmReadme).toContain("nao substituem");
+    expect(pmReadme).toContain("documentos pm podem orientar produto");
+
+    expect(statusMap).toContain("docs/pm/readme.md");
+    expect(statusMap).toContain("docs/pm/08_relatorio_progresso_saas_multi_tenant.md");
+    expect(statusMap).toContain("revisar `docs/pm/*` como historico de gestao");
+  });
+
+  it("marks every PM document with explicit DocDoc status", () => {
+    expect(pmFiles.length).toBeGreaterThan(5);
+
+    for (const file of pmFiles) {
+      const source = read(`docs/pm/${file}`);
+      expect(source).toContain("status docdoc:");
+
+      if (file !== "README.md") {
+        expect(source).toMatch(/historico\/pm|parcialmente superado/);
+      }
+    }
   });
 });

@@ -1,5 +1,12 @@
 # Relatorio de Progresso PMBOK - SaaS Multi-Tenant
 
+> Status DocDoc: Parcialmente superado
+> Uso seguro: relatorio historico de progresso de uma fase anterior da
+> transicao SaaS.
+> Superado por / observacao: nao usar como estado atual de owner_id,
+> organization_id, RLS, orgSlug ou billing sem cruzar com
+> `docs/VALIDACAO_TECNICA.md` e `docs/SAAS_GAP_REGISTER.md`.
+
 ## 1. Identificacao
 
 Projeto: **FamilyFinance / controle-dividas**
