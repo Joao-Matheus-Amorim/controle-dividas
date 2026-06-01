@@ -262,9 +262,9 @@ Five phases. Each is one PR. None of them touch logic, routes, schema, RLS, bill
 
 **Phase 1 — Tokens (additive, non-breaking).** Shipped as PR #756 (sage version originally; updated values in phase 2).
 
-**Phase 2 — AppShell + primitives + token swap.** Currently in `design/phase-2a-tokens-primitives` branch (local). Swaps shadcn vars to FF aliases, removes dead `.dark` overrides, migrates AppShell, AppCard family, Input. Logo repaint and flat tab bar applied here.
+**Phase 2 — AppShell + primitives + token swap.** Shipped as PR #764. Swaps shadcn vars to FF aliases, removes dead `.dark` overrides, migrates AppShell, AppCard family, Input. Logo repaint and flat tab bar applied here.
 
-**Phase 3 — Pilot screen: Dashboard.** Migrate `features/protected-pages/dashboard-page.tsx` and `components/dashboard/*` to consume tokens (currently hardcoded hex in quick-action and summary tones). User validates.
+**Phase 3 — Pilot screen: Dashboard.** Partially complete. `dashboard-hero-summary.tsx`, `dashboard-header.tsx`, and `dashboard-quick-actions.tsx` are migrated (use `rounded-ff-2xl`, `bg-card`, `text-ff-*`, `bg-primary`). Remaining: `dashboard-detail-sections.tsx` — still uses `border-white/10`, `bg-[#080810]/45`, and hardcoded hex colors. Do not rewrite the already-migrated hero/header/quick-actions.
 
 **Phase 4 — Remaining feature pages.** Pessoas, Gastos, Contas a pagar/receber, Bancos, Relatórios, Configurações, Admin. One PR per domain.
 

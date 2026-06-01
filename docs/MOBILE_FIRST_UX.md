@@ -4,7 +4,7 @@
 
 O FamilyFinance deve ser desenhado como aplicativo familiar mobile-first.
 
-A web atual nao deve parecer landing page de SaaS nem template generico. Ela deve funcionar como painel Admin privado do Danyel, mas a linguagem visual do produto deve nascer pensando no celular.
+A web atual nao deve parecer landing page de SaaS nem template generico. Ela deve funcionar como painel Admin privado, mas a linguagem visual do produto deve nascer pensando no celular.
 
 ## Principios de interface
 
@@ -84,7 +84,7 @@ Esse atalho abre o painel web Admin. A administracao nao sera recriada dentro do
 - Bancos
 - Perfil
 
-### Danyel/Admin
+###Admin
 
 - Inicio
 - Gastos

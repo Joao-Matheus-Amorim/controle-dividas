@@ -1,13 +1,18 @@
 # Visual tokens and component conventions
 
+> **⚠ Baseline pré-migração.** Este doc descreve o estado anterior à migração Ink + Copper + Ivory (PR #764).
+> O sistema de tokens vigente é `--ff-*` definido em `app/globals.css` e documentado em
+> `docs/design/redesign-2026-ink-copper-ivory.md`. Os `--app-*` abaixo são tokens legados ainda
+> presentes para componentes não migrados; serão removidos na Phase 5 da migração.
+
 Issues: #293, #80
 Related ADR: `docs/adr/0003-design-system-and-shadcn-adoption.md`
 
 ## Purpose
 
-Document the current visual tokens and component conventions before any future broad visual redesign.
+Document the visual tokens and component conventions established before the Ink + Copper + Ivory redesign.
 
-This document records the current state. It is not a redesign specification and does not change UI, components, runtime, schema, RLS, billing, permissions, or E2E coverage.
+This document records the pre-migration baseline state. It is not a redesign specification and does not change UI, components, runtime, schema, RLS, billing, permissions, or E2E coverage.
 
 ## Current design system position
 
