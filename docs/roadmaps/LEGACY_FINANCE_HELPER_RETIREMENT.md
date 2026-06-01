@@ -2,6 +2,12 @@
 
 Issues: #172, #173, #174, #175
 
+> Status DocDoc: Parcialmente superado/historico
+> Uso seguro: contexto da sequencia inicial de aposentadoria de helpers legados.
+> Superado por / observacao: confirmar estado atual em
+> `docs/VALIDACAO_TECNICA.md`, `docs/SAAS_GAP_REGISTER.md`, ADRs e codigo antes
+> de abrir novo PR.
+
 ## 1. Objetivo
 
 Este documento organiza o proximo bloco de hardening antes de qualquer migration RLS real.

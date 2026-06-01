@@ -1,5 +1,15 @@
 # Initial organization onboarding flow
 
+> Status DocDoc: Parcialmente superado/historico
+> Uso seguro: contexto do primeiro fluxo explicito de criacao da organizacao e
+> owner membership.
+> Superado por / observacao: nao usar este roadmap como contrato atual para
+> seletor de organizacao, multiplas memberships ou indice de uma membership
+> ativa. `supabase/migrations/029_drop_one_active_membership_per_user_limit.sql`
+> remove o limite transicional de uma membership ativa por usuario e
+> `components/app/active-organization-indicator.tsx` renderiza o switcher quando
+> existem multiplas organizacoes.
+
 ## Status
 
 Runtime onboarding is implemented in small guarded steps.
