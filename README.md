@@ -201,6 +201,8 @@ Secrets necessarios no GitHub:
 
 - `SUPABASE_DB_URL`
 - `VERCEL_TOKEN`
+- `VERCEL_ORG_ID`
+- `VERCEL_PROJECT_ID`
 
 ## Scripts disponiveis
 
