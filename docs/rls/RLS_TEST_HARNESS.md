@@ -2,6 +2,11 @@
 
 Issue: #164
 
+> Status DocDoc: Parcialmente superado
+> Uso seguro: contexto do desenho inicial do harness de testes RLS.
+> Superado por / observacao: confirmar implementacao atual em
+> `__tests__/integration/rls`, workflows e `docs/VALIDACAO_TECNICA.md`.
+
 ## 1. Objetivo
 
 Este documento define a base tecnica para criar testes reais de RLS financeira multi-tenant sem misturar, nesta etapa, migrations ou alteracoes de policies.

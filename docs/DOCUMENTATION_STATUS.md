@@ -48,7 +48,7 @@ trabalho novo.
 | `docs/design/` | Atual para design system | Fonte para tokens e direcao visual atual. |
 | `docs/e2e/` | Atual com indice | Usar `docs/e2e/README.md` como entrada para contratos E2E. Roadmaps nao substituem specs, CI ou evidencia gated. |
 | `docs/pm/` | Historico/PM com indice atual | Usar `docs/pm/README.md` como entrada. Contexto de gestao, nao contrato tecnico atual. |
-| `docs/rls/` | Misto | Contexto e runbooks RLS; validar contra migrations atuais. |
+| `docs/rls/` | Misto com indice atual | Usar `docs/rls/README.md` como entrada. Live Gate segue operacional; planos antigos precisam ser cruzados com migrations e testes atuais. |
 | `docs/roadmaps/` | Historico/planejamento | Nao usar como evidencia de implementacao. |
 | `docs/runbooks/` | Misto com indice atual | Usar `docs/runbooks/README.md` antes de executar runbooks antigos. Stripe evidence segue atual; hardening/fallback runbooks sao majoritariamente historicos. |
 | `docs/sql/` | Ferramentas operacionais | Queries de preflight/diagnostico; revisar antes de rodar em producao. |
@@ -65,6 +65,7 @@ trabalho novo.
 - [x] Marcar todos os runbooks com nota `Status DocDoc`.
 - [x] Revisar `docs/pm/*` como historico de gestao.
 - [x] Criar indice DocDoc para `docs/e2e/*`.
+- [x] Criar indice DocDoc para `docs/rls/*`.
 - [ ] Criar ADR nova se alguma decisao mobile/web/admin precisar virar contrato arquitetural.
 
 ## Audits DocDoc
@@ -119,6 +120,18 @@ trabalho novo.
 | `docs/e2e/PLAYWRIGHT_COVERAGE_ROADMAP.md` | Atual como mapa de cobertura E2E | Matriz de cobertura e proxima sequencia segura. | Nao substitui specs ou CI. |
 | `docs/e2e/PLAYWRIGHT_ONBOARDING_TESTS.md` | Atual como contrato gated | Fixtures e flags de onboarding/organizacao/shell. | Nao prova execucao gated atual. |
 | `docs/e2e/DATA_CHANGING_CLEANUP_STRATEGY.md` | Atual como contrato de cleanup | Regras para E2E que muda dados. | Nao autoriza teste data-changing sem gate e cleanup. |
+
+## RLS DocDoc
+
+| Documento | Status DocDoc | Uso seguro | Observacao |
+| --- | --- | --- | --- |
+| `docs/rls/README.md` | Atual | Indice vivo dos documentos RLS. | Ler antes de alterar RLS ou interpretar planos antigos. |
+| `docs/rls/RLS_LIVE_GATE.md` | Atual como runbook/gate operacional | Workflow manual dedicado para validar RLS real. | Evidencia so existe apos run real bem-sucedido. |
+| `docs/rls/ORGANIZATION_MEMBERSHIP_RLS_HELPERS.md` | Atual como contexto de helpers | Contexto dos helpers de membership. | Confirmar definicao real nas migrations e banco alvo. |
+| `docs/rls/RLS_TEST_HARNESS.md` | Parcialmente superado | Contexto do desenho inicial do harness. | Confirmar tests reais atuais antes de usar. |
+| `docs/rls/RLS_FINANCE_TEST_PLAN.md` | Parcialmente superado | Matriz historica inicial de testes RLS. | Confirmar cobertura atual em tests/inventarios. |
+| `docs/rls/RLS_ROLLOUT_AND_ROLLBACK.md` | Parcialmente superado | Estrategia historica de rollout. | Nao usar como ordem atual isolada. |
+| `docs/rls/LEGACY_ORGANIZATION_ID_HANDLING.md` | Parcialmente superado | Contexto do fallback legado. | Confirmar migrations `030` a `043` e policies atuais. |
 
 ## Regras de reconciliacao
 

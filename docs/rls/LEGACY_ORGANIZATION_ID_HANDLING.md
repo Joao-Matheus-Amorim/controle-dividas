@@ -2,6 +2,11 @@
 
 Issue: #153
 
+> Status DocDoc: Parcialmente superado
+> Uso seguro: contexto historico do fallback legado `organization_id IS NULL`.
+> Superado por / observacao: confirmar estado atual em migrations `030` a
+> `043`, `docs/VALIDACAO_TECNICA.md` e policies reais do banco alvo.
+
 ## 1. Objetivo
 
 Este documento define a estrategia para tratar registros legados com `organization_id IS NULL` durante a futura migracao de RLS financeira para multi-tenant.

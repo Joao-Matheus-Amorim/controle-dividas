@@ -2,6 +2,11 @@
 
 Issue: #155
 
+> Status DocDoc: Parcialmente superado
+> Uso seguro: matriz historica inicial para testes de RLS financeira.
+> Superado por / observacao: confirmar cobertura atual nos testes RLS,
+> inventories e migrations versionadas antes de abrir novo PR.
+
 ## 1. Objetivo
 
 Este documento define a matriz de testes necessaria antes de implementar RLS financeira multi-tenant.
