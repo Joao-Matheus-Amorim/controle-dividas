@@ -28,6 +28,22 @@ workflow_dispatch
 
 It must not run automatically on every pull request or push.
 
+The manual dispatch requires evidence metadata:
+
+```txt
+target_environment
+evidence_reason
+expected_scope
+```
+
+Default values intentionally describe the PMBOK G-001 evidence run:
+
+```txt
+target_environment=dedicated-rls-test
+evidence_reason=G-001 RLS Live Gate evidence
+expected_scope=rls-only
+```
+
 ## Required environment
 
 The workflow requires a dedicated RLS Supabase test environment.
@@ -89,6 +105,7 @@ rls-live-gate-evidence/summary.md
 ```
 
 The summary records workflow metadata, ref, SHA, actor, run id, run attempt, `APP_ENV`, `RUN_RLS_TESTS`, and the environment validation outcome and test outcomes.
+It also records the manual evidence metadata: target environment, evidence reason, and expected scope.
 
 Secret values are intentionally not printed. The contract table records each required variable/secret entry as `present` or `missing`, and validation status is the authoritative signal for whether the gate is correctly prepared and not as proof that each value was configured.
 
@@ -123,9 +140,10 @@ Operational sequence:
 
 1. Configure the dedicated repository variable and secrets.
 2. Run `RLS Live Gate` with `workflow_dispatch`.
-3. Confirm the run result in GitHub Actions.
-4. Download or inspect the `rls-live-gate-evidence-<run_id>-<run_attempt>` artifact.
-5. Update `docs/SAAS_RLS_LIVE_STATUS.md` with the run metadata only after the run is green.
+3. Fill the dispatch metadata with the dedicated environment name, evidence reason, and `rls-only` scope.
+4. Confirm the run result in GitHub Actions.
+5. Download or inspect the `rls-live-gate-evidence-<run_id>-<run_attempt>` artifact.
+6. Update `docs/SAAS_RLS_LIVE_STATUS.md` with the run metadata only after the run is green.
 
 ## Stop criteria
 
