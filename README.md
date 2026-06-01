@@ -19,7 +19,7 @@ A origem familiar do projeto permanece apenas como contexto historico e validaca
 | Design system | shadcn/ui por camadas via ADR; primitives `Alert`, `Skeleton` e `Separator` versionados |
 | Testes | Unitarios, integracao MSW, guards arquiteturais e suites RLS gated opcionais |
 | E2E | Playwright implementado com smoke de auth/rotas e contratos autenticados gated de onboarding, organizacao ativa, rotas protegidas, troca multi-org e `orgSlug` |
-| Deploy | Vercel com redeploy manual/controlado conforme fase atual |
+| Deploy | Pipeline automatico (apos CI verde na main) + disparo manual: backend Supabase + frontend Vercel |
 
 ## Fontes oficiais de decisao
 
@@ -180,6 +180,27 @@ http://localhost:3000
 ```
 
 As variaveis de ambiente ficam documentadas em `.env.example`. Nao versionar secrets reais.
+
+## Deploy (automatico + manual)
+
+O backend deste projeto e **Supabase** (Auth + Postgres).
+
+Workflow oficial: `.github/workflows/deploy.yml`
+
+Gatilhos:
+
+1. Automatico: `workflow_run` quando o workflow `CI` fecha `success` na branch `main`.
+2. Manual: `workflow_dispatch` com `ref` opcional.
+
+Sequencia do pipeline:
+
+1. Aplica migrations no backend Supabase (`supabase db push`).
+2. Publica frontend na Vercel (`vercel deploy --prod`).
+
+Secrets necessarios no GitHub:
+
+- `SUPABASE_DB_URL`
+- `VERCEL_TOKEN`
 
 ## Scripts disponiveis
 

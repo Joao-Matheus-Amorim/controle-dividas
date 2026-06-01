@@ -43,7 +43,7 @@ Ja existem no codigo:
 - testes unitarios;
 - testes de integracao com MSW;
 - PWA manifest;
-- deploy automatico Vercel desativado por decisao consciente.
+- deploy de producao automatizado apos CI verde na `main`, com fallback manual via `.github/workflows/deploy.yml`, aplicando backend Supabase e frontend Vercel.
 
 ## Arquivos tecnicos centrais
 
