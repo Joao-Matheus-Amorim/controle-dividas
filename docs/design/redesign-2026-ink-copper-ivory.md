@@ -1,5 +1,13 @@
 # Redesign 2026 — Ink + Copper + Ivory
 
+> Status DocDoc: Atual como direcao visual em andamento
+> Uso atual: fonte da direcao Ink + Copper + Ivory, tokens `--ff-*` e padroes
+> visuais alvo.
+> Observacao: nao e evidencia de implementacao. A migration plan deste arquivo
+> e historica por fase; confirme `app/globals.css` e os componentes reais antes
+> de reabrir trabalho visual. Nao remigrar o dashboard hero sem conferir o
+> componente atual em `components/dashboard/dashboard-hero-summary.tsx`.
+
 Issue: #80
 Related ADR: `docs/adr/0003-design-system-and-shadcn-adoption.md`
 Baseline: `docs/design/VISUAL_TOKENS_AND_COMPONENT_CONVENTIONS.md`

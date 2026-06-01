@@ -45,7 +45,7 @@ trabalho novo.
 | --- | --- | --- |
 | `docs/adr/` | Historico decisorio | Manter ADRs; criar nova ADR para decisao nova ou mudanca estrutural. |
 | `docs/audits/` | Misto com indice atual | Usar `docs/audits/README.md` antes de seguir auditorias antigas. Contratos atuais e readiness historicos ficam separados ali. |
-| `docs/design/` | Atual para design system | Fonte para tokens e direcao visual atual. |
+| `docs/design/` | Atual com indice | Usar `docs/design/README.md` como entrada. Design docs orientam direcao visual, mas nao provam implementacao atual. |
 | `docs/e2e/` | Atual com indice | Usar `docs/e2e/README.md` como entrada para contratos E2E. Roadmaps nao substituem specs, CI ou evidencia gated. |
 | `docs/pm/` | Historico/PM com indice atual | Usar `docs/pm/README.md` como entrada. Contexto de gestao, nao contrato tecnico atual. |
 | `docs/rls/` | Misto com indice atual | Usar `docs/rls/README.md` como entrada. Live Gate segue operacional; planos antigos precisam ser cruzados com migrations e testes atuais. |
@@ -67,6 +67,7 @@ trabalho novo.
 - [x] Criar indice DocDoc para `docs/e2e/*`.
 - [x] Criar indice DocDoc para `docs/rls/*`.
 - [x] Criar indice DocDoc para `docs/roadmaps/*`.
+- [x] Criar indice DocDoc para `docs/design/*`.
 - [ ] Criar ADR nova se alguma decisao mobile/web/admin precisar virar contrato arquitetural.
 
 ## Audits DocDoc
@@ -141,6 +142,14 @@ trabalho novo.
 | `docs/roadmaps/README.md` | Atual | Indice vivo dos roadmaps. | Ler antes de usar roadmaps como sequencia. |
 | `docs/roadmaps/INITIAL_ORGANIZATION_ONBOARDING_FLOW.md` | Parcialmente superado/historico | Contexto do primeiro fluxo de onboarding de organizacao. | Nao usar como contrato atual para seletor de organizacao, multiplas memberships ou indice de uma membership ativa; ver migration `029` e `components/app/active-organization-indicator.tsx`. |
 | `docs/roadmaps/LEGACY_FINANCE_HELPER_RETIREMENT.md` | Parcialmente superado/historico | Contexto da sequencia inicial de aposentadoria de helpers legados. | Nao usar como backlog atual isolado. |
+
+## Design DocDoc
+
+| Documento | Status DocDoc | Uso seguro | Observacao |
+| --- | --- | --- | --- |
+| `docs/design/README.md` | Atual | Indice vivo dos contratos e direcoes de design. | Ler antes de usar specs antigas. |
+| `docs/design/redesign-2026-ink-copper-ivory.md` | Atual como direcao visual em andamento | Fonte da direcao Ink + Copper + Ivory e tokens `--ff-*`. | Migration plan e historica por fase; conferir codigo atual antes de remigrar componentes. |
+| `docs/design/VISUAL_TOKENS_AND_COMPONENT_CONVENTIONS.md` | Parcialmente superado/historico | Baseline anterior e limites shadcn/ADR. | Nao usar como fonte atual de cores, superficies ou estilo do app protegido. |
 
 ## Regras de reconciliacao
 

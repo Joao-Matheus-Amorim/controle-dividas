@@ -47,6 +47,12 @@ describe("Operacao DocDoc documentation guards", () => {
   const roadmapFiles = readdirSync(join(process.cwd(), "docs/roadmaps"))
     .filter((file) => file.endsWith(".md"))
     .sort();
+  const designReadme = read("docs/design/README.md");
+  const redesignSpec = read("docs/design/redesign-2026-ink-copper-ivory.md");
+  const visualTokensBaseline = read("docs/design/VISUAL_TOKENS_AND_COMPONENT_CONVENTIONS.md");
+  const designFiles = readdirSync(join(process.cwd(), "docs/design"))
+    .filter((file) => file.endsWith(".md"))
+    .sort();
 
   it("keeps a documentation entrypoint and status map", () => {
     expect(docsReadme).toContain("status docdoc: atual");
@@ -232,6 +238,37 @@ describe("Operacao DocDoc documentation guards", () => {
 
     for (const file of roadmapFiles) {
       const source = read(`docs/roadmaps/${file}`);
+      expect(source).toContain("status docdoc:");
+    }
+  });
+
+  it("keeps design docs as visual direction instead of implementation evidence", () => {
+    expect(designReadme).toContain("status docdoc: atual");
+    expect(designReadme).toContain("nao sao evidencia de implementacao");
+    expect(designReadme).toContain("nao remigrar um");
+    expect(designReadme).toContain("componente ja convertido");
+
+    expect(statusMap).toContain("docs/design/readme.md");
+    expect(statusMap).toContain("docs/design/redesign-2026-ink-copper-ivory.md");
+    expect(statusMap).toContain("docs/design/visual_tokens_and_component_conventions.md");
+  });
+
+  it("separates current design direction from stale visual baselines", () => {
+    expect(redesignSpec).toContain("status docdoc: atual como direcao visual em andamento");
+    expect(redesignSpec).toContain("nao e evidencia de implementacao");
+    expect(redesignSpec).toContain("nao remigrar o dashboard hero");
+    expect(redesignSpec).toContain("components/dashboard/dashboard-hero-summary.tsx");
+
+    expect(visualTokensBaseline).toContain("status docdoc: parcialmente superado/historico");
+    expect(visualTokensBaseline).toContain("nao usar este documento como fonte atual de cores");
+    expect(visualTokensBaseline).toContain("app/globals.css");
+  });
+
+  it("marks every design document with explicit DocDoc status", () => {
+    expect(designFiles.length).toBeGreaterThan(2);
+
+    for (const file of designFiles) {
+      const source = read(`docs/design/${file}`);
       expect(source).toContain("status docdoc:");
     }
   });
