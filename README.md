@@ -117,9 +117,13 @@ Ainda transicional:
 037_user_module_permissions_rls_remove_legacy_fallback.sql
 038_user_feature_permissions_rls_remove_legacy_fallback.sql
 039_drop_legacy_owner_family_policies.sql
+040_audit_events_schema.sql
+041_audit_events_write_boundary.sql
+042_audit_events_retention_cleanup.sql
+043_restore_finance_relationships_and_rls_cleanup.sql
 ```
 
-Observacao operacional: a migration `019_initial_organization_onboarding_rpc.sql` precisa estar aplicada no Supabase de cada ambiente antes de depender do onboarding inicial em runtime. As migrations `020` a `028` exigem evidencia recente de preflight/dry-run com zero linhas bloqueadas ou ambiguas para suas tabelas-alvo. As migrations `030` a `038` removem o fallback RLS legado `organization_id IS NULL`. A migration `039` remove policies historicas owner/family que podiam existir em ambientes que aplicaram migrations antigas.
+Observacao operacional: a migration `019_initial_organization_onboarding_rpc.sql` precisa estar aplicada no Supabase de cada ambiente antes de depender do onboarding inicial em runtime. As migrations `020` a `028` exigem evidencia recente de preflight/dry-run com zero linhas bloqueadas ou ambiguas para suas tabelas-alvo. As migrations `030` a `038` removem o fallback RLS legado `organization_id IS NULL`. A migration `039` remove policies historicas owner/family que podiam existir em ambientes que aplicaram migrations antigas. As migrations `040` a `042` implementam o schema de `audit_events` (GAP-015): tabela, boundary de escrita via RPC segura e cleanup de retencao de 365 dias. A migration `043` restaura constraints de FK esperadas pelo PostgREST e remove policies owner-only legadas em ambientes antigos.
 
 ## Testes RLS gated
 

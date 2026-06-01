@@ -56,15 +56,30 @@ Adotada e shippada em PR #764. Spec completa:
 
 ### Estado da migração (importante)
 
-Fases 1–2 feitas (tokens + AppShell + primitives). **Fase 3 = Dashboard em
-refino por ocorrência real:** `components/dashboard/dashboard-hero-summary.tsx`
-já está migrado para `rounded-ff-2xl`, `bg-card`, `app-hero-glow` e tokens
-`bg-primary`/`ff-*`; não reescrever esse hero como alvo legado. A receita de
-migração deve focar somente seções do dashboard que ainda contenham classes
-legadas confirmadas por busca local, como `--app-*`, `backdrop-blur`,
-`bg-white/*`, `border-white/*`, `text-white/*`, hex roxo/indigo/violet fixo ou
-superfícies glass. Fase 4 = demais telas. Fase 5 = remover `--app-*`
-remanescente e grep-verificar zero hex legado.
+**Fases 1–3 concluídas** (PRs #795, #796, #827, #828).
+
+- Tokens `--ff-*` e shadcn aliases: em `app/globals.css` + `tailwind.config.ts`.
+- AppShell, AppCard, Button (exceto `lg` — pendente PR do codex), AppFormSheet: limpos.
+- `components/dashboard/*`: 100% limpo (hero com `.app-hero-glow`, tiles com `bg-ff-bg-soft`).
+- `app-form-dialog.tsx` trigger: migrado para `Button size="lg" className="h-11"` — sem `#8b72f8`.
+- `components/ui/dialog.tsx`: migrado para tokens (surface `bg-card`, overlay `bg-background/80`).
+
+**Fase 4 em andamento** — demais telas com legado confirmado por grep:
+
+| Área | Ocorrências | Próximo alvo |
+|---|---|---|
+| `components/finance/` | ~75 | forms financeiros compartilhados |
+| `components/admin/` | ~59 | páginas admin |
+| `components/settings/` | ~45 | configurações |
+| `components/reports/` | ~38 | relatórios |
+| `components/expenses/` | ~31 | gastos |
+| `components/ui/` restante | ~10 | button (codex), sheet, alert, select |
+| `app/onboarding/` | ~10 | primeira tela do usuário novo |
+| `components/app/` restante | ~15 | org-indicator, data-table, empty-state |
+
+**Fase 5** = remover `--app-*` de `globals.css` + grep-verificar zero hex legado.
+
+Antes de migrar qualquer arquivo: confirme legado com grep local. Não reescrever o que já foi migrado.
 
 ## Convenções de código
 
