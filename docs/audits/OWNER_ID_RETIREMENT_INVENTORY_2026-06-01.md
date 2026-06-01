@@ -115,5 +115,5 @@ Proximo PR recomendado:
 inventariar consumidores ativos dos helpers owner-only em lib/finance/*.
 ```
 
-Esse proximo PR deve ser somente inventario/guard. Nenhuma remocao de
-`owner_id` deve entrar antes do RLS Live Gate verde.
+Esse proximo PR deve ser somente inventario/guard. Nenhuma remocao de `owner_id`
+deve entrar antes do RLS Live Gate verde.
