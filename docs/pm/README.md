@@ -28,7 +28,6 @@ risco, aceite e historico da mudanca SaaS. Eles nao substituem:
 | `06_ACEITE_ROADMAP.md` | Historico/PM | Criterios e roadmap originais, nao fila tecnica atual. |
 | `07_SOLICITACAO_MUDANCA_SAAS_MULTI_TENANT.md` | Historico/PM | Registro formal da mudanca SaaS; a execucao atual fica em docs tecnicos. |
 | `08_RELATORIO_PROGRESSO_SAAS_MULTI_TENANT.md` | Parcialmente superado | Relatorio de progresso de uma fase anterior; cruzar com `SAAS_GAP_REGISTER.md`. |
-| `09_PLANO_CONTROLE_GAPS_DIVIDAS.md` | Atual | Plano PMBOK vivo para controlar gaps, dividas tecnicas, evidencias, aceite e sequenciamento de PRs. |
 
 ## Regra operacional
 
