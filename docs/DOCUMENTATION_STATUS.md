@@ -50,7 +50,7 @@ trabalho novo.
 | `docs/pm/` | Historico/PM | Contexto de escopo e gestao, nao contrato tecnico atual. |
 | `docs/rls/` | Misto | Contexto e runbooks RLS; validar contra migrations atuais. |
 | `docs/roadmaps/` | Historico/planejamento | Nao usar como evidencia de implementacao. |
-| `docs/runbooks/` | Runbook/historico | Executar apenas quando ainda aplicavel e cruzado com estado atual. |
+| `docs/runbooks/` | Misto com indice atual | Usar `docs/runbooks/README.md` antes de executar runbooks antigos. Stripe evidence segue atual; hardening/fallback runbooks sao majoritariamente historicos. |
 | `docs/sql/` | Ferramentas operacionais | Queries de preflight/diagnostico; revisar antes de rodar em producao. |
 
 ## Fila DocDoc inicial
@@ -61,7 +61,8 @@ trabalho novo.
 - [x] Marcar documentos centrais com notas DocDoc.
 - [x] Criar indice DocDoc inicial para `docs/audits/*`.
 - [ ] Revisar `docs/audits/*` restantes em lotes pequenos.
-- [ ] Revisar `docs/runbooks/*` em lotes pequenos.
+- [x] Criar indice DocDoc inicial para `docs/runbooks/*`.
+- [ ] Revisar `docs/runbooks/*` restantes em lotes pequenos.
 - [ ] Revisar `docs/pm/*` como historico de gestao.
 - [ ] Criar ADR nova se alguma decisao mobile/web/admin precisar virar contrato arquitetural.
 
@@ -84,6 +85,16 @@ trabalho novo.
 | `docs/audits/LEGACY_ORGANIZATION_FALLBACK_REMOVAL_READINESS.md` | Parcialmente superado | Historico/controle da remocao de fallback legado. | Revalidar codigo antes de abrir novo PR baseado nele. |
 | `docs/audits/*_ORGANIZATION_SCOPE_READINESS.md` | Parcialmente superado | Readiness por tabela. | Usar como contexto, nao como estado atual isolado. |
 | `docs/audits/*_EVIDENCE*.md` | Historico/evidencia pontual | Prova de uma execucao ou revisao. | Refazer evidencia se a decisao for operacional. |
+
+## Runbooks DocDoc
+
+| Documento | Status DocDoc | Uso seguro | Observacao |
+| --- | --- | --- | --- |
+| `docs/runbooks/README.md` | Atual | Indice vivo dos runbooks. | Ler antes de executar qualquer runbook antigo. |
+| `docs/runbooks/BILLING_STRIPE_TEST_ACCOUNT_RUNBOOK.md` | Atual | Runbook operacional para evidencia real de checkout e portal Stripe em teste. | Continua bloqueando webhook runtime ate evidencia real existir. |
+| `docs/runbooks/LEGACY_ORGANIZATION_BACKFILL_RUNBOOK.md` | Parcialmente superado | Historico do processo seguro de backfill legado. | Nao usar as fases antigas como estado atual sem conferir migrations `020` a `043`. |
+| `docs/runbooks/*_ORG_SCOPE_HARDENING.md` | Parcialmente superado/historico | Contexto e rollback das migrations de hardening. | Confirmar estado atual em `VALIDACAO_TECNICA.md` e no banco alvo. |
+| `docs/runbooks/*_RLS_FALLBACK_REMOVAL.md` | Parcialmente superado/historico | Contexto e rollback das migrations de fallback removal. | Confirmar migrations e politicas atuais antes de executar SQL. |
 
 ## Regras de reconciliacao
 

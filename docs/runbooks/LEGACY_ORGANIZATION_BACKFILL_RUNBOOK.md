@@ -2,6 +2,13 @@
 
 Issue: #560
 
+> Status DocDoc: Parcialmente superado
+> Uso seguro: historico do processo seguro de backfill legado e checklist de
+> preflight/rollback.
+> Superado por / observacao: nao usar a secao "Current phase" como estado atual
+> sem conferir migrations `020` a `043`, `docs/VALIDACAO_TECNICA.md` e
+> `docs/SAAS_GAP_REGISTER.md`.
+
 ## Purpose
 
 This runbook defines the safe process for a future legacy `organization_id IS NULL` backfill.
