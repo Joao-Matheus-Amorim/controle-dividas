@@ -67,9 +67,10 @@ Fonte única: `--ff-*` em `app/globals.css`. shadcn vars são aliases.
 | Área | Estado |
 |---|---|
 | `components/dashboard/*` | ✅ 100% limpo |
-| `components/ui/dialog.tsx` | ✅ migrado para tokens |
-| `components/app/app-form-{sheet,dialog}.tsx` | ✅ triggers em `bg-primary` |
+| `components/app/app-form-sheet.tsx` | ✅ trigger em `bg-primary h-11` |
 | AppShell, AppCard, Button (default/sm/icon) | ✅ limpos |
+| `components/ui/dialog.tsx` | 🔄 Fase 4 — PR #830 aberto |
+| `components/app/app-form-dialog.tsx` | 🔄 Fase 4 — PR #830 aberto |
 | `components/finance/` (~75 ocorrências) | 🔄 Fase 4 |
 | `components/admin/` (~59), `settings/` (~45) | 🔄 Fase 4 |
 | `components/ui/` restante (sheet, select…) | 🔄 Fase 4 |

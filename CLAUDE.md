@@ -61,13 +61,13 @@ Adotada e shippada em PR #764. Spec completa:
 - Tokens `--ff-*` e shadcn aliases: em `app/globals.css` + `tailwind.config.ts`.
 - AppShell, AppCard, Button (exceto `lg` — pendente PR do codex), AppFormSheet: limpos.
 - `components/dashboard/*`: 100% limpo (hero com `.app-hero-glow`, tiles com `bg-ff-bg-soft`).
-- `app-form-dialog.tsx` trigger: migrado para `Button size="lg" className="h-11"` — sem `#8b72f8`.
-- `components/ui/dialog.tsx`: migrado para tokens (surface `bg-card`, overlay `bg-background/80`).
 
 **Fase 4 em andamento** — demais telas com legado confirmado por grep:
 
 | Área | Ocorrências | Próximo alvo |
 |---|---|---|
+| `components/ui/dialog.tsx` | bg-[#10101a], border-white/10, text-white | **alvo imediato** (PR #830 aberto) |
+| `components/app/app-form-dialog.tsx` | bg-[#8b72f8] trigger | **alvo imediato** (PR #830 aberto) |
 | `components/finance/` | ~75 | forms financeiros compartilhados |
 | `components/admin/` | ~59 | páginas admin |
 | `components/settings/` | ~45 | configurações |
