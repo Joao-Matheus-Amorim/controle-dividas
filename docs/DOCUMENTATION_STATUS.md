@@ -44,7 +44,7 @@ trabalho novo.
 | Diretorio | Status DocDoc | Uso seguro |
 | --- | --- | --- |
 | `docs/adr/` | Historico decisorio | Manter ADRs; criar nova ADR para decisao nova ou mudanca estrutural. |
-| `docs/audits/` | Misto | Auditorias recentes podem ser atuais; readiness antigos podem estar historicos. Sempre conferir status e data. |
+| `docs/audits/` | Misto com indice atual | Usar `docs/audits/README.md` antes de seguir auditorias antigas. Contratos atuais e readiness historicos ficam separados ali. |
 | `docs/design/` | Atual para design system | Fonte para tokens e direcao visual atual. |
 | `docs/e2e/` | Parcialmente superado | Usar como contexto de estrategia E2E; conferir CI atual. |
 | `docs/pm/` | Historico/PM | Contexto de escopo e gestao, nao contrato tecnico atual. |
@@ -59,10 +59,31 @@ trabalho novo.
 - [x] Criar mapa `docs/DOCUMENTATION_STATUS.md`.
 - [x] Salvar skill `.agents/skills/operacao-docdoc/SKILL.md`.
 - [x] Marcar documentos centrais com notas DocDoc.
-- [ ] Revisar `docs/audits/*` em lotes pequenos.
+- [x] Criar indice DocDoc inicial para `docs/audits/*`.
+- [ ] Revisar `docs/audits/*` restantes em lotes pequenos.
 - [ ] Revisar `docs/runbooks/*` em lotes pequenos.
 - [ ] Revisar `docs/pm/*` como historico de gestao.
 - [ ] Criar ADR nova se alguma decisao mobile/web/admin precisar virar contrato arquitetural.
+
+## Audits DocDoc
+
+| Documento | Status DocDoc | Uso seguro | Observacao |
+| --- | --- | --- | --- |
+| `docs/audits/README.md` | Atual | Indice vivo de auditorias, contratos e readiness. | Ler antes de usar auditorias antigas. |
+| `docs/audits/CODEBASE_SCAN_GAP_CHECKLIST_2026-06-01.md` | Atual | Checklist de gaps/dividas para ticagem. | Nao substitui codigo, migrations ou CI. |
+| `docs/audits/SENSITIVE_OPERATION_CONTROLS_CONTRACT.md` | Atual | Contrato vigente do GAP-015. | Cruzar com `SAAS_GAP_REGISTER.md`. |
+| `docs/audits/SENSITIVE_OPERATION_RATE_LIMIT_PLAN.md` | Atual como plano/registro | Plano do runtime de rate limit. | O contrato central define a leitura consolidada. |
+| `docs/audits/SENSITIVE_ACTION_AUDIT_EVENT_SCHEMA_PLAN.md` | Atual como plano/registro | Plano de audit events e write boundary. | Confirmar migrations atuais antes de operar. |
+| `docs/audits/SENSITIVE_DATA_RETENTION_PLAN.md` | Atual como plano | Plano de retention. | Nao prova cleanup automatizado amplo. |
+| `docs/audits/BILLING_WEBHOOK_RUNTIME_CONTRACT.md` | Atual como contrato pre-runtime | Requisitos do futuro webhook Stripe. | Webhook segue bloqueado ate evidencia real de checkout e portal. |
+| `docs/audits/DASHBOARD_UI_CONTRACT.md` | Atual | Contrato textual do dashboard. | Complementa guards, nao substitui teste visual. |
+| `docs/audits/FINANCE_LIST_UI_CONTRACT.md` | Atual | Contrato textual das listas financeiras. | Complementa guards e permissao. |
+| `docs/audits/FINANCE_FORM_UI_CONTRACT.md` | Atual | Contrato textual dos formularios financeiros. | Complementa server actions e RLS. |
+| `docs/audits/SELECTIVE_VISUAL_SNAPSHOT_STRATEGY.md` | Atual | Estrategia de snapshot seletivo. | Evita snapshot amplo sem contrato. |
+| `docs/audits/ORGANIZATION_SCOPE_HARDENING_PLAN.md` | Parcialmente superado | Historico/controle do hardening `organization_id`. | Estado atual fica em migrations e `VALIDACAO_TECNICA.md`. |
+| `docs/audits/LEGACY_ORGANIZATION_FALLBACK_REMOVAL_READINESS.md` | Parcialmente superado | Historico/controle da remocao de fallback legado. | Revalidar codigo antes de abrir novo PR baseado nele. |
+| `docs/audits/*_ORGANIZATION_SCOPE_READINESS.md` | Parcialmente superado | Readiness por tabela. | Usar como contexto, nao como estado atual isolado. |
+| `docs/audits/*_EVIDENCE*.md` | Historico/evidencia pontual | Prova de uma execucao ou revisao. | Refazer evidencia se a decisao for operacional. |
 
 ## Regras de reconciliacao
 

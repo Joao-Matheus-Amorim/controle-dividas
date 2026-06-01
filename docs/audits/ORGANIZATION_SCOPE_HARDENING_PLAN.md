@@ -3,6 +3,13 @@
 Issue: #566
 Status reconciliation: #575
 
+> Status DocDoc: Parcialmente superado
+> Uso seguro: historico e controle da sequencia de hardening de
+> `organization_id`.
+> Superado por / observacao: o estado atual deve ser conferido nas migrations
+> versionadas, em `docs/VALIDACAO_TECNICA.md` e em
+> `docs/SAAS_GAP_REGISTER.md` antes de qualquer nova acao.
+
 ## Purpose
 
 Define the safe plan for schema hardening steps where tenant-scoped rows require a non-empty organization scope.

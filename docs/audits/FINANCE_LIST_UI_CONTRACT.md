@@ -1,5 +1,10 @@
 # Finance list UI contract
 
+> Status DocDoc: Atual
+> Uso atual: contrato textual vigente das listas financeiras primarias.
+> Observacao: complementa guards e permissoes; nao substitui server actions,
+> RLS ou validacao de dados.
+
 Atualizado em: 2026-05-28
 
 ## Objetivo

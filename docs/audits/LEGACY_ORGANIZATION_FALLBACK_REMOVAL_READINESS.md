@@ -4,6 +4,13 @@ Issue: #641
 
 Related issues: #643, #645, #647, #648, #650, #652, #654
 
+> Status DocDoc: Parcialmente superado
+> Uso seguro: historico e controle da remocao gradual do fallback legado de
+> organizacao.
+> Superado por / observacao: revalidar contra codigo atual, migrations `030` a
+> `043`, `docs/VALIDACAO_TECNICA.md` e `docs/SAAS_GAP_REGISTER.md` antes de
+> abrir novo PR baseado neste inventario.
+
 ## Purpose
 
 Document the current readiness state for removing the legacy organization fallback from runtime reads and write-validation paths.
