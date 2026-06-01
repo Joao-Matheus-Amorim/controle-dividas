@@ -4,6 +4,12 @@ Issue: #422
 
 Helper contract: #424
 
+> Status DocDoc: Atual como contrato de cleanup
+> Uso atual: regras obrigatorias para Playwright E2E que cria, atualiza ou
+> remove dados.
+> Observacao: nao e evidencia de execucao gated; confirme specs, flags e CI
+> antes de declarar cobertura atual.
+
 ## Goal
 
 Define the cleanup contract required before any Playwright E2E flow creates, updates, or deletes application data.

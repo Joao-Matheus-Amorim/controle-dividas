@@ -46,7 +46,7 @@ trabalho novo.
 | `docs/adr/` | Historico decisorio | Manter ADRs; criar nova ADR para decisao nova ou mudanca estrutural. |
 | `docs/audits/` | Misto com indice atual | Usar `docs/audits/README.md` antes de seguir auditorias antigas. Contratos atuais e readiness historicos ficam separados ali. |
 | `docs/design/` | Atual para design system | Fonte para tokens e direcao visual atual. |
-| `docs/e2e/` | Parcialmente superado | Usar como contexto de estrategia E2E; conferir CI atual. |
+| `docs/e2e/` | Atual com indice | Usar `docs/e2e/README.md` como entrada para contratos E2E. Roadmaps nao substituem specs, CI ou evidencia gated. |
 | `docs/pm/` | Historico/PM com indice atual | Usar `docs/pm/README.md` como entrada. Contexto de gestao, nao contrato tecnico atual. |
 | `docs/rls/` | Misto | Contexto e runbooks RLS; validar contra migrations atuais. |
 | `docs/roadmaps/` | Historico/planejamento | Nao usar como evidencia de implementacao. |
@@ -64,6 +64,7 @@ trabalho novo.
 - [x] Criar indice DocDoc inicial para `docs/runbooks/*`.
 - [x] Marcar todos os runbooks com nota `Status DocDoc`.
 - [x] Revisar `docs/pm/*` como historico de gestao.
+- [x] Criar indice DocDoc para `docs/e2e/*`.
 - [ ] Criar ADR nova se alguma decisao mobile/web/admin precisar virar contrato arquitetural.
 
 ## Audits DocDoc
@@ -109,6 +110,15 @@ trabalho novo.
 | `docs/pm/06_ACEITE_ROADMAP.md` | Historico/PM | Contexto de aceite e roadmap original. | Nao e backlog tecnico atual. |
 | `docs/pm/07_SOLICITACAO_MUDANCA_SAAS_MULTI_TENANT.md` | Historico/PM | Registro formal da mudanca SaaS. | Execucao atual fica em docs tecnicos. |
 | `docs/pm/08_RELATORIO_PROGRESSO_SAAS_MULTI_TENANT.md` | Parcialmente superado | Relatorio de progresso de fase anterior. | Cruzar com `SAAS_GAP_REGISTER.md`. |
+
+## E2E DocDoc
+
+| Documento | Status DocDoc | Uso seguro | Observacao |
+| --- | --- | --- | --- |
+| `docs/e2e/README.md` | Atual | Indice vivo dos contratos E2E. | Ler antes de alterar Playwright. |
+| `docs/e2e/PLAYWRIGHT_COVERAGE_ROADMAP.md` | Atual como mapa de cobertura E2E | Matriz de cobertura e proxima sequencia segura. | Nao substitui specs ou CI. |
+| `docs/e2e/PLAYWRIGHT_ONBOARDING_TESTS.md` | Atual como contrato gated | Fixtures e flags de onboarding/organizacao/shell. | Nao prova execucao gated atual. |
+| `docs/e2e/DATA_CHANGING_CLEANUP_STRATEGY.md` | Atual como contrato de cleanup | Regras para E2E que muda dados. | Nao autoriza teste data-changing sem gate e cleanup. |
 
 ## Regras de reconciliacao
 
