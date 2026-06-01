@@ -39,6 +39,50 @@ trabalho novo.
 | `docs/MOBILE_STRATEGY.md` | Atual como estrategia | Decisao de canais web admin + app nativo futuro. | Nao significa que app nativo ja exista. |
 | `docs/MOBILE_FIRST_UX.md` | Atual como diretriz UX | Diretriz visual/UX mobile-first. | Nao substitui contratos de design system. |
 
+## Root Docs DocDoc
+
+Arquivos Markdown diretamente em `docs/` misturam contrato atual, historico de
+PR, plano antigo, estrategia e proposta. Use esta tabela antes de abrir um
+arquivo raiz isolado.
+
+| Documento | Status DocDoc | Uso seguro | Observacao |
+| --- | --- | --- | --- |
+| `docs/ACCESS_CHANNELS.md` | Parcialmente superado/estrategia | Contexto de canais web admin + app mobile. | Confirmar decisao atual em `docs/MOBILE_STRATEGY.md`. |
+| `docs/ADMIN_PERMISSIONS.md` | Atual como regra de produto | Contexto de admin familiar, roles e permissoes. | Confirmar estado tecnico em `docs/VALIDACAO_TECNICA.md` e codigo. |
+| `docs/ARCHITECTURE.md` | Atual como visao tecnica | Arquitetura geral Next/Supabase/RLS. | Conferir versoes e migrations em `docs/VALIDACAO_TECNICA.md`. |
+| `docs/AUTH_FLOW_AUDIT.md` | Parcialmente superado/historico | Auditoria do fluxo de auth em uma etapa anterior. | Estado vivo fica no codigo, CI e `docs/VALIDACAO_TECNICA.md`. |
+| `docs/branch-protection.md` | Atual como recomendacao operacional | Guia de protecao da branch `main`. | Confirmar regras reais no GitHub antes de assumir cobertura. |
+| `docs/COMPONENT_ARCHITECTURE.md` | Atual como convencao de organizacao | Padrao de paginas, componentes, `lib/finance` e UI primitives. | Confirmar com codigo atual antes de refatorar. |
+| `docs/COPILOT_REVIEW_RESOLUTION.md` | Historico | Registro de comentarios ja tratados. | Nao usar como backlog atual. |
+| `docs/COST_ESTIMATE.md` | Parcialmente superado/historico | Contexto de custo inicial. | Nao reflete automaticamente SaaS, billing ou producao atual. |
+| `docs/DASHBOARD_DEBT_SUMMARY.md` | Parcialmente superado/historico | Contexto do refinamento de dashboard/contas. | Conferir dashboard atual e contratos em `docs/audits/`. |
+| `docs/DOCUMENTATION_STATUS.md` | Atual | Mapa vivo DocDoc. | Fonte para decidir uso seguro de docs. |
+| `docs/ERROR_BOUNDARY_RETRY.md` | Historico/decisao pontual | Contexto da troca para `unstable_retry`. | Confirmar API vigente no Next antes de alterar. |
+| `docs/EXPENSE_EDIT_FEEDBACK.md` | Historico/implementacao pontual | Contexto de edicao/exclusao de gastos. | Conferir codigo atual antes de reabrir escopo. |
+| `docs/EXPENSE_LIST_OPTIMIZATION.md` | Historico/implementacao pontual | Contexto da otimizacao da lista de gastos. | Nao usar como estado completo da tela atual. |
+| `docs/FINANCIAL_RLS_MULTI_TENANT_PLAN.md` | Parcialmente superado/historico | Plano inicial de RLS financeiro multi-tenant. | Estado atual fica em migrations `030` a `043`, RLS docs e live gates. |
+| `docs/FREE_APP_DISTRIBUTION.md` | Proposta/historico | Opcoes de distribuicao app/PWA. | Nao e contrato atual de deploy. |
+| `docs/INITIAL_ORGANIZATION_BACKFILL_PLAN.md` | Parcialmente superado/historico | Contexto de bootstrap/backfill inicial. | Confirmar migrations atuais e runbooks antes de operar. |
+| `docs/LIVE_FLOW_TESTS.md` | Historico/evidencia pontual | Cobertura adicionada em uma fase anterior. | CI atual e `docs/VALIDACAO_TECNICA.md` prevalecem. |
+| `docs/LIVE_MVP_AUDIT.md` | Parcialmente superado/historico | Auditoria do MVP vivo anterior ao SaaS-first. | Produto atual e SaaS-first prevalecem. |
+| `docs/MOBILE_FIRST_UX.md` | Atual como diretriz UX | Diretriz mobile-first. | Nao substitui contratos de design system. |
+| `docs/MOBILE_STRATEGY.md` | Atual como estrategia de canal | Estrategia web admin + mobile futuro. | Nao prova app nativo implementado. |
+| `docs/PAYABLE_BILL_ACTION_FEEDBACK.md` | Historico/implementacao pontual | Contexto de feedback/exclusao em contas. | Conferir actions atuais antes de alterar. |
+| `docs/PAYABLE_BILL_EDIT_FLOW.md` | Historico/implementacao pontual | Contexto de edicao de contas/dividas. | Conferir modulo atual antes de reabrir. |
+| `docs/PAYABLE_BILLS_AS_DEBTS.md` | Atual como decisao MVP | Contexto de contas a pagar como dividas. | Confirmar codigo atual e linguagem de produto. |
+| `docs/PERMISSION_AND_DASHBOARD_STRATEGY.md` | Parcialmente superado/estrategia | Contexto de permissoes e dashboard. | Confirmar runtime atual em access-control, RLS e docs atuais. |
+| `docs/PRODUCT_VISION.md` | Atual como visao de produto | Direcao SaaS-first e abandono do single-tenant como norte. | Nao substitui ADRs, gaps e validacao tecnica. |
+| `docs/README.md` | Atual | Entrada da documentacao. | Ler antes de documentos antigos. |
+| `docs/SAAS_DATABASE_MIGRATION_PLAN.md` | Historico | Plano antigo de migration SaaS. | Estado real esta em migrations `001` a `043`. |
+| `docs/SAAS_GAP_REGISTER.md` | Atual | Registro vivo de gaps. | Atualizar apos cada PR que muda risco/estado. |
+| `docs/SAAS_IMPLEMENTATION_STATUS.md` | Parcialmente superado | Historico da transicao SaaS inicial. | `docs/VALIDACAO_TECNICA.md` prevalece para estado atual. |
+| `docs/SAAS_MULTI_TENANT_STRATEGY.md` | Historico/estrategia | Contexto estrategico da transicao multi-tenant. | Nao usar como evidencia operacional. |
+| `docs/SAAS_OPERATIONAL_ROADMAP.md` | Parcialmente superado | Contexto consolidado de transicao SaaS. | Cruzar com gap register e validacao tecnica. |
+| `docs/SAAS_RLS_LIVE_STATUS.md` | Parcialmente superado | Contexto RLS/live gate. | Confirmar migrations/policies atuais antes de operar. |
+| `docs/TESTING_STRATEGY.md` | Parcialmente superado/estrategia | Contexto de estrategia de testes. | CI atual e guards vivos prevalecem. |
+| `docs/UI_STATES.md` | Atual como convencao UX | Padrao de loading/vazio/erro/sucesso. | Conferir componentes atuais antes de refatorar. |
+| `docs/VALIDACAO_TECNICA.md` | Atual | Contrato operacional vigente. | Fonte principal para stack, CI, deploy, Supabase e gates. |
+
 ## Diretorios
 
 | Diretorio | Status DocDoc | Uso seguro |
@@ -70,6 +114,7 @@ trabalho novo.
 - [x] Criar indice DocDoc para `docs/design/*`.
 - [x] Criar indice DocDoc para `docs/sql/*`.
 - [x] Reconciliar indice DocDoc de `docs/adr/*`.
+- [x] Mapear todos os Markdown raiz em `docs/`.
 - [ ] Criar ADR nova se alguma decisao mobile/web/admin precisar virar contrato arquitetural.
 
 ## Audits DocDoc

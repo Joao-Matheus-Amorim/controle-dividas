@@ -62,6 +62,9 @@ describe("Operacao DocDoc documentation guards", () => {
   const adrFiles = readdirSync(join(process.cwd(), "docs/adr"))
     .filter((file) => file.endsWith(".md"))
     .sort();
+  const rootDocFiles = readdirSync(join(process.cwd(), "docs"))
+    .filter((file) => file.endsWith(".md"))
+    .sort();
 
   it("keeps a documentation entrypoint and status map", () => {
     expect(docsReadme).toContain("status docdoc: atual");
@@ -74,6 +77,15 @@ describe("Operacao DocDoc documentation guards", () => {
     expect(statusMap).toContain("docs/validacao_tecnica.md");
     expect(statusMap).toContain("docs/saas_gap_register.md");
     expect(statusMap).toContain("docs/audits/codebase_scan_gap_checklist_2026-06-01.md");
+  });
+
+  it("keeps every root markdown doc listed in the DocDoc status map", () => {
+    expect(rootDocFiles.length).toBeGreaterThan(30);
+    expect(statusMap).toContain("root docs docdoc");
+
+    for (const file of rootDocFiles) {
+      expect(statusMap).toContain(`docs/${file}`.toLowerCase());
+    }
   });
 
   it("stores Operacao DocDoc as a reusable project skill", () => {
