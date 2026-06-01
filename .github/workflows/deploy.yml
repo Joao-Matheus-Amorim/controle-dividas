@@ -40,17 +40,21 @@ jobs:
         with:
           version: latest
 
-      - name: Validate backend deploy secrets
+      - name: Check backend deploy configuration
+        id: backend_config
         shell: bash
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: |
           if [ -z "$SUPABASE_DB_URL" ]; then
-            echo "::error title=Missing secret::SUPABASE_DB_URL must be configured to deploy backend migrations."
-            exit 1
+            echo "::notice title=Backend deploy skipped::SUPABASE_DB_URL is not configured, skipping Supabase migrations in this run."
+            echo "run_migrations=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run_migrations=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Apply migrations to Supabase
+        if: steps.backend_config.outputs.run_migrations == 'true'
         shell: bash
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}

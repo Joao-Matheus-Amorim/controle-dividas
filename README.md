@@ -194,15 +194,18 @@ Gatilhos:
 
 Sequencia do pipeline:
 
-1. Aplica migrations no backend Supabase (`supabase db push`).
+1. Aplica migrations no backend Supabase (`supabase db push`) **apenas** quando `SUPABASE_DB_URL` estiver configurado.
 2. Publica frontend na Vercel (`vercel deploy --prod`).
 
-Secrets necessarios no GitHub:
+Secrets necessarios no GitHub (frontend obrigatorio):
 
-- `SUPABASE_DB_URL`
 - `VERCEL_TOKEN`
 - `VERCEL_ORG_ID`
 - `VERCEL_PROJECT_ID`
+
+Secret opcional (backend):
+
+- `SUPABASE_DB_URL` (quando configurado, o workflow aplica migrations; quando ausente, o job de backend e marcado como skipped e o deploy frontend continua)
 
 ## Scripts disponiveis
 
