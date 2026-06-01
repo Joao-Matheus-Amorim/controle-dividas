@@ -53,6 +53,10 @@ describe("Operacao DocDoc documentation guards", () => {
   const designFiles = readdirSync(join(process.cwd(), "docs/design"))
     .filter((file) => file.endsWith(".md"))
     .sort();
+  const sqlReadme = read("docs/sql/README.md");
+  const sqlFiles = readdirSync(join(process.cwd(), "docs/sql"))
+    .filter((file) => file.endsWith(".sql"))
+    .sort();
 
   it("keeps a documentation entrypoint and status map", () => {
     expect(docsReadme).toContain("status docdoc: atual");
@@ -270,6 +274,26 @@ describe("Operacao DocDoc documentation guards", () => {
     for (const file of designFiles) {
       const source = read(`docs/design/${file}`);
       expect(source).toContain("status docdoc:");
+    }
+  });
+
+  it("keeps SQL docs as operational tools instead of execution approval", () => {
+    expect(sqlReadme).toContain("status docdoc: atual");
+    expect(sqlReadme).toContain("nao e autorizacao para executar sql");
+    expect(sqlReadme).toContain("confirme o ambiente alvo");
+    expect(sqlReadme).toContain("supabase/migrations");
+
+    expect(statusMap).toContain("docs/sql/readme.md");
+    expect(statusMap).toContain("docs/sql/*-null-preflight.sql");
+    expect(statusMap).toContain("docs/sql/*-dry-run.sql");
+    expect(statusMap).toContain("docs/sql/finance-relationships-orphan-preflight.sql");
+  });
+
+  it("keeps every docs/sql file listed in the SQL DocDoc index", () => {
+    expect(sqlFiles.length).toBeGreaterThan(10);
+
+    for (const file of sqlFiles) {
+      expect(sqlReadme).toContain(file.toLowerCase());
     }
   });
 });
