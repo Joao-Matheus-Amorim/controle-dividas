@@ -29,11 +29,12 @@ jobs:
     env:
       APP_ENV: ci
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      IS_DEPENDABOT_PR: ${{ github.event_name == 'pull_request' && github.actor == 'dependabot[bot]' && 'true' || 'false' }}
       NEXT_PUBLIC_APP_URL: ${{ vars.NEXT_PUBLIC_APP_URL }}
       NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ github.event_name == 'pull_request' && github.actor == 'dependabot[bot]' && 'dependabot-ci-placeholder-public-key' || secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
-      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ github.event_name == 'pull_request' && github.actor == 'dependabot[bot]' && 'dependabot-ci-placeholder-service-role-key' || secrets.SUPABASE_SERVICE_ROLE_KEY }}
       ADMIN_EMAIL: ${{ vars.ADMIN_EMAIL }}
 
     steps:
@@ -50,6 +51,10 @@ jobs:
         shell: bash
         run: |
           missing=0
+
+          if [ "$IS_DEPENDABOT_PR" = "true" ]; then
+            echo "::notice title=Dependabot CI::Using non-secret Supabase placeholder keys for dependency validation."
+          fi
 
           if [ -z "$NEXT_PUBLIC_SUPABASE_URL" ]; then
             echo "::error title=Missing variable::NEXT_PUBLIC_SUPABASE_URL must be configured in GitHub Actions repository variables."
