@@ -208,6 +208,20 @@
   .app-soft-press {
     @apply transition duration-200 active:scale-[0.98];
   }
+
+  /* Profundidade cinematográfica governada (hero/overlay): gradiente ink em
+   * camadas + um único glow de cobre em alpha baixa. Tokens --ff-* => o efeito
+   * adapta entre o tema dark (ink) e o paper claro automaticamente. */
+  .app-hero-glow {
+    background-image:
+      radial-gradient(circle at 85% 12%, rgb(var(--ff-primary) / 0.18), transparent 40%),
+      linear-gradient(
+        150deg,
+        rgb(var(--ff-bg-soft)) 0%,
+        rgb(var(--ff-card)) 55%,
+        rgb(var(--ff-bg)) 100%
+      );
+  }
 }
 
 @layer utilities {
