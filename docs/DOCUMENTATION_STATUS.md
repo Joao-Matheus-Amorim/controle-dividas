@@ -51,7 +51,7 @@ trabalho novo.
 | `docs/rls/` | Misto com indice atual | Usar `docs/rls/README.md` como entrada. Live Gate segue operacional; planos antigos precisam ser cruzados com migrations e testes atuais. |
 | `docs/roadmaps/` | Misto com indice atual | Usar `docs/roadmaps/README.md` como entrada. Roadmaps orientam sequencia, mas nao provam implementacao. |
 | `docs/runbooks/` | Misto com indice atual | Usar `docs/runbooks/README.md` antes de executar runbooks antigos. Stripe evidence segue atual; hardening/fallback runbooks sao majoritariamente historicos. |
-| `docs/sql/` | Ferramentas operacionais | Queries de preflight/diagnostico; revisar antes de rodar em producao. |
+| `docs/sql/` | Atual com indice | Usar `docs/sql/README.md` como entrada. Queries sao ferramentas operacionais, nao autorizacao automatica para executar SQL. |
 
 ## Fila DocDoc inicial
 
@@ -68,6 +68,7 @@ trabalho novo.
 - [x] Criar indice DocDoc para `docs/rls/*`.
 - [x] Criar indice DocDoc para `docs/roadmaps/*`.
 - [x] Criar indice DocDoc para `docs/design/*`.
+- [x] Criar indice DocDoc para `docs/sql/*`.
 - [ ] Criar ADR nova se alguma decisao mobile/web/admin precisar virar contrato arquitetural.
 
 ## Audits DocDoc
@@ -150,6 +151,15 @@ trabalho novo.
 | `docs/design/README.md` | Atual | Indice vivo dos contratos e direcoes de design. | Ler antes de usar specs antigas. |
 | `docs/design/redesign-2026-ink-copper-ivory.md` | Atual como direcao visual em andamento | Fonte da direcao Ink + Copper + Ivory e tokens `--ff-*`. | Migration plan e historica por fase; conferir codigo atual antes de remigrar componentes. |
 | `docs/design/VISUAL_TOKENS_AND_COMPONENT_CONVENTIONS.md` | Parcialmente superado/historico | Baseline anterior e limites shadcn/ADR. | Nao usar como fonte atual de cores, superficies ou estilo do app protegido. |
+
+## SQL DocDoc
+
+| Documento | Status DocDoc | Uso seguro | Observacao |
+| --- | --- | --- | --- |
+| `docs/sql/README.md` | Atual | Indice vivo das queries operacionais. | Ler antes de rodar qualquer SQL de `docs/sql`. |
+| `docs/sql/*-null-preflight.sql` | Ferramenta operacional | Diagnostico/preflight de linhas com `organization_id` nulo. | Confirmar ambiente alvo e migrations atuais antes de executar. |
+| `docs/sql/*-dry-run.sql` | Ferramenta operacional | Relatorios dry-run antes de backfill ou hardening. | Nao substitui migration, runbook ou evidencia. |
+| `docs/sql/finance-relationships-orphan-preflight.sql` | Ferramenta operacional | Diagnostico de orfaos para relacionamentos financeiros da migration `043`. | Usar quando `043` falhar em validacao ou antes de retry/repair manual. |
 
 ## Regras de reconciliacao
 
