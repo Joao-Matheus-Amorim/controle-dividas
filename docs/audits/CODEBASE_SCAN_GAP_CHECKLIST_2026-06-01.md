@@ -69,7 +69,7 @@ Status: aberto
 
 Problema:
 
-O banco remoto tinha tabelas/colunas e migrations registradas, mas nao tinha foreign keys usadas pelos embedded selects do PostgREST. A migration `043` restaura FKs como `NOT VALID` e remove policies antigas `*_own`, mas ainda falta confirmar aplicacao real no ambiente.
+O banco remoto tinha tabelas/colunas e migrations registradas, mas nao tinha foreign keys usadas pelos embedded selects do PostgREST. A migration `043` restaura FKs como `NOT VALID`, valida as cinco constraints na mesma migration, e remove policies antigas `*_own`; ainda falta confirmar aplicacao real no ambiente.
 
 Arquivos:
 
@@ -78,24 +78,25 @@ Arquivos:
 Acao recomendada:
 
 - [ ] Confirmar que o deploy de `main` aplicou a migration `043`.
-- [ ] Rodar query de FKs e confirmar `convalidated = false`.
+- [ ] Rodar query de FKs e confirmar `convalidated = true`.
 - [ ] Abrir rotas em producao: `/protected/gastos`, `/protected/contas-a-pagar`, `/protected/contas-a-receber`, `/protected/bancos`.
 - [ ] Conferir Runtime Logs da Vercel se qualquer rota ainda quebrar.
 
 Criterio de fechamento:
 
 - [ ] FKs existem no banco.
+- [ ] FKs restauradas pela `043` aparecem com `convalidated = true`.
 - [ ] Rotas financeiras renderizam sem Server Components digest.
 
 Estimativa: 0,5 dia.
 
-### P0.3 - Preflight de orfaos antes de validar FKs
+### P0.3 - Preflight de orfaos para falha/retry da migration 043
 
 Status: em andamento
 
 Problema:
 
-As FKs restauradas em `043` foram criadas como `NOT VALID` para nao abortar migration em bancos com dados historicos orfaos. Falta preflight formal para contar e classificar esses orfaos antes de validar constraints.
+A migration `043` valida as FKs restauradas imediatamente. Se existir qualquer filho historico apontando para `family_members` ou `expense_categories` ausente, a migration aborta e nenhuma FK fica restaurada. Falta preflight formal para diagnosticar orfaos antes de um retry da migration 043 ou de um repair manual.
 
 Acao recomendada:
 
@@ -106,13 +107,13 @@ Acao recomendada:
   - `receivable_incomes.receiver_member_id`
   - `banks.family_member_id`
 - [ ] Documentar resultado por ambiente.
-- [ ] Criar plano de cleanup se houver orfaos.
-- [ ] Criar migration posterior para `VALIDATE CONSTRAINT` somente depois do cleanup.
+- [ ] Criar plano de cleanup se houver orfaos antes de qualquer retry da migration `043`.
+- [ ] Reexecutar/aplicar `043` somente depois do cleanup, esperando `convalidated = true`.
 
 Criterio de fechamento:
 
 - [ ] Preflight mostra zero orfaos ou cleanup aprovado.
-- [ ] FKs podem ser validadas sem rollback.
+- [ ] Retry da migration 043 pode validar FKs sem rollback.
 
 Estimativa: 0,5 a 1 dia para preflight; 0,5 a 1 dia para cleanup se necessario.
 
@@ -485,8 +486,8 @@ Estimativa: 0,5 dia.
 ## Sequencia Recomendada de PRs
 
 1. Preservar redirects no dashboard.
-2. Preflight de orfaos das FKs restauradas.
-3. Cleanup/validacao das FKs, se o preflight permitir.
+2. Confirmar FKs da migration 043 com `convalidated = true`.
+3. Usar preflight de orfaos apenas se a 043 falhar e precisar de cleanup/retry.
 4. Health check pos-deploy.
 5. Atualizacao de `VALIDACAO_TECNICA.md`.
 6. Evidencia real Stripe checkout/portal.
@@ -533,7 +534,7 @@ Riscos principais:
 
 - [ ] RLS final sem RLS Live Gate verde.
 - [ ] Billing sem checkout/portal real em Stripe teste.
-- [ ] FKs restauradas sem preflight/cleanup/validacao posterior.
+- [ ] FKs da migration 043 sem `convalidated = true` ou sem plano de cleanup/retry quando a validacao falhar.
 - [ ] Front visual sem validacao mobile.
 - [ ] Deploy sem smoke runtime.
 - [ ] Admin SaaS final enquanto depender de `ADMIN_EMAIL`.

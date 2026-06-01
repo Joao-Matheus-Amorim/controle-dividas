@@ -46,7 +46,7 @@ describe("finance relationship orphan preflight", () => {
     expect(preflight).toContain("read-only");
     expect(preflight).toContain("orphan_rows");
     expect(preflight).toContain("cleanup_required");
-    expect(preflight).toContain("ready_for_validation");
+    expect(preflight).toContain("ready_for_043_retry");
     expectReadOnlySql(preflight);
   });
 
@@ -61,7 +61,8 @@ describe("finance relationship orphan preflight", () => {
   it("keeps the operational checklist linked to the executable preflight", () => {
     expect(checklist).toContain(preflightPath);
     expect(checklist).toContain("preflight de orfaos");
-    expect(checklist).toContain("not valid");
-    expect(checklist).toContain("validate constraint");
+    expect(checklist).toContain("convalidated = true");
+    expect(checklist).not.toContain("convalidated = false");
+    expect(checklist).toContain("retry da migration 043");
   });
 });

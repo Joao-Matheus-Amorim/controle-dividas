@@ -1,11 +1,13 @@
 -- Finance relationship orphan preflight.
 --
 -- Purpose:
--- Read-only evidence before validating the foreign keys restored as NOT VALID
--- in supabase/migrations/043_restore_finance_relationships_and_rls_cleanup.sql.
+-- Read-only diagnostic evidence for the foreign keys restored and validated by
+-- supabase/migrations/043_restore_finance_relationships_and_rls_cleanup.sql.
 --
--- This query must not mutate data or validate constraints. It only counts
--- historical child rows that point to missing parent rows.
+-- If migration 043 applies successfully, the restored constraints should be
+-- validated. Use this query only when 043 fails during validation or before a
+-- manual retry/repair. It must not mutate data or validate constraints. It only
+-- counts historical child rows that point to missing parent rows.
 
 with orphan_checks as (
   select
@@ -70,7 +72,7 @@ select
   relationship,
   orphan_rows,
   case
-    when orphan_rows = 0 then 'ready_for_validation'
+    when orphan_rows = 0 then 'ready_for_043_retry'
     else 'cleanup_required'
   end as validation_status
 from orphan_checks
