@@ -31,7 +31,7 @@ export function AppFormDialog({
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button className="h-11 rounded-2xl bg-[#8b72f8] font-semibold text-white shadow-lg shadow-[#8b72f8]/20 hover:bg-[#7d66e4]">
+        <Button size="lg" className="h-11">
           {Icon ? <Icon className="h-4 w-4" /> : null}
           {triggerLabel}
         </Button>
