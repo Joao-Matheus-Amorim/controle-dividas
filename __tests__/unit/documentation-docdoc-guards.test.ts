@@ -133,17 +133,20 @@ describe("Operacao DocDoc documentation guards", () => {
 
     expect(financialRlsPlan).toContain("status docdoc: parcialmente superado/historico");
     expect(financialRlsPlan).toContain("migrations `030` a `043`");
-    expect(financialRlsPlan).toContain("nao usar como ordem operacional atual");
+    expect(financialRlsPlan).toContain("nao usar como ordem");
+    expect(financialRlsPlan).toContain("operacional atual");
 
     expect(initialOrganizationBackfillPlan).toContain("status docdoc: parcialmente superado/historico");
-    expect(initialOrganizationBackfillPlan).toContain("nao executar como plano operacional");
+    expect(initialOrganizationBackfillPlan).toContain("nao executar como plano");
+    expect(initialOrganizationBackfillPlan).toContain("operacional sem preflight");
 
     expect(liveMvpAudit).toContain("status docdoc: parcialmente superado/historico");
     expect(liveMvpAudit).toContain("nao usar como contrato atual");
 
     expect(saasDatabaseMigrationPlan).toContain("status docdoc: historico");
     expect(saasDatabaseMigrationPlan).toContain("migrations `001` a `043`");
-    expect(saasDatabaseMigrationPlan).toContain("nao usar para escolher novo numero de migration");
+    expect(saasDatabaseMigrationPlan).toContain("nao usar para escolher");
+    expect(saasDatabaseMigrationPlan).toContain("novo numero de migration");
 
     expect(saasMultiTenantStrategy).toContain("status docdoc: historico/estrategia");
     expect(saasMultiTenantStrategy).toContain("nao usar como evidencia de implementacao");
@@ -152,7 +155,8 @@ describe("Operacao DocDoc documentation guards", () => {
     expect(saasRlsLiveStatus).toContain("nao usar isoladamente para afirmar estado");
 
     expect(testingStrategy).toContain("status docdoc: parcialmente superado/estrategia");
-    expect(testingStrategy).toContain("nao usar como lista atual completa");
+    expect(testingStrategy).toContain("nao usar como lista atual");
+    expect(testingStrategy).toContain("completa de comandos");
   });
 
   it("keeps an audits documentation entrypoint and status map", () => {
