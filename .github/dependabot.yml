@@ -1,0 +1,55 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    target-branch: "main"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/Sao_Paulo"
+    open-pull-requests-limit: 3
+    versioning-strategy: "increase-if-necessary"
+    groups:
+      nextjs-runtime:
+        patterns:
+          - "next"
+          - "react"
+          - "react-dom"
+      test-tooling:
+        dependency-type: "development"
+        patterns:
+          - "vitest"
+          - "@testing-library/*"
+          - "@playwright/test"
+          - "jsdom"
+          - "msw"
+      lint-and-types:
+        dependency-type: "development"
+        patterns:
+          - "eslint"
+          - "eslint-config-next"
+          - "@eslint/*"
+          - "typescript"
+          - "@types/*"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    labels:
+      - "dependencies"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    target-branch: "main"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:30"
+      timezone: "America/Sao_Paulo"
+    open-pull-requests-limit: 2
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "github-actions"

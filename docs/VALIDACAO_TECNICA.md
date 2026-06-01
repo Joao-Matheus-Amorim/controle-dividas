@@ -45,6 +45,8 @@ Ja existem no codigo:
 - PWA manifest;
 - deploy de producao automatizado apos CI verde na `main`, com fallback manual via `.github/workflows/deploy.yml`, aplicando backend Supabase e frontend Vercel.
 - CI com `npm audit --audit-level=moderate`, Vitest `4.1.8`, lint, typecheck, testes e build.
+- Dependabot semanal para npm e GitHub Actions, com `open-pull-requests-limit` baixo para evitar excesso de PRs automaticas.
+- CodeQL para analise estatica de JavaScript/TypeScript em PR, push na `main`, agenda semanal e disparo manual.
 
 ## Arquivos tecnicos centrais
 
@@ -140,6 +142,7 @@ Regras de deploy:
 - `SUPABASE_DB_URL` e secret de CI/CD para `supabase db push`; nao e env runtime do app.
 - `VERCEL_ORG_ID` e `VERCEL_PROJECT_ID` evitam prompt/link interativo da Vercel no runner.
 - O job aplica migrations Supabase antes do deploy frontend Vercel.
+- Dependabot e CodeQL nao executam deploy e nao dependem de secrets de Supabase ou Vercel.
 
 ## Migrations obrigatorias
 
