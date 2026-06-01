@@ -1,5 +1,10 @@
 # Billing Stripe test account runbook
 
+> Status DocDoc: Atual
+> Uso atual: runbook operacional para criar/configurar Stripe em modo teste e
+> capturar evidencia real de checkout e portal.
+> Observacao: webhook runtime continua bloqueado ate esta evidencia existir.
+
 Atualizado em: 2026-05-28
 
 ## Objetivo

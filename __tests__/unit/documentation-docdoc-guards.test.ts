@@ -23,6 +23,9 @@ describe("Operacao DocDoc documentation guards", () => {
   const dashboardUiContract = read("docs/audits/DASHBOARD_UI_CONTRACT.md");
   const organizationScopeHardening = read("docs/audits/ORGANIZATION_SCOPE_HARDENING_PLAN.md");
   const fallbackRemovalReadiness = read("docs/audits/LEGACY_ORGANIZATION_FALLBACK_REMOVAL_READINESS.md");
+  const runbooksReadme = read("docs/runbooks/README.md");
+  const stripeRunbook = read("docs/runbooks/BILLING_STRIPE_TEST_ACCOUNT_RUNBOOK.md");
+  const legacyBackfillRunbook = read("docs/runbooks/LEGACY_ORGANIZATION_BACKFILL_RUNBOOK.md");
 
   it("keeps a documentation entrypoint and status map", () => {
     expect(docsReadme).toContain("status docdoc: atual");
@@ -80,5 +83,23 @@ describe("Operacao DocDoc documentation guards", () => {
     expect(dashboardUiContract).toContain("status docdoc: atual");
     expect(organizationScopeHardening).toContain("status docdoc: parcialmente superado");
     expect(fallbackRemovalReadiness).toContain("status docdoc: parcialmente superado");
+  });
+
+  it("keeps a runbooks documentation entrypoint and execution warning", () => {
+    expect(runbooksReadme).toContain("status docdoc: atual");
+    expect(runbooksReadme).toContain("runbook operacional atual");
+    expect(runbooksReadme).toContain("runbooks parcialmente superados");
+    expect(runbooksReadme).toContain("nao e autorizacao automatica para aplicar sql");
+
+    expect(statusMap).toContain("docs/runbooks/readme.md");
+    expect(statusMap).toContain("docs/runbooks/billing_stripe_test_account_runbook.md");
+    expect(statusMap).toContain("docs/runbooks/legacy_organization_backfill_runbook.md");
+  });
+
+  it("marks high-risk runbooks with DocDoc status before operation", () => {
+    expect(stripeRunbook).toContain("status docdoc: atual");
+    expect(stripeRunbook).toContain("capturar evidencia real de checkout e portal");
+    expect(legacyBackfillRunbook).toContain("status docdoc: parcialmente superado");
+    expect(legacyBackfillRunbook).toContain("nao usar a secao \"current phase\" como estado atual");
   });
 });
