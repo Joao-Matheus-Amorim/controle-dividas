@@ -2,6 +2,12 @@
 
 Issue: #342
 
+> Status DocDoc: Atual como contrato gated
+> Uso atual: contrato de fixtures, flags e isolamento para onboarding,
+> organizacao ativa, shell protegido e multi-org switch.
+> Observacao: nao usar como evidencia de que o gate rodou; confirme specs,
+> ambiente e CI antes de declarar prova atual.
+
 Follow-up: #344
 
 Follow-up: #348

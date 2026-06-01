@@ -33,6 +33,10 @@ describe("Operacao DocDoc documentation guards", () => {
   const pmFiles = readdirSync(join(process.cwd(), "docs/pm"))
     .filter((file) => file.endsWith(".md"))
     .sort();
+  const e2eReadme = read("docs/e2e/README.md");
+  const e2eFiles = readdirSync(join(process.cwd(), "docs/e2e"))
+    .filter((file) => file.endsWith(".md"))
+    .sort();
 
   it("keeps a documentation entrypoint and status map", () => {
     expect(docsReadme).toContain("status docdoc: atual");
@@ -146,6 +150,26 @@ describe("Operacao DocDoc documentation guards", () => {
       if (file !== "README.md") {
         expect(source).toMatch(/historico\/pm|parcialmente superado/);
       }
+    }
+  });
+
+  it("keeps E2E docs as gated contracts instead of execution evidence", () => {
+    expect(e2eReadme).toContain("status docdoc: atual");
+    expect(e2eReadme).toContain("nao substituem");
+    expect(e2eReadme).toContain("resultados de ci ou execucoes gated");
+    expect(e2eReadme).toContain("teste data-changing sem cleanup e flag explicita");
+
+    expect(statusMap).toContain("docs/e2e/readme.md");
+    expect(statusMap).toContain("docs/e2e/playwright_coverage_roadmap.md");
+    expect(statusMap).toContain("docs/e2e/data_changing_cleanup_strategy.md");
+  });
+
+  it("marks every E2E document with explicit DocDoc status", () => {
+    expect(e2eFiles.length).toBeGreaterThan(3);
+
+    for (const file of e2eFiles) {
+      const source = read(`docs/e2e/${file}`);
+      expect(source).toContain("status docdoc:");
     }
   });
 });

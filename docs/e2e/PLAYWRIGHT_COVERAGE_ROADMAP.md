@@ -2,6 +2,10 @@
 
 Issue: #360
 
+> Status DocDoc: Atual como mapa de cobertura E2E
+> Uso atual: matriz de cobertura Playwright e sequencia segura para novos gates.
+> Observacao: nao substitui specs reais, CI ou evidencia de execucao gated.
+
 Follow-up: #362
 
 Follow-up: #366
