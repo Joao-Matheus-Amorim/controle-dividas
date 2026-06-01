@@ -30,6 +30,11 @@ describe("RLS Live Gate workflow", () => {
 
   it("requires the dedicated RLS environment contract", () => {
     expect(rlsGate).toContain("run_rls_tests: \"true\"");
+    expect(rlsGate).toContain("target_environment");
+    expect(rlsGate).toContain("evidence_reason");
+    expect(rlsGate).toContain("expected_scope");
+    expect(rlsGate).toContain("g-001 rls live gate evidence");
+    expect(rlsGate).toContain("rls-only");
     expect(rlsGate).toContain("rls_test_supabase_url");
     expect(rlsGate).toContain("rls_test_supabase_anon_key");
     expect(rlsGate).toContain("rls_test_supabase_service_role_key");
@@ -45,6 +50,9 @@ describe("RLS Live Gate workflow", () => {
     expect(rlsGate).toContain("github_step_summary");
     expect(rlsGate).toContain("actions/upload-artifact@v4");
     expect(rlsGate).toContain("rls-live-gate-evidence");
+    expect(rlsGate).toContain("evidence target environment");
+    expect(rlsGate).toContain("evidence reason");
+    expect(rlsGate).toContain("expected scope");
     expect(rlsGate).toContain("required repository variable");
     expect(rlsGate).toContain("required secret");
     expect(rlsGate).not.toContain("configured as repository variable");
@@ -52,6 +60,7 @@ describe("RLS Live Gate workflow", () => {
     expect(rlsGate).toContain("secret values are intentionally not printed");
     expect(docs).toContain("github step summary");
     expect(docs).toContain("artifact");
+    expect(docs).toContain("manual evidence metadata");
     expect(docs).toContain("environment validation outcome");
     expect(docs).toContain("not as proof that each value was configured");
     expect(docs).toContain("secret values are intentionally not printed");

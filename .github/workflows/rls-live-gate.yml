@@ -2,6 +2,19 @@ name: RLS Live Gate
 
 on:
   workflow_dispatch:
+    inputs:
+      target_environment:
+        description: "Dedicated Supabase test environment being validated"
+        required: true
+        default: "dedicated-rls-test"
+      evidence_reason:
+        description: "Why this evidence run is being collected"
+        required: true
+        default: "G-001 RLS Live Gate evidence"
+      expected_scope:
+        description: "Expected scope for this manual gate"
+        required: true
+        default: "rls-only"
 
 permissions:
   contents: read
@@ -20,6 +33,9 @@ jobs:
       APP_ENV: rls-live-gate
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
       RUN_RLS_TESTS: "true"
+      RLS_EVIDENCE_TARGET_ENVIRONMENT: ${{ inputs.target_environment }}
+      RLS_EVIDENCE_REASON: ${{ inputs.evidence_reason }}
+      RLS_EVIDENCE_EXPECTED_SCOPE: ${{ inputs.expected_scope }}
       # required repository variable
       RLS_TEST_SUPABASE_URL: ${{ vars.RLS_TEST_SUPABASE_URL }}
       # required secret
@@ -131,6 +147,9 @@ jobs:
             echo "| Event | ${GITHUB_EVENT_NAME} |"
             echo "| APP_ENV | ${APP_ENV} |"
             echo "| RUN_RLS_TESTS | ${RUN_RLS_TESTS} |"
+            echo "| Evidence target environment | ${RLS_EVIDENCE_TARGET_ENVIRONMENT} |"
+            echo "| Evidence reason | ${RLS_EVIDENCE_REASON} |"
+            echo "| Expected scope | ${RLS_EVIDENCE_EXPECTED_SCOPE} |"
             echo "| Environment validation outcome | ${{ steps.validate_rls_env.outputs.validation_status }} |"
             echo "| Validation step outcome | ${RLS_ENV_VALIDATION_OUTCOME} |"
             echo "| Test step outcome | ${RLS_TESTS_OUTCOME} |"
