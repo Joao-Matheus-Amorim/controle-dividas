@@ -3,6 +3,11 @@
 Issue: #600
 Migration: `supabase/migrations/024_receivable_incomes_organization_scope_hardening.sql`
 
+> Status DocDoc: Parcialmente superado/historico
+> Uso seguro: contexto e rollback da migration de hardening citada.
+> Superado por / observacao: confirmar migrations `020` a `043`,
+> `docs/VALIDACAO_TECNICA.md` e o banco alvo antes de operar.
+
 ## Purpose
 
 Harden `public.receivable_incomes.organization_id` as `NOT NULL` with a schema-only migration.

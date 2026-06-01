@@ -30,8 +30,8 @@ da branch e das secrets.
 | Documento | Status DocDoc | Uso seguro |
 | --- | --- | --- |
 | `LEGACY_ORGANIZATION_BACKFILL_RUNBOOK.md` | Parcialmente superado | Historico do processo seguro de backfill legado; nao usar as fases antigas como estado atual sem validar migrations `020` a `043`. |
-| `*_ORG_SCOPE_HARDENING.md` | Parcialmente superado/historico | Contexto e rollback das migrations de hardening `020` a `028`; confirmar estado atual em `VALIDACAO_TECNICA.md`. |
-| `*_RLS_FALLBACK_REMOVAL.md` | Parcialmente superado/historico | Contexto e rollback das migrations de fallback removal `030` a `039`; confirmar estado atual em migrations e banco alvo. |
+| `*_ORG_SCOPE_HARDENING.md` | Parcialmente superado/historico | Contexto e rollback das migrations de hardening `020` a `028`; cada arquivo tem nota DocDoc propria. |
+| `*_RLS_FALLBACK_REMOVAL.md` | Parcialmente superado/historico | Contexto e rollback das migrations de fallback removal `030` a `039`; cada arquivo tem nota DocDoc propria. |
 
 ## Regras operacionais
 
@@ -46,3 +46,9 @@ Antes de executar um runbook:
 
 Quando houver conflito entre um runbook e o estado de `main`, trate o runbook
 como historico e abra um PR DocDoc pequeno antes de operar.
+
+## Estado do bloco
+
+Todos os runbooks neste diretorio possuem nota `Status DocDoc`. O bloco
+`docs/runbooks/*` esta reconciliado em nivel de status; revisoes futuras devem
+ser pontuais, por runbook ou por nova decisao operacional.

@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
@@ -26,6 +26,9 @@ describe("Operacao DocDoc documentation guards", () => {
   const runbooksReadme = read("docs/runbooks/README.md");
   const stripeRunbook = read("docs/runbooks/BILLING_STRIPE_TEST_ACCOUNT_RUNBOOK.md");
   const legacyBackfillRunbook = read("docs/runbooks/LEGACY_ORGANIZATION_BACKFILL_RUNBOOK.md");
+  const runbookFiles = readdirSync(join(process.cwd(), "docs/runbooks"))
+    .filter((file) => file.endsWith(".md"))
+    .sort();
 
   it("keeps a documentation entrypoint and status map", () => {
     expect(docsReadme).toContain("status docdoc: atual");
@@ -101,5 +104,21 @@ describe("Operacao DocDoc documentation guards", () => {
     expect(stripeRunbook).toContain("capturar evidencia real de checkout e portal");
     expect(legacyBackfillRunbook).toContain("status docdoc: parcialmente superado");
     expect(legacyBackfillRunbook).toContain("nao usar a secao \"current phase\" como estado atual");
+  });
+
+  it("marks every runbook with explicit DocDoc status", () => {
+    expect(runbookFiles.length).toBeGreaterThan(10);
+
+    for (const file of runbookFiles) {
+      const source = read(`docs/runbooks/${file}`);
+      expect(source).toContain("status docdoc:");
+
+      if (file.includes("_ORG_SCOPE_HARDENING") || file.includes("_RLS_FALLBACK_REMOVAL")) {
+        expect(source).toContain("parcialmente superado/historico");
+      }
+    }
+
+    expect(runbooksReadme).toContain("todos os runbooks neste diretorio possuem nota");
+    expect(statusMap).toContain("marcar todos os runbooks com nota `status docdoc`");
   });
 });

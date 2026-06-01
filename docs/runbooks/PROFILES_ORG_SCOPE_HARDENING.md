@@ -3,6 +3,11 @@
 Issue: #639
 Migration: `supabase/migrations/028_profiles_organization_scope_hardening.sql`
 
+> Status DocDoc: Parcialmente superado/historico
+> Uso seguro: contexto e rollback da migration de hardening citada.
+> Superado por / observacao: confirmar migrations `020` a `043`,
+> `docs/VALIDACAO_TECNICA.md` e o banco alvo antes de operar.
+
 ## Purpose
 
 Apply schema-only hardening to require `organization_id` on `profiles`.

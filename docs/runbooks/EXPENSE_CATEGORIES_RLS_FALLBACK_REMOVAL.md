@@ -1,5 +1,11 @@
 # Expense Categories RLS Fallback Removal
 
+> Status DocDoc: Parcialmente superado/historico
+> Uso seguro: contexto e rollback da migration de remocao de fallback RLS
+> citada.
+> Superado por / observacao: confirmar migrations `030` a `043`, politicas
+> atuais e banco alvo antes de executar SQL.
+
 ## Scope
 
 This runbook applies only to:

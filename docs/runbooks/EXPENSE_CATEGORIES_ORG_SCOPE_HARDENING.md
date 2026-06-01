@@ -2,6 +2,11 @@
 
 Issues: #568, #570
 
+> Status DocDoc: Parcialmente superado/historico
+> Uso seguro: contexto e rollback da migration de hardening citada.
+> Superado por / observacao: confirmar migrations `020` a `043`,
+> `docs/VALIDACAO_TECNICA.md` e o banco alvo antes de operar.
+
 ## Purpose
 
 Document the operational notes for hardening `public.expense_categories.organization_id`.
