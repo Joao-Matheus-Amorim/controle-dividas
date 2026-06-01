@@ -268,15 +268,15 @@ Each gap from the 2026-05-30 audit:
 
 Five phases. Each is one PR. None of them touch logic, routes, schema, RLS, billing, permissions, or test contract — only visual layer.
 
-**Phase 1 — Tokens (additive, non-breaking).** Shipped as PR #756 (sage version originally; updated values in phase 2).
+**Phase 1 — Tokens (additive, non-breaking).** ✅ Shipped PR #756. `--ff-*` defined in `app/globals.css`; shadcn vars aliased.
 
-**Phase 2 — AppShell + primitives + token swap.** Currently in `design/phase-2a-tokens-primitives` branch (local). Swaps shadcn vars to FF aliases, removes dead `.dark` overrides, migrates AppShell, AppCard family, Input. Logo repaint and flat tab bar applied here.
+**Phase 2 — AppShell + primitives + token swap.** ✅ Shipped. AppShell, AppCard family, Button, AppFormSheet/Dialog triggers, flat iOS bottom nav, logo copper repaint. Dead `.dark` global overrides removed.
 
-**Phase 3 — Pilot screen: Dashboard.** Migrate `features/protected-pages/dashboard-page.tsx` and `components/dashboard/*` to consume tokens (currently hardcoded hex in quick-action and summary tones). User validates.
+**Phase 3 — Dashboard.** ✅ Shipped PRs #795 #796 #827 #828. All `components/dashboard/*` clean. `dialog.tsx` surface migrated to `bg-card`/`border-border`. `app-form-dialog.tsx` trigger migrated to copper primary.
 
-**Phase 4 — Remaining feature pages.** Pessoas, Gastos, Contas a pagar/receber, Bancos, Relatórios, Configurações, Admin. One PR per domain.
+**Phase 4 — Remaining feature pages.** 🔄 In progress. Priority order: `app/onboarding/` (first user screen), `components/ui/` remaining primitives (sheet, alert, select), `components/app/` remaining (org-indicator, data-table, empty-state), then per-domain: Pessoas, Gastos, Contas a pagar/receber, Bancos, Relatórios, Configurações, Admin, Finance forms. One PR per domain or primitive group.
 
-**Phase 5 — Cleanup.** Remove deprecated `--app-*` tokens. Grep-verify zero remaining hardcoded `#080810`, `#8b72f8`, `#b09cff`, `#10101a`. Update baseline doc `VISUAL_TOKENS_AND_COMPONENT_CONVENTIONS.md` to point at this spec as the current visual direction.
+**Phase 5 — Cleanup.** Remove deprecated `--app-*` tokens from `app/globals.css`. Grep-verify zero remaining `#080810`, `#8b72f8`, `#b09cff`, `#10101a` across `app/` and `components/`. Update `VISUAL_TOKENS_AND_COMPONENT_CONVENTIONS.md` to point at this spec as the authoritative visual direction.
 
 ## Decisions log
 
