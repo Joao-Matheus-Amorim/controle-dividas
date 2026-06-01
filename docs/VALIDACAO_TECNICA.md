@@ -47,6 +47,7 @@ Ja existem no codigo:
 - CI com `npm audit --audit-level=moderate`, Vitest `4.1.8`, lint, typecheck, testes e build.
 - Dependabot semanal para npm e GitHub Actions, com `open-pull-requests-limit` baixo para evitar excesso de PRs automaticas e com major updates ignorados para entrarem apenas em PR dedicado.
 - CodeQL para analise estatica de JavaScript/TypeScript em PR, push na `main`, agenda semanal e disparo manual.
+- PRs do Dependabot usam placeholders nao-secretos de Supabase apenas para validacao de dependencia na CI; secrets reais continuam obrigatorias para PRs humanos, push na `main` e deploy.
 
 ## Arquivos tecnicos centrais
 
