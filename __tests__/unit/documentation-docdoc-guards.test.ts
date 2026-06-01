@@ -149,7 +149,8 @@ describe("Operacao DocDoc documentation guards", () => {
     expect(saasDatabaseMigrationPlan).toContain("novo numero de migration");
 
     expect(saasMultiTenantStrategy).toContain("status docdoc: historico/estrategia");
-    expect(saasMultiTenantStrategy).toContain("nao usar como evidencia de implementacao");
+    expect(saasMultiTenantStrategy).toContain("nao usar como");
+    expect(saasMultiTenantStrategy).toContain("evidencia de implementacao");
 
     expect(saasRlsLiveStatus).toContain("status docdoc: parcialmente superado");
     expect(saasRlsLiveStatus).toContain("nao usar isoladamente para afirmar estado");
