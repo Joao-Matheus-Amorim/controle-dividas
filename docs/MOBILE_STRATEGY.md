@@ -1,5 +1,9 @@
 # FamilyFinance - Estrategia Mobile
 
+> Status DocDoc: Atual como estrategia de canal
+> Uso atual: decisao de produto para web admin + app nativo futuro.
+> Observacao: nao e evidencia de que o app nativo Android/iOS ja exista.
+
 ## Decisao principal
 
 O FamilyFinance sera planejado como app nativo Android e iOS para uso diario da familia.

@@ -1,5 +1,10 @@
 # SaaS Gap Register
 
+> Status DocDoc: Atual
+> Uso atual: registro vivo de gaps, riscos e proximas acoes seguras.
+> Regra: se um plano antigo contradiz este registro, atualizar o plano ou marcar
+> o plano como superado antes de usar.
+
 Issue: #482
 
 ## Purpose

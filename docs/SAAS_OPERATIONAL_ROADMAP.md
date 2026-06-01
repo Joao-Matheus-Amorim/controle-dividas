@@ -1,5 +1,10 @@
 # SaaS Operational Roadmap
 
+> Status DocDoc: Parcialmente superado
+> Uso atual: contexto consolidado da transicao SaaS ate a data da ultima
+> revisao. Para estado operacional vigente, usar `docs/VALIDACAO_TECNICA.md`,
+> `docs/SAAS_GAP_REGISTER.md` e o checklist ativo em `docs/audits/`.
+
 Atualizado em: 2026-05-28
 
 ## 1. Objetivo
