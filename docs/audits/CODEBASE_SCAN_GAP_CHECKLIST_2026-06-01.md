@@ -464,7 +464,7 @@ Estimativa: 1 a 2 dias.
 
 ### P3.2 - Atualizar `VALIDACAO_TECNICA.md`
 
-Status: aberto
+Status: coberto por PR docs de atualizacao de `VALIDACAO_TECNICA.md`
 
 Problema:
 
@@ -472,9 +472,9 @@ O documento ainda fala de migrations ate `039`; o estado real ja chega a `043` e
 
 Acao recomendada:
 
-- [ ] Atualizar lista de migrations obrigatorias ate `043`.
-- [ ] Incluir `SUPABASE_DB_URL` como secret de deploy, nao env runtime do app.
-- [ ] Incluir validacao de FKs restauradas.
+- [x] Atualizar lista de migrations obrigatorias ate `043`.
+- [x] Incluir `SUPABASE_DB_URL` como secret de deploy, nao env runtime do app.
+- [x] Incluir validacao de FKs restauradas.
 - [ ] Incluir pos-deploy smoke.
 
 Criterio de fechamento:

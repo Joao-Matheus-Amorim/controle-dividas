@@ -44,6 +44,7 @@ Ja existem no codigo:
 - testes de integracao com MSW;
 - PWA manifest;
 - deploy de producao automatizado apos CI verde na `main`, com fallback manual via `.github/workflows/deploy.yml`, aplicando backend Supabase e frontend Vercel.
+- CI com `npm audit --audit-level=moderate`, Vitest `4.1.8`, lint, typecheck, testes e build.
 
 ## Arquivos tecnicos centrais
 
@@ -125,17 +126,71 @@ Regras:
 - Nunca usar `NEXT_PUBLIC_` na service role.
 - `ADMIN_EMAIL` e o e-mail que cria/garante o Admin familiar inicial.
 
+Secrets obrigatorios para deploy automatizado no GitHub Actions:
+
+```env
+SUPABASE_DB_URL=POSTGRES_DSN_DO_SUPABASE_PARA_MIGRATIONS
+VERCEL_TOKEN=TOKEN_DA_VERCEL
+VERCEL_ORG_ID=ID_DA_ORGANIZACAO_VERCEL
+VERCEL_PROJECT_ID=ID_DO_PROJETO_VERCEL
+```
+
+Regras de deploy:
+
+- `SUPABASE_DB_URL` e secret de CI/CD para `supabase db push`; nao e env runtime do app.
+- `VERCEL_ORG_ID` e `VERCEL_PROJECT_ID` evitam prompt/link interativo da Vercel no runner.
+- O job aplica migrations Supabase antes do deploy frontend Vercel.
+
 ## Migrations obrigatorias
 
-Execute no Supabase SQL Editor, nesta ordem:
+O historico versionado atual vai de `001` ate `043`. Em operacao normal, o deploy automatizado aplica esta cadeia com `supabase db push` usando `SUPABASE_DB_URL`.
+
+Se for necessario aplicar manualmente, execute no Supabase SQL Editor nesta ordem, sem pular arquivos:
 
 ```txt
 supabase/migrations/001_family_finance_schema.sql
 supabase/migrations/002_dedupe_and_seed_constraints.sql
 supabase/migrations/003_admin_profiles_permissions.sql
 supabase/migrations/004_permission_scope_and_features.sql
-...
+supabase/migrations/005_payable_bill_types.sql
+supabase/migrations/006_organizations_memberships.sql
+supabase/migrations/007_add_organization_id_columns.sql
+supabase/migrations/008_expense_categories_organization_rls.sql
+supabase/migrations/009_expense_categories_owner_write_rls.sql
+supabase/migrations/010_family_members_organization_rls.sql
+supabase/migrations/011_expenses_organization_rls.sql
+supabase/migrations/012_payable_bills_organization_rls.sql
+supabase/migrations/013_receivable_incomes_organization_rls.sql
+supabase/migrations/014_banks_organization_rls.sql
+supabase/migrations/015_profiles_organization_rls.sql
+supabase/migrations/016_user_module_permissions_organization_rls.sql
+supabase/migrations/017_user_feature_permissions_organization_rls.sql
+supabase/migrations/018_one_active_membership_per_user.sql
+supabase/migrations/019_initial_organization_onboarding_rpc.sql
+supabase/migrations/020_expense_categories_organization_scope_hardening.sql
+supabase/migrations/021_family_members_organization_scope_hardening.sql
+supabase/migrations/022_expenses_organization_scope_hardening.sql
+supabase/migrations/023_payable_bills_organization_scope_hardening.sql
+supabase/migrations/024_receivable_incomes_organization_scope_hardening.sql
+supabase/migrations/025_banks_organization_scope_hardening.sql
+supabase/migrations/026_user_module_permissions_organization_scope_hardening.sql
+supabase/migrations/027_user_feature_permissions_organization_scope_hardening.sql
+supabase/migrations/028_profiles_organization_scope_hardening.sql
+supabase/migrations/029_drop_one_active_membership_per_user_limit.sql
+supabase/migrations/030_expense_categories_rls_remove_legacy_fallback.sql
+supabase/migrations/031_family_members_rls_remove_legacy_fallback.sql
+supabase/migrations/032_expenses_rls_remove_legacy_fallback.sql
+supabase/migrations/033_payable_bills_rls_remove_legacy_fallback.sql
+supabase/migrations/034_receivable_incomes_rls_remove_legacy_fallback.sql
+supabase/migrations/035_banks_rls_remove_legacy_fallback.sql
+supabase/migrations/036_profiles_rls_remove_legacy_fallback.sql
+supabase/migrations/037_user_module_permissions_rls_remove_legacy_fallback.sql
+supabase/migrations/038_user_feature_permissions_rls_remove_legacy_fallback.sql
 supabase/migrations/039_drop_legacy_owner_family_policies.sql
+supabase/migrations/040_audit_events_schema.sql
+supabase/migrations/041_audit_events_write_boundary.sql
+supabase/migrations/042_audit_events_retention_cleanup.sql
+supabase/migrations/043_restore_finance_relationships_and_rls_cleanup.sql
 ```
 
 ### Validacao esperada apos migrations
@@ -159,18 +214,46 @@ Tambem deve possuir:
 - RLS habilitado nas tabelas principais;
 - policies organization-aware por membership ativa;
 - policies antigas owner/family removidas pela migration `039`;
+- audit events criados pelas migrations `040` a `042`;
+- FKs financeiras restauradas e validadas pela migration `043`;
 - constraints contra duplicacao de membros/categorias seedadas;
 - coluna `scope` em `user_module_permissions`;
 - coluna `allowed_member_ids` em `user_module_permissions`;
 - roles aceitos em `profiles`: `admin`, `adult`, `child`, `custom`, `user`.
+
+As FKs restauradas pela migration `043` devem existir com `convalidated = true`.
+
+Consulta de validacao:
+
+```sql
+select
+  conrelid::regclass::text as table_name,
+  conname,
+  convalidated
+from pg_constraint
+where conname in (
+  'expenses_family_member_id_fkey',
+  'expenses_category_id_fkey',
+  'payable_bills_responsible_member_id_fkey',
+  'receivable_incomes_receiver_member_id_fkey',
+  'banks_family_member_id_fkey'
+)
+order by table_name, conname;
+```
+
+Resultado esperado: cinco linhas, todas com `convalidated = true`.
+
+Se a migration `043` falhar em um ambiente com dados historicos orfaos, use `docs/sql/finance-relationships-orphan-preflight.sql` para diagnosticar antes de cleanup/retry. Nao trate `convalidated = false` como estado saudavel apos a `043`.
 
 ## Comandos de validacao local
 
 Execute na raiz do projeto:
 
 ```bash
-npm install
+npm ci
+npm audit --audit-level=moderate
 npm run lint
+npm run typecheck
 npm run build
 npm run test:run
 npm run dev
@@ -179,7 +262,9 @@ npm run dev
 O minimo para considerar uma alteracao validada:
 
 ```bash
+npm audit --audit-level=moderate
 npm run lint
+npm run typecheck
 npm run build
 npm run test:run
 ```
@@ -201,9 +286,11 @@ npm run test:run
 - [ ] Migration 002 executada.
 - [ ] Migration 003 executada.
 - [ ] Migration 004 executada.
+- [ ] Migrations 005 a 043 executadas ou aplicadas por deploy automatizado.
 - [ ] Tabelas financeiras existem.
 - [ ] Tabelas de permissao existem.
 - [ ] RLS esta ativo.
+- [ ] FKs financeiras da migration 043 existem e estao com `convalidated = true`.
 - [ ] Seed nao duplica membros/categorias.
 
 ### 3. Autenticacao
@@ -357,11 +444,7 @@ Pendentes conhecidos:
 
 ### Unitarios
 
-```txt
-__tests__/unit/access-control.test.ts
-__tests__/unit/calculations.test.ts
-__tests__/unit/mock-data.test.ts
-```
+Os testes unitarios ficam em `__tests__/unit/*.test.ts` e `__tests__/ui-primitive-usage-guards.test.ts`.
 
 Cobrem:
 
@@ -375,13 +458,11 @@ Cobrem:
 - Admin bypass;
 - perfil inativo;
 - feature permissions.
+- guards de documentacao, migrations, RLS, auditoria, rate limit e contratos de UI.
 
 ### Integracao
 
-```txt
-__tests__/integration/dashboard-queries.test.ts
-__tests__/integration/permissions-flow.test.ts
-```
+Os testes de integracao ficam em `__tests__/integration/*.test.ts` e `__tests__/integration/rls/*.rls.test.ts`.
 
 Cobrem:
 
@@ -391,12 +472,15 @@ Cobrem:
 - usuario comum vendo apenas dados proprios;
 - usuario selected vendo membros liberados;
 - Admin vendo todos os gastos.
+- suites RLS gated quando `RUN_RLS_TESTS=true` e variaveis de banco de teste estao configuradas.
 
 ## Debitos tecnicos conhecidos
 
 - `lib/finance/calculations.ts` ainda mistura funcoes puras com calculos baseados em fixtures.
 - Alguns documentos estrategicos ainda podem listar como planejado recursos que ja estao implementados.
 - Alguns documentos historicos ainda podem citar `/protected` como unica rota protegida; a fonte viva atual e ADR 0007 + `docs/SAAS_OPERATIONAL_ROADMAP.md`.
+- Evidencia live de RLS ainda depende de gate manual.
+- Evidencia real Stripe checkout/portal ainda depende de conta e credenciais Stripe de teste.
 - Edicoes completas de algumas entidades ainda faltam.
 - `user_feature_permissions` existe, mas UI completa ainda precisa evoluir.
 - Periodo do Dashboard/Relatorios ainda precisa virar dinamico.
