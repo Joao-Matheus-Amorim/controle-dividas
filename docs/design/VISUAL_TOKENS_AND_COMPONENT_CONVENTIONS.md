@@ -1,5 +1,12 @@
 # Visual tokens and component conventions
 
+> Status DocDoc: Parcialmente superado/historico
+> Uso seguro: contexto de baseline anterior e limites de componentes/shadcn.
+> Superado por / observacao: nao usar este documento como fonte atual de cores,
+> superficies ou estilo do app protegido. A direcao atual esta em
+> `docs/design/redesign-2026-ink-copper-ivory.md`, `app/globals.css` e nos
+> componentes reais.
+
 Issues: #293, #80
 Related ADR: `docs/adr/0003-design-system-and-shadcn-adoption.md`
 
