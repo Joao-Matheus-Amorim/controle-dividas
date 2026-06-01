@@ -1,5 +1,10 @@
 # Aceite e Roadmap - FamilyFinance
 
+> Status DocDoc: Historico/PM
+> Uso seguro: contexto de aceite e roadmap original.
+> Observacao: nao e fila tecnica atual; use `docs/SAAS_GAP_REGISTER.md` e
+> `docs/audits/CODEBASE_SCAN_GAP_CHECKLIST_2026-06-01.md` para proximos gaps.
+
 Este documento registra os criterios de aceite e o roadmap vivo do FamilyFinance conforme o estado atual do codigo.
 
 ## Estado atual

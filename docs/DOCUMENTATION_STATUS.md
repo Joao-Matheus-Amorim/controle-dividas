@@ -47,7 +47,7 @@ trabalho novo.
 | `docs/audits/` | Misto com indice atual | Usar `docs/audits/README.md` antes de seguir auditorias antigas. Contratos atuais e readiness historicos ficam separados ali. |
 | `docs/design/` | Atual para design system | Fonte para tokens e direcao visual atual. |
 | `docs/e2e/` | Parcialmente superado | Usar como contexto de estrategia E2E; conferir CI atual. |
-| `docs/pm/` | Historico/PM | Contexto de escopo e gestao, nao contrato tecnico atual. |
+| `docs/pm/` | Historico/PM com indice atual | Usar `docs/pm/README.md` como entrada. Contexto de gestao, nao contrato tecnico atual. |
 | `docs/rls/` | Misto | Contexto e runbooks RLS; validar contra migrations atuais. |
 | `docs/roadmaps/` | Historico/planejamento | Nao usar como evidencia de implementacao. |
 | `docs/runbooks/` | Misto com indice atual | Usar `docs/runbooks/README.md` antes de executar runbooks antigos. Stripe evidence segue atual; hardening/fallback runbooks sao majoritariamente historicos. |
@@ -63,7 +63,7 @@ trabalho novo.
 - [ ] Revisar `docs/audits/*` restantes em lotes pequenos.
 - [x] Criar indice DocDoc inicial para `docs/runbooks/*`.
 - [x] Marcar todos os runbooks com nota `Status DocDoc`.
-- [ ] Revisar `docs/pm/*` como historico de gestao.
+- [x] Revisar `docs/pm/*` como historico de gestao.
 - [ ] Criar ADR nova se alguma decisao mobile/web/admin precisar virar contrato arquitetural.
 
 ## Audits DocDoc
@@ -95,6 +95,20 @@ trabalho novo.
 | `docs/runbooks/LEGACY_ORGANIZATION_BACKFILL_RUNBOOK.md` | Parcialmente superado | Historico do processo seguro de backfill legado. | Nao usar as fases antigas como estado atual sem conferir migrations `020` a `043`. |
 | `docs/runbooks/*_ORG_SCOPE_HARDENING.md` | Parcialmente superado/historico | Contexto e rollback das migrations de hardening. | Todos possuem nota DocDoc; confirmar estado atual em `VALIDACAO_TECNICA.md` e no banco alvo. |
 | `docs/runbooks/*_RLS_FALLBACK_REMOVAL.md` | Parcialmente superado/historico | Contexto e rollback das migrations de fallback removal. | Todos possuem nota DocDoc; confirmar migrations e politicas atuais antes de executar SQL. |
+
+## PM DocDoc
+
+| Documento | Status DocDoc | Uso seguro | Observacao |
+| --- | --- | --- | --- |
+| `docs/pm/README.md` | Atual | Indice vivo dos documentos PM. | Ler antes de usar PMBOK como contexto. |
+| `docs/pm/01_TERMO_DE_ABERTURA.md` | Historico/PM | Contexto de abertura e objetivos originais. | Nao e contrato tecnico atual. |
+| `docs/pm/02_ESCOPO.md` | Historico/PM | Contexto de escopo e exclusoes. | Nao e contrato tecnico atual. |
+| `docs/pm/03_WBS_EAP.md` | Historico/PM | Estrutura analitica historica. | Nao e fila de execucao atual. |
+| `docs/pm/04_REQUISITOS.md` | Historico/PM | Contexto de requisitos de produto. | Confirmar implementacao no codigo e `VALIDACAO_TECNICA.md`. |
+| `docs/pm/05_RISCOS_QUALIDADE_MUDANCAS.md` | Historico/PM | Contexto de riscos e mudancas. | Nao e evidencia atual de CI/runtime. |
+| `docs/pm/06_ACEITE_ROADMAP.md` | Historico/PM | Contexto de aceite e roadmap original. | Nao e backlog tecnico atual. |
+| `docs/pm/07_SOLICITACAO_MUDANCA_SAAS_MULTI_TENANT.md` | Historico/PM | Registro formal da mudanca SaaS. | Execucao atual fica em docs tecnicos. |
+| `docs/pm/08_RELATORIO_PROGRESSO_SAAS_MULTI_TENANT.md` | Parcialmente superado | Relatorio de progresso de fase anterior. | Cruzar com `SAAS_GAP_REGISTER.md`. |
 
 ## Regras de reconciliacao
 

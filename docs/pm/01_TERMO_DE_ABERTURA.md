@@ -1,5 +1,10 @@
 # Termo de Abertura - FamilyFinance
 
+> Status DocDoc: Historico/PM
+> Uso seguro: contexto de abertura, objetivos originais e linguagem de gestao.
+> Observacao: nao e contrato tecnico atual; confirme estado vigente em
+> `docs/VALIDACAO_TECNICA.md`, `docs/SAAS_GAP_REGISTER.md` e no codigo.
+
 ## Nome do projeto
 
 FamilyFinance - Aplicativo financeiro familiar personalizado.

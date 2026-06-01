@@ -1,5 +1,10 @@
 # Escopo - FamilyFinance
 
+> Status DocDoc: Historico/PM
+> Uso seguro: contexto de escopo, inclusoes e exclusoes originais.
+> Observacao: nao e contrato tecnico atual; confirme estado vigente em
+> `docs/VALIDACAO_TECNICA.md`, `docs/SAAS_GAP_REGISTER.md` e no codigo.
+
 ## Declaracao de escopo
 
 O FamilyFinance nasceu como uma solucao financeira familiar personalizada para uma unica familia, com Web/PWA funcional em validacao, painel Admin familiar implementado e app nativo Android/iOS planejado para fase futura.
