@@ -2,6 +2,12 @@
 
 Issue: #580
 
+> Status DocDoc: Atual como runbook/gate operacional
+> Uso atual: contrato do workflow manual dedicado para validar RLS real contra
+> ambiente Supabase de teste.
+> Observacao: nao e evidencia por si so; registrar evidencia apenas apos run
+> real bem-sucedido no GitHub Actions.
+
 ## Purpose
 
 Define the separated GitHub Actions gate for real RLS tests against a dedicated Supabase test environment.

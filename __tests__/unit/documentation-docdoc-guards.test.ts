@@ -37,6 +37,11 @@ describe("Operacao DocDoc documentation guards", () => {
   const e2eFiles = readdirSync(join(process.cwd(), "docs/e2e"))
     .filter((file) => file.endsWith(".md"))
     .sort();
+  const rlsReadme = read("docs/rls/README.md");
+  const rlsLiveGate = read("docs/rls/RLS_LIVE_GATE.md");
+  const rlsFiles = readdirSync(join(process.cwd(), "docs/rls"))
+    .filter((file) => file.endsWith(".md"))
+    .sort();
 
   it("keeps a documentation entrypoint and status map", () => {
     expect(docsReadme).toContain("status docdoc: atual");
@@ -170,6 +175,36 @@ describe("Operacao DocDoc documentation guards", () => {
     for (const file of e2eFiles) {
       const source = read(`docs/e2e/${file}`);
       expect(source).toContain("status docdoc:");
+    }
+  });
+
+  it("keeps RLS docs separated from live evidence", () => {
+    expect(rlsReadme).toContain("status docdoc: atual");
+    expect(rlsReadme).toContain("nao use documentos rls para afirmar que isolamento esta provado");
+    expect(rlsReadme).toContain("rls live gate");
+    expect(rlsLiveGate).toContain("status docdoc: atual como runbook/gate operacional");
+    expect(rlsLiveGate).toContain("registrar evidencia apenas apos run");
+
+    expect(statusMap).toContain("docs/rls/readme.md");
+    expect(statusMap).toContain("docs/rls/rls_live_gate.md");
+    expect(statusMap).toContain("docs/rls/legacy_organization_id_handling.md");
+  });
+
+  it("marks every RLS document with explicit DocDoc status", () => {
+    expect(rlsFiles.length).toBeGreaterThan(5);
+
+    for (const file of rlsFiles) {
+      const source = read(`docs/rls/${file}`);
+      expect(source).toContain("status docdoc:");
+
+      if (
+        file === "LEGACY_ORGANIZATION_ID_HANDLING.md" ||
+        file === "RLS_FINANCE_TEST_PLAN.md" ||
+        file === "RLS_ROLLOUT_AND_ROLLBACK.md" ||
+        file === "RLS_TEST_HARNESS.md"
+      ) {
+        expect(source).toContain("parcialmente superado");
+      }
     }
   });
 });

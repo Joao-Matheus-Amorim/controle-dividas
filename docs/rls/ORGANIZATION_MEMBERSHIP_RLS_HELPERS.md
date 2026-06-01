@@ -2,6 +2,11 @@
 
 Issue: #152
 
+> Status DocDoc: Atual como contexto de helpers
+> Uso atual: contexto dos helpers de membership usados por policies RLS.
+> Observacao: confirmar definicao real nas migrations e no banco alvo antes de
+> alterar policies ou criar helpers novos.
+
 ## 1. Objetivo
 
 Este documento detalha o desenho dos helpers SQL de membership que devem sustentar futuras policies RLS financeiras multi-tenant.

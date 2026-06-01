@@ -2,6 +2,12 @@
 
 Issue: #154
 
+> Status DocDoc: Parcialmente superado
+> Uso seguro: contexto historico da estrategia de rollout/rollback RLS.
+> Superado por / observacao: nao usar como ordem atual sem cruzar com
+> migrations versionadas, `docs/VALIDACAO_TECNICA.md` e
+> `docs/SAAS_GAP_REGISTER.md`.
+
 ## 1. Objetivo
 
 Este documento define uma estrategia segura para rollout e rollback das futuras mudancas de RLS financeira multi-tenant.
