@@ -6,6 +6,7 @@ import {
   TrendingUp,
   WalletCards,
 } from "lucide-react";
+import { unstable_rethrow } from "next/navigation";
 
 import {
   DashboardHeader,
@@ -73,6 +74,7 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
   ]);
 
   const logDashboardLoadError = (source: string, reason: unknown) => {
+    unstable_rethrow(reason);
     console.error(`[dashboard] ${source} failed`, reason);
   };
 
