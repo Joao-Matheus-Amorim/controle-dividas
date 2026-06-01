@@ -1,5 +1,10 @@
 # Auditoria do fluxo de autenticacao
 
+> Status DocDoc: Parcialmente superado/historico
+> Superado por: codigo atual, CI e `docs/VALIDACAO_TECNICA.md`.
+> Uso atual: contexto da auditoria de auth de uma etapa anterior; nao usar como
+> estado vivo isolado do fluxo de autenticacao.
+
 ## Objetivo
 
 Esta auditoria valida o fluxo de autenticacao ja implementado no projeto vivo.

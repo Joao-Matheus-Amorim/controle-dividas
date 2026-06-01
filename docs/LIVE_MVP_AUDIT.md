@@ -1,5 +1,11 @@
 # Auditoria do MVP vivo
 
+> Status DocDoc: Parcialmente superado/historico
+> Superado por: direcao SaaS-first, ADRs atuais,
+> `docs/VALIDACAO_TECNICA.md` e `docs/SAAS_GAP_REGISTER.md`.
+> Uso atual: contexto do MVP anterior; nao usar como contrato atual de produto
+> ou arquitetura.
+
 ## Objetivo
 
 Este documento registra o estado real do MVP do FamilyFinance/Controle de Dividas antes de novas alteracoes de produto.

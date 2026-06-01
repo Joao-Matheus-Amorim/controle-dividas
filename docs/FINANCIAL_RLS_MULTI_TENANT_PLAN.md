@@ -1,5 +1,11 @@
 # Financial RLS Multi-Tenant Plan
 
+> Status DocDoc: Parcialmente superado/historico
+> Superado por: migrations `030` a `043`, `docs/rls/README.md`,
+> `docs/VALIDACAO_TECNICA.md` e live gates atuais.
+> Uso atual: contexto do plano inicial de RLS financeiro; nao usar como ordem
+> operacional atual sem conferir migrations e policies reais.
+
 ## 1. Objetivo
 
 Este documento planeja a futura migracao das policies RLS das tabelas financeiras para um modelo SaaS multi-tenant baseado em `organization_id` e membership.

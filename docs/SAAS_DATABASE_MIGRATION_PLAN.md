@@ -1,5 +1,11 @@
 # FamilyFinance SaaS - Plano de Migration Multi-tenant
 
+> Status DocDoc: Historico
+> Superado por: migrations `001` a `043`, `docs/VALIDACAO_TECNICA.md` e
+> `docs/DOCUMENTATION_STATUS.md`.
+> Uso atual: contexto historico do plano de migration; nao usar para escolher
+> novo numero de migration nem para afirmar estado atual do banco.
+
 ## 1. Objetivo
 
 Este documento define o plano tecnico para transformar o modelo atual do FamilyFinance, hoje baseado em uma familia unica com `owner_id`, em uma base SaaS multi-tenant orientada por `organizations` e `organization_memberships`.
