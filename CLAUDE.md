@@ -56,15 +56,17 @@ Adotada e shippada em PR #764. Spec completa:
 
 ### Estado da migração (importante)
 
-Fases 1–2 feitas (tokens + AppShell + primitives). **Fase 3 = Dashboard em
-refino por ocorrência real:** `components/dashboard/dashboard-hero-summary.tsx`
-já está migrado para `rounded-ff-2xl`, `bg-card`, `app-hero-glow` e tokens
-`bg-primary`/`ff-*`; não reescrever esse hero como alvo legado. A receita de
-migração deve focar somente seções do dashboard que ainda contenham classes
-legadas confirmadas por busca local, como `--app-*`, `backdrop-blur`,
-`bg-white/*`, `border-white/*`, `text-white/*`, hex roxo/indigo/violet fixo ou
-superfícies glass. Fase 4 = demais telas. Fase 5 = remover `--app-*`
-remanescente e grep-verificar zero hex legado.
+**Fases 1–3 concluídas.** Toda a dashboard está em tokens `--ff-*`:
+- Hero (`dashboard-hero-summary.tsx`): `bg-card + .app-hero-glow + shadow-ff-lg`, copper glow governado.
+- Summary section + color data da página (`dashboard-summary-section.tsx`, `dashboard-page.tsx`): tokens semânticos.
+- Quick actions, detail sections, family summary: tokens semânticos — zero `text-white/*`, `border-white/*`, `bg-[#...]` no dashboard.
+- Button e AppShell: limpos.
+
+**Fase 4 = demais telas** (Pessoas, Gastos, Contas a pagar/receber, Bancos, Relatórios, Configurações, Admin). Alvo imediato ao iniciar: `components/app/app-form-sheet.tsx` trigger ainda tem `bg-[#8b72f8]`.
+
+**Fase 5 = cleanup final.** Remover `--app-*` de `app/globals.css`. Grep-verificar zero `#080810`, `#8b72f8`, `#b09cff`, `#10101a`. Atualizar `VISUAL_TOKENS_AND_COMPONENT_CONVENTIONS.md`.
+
+Antes de migrar qualquer arquivo, confirme legado com grep local — não reescrever o que já foi migrado.
 
 ## Convenções de código
 

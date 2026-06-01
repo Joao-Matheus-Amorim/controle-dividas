@@ -60,29 +60,42 @@ Fonte única: `--ff-*` em `app/globals.css`. shadcn vars são aliases.
 - Micro-feedback: `.app-soft-press` em itens pressionáveis; entrada com
   `app-fade-up` (já existe).
 
-## Receita: migrar seções legadas do Dashboard (Fase 3 — por ocorrência)
+## Estado da migração
 
-`components/dashboard/dashboard-hero-summary.tsx` já está migrado para
-`rounded-ff-2xl`, `bg-card`, `app-hero-glow` e tokens `bg-primary`/`ff-*`;
-preserve esse hero. Antes de editar qualquer seção do dashboard, confirme por
-busca local que o arquivo ainda contém classes legadas como `--app-*`,
-`backdrop-blur`, `bg-white/*`, `border-white/*`, `text-white/*`, hex
-roxo/indigo/violet fixo ou superfícies glass.
+**Fases 1–3 concluídas.** Todo `components/dashboard/*`, Button, AppShell e
+primitives estão em tokens `--ff-*`. Não reescrever nenhum arquivo já migrado
+sem confirmar legado com grep primeiro.
 
-Alvo para seções ainda legadas (puramente visual, sem mexer em props/lógica):
+**Fase 4 — demais telas** (próxima frente). Domínios: Pessoas, Gastos, Contas a
+pagar/receber, Bancos, Relatórios, Configurações, Admin.
 
-- trocar gradiente roxo + alpha-on-black por `bg-card`, `bg-ff-bg-soft`,
-  `border-border`, `shadow-ff-lg` e, quando couber, `app-hero-glow`;
-- trocar tiles `bg-white/[0.055] border-white/10` por
-  `rounded-ff-lg border border-border bg-ff-bg-soft`;
-- trocar badges semânticos por `bg-ff-success-soft`, `text-ff-success`,
-  `text-ff-warning` ou `text-ff-destructive`;
-- trocar barra `bg-white/10` por `bg-muted` e fill roxo fixo por `bg-primary`.
+Alvo imediato ao abrir Fase 4:
+- `components/app/app-form-sheet.tsx` → trigger `bg-[#8b72f8]` ⇒ `bg-primary`.
+- `components/finance/*` — verificar com grep antes de editar.
 
-Mapa de troca direto:
-`#8b72f8`→`bg-primary` · `#1de9b2`→`text-ff-success` · `#f0506e`→`text-ff-destructive`
-· `#f7b84b`→`text-ff-warning` · `border-white/10`→`border-border` ·
-`bg-white/[0.055]`→`bg-ff-bg-soft` · `text-white/25|35`→`text-ff-subtle-foreground`.
+## Receita de migração (Fase 4 em diante)
+
+Antes de editar qualquer arquivo, confirme legado com grep:
+```bash
+grep -rn "#8b72f8\|#b09cff\|#1de9b2\|#f0506e\|#f7b84b\|#080810\|border-white/\|text-white/\|bg-white/" components/app/ components/finance/ app/
+```
+
+Mapa de troca (puramente visual — não mexer em props/lógica):
+
+| Legado | Token |
+|---|---|
+| `#8b72f8` / `bg-[#8b72f8]` | `bg-primary` |
+| `#b09cff` / `text-[#b09cff]` | `text-primary` |
+| `#1de9b2` | `text-ff-success` / `bg-ff-success-soft` |
+| `#f0506e` | `text-ff-destructive` / `bg-ff-destructive-soft` |
+| `#f7b84b` | `text-ff-warning` / `bg-ff-warning-soft` |
+| `border-white/10` | `border-border` |
+| `bg-white/[0.04–0.07]` / `bg-[#080810]/45` | `bg-ff-bg-soft` |
+| `text-white` (corpo) | `text-foreground` |
+| `text-white/25–35` | `text-ff-subtle-foreground` |
+| `text-white/30–45` | `text-muted-foreground` |
+| `rounded-2xl` (superfície) | `rounded-ff-md` ou `rounded-ff-lg` |
+| `shadow-[0_30px_90px_...]` | `shadow-ff-lg` |
 
 ## Antes de fazer push (obrigatório)
 
