@@ -24,6 +24,7 @@ historica ate reconciliar o status.
 | --- | --- |
 | `CODEBASE_SCAN_GAP_CHECKLIST_2026-06-01.md` | Checklist operacional para gaps e dividas tecnicas abertas. |
 | `PMBOK_GAP_DEBT_CONTROL_PLAN_2026-06-01.md` | Plano PMBOK vivo para controlar gaps, dividas tecnicas, evidencias, aceite e sequenciamento de PRs. |
+| `OWNER_ID_RETIREMENT_INVENTORY_2026-06-01.md` | Inventario atual do G-005 para planejar retirada futura de `owner_id` sem falso verde. |
 | `SENSITIVE_OPERATION_CONTROLS_CONTRACT.md` | Contrato vigente do GAP-015 para rate limit, audit runtime e retention. |
 | `SENSITIVE_OPERATION_RATE_LIMIT_PLAN.md` | Plano/registro do runtime de rate limit; cruzar com o contrato central antes de abrir novo PR. |
 | `SENSITIVE_ACTION_AUDIT_EVENT_SCHEMA_PLAN.md` | Plano/contrato do schema e write boundary de audit events. |
