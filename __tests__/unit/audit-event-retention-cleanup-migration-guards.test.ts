@@ -16,7 +16,7 @@ function withoutComments(sql: string) {
   return sql
     .replace(/\/\*[\s\S]*?\*\//g, "")
     .split("\n")
-    .map((line) => line.replace(/--.*$/g, ""))
+    .map((line) => line.replace(/--.*$/gm, ""))
     .join("\n")
     .replace(/\s+/g, " ")
     .trim();
