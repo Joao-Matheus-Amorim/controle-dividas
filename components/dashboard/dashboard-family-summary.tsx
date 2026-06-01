@@ -26,9 +26,9 @@ export function DashboardFamilySummary({ canExpenses, canPeople, members }: Dash
       <div className="flex items-center justify-between gap-3">
         <div>
           <AppSectionTitle>Família</AppSectionTitle>
-          <p className="mt-1 text-sm text-white/35">Membros dentro do seu escopo</p>
+          <p className="mt-1 text-sm text-muted-foreground">Membros dentro do seu escopo</p>
         </div>
-        {canPeople ? <Link href="/protected/pessoas" className="text-xs font-semibold text-[#8b72f8]">ver todos</Link> : null}
+        {canPeople ? <Link href="/protected/pessoas" className="text-xs font-semibold text-primary hover:text-ff-primary-hover">ver todos</Link> : null}
       </div>
 
       <AppCard className="space-y-2">
@@ -37,20 +37,20 @@ export function DashboardFamilySummary({ canExpenses, canPeople, members }: Dash
           const exceeded = member.remaining < 0;
 
           return (
-            <div key={member.id} className="rounded-2xl border border-white/10 bg-[#080810]/45 p-3">
+            <div key={member.id} className="rounded-ff-md border border-border bg-ff-bg-soft p-3">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#8b72f8]/15 text-xs font-bold text-[#b09cff]">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-ff-primary-soft text-xs font-bold text-primary">
                   {initials(member.name)}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-3">
-                    <p className="truncate text-sm font-semibold text-white">{member.name}</p>
-                    <p className={exceeded ? "shrink-0 text-sm font-bold text-[#f0506e]" : "shrink-0 text-sm font-bold text-[#1de9b2]"}>{compactCurrency(member.remaining)}</p>
+                    <p className="truncate text-sm font-semibold text-foreground">{member.name}</p>
+                    <p className={exceeded ? "shrink-0 text-sm font-bold text-ff-destructive" : "shrink-0 text-sm font-bold text-ff-success"}>{compactCurrency(member.remaining)}</p>
                   </div>
-                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10">
-                    <div className={exceeded ? "h-full rounded-full bg-[#f0506e]" : "h-full rounded-full bg-[#8b72f8]"} style={{ width: memberUsedPercent + "%" }} />
+                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
+                    <div className={exceeded ? "h-full rounded-full bg-ff-destructive" : "h-full rounded-full bg-primary"} style={{ width: memberUsedPercent + "%" }} />
                   </div>
-                  <p className="mt-1 text-xs text-white/30">
+                  <p className="mt-1 text-xs text-muted-foreground">
                     {compactCurrency(member.spent)} usados de {compactCurrency(Number(member.monthly_limit))}
                   </p>
                 </div>
