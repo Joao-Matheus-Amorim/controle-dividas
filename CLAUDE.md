@@ -56,12 +56,15 @@ Adotada e shippada em PR #764. Spec completa:
 
 ### Estado da migração (importante)
 
-Fases 1–2 feitas (tokens + AppShell + primitives). **Fase 3 = Dashboard ainda
-NÃO migrada:** `components/dashboard/*` (sobretudo `dashboard-hero-summary.tsx`)
-ainda usa a identidade roxa/glass legada e os tokens `--app-*` (deprecados,
-removidos na Fase 5). Migrá-los para `--ff-*` + profundidade de cobre é o
-trabalho cinematográfico real. Fase 4 = demais telas. Fase 5 = remover `--app-*`
-e grep-verificar zero hex legado.
+Fases 1–2 feitas (tokens + AppShell + primitives). **Fase 3 = Dashboard em
+refino por ocorrência real:** `components/dashboard/dashboard-hero-summary.tsx`
+já está migrado para `rounded-ff-2xl`, `bg-card`, `app-hero-glow` e tokens
+`bg-primary`/`ff-*`; não reescrever esse hero como alvo legado. A receita de
+migração deve focar somente seções do dashboard que ainda contenham classes
+legadas confirmadas por busca local, como `--app-*`, `backdrop-blur`,
+`bg-white/*`, `border-white/*`, `text-white/*`, hex roxo/indigo/violet fixo ou
+superfícies glass. Fase 4 = demais telas. Fase 5 = remover `--app-*`
+remanescente e grep-verificar zero hex legado.
 
 ## Convenções de código
 

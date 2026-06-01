@@ -60,37 +60,24 @@ Fonte única: `--ff-*` em `app/globals.css`. shadcn vars são aliases.
 - Micro-feedback: `.app-soft-press` em itens pressionáveis; entrada com
   `app-fade-up` (já existe).
 
-## Receita: migrar a Dashboard hero (Fase 3 — ainda legada)
+## Receita: migrar seções legadas do Dashboard (Fase 3 — por ocorrência)
 
-`components/dashboard/dashboard-hero-summary.tsx` hoje usa roxo/glass legado.
-Alvo (puramente visual, sem mexer em props/lógica):
+`components/dashboard/dashboard-hero-summary.tsx` já está migrado para
+`rounded-ff-2xl`, `bg-card`, `app-hero-glow` e tokens `bg-primary`/`ff-*`;
+preserve esse hero. Antes de editar qualquer seção do dashboard, confirme por
+busca local que o arquivo ainda contém classes legadas como `--app-*`,
+`backdrop-blur`, `bg-white/*`, `border-white/*`, `text-white/*`, hex
+roxo/indigo/violet fixo ou superfícies glass.
 
-```tsx
-// container hero — troca o gradiente roxo + alpha-on-black por ink+cobre
-<section className="relative overflow-hidden rounded-ff-2xl border border-border bg-card p-6 shadow-ff-lg">
-  {/* glow de cobre governado, atrás do conteúdo */}
-  <div
-    aria-hidden
-    className="pointer-events-none absolute inset-0"
-    style={{
-      backgroundImage:
-        "radial-gradient(circle at 85% 12%, rgb(var(--ff-primary) / 0.18), transparent 38%), linear-gradient(145deg, rgb(var(--ff-bg-soft)) 0%, rgb(var(--ff-card)) 60%, rgb(var(--ff-bg)) 100%)",
-    }}
-  />
-  <div className="relative">
-    {/* número herói */}
-    <p className="text-4xl font-black tracking-[-0.04em] text-foreground md:text-6xl">…</p>
-    {/* tiles: trocar bg-white/[0.055] border-white/10 por: */}
-    <div className="rounded-ff-lg border border-border bg-ff-bg-soft p-3">
-      <p className="text-caption text-ff-subtle-foreground">Gasto</p>
-      <p className="mt-1 text-sm font-bold text-foreground">…</p>
-    </div>
-    {/* badge saudável/atenção: */}
-    <span className="rounded-full bg-ff-success-soft px-3 py-1.5 text-caption font-bold text-ff-success">saudável</span>
-    {/* barra de progresso: bg-white/10 → bg-muted ; fill bg-[#8b72f8] → bg-primary */}
-  </div>
-</section>
-```
+Alvo para seções ainda legadas (puramente visual, sem mexer em props/lógica):
+
+- trocar gradiente roxo + alpha-on-black por `bg-card`, `bg-ff-bg-soft`,
+  `border-border`, `shadow-ff-lg` e, quando couber, `app-hero-glow`;
+- trocar tiles `bg-white/[0.055] border-white/10` por
+  `rounded-ff-lg border border-border bg-ff-bg-soft`;
+- trocar badges semânticos por `bg-ff-success-soft`, `text-ff-success`,
+  `text-ff-warning` ou `text-ff-destructive`;
+- trocar barra `bg-white/10` por `bg-muted` e fill roxo fixo por `bg-primary`.
 
 Mapa de troca direto:
 `#8b72f8`→`bg-primary` · `#1de9b2`→`text-ff-success` · `#f0506e`→`text-ff-destructive`

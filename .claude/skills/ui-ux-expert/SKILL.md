@@ -65,10 +65,13 @@ Feedback de ação concluída → `AppActionFeedback` (não usar alert nativo).
 
 ## Dívidas de UI conhecidas (legado, migrar ao tocar)
 
-Spots ainda no roxo/glass legado — ao editar a área, migre para tokens (ver
-skill `design-system`):
+Spots ainda no roxo/glass legado — ao editar a área, confirme a ocorrência por
+busca local e migre para tokens (ver skill `design-system`):
 - `components/app/app-form-sheet.tsx` → trigger `bg-[#8b72f8]` ⇒ `bg-primary`.
-- `components/dashboard/*` (hero, tiles) → identidade roxa/glass (Fase 3).
+- `components/dashboard/*` → somente seções que ainda contenham `--app-*`,
+  `backdrop-blur`, `bg-white/*`, `border-white/*`, `text-white/*`,
+  hex roxo/indigo/violet fixo ou superfícies glass. Preserve
+  `components/dashboard/dashboard-hero-summary.tsx`, que já está migrado.
 
 ## Antes do push
 
