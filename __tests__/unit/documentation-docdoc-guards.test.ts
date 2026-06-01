@@ -57,6 +57,11 @@ describe("Operacao DocDoc documentation guards", () => {
   const sqlFiles = readdirSync(join(process.cwd(), "docs/sql"))
     .filter((file) => file.endsWith(".sql"))
     .sort();
+  const adrReadme = read("docs/adr/README.md");
+  const adrDocdocStatus = read("docs/adr/DOCDOC_STATUS.md");
+  const adrFiles = readdirSync(join(process.cwd(), "docs/adr"))
+    .filter((file) => file.endsWith(".md"))
+    .sort();
 
   it("keeps a documentation entrypoint and status map", () => {
     expect(docsReadme).toContain("status docdoc: atual");
@@ -294,6 +299,27 @@ describe("Operacao DocDoc documentation guards", () => {
 
     for (const file of sqlFiles) {
       expect(sqlReadme).toContain(file.toLowerCase());
+    }
+  });
+
+  it("keeps ADR docs as historical decisions instead of rewritten current truth", () => {
+    expect(adrReadme).toContain("status docdoc: atual");
+    expect(adrReadme).toContain("docs/adr/docdoc_status.md");
+    expect(adrDocdocStatus).toContain("adrs aceitos registram decisoes no tempo");
+    expect(adrDocdocStatus).toContain("proximos adrs devem usar");
+    expect(adrDocdocStatus).toContain("0009");
+
+    expect(statusMap).toContain("docs/adr/readme.md");
+    expect(statusMap).toContain("docs/adr/docdoc_status.md");
+    expect(statusMap).toContain("historico decisorio com indice atual");
+    expect(statusMap).toContain("nao reescrever decisao aceita");
+  });
+
+  it("keeps every ADR markdown file listed in the ADR DocDoc index", () => {
+    expect(adrFiles.length).toBeGreaterThan(9);
+
+    for (const file of adrFiles) {
+      expect(adrDocdocStatus).toContain(file.toLowerCase());
     }
   });
 });

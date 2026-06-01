@@ -43,7 +43,7 @@ trabalho novo.
 
 | Diretorio | Status DocDoc | Uso seguro |
 | --- | --- | --- |
-| `docs/adr/` | Historico decisorio | Manter ADRs; criar nova ADR para decisao nova ou mudanca estrutural. |
+| `docs/adr/` | Historico decisorio com indice atual | Usar `docs/adr/README.md` e `docs/adr/DOCDOC_STATUS.md` como entrada. Manter ADRs; criar nova ADR para decisao nova ou mudanca estrutural. |
 | `docs/audits/` | Misto com indice atual | Usar `docs/audits/README.md` antes de seguir auditorias antigas. Contratos atuais e readiness historicos ficam separados ali. |
 | `docs/design/` | Atual com indice | Usar `docs/design/README.md` como entrada. Design docs orientam direcao visual, mas nao provam implementacao atual. |
 | `docs/e2e/` | Atual com indice | Usar `docs/e2e/README.md` como entrada para contratos E2E. Roadmaps nao substituem specs, CI ou evidencia gated. |
@@ -69,6 +69,7 @@ trabalho novo.
 - [x] Criar indice DocDoc para `docs/roadmaps/*`.
 - [x] Criar indice DocDoc para `docs/design/*`.
 - [x] Criar indice DocDoc para `docs/sql/*`.
+- [x] Reconciliar indice DocDoc de `docs/adr/*`.
 - [ ] Criar ADR nova se alguma decisao mobile/web/admin precisar virar contrato arquitetural.
 
 ## Audits DocDoc
@@ -160,6 +161,15 @@ trabalho novo.
 | `docs/sql/*-null-preflight.sql` | Ferramenta operacional | Diagnostico/preflight de linhas com `organization_id` nulo. | Confirmar ambiente alvo e migrations atuais antes de executar. |
 | `docs/sql/*-dry-run.sql` | Ferramenta operacional | Relatorios dry-run antes de backfill ou hardening. | Nao substitui migration, runbook ou evidencia. |
 | `docs/sql/finance-relationships-orphan-preflight.sql` | Ferramenta operacional | Diagnostico de orfaos para relacionamentos financeiros da migration `043`. | Usar quando `043` falhar em validacao ou antes de retry/repair manual. |
+
+## ADR DocDoc
+
+| Documento | Status DocDoc | Uso seguro | Observacao |
+| --- | --- | --- | --- |
+| `docs/adr/README.md` | Atual | Entrada historica do diretorio ADR. | Aponta para `DOCDOC_STATUS.md`. |
+| `docs/adr/DOCDOC_STATUS.md` | Atual | Indice operacional dos ADRs. | Inclui a colisao historica dos dois `0006`; proximos ADRs comecam em `0009`. |
+| `docs/adr/0001-*.md` a `docs/adr/0008-*.md` | Historico decisorio | Contexto de decisoes aceitas. | Nao reescrever decisao aceita; criar novo ADR se a decisao mudar. |
+| `docs/adr/TEMPLATE.md` | Template | Modelo para novos ADRs. | Manter sem status de decisao. |
 
 ## Regras de reconciliacao
 
