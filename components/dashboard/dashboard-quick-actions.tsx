@@ -8,8 +8,6 @@ export type DashboardQuickAction = {
   title: string;
   subtitle: string;
   icon: LucideIcon;
-  color: string;
-  bg: string;
 };
 
 interface DashboardQuickActionsProps {

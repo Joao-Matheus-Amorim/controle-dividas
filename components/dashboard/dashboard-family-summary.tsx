@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { AppCard, AppSectionTitle } from "@/components/app/app-card";
+import { getOrgPathFromProtectedPath } from "@/lib/organizations/paths";
 import { compactCurrency, initials } from "./dashboard-utils";
 
 type MemberSummary = {
@@ -16,9 +17,10 @@ interface DashboardFamilySummaryProps {
   canExpenses: boolean;
   canPeople: boolean;
   members: MemberSummary[];
+  orgSlug?: string;
 }
 
-export function DashboardFamilySummary({ canExpenses, canPeople, members }: DashboardFamilySummaryProps) {
+export function DashboardFamilySummary({ canExpenses, canPeople, members, orgSlug }: DashboardFamilySummaryProps) {
   if (!canExpenses || members.length === 0) return null;
 
   return (
@@ -28,7 +30,14 @@ export function DashboardFamilySummary({ canExpenses, canPeople, members }: Dash
           <AppSectionTitle>Família</AppSectionTitle>
           <p className="mt-1 text-sm text-muted-foreground">Membros dentro do seu escopo</p>
         </div>
-        {canPeople ? <Link href="/protected/pessoas" className="text-xs font-semibold text-primary hover:text-ff-primary-hover">ver todos</Link> : null}
+        {canPeople ? (
+          <Link
+            href={getOrgPathFromProtectedPath("/protected/pessoas", orgSlug)}
+            className="text-xs font-semibold text-primary hover:text-ff-primary-hover"
+          >
+            ver todos
+          </Link>
+        ) : null}
       </div>
 
       <AppCard className="space-y-2">
