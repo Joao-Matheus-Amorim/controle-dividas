@@ -1,5 +1,12 @@
 # Architecture Decision Records
 
+> Status DocDoc: Atual
+> Uso atual: indice historico de decisoes arquiteturais.
+> Observacao: ADRs aceitos nao devem ser reescritos para mudar a decisao
+> historica. Se uma decisao mudar, crie novo ADR e marque o anterior como
+> substituido.
+> Indice operacional DocDoc: `docs/adr/DOCDOC_STATUS.md`.
+
 Este diretório registra decisões arquiteturais, produto-técnicas e de governança que afetam o futuro do SaaS.
 
 ADRs não substituem os documentos PMBOK do projeto. Eles complementam esses documentos com decisões curtas, rastreáveis e fáceis de manter.
