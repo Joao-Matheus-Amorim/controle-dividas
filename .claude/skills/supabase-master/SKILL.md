@@ -63,9 +63,12 @@ Use os helpers já existentes por entidade em vez de SQL solto:
 
 ## Migrations & RLS
 
-- Convenção `supabase/migrations/NNN_descricao.sql` (sequência `006`–`039`).
-  Padrão: adicionar coluna → RLS org-aware → hardening NOT NULL → remover
-  fallback legado.
+- Convenção `supabase/migrations/NNN_descricao.sql`; o histórico atual vai até
+  `043_restore_finance_relationships_and_rls_cleanup.sql`. Antes de criar uma
+  migration, liste `supabase/migrations/*.sql`, confirme o maior prefixo
+  numérico e use o próximo número livre para evitar colisão/ordem incorreta.
+  Padrão histórico: adicionar coluna → RLS org-aware → hardening NOT NULL →
+  remover fallback legado.
 - `019_initial_organization_onboarding_rpc.sql` precisa estar aplicada antes de
   depender do onboarding em runtime.
 - Hardening `020–028` exige **evidência recente de preflight/dry-run com zero
