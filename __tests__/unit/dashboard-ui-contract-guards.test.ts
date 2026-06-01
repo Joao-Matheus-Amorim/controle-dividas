@@ -23,6 +23,8 @@ describe("dashboard UI contract guards", () => {
   const hero = readSource("components/dashboard/dashboard-hero-summary.tsx");
   const summary = readSource("components/dashboard/dashboard-summary-section.tsx");
   const details = readSource("components/dashboard/dashboard-detail-sections.tsx");
+  const quickActions = readSource("components/dashboard/dashboard-quick-actions.tsx");
+  const familySummary = readSource("components/dashboard/dashboard-family-summary.tsx");
 
   it("documents dashboard scope without introducing broad visual redesign or snapshots", () => {
     expect(contract).toContain("gap-011");
@@ -44,6 +46,28 @@ describe("dashboard UI contract guards", () => {
     expect(dashboardPage).toContain('"/protected/contas-a-pagar"');
     expect(dashboardPage).toContain('"/protected/bancos"');
     expect(dashboardPage).toContain('"/protected/admin"');
+    expect(dashboardPage).toContain("orgSlug={orgSlug}");
+    expect(familySummary).toContain("getOrgPathFromProtectedPath");
+    expect(familySummary).toContain('"/protected/pessoas"');
+    expect(familySummary).not.toContain('href="/protected/pessoas"');
+  });
+
+  it("keeps dashboard quick actions free of unused visual plumbing", () => {
+    const quickActionType = quickActions.slice(
+      quickActions.indexOf("export type DashboardQuickAction"),
+      quickActions.indexOf("interface DashboardQuickActionsProps"),
+    );
+    const quickActionsBlock = dashboardPage.slice(
+      dashboardPage.indexOf("const quickActions: DashboardQuickAction[]"),
+      dashboardPage.indexOf("const summaryRows: DashboardSummaryRow[]"),
+    );
+
+    expect(quickActionType).not.toContain("color:");
+    expect(quickActionType).not.toContain("bg:");
+    expect(quickActionsBlock).not.toContain("color:");
+    expect(quickActionsBlock).not.toContain("bg:");
+    expect(summary).toContain("row.bg");
+    expect(summary).toContain("row.color");
   });
 
   it("preserves the real dashboard heading and avoids mojibake selectors", () => {

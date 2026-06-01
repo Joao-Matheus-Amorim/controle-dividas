@@ -193,8 +193,6 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
           title: "Registrar gasto",
           subtitle: "Lançamento rápido",
           icon: Plus,
-          color: "rgb(var(--ff-destructive))",
-          bg: "bg-ff-destructive-soft",
         }
       : null,
     canPayables
@@ -203,8 +201,6 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
           title: "Nova conta/divida",
           subtitle: "Fixa ou avulsa",
           icon: WalletCards,
-          color: "rgb(var(--ff-warning))",
-          bg: "bg-ff-warning-soft",
         }
       : null,
     canBanks
@@ -213,8 +209,6 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
           title: "Bancos",
           subtitle: "Saldos e contas",
           icon: Banknote,
-          color: "rgb(var(--ff-success))",
-          bg: "bg-ff-success-soft",
         }
       : null,
     canAdmin
@@ -223,8 +217,6 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
           title: "Admin",
           subtitle: "Regras e acesso",
           icon: ShieldCheck,
-          color: "rgb(var(--ff-primary))",
-          bg: "bg-ff-primary-soft",
         }
       : null,
   ].filter(Boolean) as DashboardQuickAction[];
@@ -318,6 +310,7 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
         canExpenses={canExpenses}
         canPeople={canPeople}
         members={expenseData.memberSummaries}
+        orgSlug={orgSlug}
       />
 
       <section className="grid gap-4 xl:grid-cols-2">
