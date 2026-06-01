@@ -1,5 +1,9 @@
 # FamilyFinance - Diretriz Mobile First e UX
 
+> Status DocDoc: Atual como diretriz UX
+> Uso atual: guia de experiencia mobile-first e linguagem de produto.
+> Observacao: nao substitui os contratos de design system em `docs/design/`.
+
 ## Decisao oficial
 
 O FamilyFinance deve ser desenhado como aplicativo familiar mobile-first.

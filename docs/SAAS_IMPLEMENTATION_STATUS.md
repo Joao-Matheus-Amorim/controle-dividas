@@ -1,5 +1,11 @@
 # FamilyFinance SaaS - Status da Implementacao e Gates de Seguranca
 
+> Status DocDoc: Parcialmente superado
+> Uso atual: historico da transicao SaaS inicial. Nao usar como lista atual de
+> migrations, CI ou deploy.
+> Superado por: `docs/VALIDACAO_TECNICA.md` para estado operacional e
+> `docs/SAAS_GAP_REGISTER.md` para gaps restantes.
+
 ## 1. Objetivo
 
 Este documento registra o estado real da transicao SaaS multi-tenant do FamilyFinance.

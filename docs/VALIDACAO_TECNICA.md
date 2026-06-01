@@ -1,5 +1,10 @@
 # Validacao Tecnica - FamilyFinance
 
+> Status DocDoc: Atual
+> Uso atual: contrato operacional vigente para ambiente, stack, banco,
+> autenticacao, permissoes, modulos financeiros, testes, CI e deploy.
+> Supera: planos/status antigos quando houver conflito sobre o estado atual.
+
 Este documento registra a validacao tecnica viva do FamilyFinance no estado atual do codigo.
 
 Ele deve ser usado como checklist operacional para validar ambiente, banco, autenticacao, permissoes, modulos financeiros, testes e deploy.
@@ -11,7 +16,8 @@ O projeto esta em fase de MVP Web/PWA funcional avancado.
 Ja existem no codigo:
 
 - Next.js App Router;
-- React 19;
+- Next.js `16.2.6`;
+- React `19.2.6`;
 - TypeScript;
 - Tailwind CSS;
 - Supabase Auth;
