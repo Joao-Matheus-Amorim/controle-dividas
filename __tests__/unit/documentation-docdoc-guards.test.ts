@@ -59,6 +59,7 @@ describe("Operacao DocDoc documentation guards", () => {
     .sort();
   const adrReadme = read("docs/adr/README.md");
   const adrDocdocStatus = read("docs/adr/DOCDOC_STATUS.md");
+  const mobileChannelAdr = read("docs/adr/0009-mobile-channel-boundary.md");
   const adrFiles = readdirSync(join(process.cwd(), "docs/adr"))
     .filter((file) => file.endsWith(".md"))
     .sort();
@@ -108,6 +109,9 @@ describe("Operacao DocDoc documentation guards", () => {
     expect(mobileStrategy).toContain("nao e evidencia de que o app nativo android/ios ja exista");
     expect(mobileUx).toContain("status docdoc: atual como diretriz ux");
     expect(mobileUx).toContain("nao substitui os contratos de design system");
+    expect(mobileChannelAdr).toContain("a web next.js atual permanece como canal operacional");
+    expect(mobileChannelAdr).toContain("app nativo android/ios e um canal futuro");
+    expect(mobileChannelAdr).toContain("nao e evidencia de implementacao atual");
   });
 
   it("keeps an audits documentation entrypoint and status map", () => {
@@ -317,12 +321,15 @@ describe("Operacao DocDoc documentation guards", () => {
   it("keeps ADR docs as historical decisions instead of rewritten current truth", () => {
     expect(adrReadme).toContain("status docdoc: atual");
     expect(adrReadme).toContain("docs/adr/docdoc_status.md");
+    expect(adrReadme).toContain("0009-mobile-channel-boundary.md");
     expect(adrDocdocStatus).toContain("adrs aceitos registram decisoes no tempo");
     expect(adrDocdocStatus).toContain("proximos adrs devem usar");
-    expect(adrDocdocStatus).toContain("0009");
+    expect(adrDocdocStatus).toContain("0010");
+    expect(adrDocdocStatus).toContain("0009-mobile-channel-boundary.md");
 
     expect(statusMap).toContain("docs/adr/readme.md");
     expect(statusMap).toContain("docs/adr/docdoc_status.md");
+    expect(statusMap).toContain("docs/adr/0009-mobile-channel-boundary.md");
     expect(statusMap).toContain("historico decisorio com indice atual");
     expect(statusMap).toContain("nao reescrever decisao aceita");
   });

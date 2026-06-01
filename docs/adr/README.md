@@ -85,3 +85,4 @@ Um ADR aceito não deve ser editado para mudar a decisão histórica. Se a decis
 | [0006](./0006-current-saas-transition-architecture.md) | Aceito | O estado SaaS transicional atual deve ter registro arquitetural próprio. |
 | [0007](./0007-orgslug-routing-contract.md) | Aceito | As rotas organization-aware usam `/org/[orgSlug]` com `/protected` mantido como compatibilidade transicional. |
 | [0008](./0008-billing-plan-contract-before-stripe.md) | Aceito | O contrato local de planos governa billing Stripe incremental: checkout e portal em PRs proprios, webhook separado por contrato pre-runtime. |
+| [0009](./0009-mobile-channel-boundary.md) | Aceito | A web atual permanece como painel admin/operacional; app nativo Android/iOS e canal futuro, nao evidencia atual. |

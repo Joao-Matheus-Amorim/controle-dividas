@@ -115,7 +115,7 @@ arquivo raiz isolado.
 - [x] Criar indice DocDoc para `docs/sql/*`.
 - [x] Reconciliar indice DocDoc de `docs/adr/*`.
 - [x] Mapear todos os Markdown raiz em `docs/`.
-- [ ] Criar ADR nova se alguma decisao mobile/web/admin precisar virar contrato arquitetural.
+- [x] Criar ADR nova para a decisao mobile/web/admin como contrato arquitetural.
 
 ## Audits DocDoc
 
@@ -212,8 +212,9 @@ arquivo raiz isolado.
 | Documento | Status DocDoc | Uso seguro | Observacao |
 | --- | --- | --- | --- |
 | `docs/adr/README.md` | Atual | Entrada historica do diretorio ADR. | Aponta para `DOCDOC_STATUS.md`. |
-| `docs/adr/DOCDOC_STATUS.md` | Atual | Indice operacional dos ADRs. | Inclui a colisao historica dos dois `0006`; proximos ADRs comecam em `0009`. |
+| `docs/adr/DOCDOC_STATUS.md` | Atual | Indice operacional dos ADRs. | Inclui a colisao historica dos dois `0006`; proximos ADRs comecam em `0010`. |
 | `docs/adr/0001-*.md` a `docs/adr/0008-*.md` | Historico decisorio | Contexto de decisoes aceitas. | Nao reescrever decisao aceita; criar novo ADR se a decisao mudar. |
+| `docs/adr/0009-mobile-channel-boundary.md` | Historico decisorio aceito | Contrato de canal web admin/operacional atual e app nativo futuro. | Nao usar estrategia mobile como evidencia de app implementado. |
 | `docs/adr/TEMPLATE.md` | Template | Modelo para novos ADRs. | Manter sem status de decisao. |
 
 ## Regras de reconciliacao

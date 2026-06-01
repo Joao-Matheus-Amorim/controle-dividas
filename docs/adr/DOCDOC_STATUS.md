@@ -24,6 +24,7 @@ parecer que a decisao antiga nunca existiu.
 | `0006-finance-server-facade-boundary.md` | Historico decisorio aceito | Contexto do facade `lib/finance/server.ts`. |
 | `0007-orgslug-routing-contract.md` | Historico decisorio aceito | Contrato de rotas `/org/[orgSlug]` com `/protected` como compatibilidade. |
 | `0008-billing-plan-contract-before-stripe.md` | Historico decisorio aceito | Contrato local de planos antes do runtime Stripe completo. |
+| `0009-mobile-channel-boundary.md` | Historico decisorio aceito | Contrato de canal: web admin/operacional atual e app nativo Android/iOS futuro. |
 | `DOCDOC_STATUS.md` | Atual | Indice operacional dos ADRs. |
 | `README.md` | Atual | Entrada historica do diretorio ADR. |
 | `TEMPLATE.md` | Template | Modelo para novos ADRs. |
@@ -32,4 +33,4 @@ parecer que a decisao antiga nunca existiu.
 
 Ha dois ADRs com prefixo `0006`. Isso fica preservado como historico para evitar
 renomear decisoes ja versionadas. Proximos ADRs devem usar o proximo numero
-livre apos `0008`, comecando em `0009`.
+livre apos `0009`, comecando em `0010`.
