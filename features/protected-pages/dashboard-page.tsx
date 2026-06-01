@@ -191,8 +191,8 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
           title: "Registrar gasto",
           subtitle: "Lançamento rápido",
           icon: Plus,
-          color: "#f0506e",
-          bg: "bg-[#f0506e]/10",
+          color: "rgb(var(--ff-destructive))",
+          bg: "bg-ff-destructive-soft",
         }
       : null,
     canPayables
@@ -201,8 +201,8 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
           title: "Nova conta/divida",
           subtitle: "Fixa ou avulsa",
           icon: WalletCards,
-          color: "#f7b84b",
-          bg: "bg-[#f7b84b]/10",
+          color: "rgb(var(--ff-warning))",
+          bg: "bg-ff-warning-soft",
         }
       : null,
     canBanks
@@ -211,8 +211,8 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
           title: "Bancos",
           subtitle: "Saldos e contas",
           icon: Banknote,
-          color: "#1de9b2",
-          bg: "bg-[#1de9b2]/10",
+          color: "rgb(var(--ff-success))",
+          bg: "bg-ff-success-soft",
         }
       : null,
     canAdmin
@@ -221,8 +221,8 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
           title: "Admin",
           subtitle: "Regras e acesso",
           icon: ShieldCheck,
-          color: "#b09cff",
-          bg: "bg-[#8b72f8]/10",
+          color: "rgb(var(--ff-primary))",
+          bg: "bg-ff-primary-soft",
         }
       : null,
   ].filter(Boolean) as DashboardQuickAction[];
@@ -234,8 +234,8 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
           detail: "Saídas lançadas",
           value: compactCurrency(expenseData.totalExpenses),
           icon: ReceiptText,
-          color: "#f0506e",
-          bg: "bg-[#f0506e]/10",
+          color: "rgb(var(--ff-destructive))",
+          bg: "bg-ff-destructive-soft",
         }
       : null,
     canPayables
@@ -244,8 +244,8 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
           detail: "Pendentes e atrasadas",
           value: compactCurrency(totalOpenDebts),
           icon: WalletCards,
-          color: "#f7b84b",
-          bg: "bg-[#f7b84b]/10",
+          color: "rgb(var(--ff-warning))",
+          bg: "bg-ff-warning-soft",
         }
       : null,
     canBanks
@@ -254,8 +254,8 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
           detail: "Contas cadastradas",
           value: compactCurrency(bankData.totalBalance),
           icon: Banknote,
-          color: "#1de9b2",
-          bg: "bg-[#1de9b2]/10",
+          color: "rgb(var(--ff-success))",
+          bg: "bg-ff-success-soft",
         }
       : null,
     canReceivables
@@ -264,8 +264,8 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
           detail: "Entradas previstas",
           value: compactCurrency(totalReceivableIncomes),
           icon: TrendingUp,
-          color: "#1de9b2",
-          bg: "bg-[#1de9b2]/10",
+          color: "rgb(var(--ff-success))",
+          bg: "bg-ff-success-soft",
         }
       : null,
   ].filter(Boolean) as DashboardSummaryRow[];
