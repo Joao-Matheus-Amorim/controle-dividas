@@ -1,5 +1,11 @@
 # SaaS RLS Live Status
 
+> Status DocDoc: Parcialmente superado
+> Superado por: migrations atuais, `docs/rls/README.md`,
+> `docs/VALIDACAO_TECNICA.md` e evidencia de live gate mais recente.
+> Uso atual: contexto RLS/live gate; nao usar isoladamente para afirmar estado
+> atual de policies ou prova viva de isolamento.
+
 Issue: #224
 
 ## 1. Objetivo

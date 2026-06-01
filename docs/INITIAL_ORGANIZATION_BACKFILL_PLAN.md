@@ -1,5 +1,11 @@
 # FamilyFinance SaaS - Plano de Organizacao Inicial e Bootstrap
 
+> Status DocDoc: Parcialmente superado/historico
+> Superado por: migrations atuais, runbooks DocDoc e
+> `docs/VALIDACAO_TECNICA.md`.
+> Uso atual: contexto do bootstrap/backfill inicial; nao executar como plano
+> operacional sem preflight e estado real do banco alvo.
+
 ## 1. Objetivo
 
 Este documento define como preparar a primeira organizacao do modelo SaaS multi-tenant sem usar UUID hardcoded inseguro e sem alterar ainda as tabelas financeiras existentes.

@@ -17,6 +17,15 @@ describe("Operacao DocDoc documentation guards", () => {
   const implementationStatus = read("docs/SAAS_IMPLEMENTATION_STATUS.md");
   const mobileStrategy = read("docs/MOBILE_STRATEGY.md");
   const mobileUx = read("docs/MOBILE_FIRST_UX.md");
+  const accessChannels = read("docs/ACCESS_CHANNELS.md");
+  const authFlowAudit = read("docs/AUTH_FLOW_AUDIT.md");
+  const financialRlsPlan = read("docs/FINANCIAL_RLS_MULTI_TENANT_PLAN.md");
+  const initialOrganizationBackfillPlan = read("docs/INITIAL_ORGANIZATION_BACKFILL_PLAN.md");
+  const liveMvpAudit = read("docs/LIVE_MVP_AUDIT.md");
+  const saasDatabaseMigrationPlan = read("docs/SAAS_DATABASE_MIGRATION_PLAN.md");
+  const saasMultiTenantStrategy = read("docs/SAAS_MULTI_TENANT_STRATEGY.md");
+  const saasRlsLiveStatus = read("docs/SAAS_RLS_LIVE_STATUS.md");
+  const testingStrategy = read("docs/TESTING_STRATEGY.md");
   const auditsReadme = read("docs/audits/README.md");
   const sensitiveControls = read("docs/audits/SENSITIVE_OPERATION_CONTROLS_CONTRACT.md");
   const billingWebhook = read("docs/audits/BILLING_WEBHOOK_RUNTIME_CONTRACT.md");
@@ -112,6 +121,38 @@ describe("Operacao DocDoc documentation guards", () => {
     expect(mobileChannelAdr).toContain("a web next.js atual permanece como canal operacional");
     expect(mobileChannelAdr).toContain("app nativo android/ios e um canal futuro");
     expect(mobileChannelAdr).toContain("nao e evidencia de implementacao atual");
+  });
+
+  it("marks high-risk root docs before they are reused as current truth", () => {
+    expect(accessChannels).toContain("status docdoc: parcialmente superado/estrategia");
+    expect(accessChannels).toContain("0009-mobile-channel-boundary.md");
+    expect(accessChannels).toContain("nao usar como evidencia de");
+
+    expect(authFlowAudit).toContain("status docdoc: parcialmente superado/historico");
+    expect(authFlowAudit).toContain("estado vivo isolado");
+
+    expect(financialRlsPlan).toContain("status docdoc: parcialmente superado/historico");
+    expect(financialRlsPlan).toContain("migrations `030` a `043`");
+    expect(financialRlsPlan).toContain("nao usar como ordem operacional atual");
+
+    expect(initialOrganizationBackfillPlan).toContain("status docdoc: parcialmente superado/historico");
+    expect(initialOrganizationBackfillPlan).toContain("nao executar como plano operacional");
+
+    expect(liveMvpAudit).toContain("status docdoc: parcialmente superado/historico");
+    expect(liveMvpAudit).toContain("nao usar como contrato atual");
+
+    expect(saasDatabaseMigrationPlan).toContain("status docdoc: historico");
+    expect(saasDatabaseMigrationPlan).toContain("migrations `001` a `043`");
+    expect(saasDatabaseMigrationPlan).toContain("nao usar para escolher novo numero de migration");
+
+    expect(saasMultiTenantStrategy).toContain("status docdoc: historico/estrategia");
+    expect(saasMultiTenantStrategy).toContain("nao usar como evidencia de implementacao");
+
+    expect(saasRlsLiveStatus).toContain("status docdoc: parcialmente superado");
+    expect(saasRlsLiveStatus).toContain("nao usar isoladamente para afirmar estado");
+
+    expect(testingStrategy).toContain("status docdoc: parcialmente superado/estrategia");
+    expect(testingStrategy).toContain("nao usar como lista atual completa");
   });
 
   it("keeps an audits documentation entrypoint and status map", () => {
