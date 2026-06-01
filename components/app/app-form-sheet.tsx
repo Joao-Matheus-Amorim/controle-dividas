@@ -31,7 +31,7 @@ export function AppFormSheet({
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button size="lg">
+        <Button size="lg" className="h-11">
           {Icon ? <Icon className="h-4 w-4" /> : null}
           {triggerLabel}
         </Button>
