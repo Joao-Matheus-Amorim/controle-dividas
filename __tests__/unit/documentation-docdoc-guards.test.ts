@@ -42,6 +42,11 @@ describe("Operacao DocDoc documentation guards", () => {
   const rlsFiles = readdirSync(join(process.cwd(), "docs/rls"))
     .filter((file) => file.endsWith(".md"))
     .sort();
+  const roadmapsReadme = read("docs/roadmaps/README.md");
+  const onboardingRoadmap = read("docs/roadmaps/INITIAL_ORGANIZATION_ONBOARDING_FLOW.md");
+  const roadmapFiles = readdirSync(join(process.cwd(), "docs/roadmaps"))
+    .filter((file) => file.endsWith(".md"))
+    .sort();
 
   it("keeps a documentation entrypoint and status map", () => {
     expect(docsReadme).toContain("status docdoc: atual");
@@ -205,6 +210,29 @@ describe("Operacao DocDoc documentation guards", () => {
       ) {
         expect(source).toContain("parcialmente superado");
       }
+    }
+  });
+
+  it("keeps roadmap docs as sequencing context instead of implementation evidence", () => {
+    expect(roadmapsReadme).toContain("status docdoc: atual");
+    expect(roadmapsReadme).toContain("roadmaps orientam sequenciamento");
+    expect(roadmapsReadme).toContain("nao sao evidencia de implementacao");
+
+    expect(statusMap).toContain("docs/roadmaps/readme.md");
+    expect(statusMap).toContain("docs/roadmaps/initial_organization_onboarding_flow.md");
+    expect(statusMap).toContain("docs/roadmaps/legacy_finance_helper_retirement.md");
+    expect(onboardingRoadmap).toContain("status docdoc: parcialmente superado/historico");
+    expect(onboardingRoadmap).toContain("029_drop_one_active_membership_per_user_limit.sql");
+    expect(onboardingRoadmap).toContain("components/app/active-organization-indicator.tsx");
+    expect(onboardingRoadmap).toContain("nao usar este roadmap como contrato atual");
+  });
+
+  it("marks every roadmap document with explicit DocDoc status", () => {
+    expect(roadmapFiles.length).toBeGreaterThan(2);
+
+    for (const file of roadmapFiles) {
+      const source = read(`docs/roadmaps/${file}`);
+      expect(source).toContain("status docdoc:");
     }
   });
 });

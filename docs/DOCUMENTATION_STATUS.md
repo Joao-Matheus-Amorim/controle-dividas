@@ -49,7 +49,7 @@ trabalho novo.
 | `docs/e2e/` | Atual com indice | Usar `docs/e2e/README.md` como entrada para contratos E2E. Roadmaps nao substituem specs, CI ou evidencia gated. |
 | `docs/pm/` | Historico/PM com indice atual | Usar `docs/pm/README.md` como entrada. Contexto de gestao, nao contrato tecnico atual. |
 | `docs/rls/` | Misto com indice atual | Usar `docs/rls/README.md` como entrada. Live Gate segue operacional; planos antigos precisam ser cruzados com migrations e testes atuais. |
-| `docs/roadmaps/` | Historico/planejamento | Nao usar como evidencia de implementacao. |
+| `docs/roadmaps/` | Misto com indice atual | Usar `docs/roadmaps/README.md` como entrada. Roadmaps orientam sequencia, mas nao provam implementacao. |
 | `docs/runbooks/` | Misto com indice atual | Usar `docs/runbooks/README.md` antes de executar runbooks antigos. Stripe evidence segue atual; hardening/fallback runbooks sao majoritariamente historicos. |
 | `docs/sql/` | Ferramentas operacionais | Queries de preflight/diagnostico; revisar antes de rodar em producao. |
 
@@ -66,6 +66,7 @@ trabalho novo.
 - [x] Revisar `docs/pm/*` como historico de gestao.
 - [x] Criar indice DocDoc para `docs/e2e/*`.
 - [x] Criar indice DocDoc para `docs/rls/*`.
+- [x] Criar indice DocDoc para `docs/roadmaps/*`.
 - [ ] Criar ADR nova se alguma decisao mobile/web/admin precisar virar contrato arquitetural.
 
 ## Audits DocDoc
@@ -132,6 +133,14 @@ trabalho novo.
 | `docs/rls/RLS_FINANCE_TEST_PLAN.md` | Parcialmente superado | Matriz historica inicial de testes RLS. | Confirmar cobertura atual em tests/inventarios. |
 | `docs/rls/RLS_ROLLOUT_AND_ROLLBACK.md` | Parcialmente superado | Estrategia historica de rollout. | Nao usar como ordem atual isolada. |
 | `docs/rls/LEGACY_ORGANIZATION_ID_HANDLING.md` | Parcialmente superado | Contexto do fallback legado. | Confirmar migrations `030` a `043` e policies atuais. |
+
+## Roadmaps DocDoc
+
+| Documento | Status DocDoc | Uso seguro | Observacao |
+| --- | --- | --- | --- |
+| `docs/roadmaps/README.md` | Atual | Indice vivo dos roadmaps. | Ler antes de usar roadmaps como sequencia. |
+| `docs/roadmaps/INITIAL_ORGANIZATION_ONBOARDING_FLOW.md` | Parcialmente superado/historico | Contexto do primeiro fluxo de onboarding de organizacao. | Nao usar como contrato atual para seletor de organizacao, multiplas memberships ou indice de uma membership ativa; ver migration `029` e `components/app/active-organization-indicator.tsx`. |
+| `docs/roadmaps/LEGACY_FINANCE_HELPER_RETIREMENT.md` | Parcialmente superado/historico | Contexto da sequencia inicial de aposentadoria de helpers legados. | Nao usar como backlog atual isolado. |
 
 ## Regras de reconciliacao
 
