@@ -55,6 +55,11 @@ Excecao ativa:
 Admin usa `lib/finance/admin-server.ts` e deve ser tratado em PR proprio.
 ```
 
+Essa excecao nao libera outras importacoes legadas nas paginas admin. As paginas
+`features/protected-pages/admin*.tsx` tambem devem continuar bloqueadas contra
+`lib/finance/server.ts`, `lib/finance/banks-server.ts` e
+`lib/finance/reports-server.ts`.
+
 ## 5. Proximo PR seguro
 
 Antes de qualquer retirada de `owner_id`, abrir PR de contrato para:

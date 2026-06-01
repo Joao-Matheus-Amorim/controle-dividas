@@ -25,12 +25,27 @@ describe("owner_id active consumers inventory guards", () => {
 
   it("keeps migrated protected finance pages away from legacy owner-only helpers", () => {
     const protectedPagesDir = join(process.cwd(), "features/protected-pages");
-    const files = readdirSync(protectedPagesDir)
-      .filter((file) => file.endsWith(".tsx"))
-      .filter((file) => !file.startsWith("admin"));
+    const files = readdirSync(protectedPagesDir).filter((file) => file.endsWith(".tsx"));
 
     for (const file of files) {
       const source = read(`features/protected-pages/${file}`);
+      expect(source).not.toContain("@/lib/finance/server");
+      expect(source).not.toContain("@/lib/finance/banks-server");
+      expect(source).not.toContain("@/lib/finance/reports-server");
+    }
+  });
+
+  it("keeps admin pages limited to the documented admin-server exception", () => {
+    const protectedPagesDir = join(process.cwd(), "features/protected-pages");
+    const adminFiles = readdirSync(protectedPagesDir)
+      .filter((file) => file.endsWith(".tsx"))
+      .filter((file) => file.startsWith("admin"));
+
+    expect(adminFiles.length).toBeGreaterThan(0);
+
+    for (const file of adminFiles) {
+      const source = read(`features/protected-pages/${file}`);
+      expect(source).toContain("@/lib/finance/admin-server");
       expect(source).not.toContain("@/lib/finance/server");
       expect(source).not.toContain("@/lib/finance/banks-server");
       expect(source).not.toContain("@/lib/finance/reports-server");
