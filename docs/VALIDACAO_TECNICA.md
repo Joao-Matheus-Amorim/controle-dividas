@@ -45,7 +45,7 @@ Ja existem no codigo:
 - PWA manifest;
 - deploy de producao automatizado apos CI verde na `main`, com fallback manual via `.github/workflows/deploy.yml`, aplicando backend Supabase e frontend Vercel.
 - CI com `npm audit --audit-level=moderate`, Vitest `4.1.8`, lint, typecheck, testes e build.
-- Dependabot semanal para npm e GitHub Actions, com `open-pull-requests-limit` baixo para evitar excesso de PRs automaticas.
+- Dependabot semanal para npm e GitHub Actions, com `open-pull-requests-limit` baixo para evitar excesso de PRs automaticas e com major updates ignorados para entrarem apenas em PR dedicado.
 - CodeQL para analise estatica de JavaScript/TypeScript em PR, push na `main`, agenda semanal e disparo manual.
 
 ## Arquivos tecnicos centrais
