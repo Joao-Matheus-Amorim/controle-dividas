@@ -6,6 +6,10 @@
 --   tables already existed, but the original foreign keys were absent.
 -- - Finance pages depend on PostgREST relationships such as
 --   family_members(id, name) and expense_categories(id, name).
+-- - Constraints are intentionally restored as NOT VALID. Historical databases
+--   may contain orphan rows from the period where these FKs were absent, and
+--   validating here would abort the migration and keep relationships missing.
+--   Orphan cleanup plus validation must happen in a later dedicated migration.
 
 do $$
 begin
@@ -74,12 +78,6 @@ begin
       not valid;
   end if;
 end $$;
-
-alter table public.expenses validate constraint expenses_family_member_id_fkey;
-alter table public.expenses validate constraint expenses_category_id_fkey;
-alter table public.payable_bills validate constraint payable_bills_responsible_member_id_fkey;
-alter table public.receivable_incomes validate constraint receivable_incomes_receiver_member_id_fkey;
-alter table public.banks validate constraint banks_family_member_id_fkey;
 
 drop policy if exists "family_members_select_own" on public.family_members;
 drop policy if exists "family_members_insert_own" on public.family_members;
