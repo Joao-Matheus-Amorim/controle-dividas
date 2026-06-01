@@ -10,6 +10,7 @@ function read(path: string) {
 describe("security automation guards", () => {
   const dependabot = read(".github/dependabot.yml");
   const codeql = read(".github/workflows/codeql.yml");
+  const ci = read(".github/workflows/ci.yml");
   const validation = read("docs/VALIDACAO_TECNICA.md");
 
   it("keeps dependabot enabled with bounded npm and github actions updates", () => {
@@ -33,9 +34,18 @@ describe("security automation guards", () => {
     expect(codeql).not.toContain("vercel");
   });
 
+  it("lets Dependabot validate dependency PRs without receiving Supabase secrets", () => {
+    expect(ci).toContain("is_dependabot_pr");
+    expect(ci).toContain("dependabot[bot]");
+    expect(ci).toContain("dependabot-ci-placeholder-public-key");
+    expect(ci).toContain("dependabot-ci-placeholder-service-role-key");
+    expect(ci).toContain("using non-secret supabase placeholder keys");
+  });
+
   it("documents dependency and CodeQL automation as part of technical validation", () => {
     expect(validation).toContain("dependabot");
     expect(validation).toContain("codeql");
     expect(validation).toContain("open-pull-requests-limit");
+    expect(validation).toContain("placeholder");
   });
 });
