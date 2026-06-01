@@ -1,5 +1,10 @@
 # FamilyFinance - Estrategia de Testes
 
+> Status DocDoc: Parcialmente superado/estrategia
+> Superado por: CI atual, guards vivos e `docs/VALIDACAO_TECNICA.md`.
+> Uso atual: contexto de estrategia de testes; nao usar como lista atual
+> completa de comandos, dependencias ou gates obrigatorios.
+
 Este documento define a estrategia de testes do FamilyFinance: o que deve ser testado, cobertura minima exigida por modulo, como rodar os testes localmente e quais criterios precisam ser cumpridos antes de considerar uma entrega pronta.
 
 Ele complementa:

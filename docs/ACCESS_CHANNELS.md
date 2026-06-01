@@ -1,5 +1,11 @@
 # FamilyFinance - Canais de Acesso
 
+> Status DocDoc: Parcialmente superado/estrategia
+> Superado por: `docs/adr/0009-mobile-channel-boundary.md` e
+> `docs/MOBILE_STRATEGY.md`.
+> Uso atual: contexto de canais mobile/web/admin; nao usar como evidencia de
+> app nativo implementado.
+
 ## Decisao oficial
 
 O FamilyFinance tera dois canais principais:

@@ -1,5 +1,11 @@
 # FamilyFinance SaaS Multi-tenant - Estrategia Tecnica e de Produto
 
+> Status DocDoc: Historico/estrategia
+> Superado por: ADRs atuais, `docs/VALIDACAO_TECNICA.md`,
+> `docs/SAAS_GAP_REGISTER.md` e `docs/DOCUMENTATION_STATUS.md`.
+> Uso atual: contexto estrategico da virada multi-tenant; nao usar como
+> evidencia de implementacao, migrations ou RLS atuais.
+
 ## 1. Contexto da mudanca
 
 O FamilyFinance foi inicialmente documentado e implementado como uma solucao financeira familiar personalizada para uma unica familia. A arquitetura atual ja possui varios elementos maduros: autenticacao com Supabase Auth, dashboard financeiro, membros familiares, gastos, contas a pagar, contas a receber, bancos, relatorios, configuracoes, painel Admin, permissoes por modulo, permissoes por acao, escopo de dados e testes automatizados.
