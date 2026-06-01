@@ -38,7 +38,7 @@ Uso esperado:
 
 ### P0.1 - Preservar redirects no Dashboard
 
-Status: aberto
+Status: coberto por PR de preservacao de redirects do dashboard
 
 Problema:
 
@@ -51,15 +51,15 @@ Arquivos provaveis:
 
 Acao recomendada:
 
-- [ ] Identificar helper oficial para detectar redirect/not-found do Next.
-- [ ] Rethrow de redirect/not-found antes de aplicar fallback.
-- [ ] Manter fallback apenas para falha de dados nao-control-flow.
-- [ ] Criar/atualizar guard unitario.
+- [x] Identificar helper oficial para detectar redirect/not-found do Next.
+- [x] Rethrow de redirect/not-found antes de aplicar fallback.
+- [x] Manter fallback apenas para falha de dados nao-control-flow.
+- [x] Criar/atualizar guard unitario.
 
 Criterio de fechamento:
 
-- [ ] Redirect de auth/onboarding nao e engolido por `Promise.allSettled`.
-- [ ] Dashboard ainda degrada com fallback apenas para falha de dados permitida.
+- [x] Redirect de auth/onboarding nao e engolido por `Promise.allSettled`.
+- [x] Dashboard ainda degrada com fallback apenas para falha de dados nao-control-flow.
 
 Estimativa: 0,5 dia.
 

@@ -62,6 +62,15 @@ describe("dashboard UI contract guards", () => {
     expect(dashboardPage).toContain("<DashboardLimitedNotice />");
   });
 
+  it("rethrows Next navigation control-flow errors before dashboard fallbacks", () => {
+    expect(dashboardPage).toContain('import { unstable_rethrow } from "next/navigation"');
+    expect(dashboardPage).toContain("unstable_rethrow(reason)");
+    expect(dashboardPage.indexOf("unstable_rethrow(reason)")).toBeLessThan(
+      dashboardPage.indexOf("console.error(`[dashboard] ${source} failed`, reason)"),
+    );
+    expect(dashboardPage).toContain("Promise.allSettled");
+  });
+
   it("keeps the critical dashboard summary blocks stable", () => {
     expect(hero).toContain("DashboardHeroSummary");
     expect(hero).toContain("compactCurrency(remainingMonthlyLimit)");
