@@ -19,6 +19,9 @@ describe("security automation guards", () => {
     expect(dependabot).toContain('interval: "weekly"');
     expect(dependabot).toContain("open-pull-requests-limit: 3");
     expect(dependabot).toContain("open-pull-requests-limit: 2");
+    expect(dependabot).toContain("ignore:");
+    expect(dependabot).toContain('dependency-name: "*"');
+    expect(dependabot).toContain('"version-update:semver-major"');
   });
 
   it("keeps CodeQL scanning JavaScript and TypeScript without deploy coupling", () => {
