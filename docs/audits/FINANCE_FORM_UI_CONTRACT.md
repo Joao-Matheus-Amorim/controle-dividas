@@ -1,5 +1,10 @@
 # Finance form UI contract
 
+> Status DocDoc: Atual
+> Uso atual: contrato textual vigente dos formularios financeiros primarios.
+> Observacao: complementa server actions, sheets e feedback; nao substitui
+> validacao server-side nem RLS.
+
 Atualizado em: 2026-05-28
 
 ## Objetivo

@@ -1,5 +1,9 @@
 # Selective visual snapshot strategy
 
+> Status DocDoc: Atual
+> Uso atual: estrategia vigente para snapshot visual seletivo e deterministico.
+> Observacao: nao autoriza snapshot amplo sem contrato de superficie e fixture.
+
 Atualizado em: 2026-05-28
 
 ## Objetivo

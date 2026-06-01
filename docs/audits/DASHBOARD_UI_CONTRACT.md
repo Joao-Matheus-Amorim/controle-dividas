@@ -1,5 +1,10 @@
 # Dashboard UI contract
 
+> Status DocDoc: Atual
+> Uso atual: contrato textual vigente para a superficie principal do dashboard.
+> Observacao: protege estrutura e permissao de UI; nao substitui RLS nem
+> validacao visual seletiva.
+
 Atualizado em: 2026-05-28
 
 ## Objetivo

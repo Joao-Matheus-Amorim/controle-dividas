@@ -2,6 +2,13 @@
 
 GAP: GAP-015
 
+> Status DocDoc: Atual
+> Uso atual: contrato vigente para GAP-015, consolidando rate limits,
+> sensitive-action audit runtime e retention.
+> Observacao: se houver conflito, reconciliar com
+> `docs/SAAS_GAP_REGISTER.md` e `docs/VALIDACAO_TECNICA.md` antes de abrir
+> novo PR.
+
 ## Purpose
 
 This document defines the planning contract for sensitive operation controls and tracks each focused runtime boundary as it lands.

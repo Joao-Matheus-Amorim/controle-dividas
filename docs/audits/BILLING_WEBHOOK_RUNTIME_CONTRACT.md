@@ -1,5 +1,10 @@
 # Billing webhook runtime contract
 
+> Status DocDoc: Atual como contrato pre-runtime
+> Uso atual: define os requisitos minimos do futuro webhook Stripe do GAP-006.
+> Observacao: nao e evidencia de webhook implementado; o runtime segue
+> bloqueado ate checkout e portal Stripe reais serem validados.
+
 Atualizado em: 2026-05-31
 
 ## Objetivo
