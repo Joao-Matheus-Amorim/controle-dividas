@@ -126,6 +126,7 @@ arquivo raiz isolado.
 | `docs/audits/PMBOK_GAP_DEBT_CONTROL_PLAN_2026-06-01.md` | Atual | Plano PMBOK vivo para controlar gaps, dividas tecnicas, evidencias, aceite e sequenciamento de PRs. | Fonte operacional derivada da auditoria cruzada atual; nao pertence ao historico PM. |
 | `docs/audits/OWNER_ID_RETIREMENT_INVENTORY_2026-06-01.md` | Atual | Inventario atual do G-005 para planejar retirada futura de `owner_id`. | Mantem `owner_id` como aberto controlado ate RLS Live Gate, preflight e PRs por dominio. |
 | `docs/audits/OWNER_ID_ACTIVE_CONSUMERS_2026-06-01.md` | Atual | Inventario dos consumidores ativos dos helpers owner-only. | Identifica Admin como excecao ativa e bloqueia retorno das telas financeiras para helpers legados. |
+| `docs/audits/ADMIN_ACCESS_CONTROL_OWNER_ID_RETIREMENT_CONTRACT.md` | Atual como contrato pre-runtime | Contrato para retirar `owner_id` de Admin/access-control. | Bloqueia runtime ate RLS Live Gate, fixture admin multi-org, modelo de convite/admin e rollback. |
 | `docs/audits/SENSITIVE_OPERATION_CONTROLS_CONTRACT.md` | Atual | Contrato vigente do GAP-015. | Cruzar com `SAAS_GAP_REGISTER.md`. |
 | `docs/audits/SENSITIVE_OPERATION_RATE_LIMIT_PLAN.md` | Atual como plano/registro | Plano do runtime de rate limit. | O contrato central define a leitura consolidada. |
 | `docs/audits/SENSITIVE_ACTION_AUDIT_EVENT_SCHEMA_PLAN.md` | Atual como plano/registro | Plano de audit events e write boundary. | Confirmar migrations atuais antes de operar. |
