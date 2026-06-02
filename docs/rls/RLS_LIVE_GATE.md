@@ -134,7 +134,8 @@ Run this workflow manually when validating RLS behavior before or after sensitiv
 - RLS policy changes;
 - organization scope hardening;
 - permission model changes;
-- changes to RLS test fixtures or helpers.
+- changes to RLS test fixtures or helpers;
+- admin multi-org fixture validation before removing `owner_id` from Admin/access-control runtime.
 
 Operational sequence:
 

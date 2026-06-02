@@ -20,6 +20,8 @@ describe("owner_id active consumers inventory guards", () => {
     expect(inventory).toContain("admin usa `lib/finance/admin-server.ts`");
     expect(inventory).toContain("consumidor owner-based ativo");
     expect(inventory).toContain("admin/access-control owner_id retirement contract");
+    expect(inventory).toContain("__tests__/integration/rls/admin-multi-org.rls.test.ts");
+    expect(inventory).toContain("esse contrato ainda bloqueia runtime");
     expect(inventory).toContain("nao remove `owner_id`");
   });
 

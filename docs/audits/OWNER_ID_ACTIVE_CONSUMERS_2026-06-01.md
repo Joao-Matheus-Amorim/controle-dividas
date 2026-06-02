@@ -60,9 +60,10 @@ Essa excecao nao libera outras importacoes legadas nas paginas admin. As paginas
 `lib/finance/server.ts`, `lib/finance/banks-server.ts` e
 `lib/finance/reports-server.ts`.
 
-## 5. Proximo PR seguro
+## 5. Estado do contrato admin/access-control
 
-Antes de qualquer retirada de `owner_id`, abrir PR de contrato para:
+Antes de qualquer retirada de `owner_id`, o contrato admin/access-control deve
+continuar como gate pre-runtime:
 
 ```txt
 admin/access-control owner_id retirement contract
@@ -74,12 +75,18 @@ Contrato criado em:
 docs/audits/ADMIN_ACCESS_CONTROL_OWNER_ID_RETIREMENT_CONTRACT.md
 ```
 
-Esse contrato deve decidir:
+Fixture RLS criada neste ciclo:
+
+```txt
+__tests__/integration/rls/admin-multi-org.rls.test.ts
+```
+
+Esse contrato ainda bloqueia runtime ate decidir:
 
 - como substituir `adminProfile.owner_id`;
 - como resolver `profile_id`, `linked_family_member_id` e permissoes por organizacao;
 - como manter owner/admin-only sem depender de `ADMIN_EMAIL` como garantia final;
-- qual fixture RLS prova admin multi-org sem owner compartilhado.
+- como executar e arquivar o RLS Live Gate verde com artifact para a fixture admin multi-org.
 
 ## 6. Fora de escopo
 
