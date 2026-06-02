@@ -68,7 +68,7 @@ Nenhum PR pode trocar `adminProfile.owner_id` sem:
 | Ordem | PR | Escopo | Fora de escopo |
 | --- | --- | --- | --- |
 | 1 | contrato admin/access-control | este documento e guard | runtime |
-| 2 | fixture RLS admin multi-org | provar isolamento admin sem owner compartilhado | alterar policies |
+| 2 | fixture RLS admin multi-org | `__tests__/integration/rls/admin-multi-org.rls.test.ts` prova leitura RLS admin em duas organizacoes sem `owner_id` compartilhado | alterar policies |
 | 3 | modelo de convite/admin | definir bootstrap final e papel de `ADMIN_EMAIL` | remover coluna |
 | 4 | read path admin | trocar leituras admin para organization-first | writes admin |
 | 5 | write path admin | trocar validates/writes admin para organization-first | schema drop |
@@ -95,4 +95,10 @@ Proximo PR seguro:
 
 ```txt
 fixture RLS admin multi-org, sem alterar runtime.
+```
+
+Fixture criada:
+
+```txt
+__tests__/integration/rls/admin-multi-org.rls.test.ts
 ```
