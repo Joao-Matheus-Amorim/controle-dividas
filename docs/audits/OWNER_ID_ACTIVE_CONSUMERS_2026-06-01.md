@@ -68,6 +68,12 @@ Antes de qualquer retirada de `owner_id`, abrir PR de contrato para:
 admin/access-control owner_id retirement contract
 ```
 
+Contrato criado em:
+
+```txt
+docs/audits/ADMIN_ACCESS_CONTROL_OWNER_ID_RETIREMENT_CONTRACT.md
+```
+
 Esse contrato deve decidir:
 
 - como substituir `adminProfile.owner_id`;
