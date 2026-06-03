@@ -3,22 +3,25 @@ import type { DbExpense, DbExpenseCategory, DbFamilyMember } from "@/lib/finance
 import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { createClient } from "@/lib/supabase/server";
 
-type MaybeArray<T> = T | T[] | null;
-
 type RawExpense = Omit<DbExpense, "family_members" | "expense_categories"> & {
-  family_members: MaybeArray<Pick<DbFamilyMember, "id" | "name" | "monthly_limit">>;
-  expense_categories: MaybeArray<Pick<DbExpenseCategory, "id" | "name">>;
+  family_members?: never;
+  expense_categories?: never;
 };
 
-function firstRelation<T>(relation: MaybeArray<T>): T | null {
-  return Array.isArray(relation) ? relation[0] ?? null : relation;
-}
+type ExpenseMemberRelation = Pick<DbFamilyMember, "id" | "name" | "monthly_limit">;
+type ExpenseCategoryRelation = Pick<DbExpenseCategory, "id" | "name">;
 
-function normalizeExpense(expense: RawExpense): DbExpense {
+function normalizeExpense(
+  expense: RawExpense,
+  membersById: Map<string, ExpenseMemberRelation>,
+  categoriesById: Map<string, ExpenseCategoryRelation>,
+): DbExpense {
   return {
     ...expense,
-    family_members: firstRelation(expense.family_members),
-    expense_categories: firstRelation(expense.expense_categories),
+    family_members: membersById.get(expense.family_member_id) ?? null,
+    expense_categories: expense.category_id
+      ? categoriesById.get(expense.category_id) ?? null
+      : null,
   };
 }
 
@@ -70,7 +73,10 @@ export async function getOrganizationExpenses(orgSlug?: string) {
   const supabase = await createClient();
   const profile = await getCurrentProfile();
   const { organization } = await requireOrganizationAccess(orgSlug);
-  const members = await getOrganizationAccessibleMembers(orgSlug);
+  const [members, categories] = await Promise.all([
+    getOrganizationAccessibleMembers(orgSlug),
+    getOrganizationExpenseCategories(orgSlug),
+  ]);
   const scopedMemberIds = members.map((member) => member.id);
 
   if (scopedMemberIds.length === 0) {
@@ -80,7 +86,7 @@ export async function getOrganizationExpenses(orgSlug?: string) {
   const { data, error } = await supabase
     .from("expenses")
     .select(
-      "id, owner_id, family_member_id, category_id, expense_date, description, purchase_location, amount, payment_method, bank_or_card, notes, created_at, family_members(id, name, monthly_limit), expense_categories(id, name)",
+      "id, owner_id, family_member_id, category_id, expense_date, description, purchase_location, amount, payment_method, bank_or_card, notes, created_at",
     )
     .eq("owner_id", profile.owner_id)
     .eq("organization_id", organization.id)
@@ -92,7 +98,22 @@ export async function getOrganizationExpenses(orgSlug?: string) {
     throw new Error(error.message);
   }
 
-  return ((data ?? []) as RawExpense[]).map(normalizeExpense);
+  const membersById = new Map(
+    members.map((member) => [
+      member.id,
+      { id: member.id, name: member.name, monthly_limit: member.monthly_limit },
+    ]),
+  );
+  const categoriesById = new Map(
+    categories.map((category) => [
+      category.id,
+      { id: category.id, name: category.name },
+    ]),
+  );
+
+  return ((data ?? []) as RawExpense[]).map((expense) =>
+    normalizeExpense(expense, membersById, categoriesById),
+  );
 }
 
 export async function getOrganizationExpenseDashboardData(orgSlug?: string) {

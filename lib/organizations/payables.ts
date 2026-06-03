@@ -5,21 +5,22 @@ import type { DbFamilyMember, DbPayableBill } from "@/lib/finance/server";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { createClient } from "@/lib/supabase/server";
 
-type MaybeArray<T> = T | T[] | null;
-
 type RawPayableBill = Omit<DbPayableBill, "family_members"> & {
-  family_members: MaybeArray<Pick<DbFamilyMember, "id" | "name">>;
+  family_members?: never;
 };
 
-function firstRelation<T>(relation: MaybeArray<T>): T | null {
-  return Array.isArray(relation) ? relation[0] ?? null : relation;
-}
+type PayableMemberRelation = Pick<DbFamilyMember, "id" | "name">;
 
-function normalizePayableBill(bill: RawPayableBill): DbPayableBill {
+function normalizePayableBill(
+  bill: RawPayableBill,
+  membersById: Map<string, PayableMemberRelation>,
+): DbPayableBill {
   return {
     ...bill,
     bill_type: bill.bill_type ?? "avulsa",
-    family_members: firstRelation(bill.family_members),
+    family_members: bill.responsible_member_id
+      ? membersById.get(bill.responsible_member_id) ?? null
+      : null,
   };
 }
 
@@ -33,10 +34,21 @@ export async function getOrganizationPayableBills(orgSlug?: string) {
     return [];
   }
 
+  const { data: membersData, error: membersError } = await supabase
+    .from("family_members")
+    .select("id, name")
+    .eq("owner_id", profile.owner_id)
+    .eq("organization_id", organization.id)
+    .in("id", accessibleMemberIds);
+
+  if (membersError) {
+    throw new Error(membersError.message);
+  }
+
   const { data, error } = await supabase
     .from("payable_bills")
     .select(
-      "id, owner_id, name, category, amount, due_date, responsible_member_id, status, bill_type, bank_used, recurrence, notes, created_at, family_members(id, name)",
+      "id, owner_id, name, category, amount, due_date, responsible_member_id, status, bill_type, bank_used, recurrence, notes, created_at",
     )
     .eq("owner_id", profile.owner_id)
     .eq("organization_id", organization.id)
@@ -48,7 +60,16 @@ export async function getOrganizationPayableBills(orgSlug?: string) {
     throw new Error(error.message);
   }
 
-  return ((data ?? []) as RawPayableBill[]).map(normalizePayableBill);
+  const membersById = new Map(
+    ((membersData ?? []) as PayableMemberRelation[]).map((member) => [
+      member.id,
+      member,
+    ]),
+  );
+
+  return ((data ?? []) as RawPayableBill[]).map((bill) =>
+    normalizePayableBill(bill, membersById),
+  );
 }
 
 export async function getOrganizationPayableBillsDashboardData(orgSlug?: string) {

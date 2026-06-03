@@ -3,20 +3,21 @@ import type { DbBankAccount, DbFamilyMember } from "@/lib/finance/types";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { createClient } from "@/lib/supabase/server";
 
-type MaybeArray<T> = T | T[] | null;
-
 type RawBankAccount = Omit<DbBankAccount, "family_members"> & {
-  family_members: MaybeArray<Pick<DbFamilyMember, "id" | "name">>;
+  family_members?: never;
 };
 
-function firstRelation<T>(relation: MaybeArray<T>): T | null {
-  return Array.isArray(relation) ? relation[0] ?? null : relation;
-}
+type BankMemberRelation = Pick<DbFamilyMember, "id" | "name">;
 
-function normalizeBankAccount(account: RawBankAccount): DbBankAccount {
+function normalizeBankAccount(
+  account: RawBankAccount,
+  membersById: Map<string, BankMemberRelation>,
+): DbBankAccount {
   return {
     ...account,
-    family_members: firstRelation(account.family_members),
+    family_members: account.family_member_id
+      ? membersById.get(account.family_member_id) ?? null
+      : null,
   };
 }
 
@@ -59,7 +60,7 @@ export async function getOrganizationBankAccounts(orgSlug?: string) {
   const { data, error } = await supabase
     .from("banks")
     .select(
-      "id, owner_id, family_member_id, bank_name, account_type, current_balance, currency, notes, created_at, family_members(id, name)",
+      "id, owner_id, family_member_id, bank_name, account_type, current_balance, currency, notes, created_at",
     )
     .eq("owner_id", profile.owner_id)
     .eq("organization_id", organization.id)
@@ -71,7 +72,13 @@ export async function getOrganizationBankAccounts(orgSlug?: string) {
     throw new Error(error.message);
   }
 
-  return ((data ?? []) as RawBankAccount[]).map(normalizeBankAccount);
+  const membersById = new Map(
+    members.map((member) => [member.id, { id: member.id, name: member.name }]),
+  );
+
+  return ((data ?? []) as RawBankAccount[]).map((account) =>
+    normalizeBankAccount(account, membersById),
+  );
 }
 
 export async function getOrganizationBanksDashboardData(orgSlug?: string) {

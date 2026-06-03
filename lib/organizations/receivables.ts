@@ -3,20 +3,21 @@ import type { DbFamilyMember, DbReceivableIncome } from "@/lib/finance/server";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { createClient } from "@/lib/supabase/server";
 
-type MaybeArray<T> = T | T[] | null;
-
 type RawReceivableIncome = Omit<DbReceivableIncome, "family_members"> & {
-  family_members: MaybeArray<Pick<DbFamilyMember, "id" | "name">>;
+  family_members?: never;
 };
 
-function firstRelation<T>(relation: MaybeArray<T>): T | null {
-  return Array.isArray(relation) ? relation[0] ?? null : relation;
-}
+type ReceivableMemberRelation = Pick<DbFamilyMember, "id" | "name">;
 
-function normalizeReceivableIncome(income: RawReceivableIncome): DbReceivableIncome {
+function normalizeReceivableIncome(
+  income: RawReceivableIncome,
+  membersById: Map<string, ReceivableMemberRelation>,
+): DbReceivableIncome {
   return {
     ...income,
-    family_members: firstRelation(income.family_members),
+    family_members: income.receiver_member_id
+      ? membersById.get(income.receiver_member_id) ?? null
+      : null,
   };
 }
 
@@ -30,10 +31,21 @@ export async function getOrganizationReceivableIncomes(orgSlug?: string) {
     return [];
   }
 
+  const { data: membersData, error: membersError } = await supabase
+    .from("family_members")
+    .select("id, name")
+    .eq("owner_id", profile.owner_id)
+    .eq("organization_id", organization.id)
+    .in("id", accessibleMemberIds);
+
+  if (membersError) {
+    throw new Error(membersError.message);
+  }
+
   const { data, error } = await supabase
     .from("receivable_incomes")
     .select(
-      "id, owner_id, receiver_member_id, source, income_type, amount, expected_date, status, receiving_bank, notes, created_at, family_members(id, name)",
+      "id, owner_id, receiver_member_id, source, income_type, amount, expected_date, status, receiving_bank, notes, created_at",
     )
     .eq("owner_id", profile.owner_id)
     .eq("organization_id", organization.id)
@@ -45,7 +57,16 @@ export async function getOrganizationReceivableIncomes(orgSlug?: string) {
     throw new Error(error.message);
   }
 
-  return ((data ?? []) as RawReceivableIncome[]).map(normalizeReceivableIncome);
+  const membersById = new Map(
+    ((membersData ?? []) as ReceivableMemberRelation[]).map((member) => [
+      member.id,
+      member,
+    ]),
+  );
+
+  return ((data ?? []) as RawReceivableIncome[]).map((income) =>
+    normalizeReceivableIncome(income, membersById),
+  );
 }
 
 export async function getOrganizationReceivableIncomesDashboardData(orgSlug?: string) {
