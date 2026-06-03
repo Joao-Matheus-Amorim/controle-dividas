@@ -23,6 +23,12 @@ gates manuais e regras de limpeza. Eles nao substituem:
 | `PLAYWRIGHT_ONBOARDING_TESTS.md` | Atual como contrato gated | Define fixtures e flags para onboarding, active organization, shell e multi-org switch. |
 | `DATA_CHANGING_CLEANUP_STRATEGY.md` | Atual como contrato de cleanup | Define regras obrigatorias para qualquer E2E que muda dados. |
 
+## Gates operacionais
+
+| Gate | Workflow/spec | Uso seguro |
+| --- | --- | --- |
+| Post-deploy protected-route smoke | `.github/workflows/post-deploy-smoke.yml` + `tests/e2e/post-deploy-protected-smoke-gated.spec.ts` | Gate manual para validar rotas protegidas no deploy real. Nao substitui CI, deploy ou evidencia; so fecha P1.1 quando executado com artifact. |
+
 ## Regra operacional
 
 Documentos E2E podem orientar novos testes, mas nao devem ser usados para:

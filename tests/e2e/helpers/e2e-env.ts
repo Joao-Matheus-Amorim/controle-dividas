@@ -47,6 +47,11 @@ const requiredOnboardingCaseVariables = [
   "E2E_ONBOARDING_CASE_SLUG",
 ] as const;
 
+const requiredPostDeploySmokeVariables = [
+  "E2E_POST_DEPLOY_EMAIL",
+  "E2E_POST_DEPLOY_PASSWORD",
+] as const;
+
 export function getOnboardingE2eConfig(env: Env = process.env) {
   const enabled = env.RUN_ONBOARDING_E2E === "true";
   const missingVariables = enabled
@@ -208,4 +213,23 @@ export function shouldRunOnboardingCaseE2e(env: Env = process.env) {
 
 export function createE2eSlug() {
   return `e2e-onboarding-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+export function getPostDeploySmokeE2eConfig(env: Env = process.env) {
+  const enabled = env.RUN_POST_DEPLOY_SMOKE_E2E === "true";
+  const missingVariables = enabled
+    ? requiredPostDeploySmokeVariables.filter((key) => !env[key])
+    : [];
+
+  return {
+    enabled,
+    missingVariables,
+    email: env.E2E_POST_DEPLOY_EMAIL,
+    password: env.E2E_POST_DEPLOY_PASSWORD,
+  };
+}
+
+export function shouldRunPostDeploySmokeE2e(env: Env = process.env) {
+  const config = getPostDeploySmokeE2eConfig(env);
+  return config.enabled && config.missingVariables.length === 0;
 }

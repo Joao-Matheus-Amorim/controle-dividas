@@ -1,0 +1,86 @@
+name: Post-deploy Smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      deployment_url:
+        description: "Production or preview URL to smoke test. Falls back to PRODUCTION_APP_URL or NEXT_PUBLIC_APP_URL repository variable."
+        required: false
+        default: ""
+      ref:
+        description: "Git ref to test against (optional)"
+        required: false
+        default: "main"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: post-deploy-smoke-${{ github.event.inputs.deployment_url || vars.PRODUCTION_APP_URL || vars.NEXT_PUBLIC_APP_URL || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  protected-route-smoke:
+    name: Protected Route Smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      PLAYWRIGHT_BASE_URL: ${{ github.event.inputs.deployment_url || vars.PRODUCTION_APP_URL || vars.NEXT_PUBLIC_APP_URL }}
+      PLAYWRIGHT_SKIP_WEB_SERVER: "true"
+      RUN_POST_DEPLOY_SMOKE_E2E: "true"
+      E2E_POST_DEPLOY_EMAIL: ${{ secrets.E2E_POST_DEPLOY_EMAIL }}
+      E2E_POST_DEPLOY_PASSWORD: ${{ secrets.E2E_POST_DEPLOY_PASSWORD }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.ref }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Validate post-deploy smoke environment
+        shell: bash
+        run: |
+          missing=0
+
+          if [ -z "$PLAYWRIGHT_BASE_URL" ]; then
+            echo "::error title=Missing deployment URL::Set workflow input deployment_url or repository variable PRODUCTION_APP_URL/NEXT_PUBLIC_APP_URL."
+            missing=1
+          fi
+
+          if [ -z "$E2E_POST_DEPLOY_EMAIL" ]; then
+            echo "::error title=Missing secret::E2E_POST_DEPLOY_EMAIL must be configured for post-deploy protected-route smoke."
+            missing=1
+          fi
+
+          if [ -z "$E2E_POST_DEPLOY_PASSWORD" ]; then
+            echo "::error title=Missing secret::E2E_POST_DEPLOY_PASSWORD must be configured for post-deploy protected-route smoke."
+            missing=1
+          fi
+
+          if [ "$missing" -ne 0 ]; then
+            exit 1
+          fi
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Run post-deploy protected-route smoke
+        run: npx playwright test tests/e2e/post-deploy-protected-smoke-gated.spec.ts --project=chromium
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: post-deploy-smoke-playwright-report-${{ github.run_id }}-${{ github.run_attempt }}
+          path: playwright-report
+          if-no-files-found: ignore

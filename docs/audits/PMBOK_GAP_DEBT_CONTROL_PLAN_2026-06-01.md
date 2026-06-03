@@ -56,6 +56,7 @@ Nenhum gap ou divida tecnica pode ser considerado fechado sem todos os itens:
 | 1.1 | RLS Live Gate | executado em ambiente isolado | workflow verde `26913026310` + artifact `rls-live-gate-evidence-26913026310-5` |
 | 1.2 | Visual snapshot gate | executar snapshot deterministico do dashboard summary | screenshot gated aprovado |
 | 1.3 | Stripe checkout/portal evidence | provar checkout e portal reais em modo teste | evidencia antes de webhook |
+| 1.4 | Post-deploy protected smoke | executar smoke manual contra URL real do deploy | workflow `.github/workflows/post-deploy-smoke.yml` verde + artifact Playwright |
 | 2.0 | Billing | completar caminho de assinatura sem falso verde | webhook, sync e enforcement em PRs separados |
 | 2.1 | Webhook runtime | validar assinatura, raw body, eventos pequenos e idempotencia | endpoint seguro e rollback documentado |
 | 2.2 | Subscription sync | sincronizar plano/status com eventos confiaveis | estado de assinatura consistente |

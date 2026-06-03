@@ -121,7 +121,7 @@ Estimativa: 0,5 a 1 dia para preflight; 0,5 a 1 dia para cleanup se necessario.
 
 ### P1.1 - Health check pos-deploy
 
-Status: aberto; sem evidencia de smoke pos-deploy registrada
+Status: gate manual criado; evidencia de execucao pos-deploy pendente
 
 Problema:
 
@@ -129,15 +129,15 @@ Deploy verde hoje prova build/migration/deploy, mas nao prova que rotas protegid
 
 Acao recomendada:
 
-- [ ] Criar gate manual ou pos-deploy para smoke de rotas criticas.
-- [ ] Validar pelo menos:
+- [x] Criar gate manual ou pos-deploy para smoke de rotas criticas em `.github/workflows/post-deploy-smoke.yml`.
+- [x] Validar pelo menos via `tests/e2e/post-deploy-protected-smoke-gated.spec.ts`:
   - `/protected`
   - `/protected/gastos`
   - `/protected/contas-a-pagar`
   - `/protected/contas-a-receber`
   - `/protected/bancos`
   - `/protected/configuracoes`
-- [ ] Capturar erro de Runtime Logs quando falhar.
+- [ ] Capturar erro de Runtime Logs quando falhar em execucao real.
 
 Criterio de fechamento:
 
