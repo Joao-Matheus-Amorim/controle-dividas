@@ -65,18 +65,23 @@ Estimativa: 0,5 dia.
 
 ### P0.2 - Validar efeito da migration 043 em producao
 
-Status: fechado em 2026-06-03
+Status: em andamento
 
 Problema:
 
-O banco remoto tinha tabelas/colunas e migrations registradas, mas nao tinha foreign keys usadas pelos embedded selects do PostgREST. A migration `043` restaura FKs como `NOT VALID`, valida as cinco constraints na mesma migration, e remove policies antigas `*_own`; ainda falta confirmar aplicacao real no ambiente.
+O banco remoto tinha tabelas/colunas e migrations registradas, mas nao tinha foreign keys usadas pelos embedded selects do PostgREST. A migration `043` restaura FKs como `NOT VALID`, valida as cinco constraints na mesma migration, e remove policies antigas `*_own`; ainda falta confirmar aplicacao real no ambiente. As rotas financeiras protegidas nao devem depender de embedded selects para renderizar, porque cache/relacionamentos PostgREST ausentes produzem erro de Server Components em producao.
 
 Arquivos:
 
 - `supabase/migrations/043_restore_finance_relationships_and_rls_cleanup.sql`
+- `lib/organizations/expenses.ts`
+- `lib/organizations/payables.ts`
+- `lib/organizations/receivables.ts`
+- `lib/organizations/banks.ts`
 
 Acao recomendada:
 
+- [x] Remover dependencia de `family_members(...)` e `expense_categories(...)` dos loaders organizacionais criticos.
 - [ ] Confirmar que o deploy de `main` aplicou a migration `043`.
 - [ ] Rodar query de FKs e confirmar `convalidated = true`.
 - [ ] Abrir rotas em producao: `/protected/gastos`, `/protected/contas-a-pagar`, `/protected/contas-a-receber`, `/protected/bancos`.

@@ -75,6 +75,22 @@ describe("organization-aware query guards", () => {
     expect(source).not.toContain("@/lib/finance/banks-server");
   });
 
+  it("keeps critical organization finance loaders independent from PostgREST embedded relationships", () => {
+    const loaders = [
+      "lib/organizations/banks.ts",
+      "lib/organizations/expenses.ts",
+      "lib/organizations/payables.ts",
+      "lib/organizations/receivables.ts",
+    ];
+
+    for (const path of loaders) {
+      const source = readSource(path);
+
+      expect(source, `${path} must not depend on family_members embedded select`).not.toContain("family_members(");
+      expect(source, `${path} must not depend on expense_categories embedded select`).not.toContain("expense_categories(");
+    }
+  });
+
   it("preserves transitional organization-or-legacy filters only in remaining organization helpers", () => {
     for (const path of organizationHelpersWithLegacyFallback) {
       const source = readSource(path);
