@@ -121,7 +121,7 @@ Estimativa: 0,5 a 1 dia para preflight; 0,5 a 1 dia para cleanup se necessario.
 
 ### P1.1 - Health check pos-deploy
 
-Status: contrato pre-runtime criado; runtime aberto
+Status: aberto; sem evidencia de smoke pos-deploy registrada
 
 Problema:
 
