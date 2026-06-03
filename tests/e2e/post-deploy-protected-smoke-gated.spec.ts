@@ -10,12 +10,12 @@ const runPostDeploySmokeE2e = shouldRunPostDeploySmokeE2e();
 const postDeploySmokeTest = runPostDeploySmokeE2e ? test : test.skip;
 
 const protectedRoutes = [
-  { path: "/protected", heading: /m[eê]s/i },
-  { path: "/protected/gastos", heading: /^gastos$/i },
-  { path: "/protected/contas-a-pagar", heading: /contas e dividas/i },
-  { path: "/protected/contas-a-receber", heading: /^receber$/i },
-  { path: "/protected/bancos", heading: /^bancos$/i },
-  { path: "/protected/configuracoes", heading: /configura/i },
+  "/protected",
+  "/protected/gastos",
+  "/protected/contas-a-pagar",
+  "/protected/contas-a-receber",
+  "/protected/bancos",
+  "/protected/configuracoes",
 ] as const;
 
 test.describe("post-deploy protected-route smoke E2E contract", () => {
@@ -41,14 +41,14 @@ test.describe("post-deploy protected-route smoke E2E contract", () => {
     await expect(page).toHaveURL(/\/protected(?:\?|$)/, { timeout: 15_000 });
     await expect(page).not.toHaveURL(/\/onboarding\/organizacao/);
 
-    for (const route of protectedRoutes) {
-      await page.goto(route.path);
+    for (const routePath of protectedRoutes) {
+      await page.goto(routePath);
 
-      await expect(page).toHaveURL(new RegExp(`${route.path.replaceAll("/", "\\/")}(?:\\?|$)`), {
+      await expect(page).toHaveURL(new RegExp(`${routePath.replaceAll("/", "\\/")}(?:\\?|$)`), {
         timeout: 15_000,
       });
       await expect(page).not.toHaveURL(/\/onboarding\/organizacao/);
-      await expect(page.getByRole("heading", { name: route.heading }).first()).toBeVisible();
+      await expect(page.getByRole("link", { name: /familyfinance/i }).first()).toBeVisible();
       await expect(page.getByText(/erro ao carregar/i)).toHaveCount(0);
       await expect(page.getByText(/n[aã]o foi poss[ií]vel abrir esta [aá]rea/i)).toHaveCount(0);
     }

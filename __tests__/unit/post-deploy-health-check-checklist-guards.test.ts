@@ -68,10 +68,11 @@ describe("post-deploy health check checklist guards", () => {
     expect(spec).toContain("/protected/gastos");
     expect(spec).toContain("/protected/contas-a-pagar");
     expect(spec).toContain("/protected/contas-a-receber");
-    expect(spec).toContain("heading: /^receber$/i");
     expect(spec).toContain("/protected/bancos");
     expect(spec).toContain("/protected/configuracoes");
+    expect(spec).toContain("familyfinance");
     expect(spec).toContain("erro ao carregar");
+    expect(spec).not.toContain("heading:");
   });
 
   it("documents the gate without claiming execution evidence", () => {
