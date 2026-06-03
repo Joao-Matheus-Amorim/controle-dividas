@@ -94,6 +94,7 @@ As migrations relevantes para SaaS/RLS/hardening ja mergeadas sao:
 040_audit_events_schema.sql
 041_audit_events_write_boundary.sql
 042_audit_events_retention_cleanup.sql
+043_restore_finance_relationships_and_rls_cleanup.sql
 ```
 
 Observacoes operacionais:
@@ -103,6 +104,7 @@ A migration 019 precisa estar aplicada no Supabase de cada ambiente antes de dep
 As migrations 020 a 028 exigem evidencia recente de preflight/dry-run com zero linhas bloqueadas ou ambiguas para suas tabelas-alvo.
 As migrations 030 a 038 removem o fallback RLS legado `organization_id IS NULL`.
 A migration 039 remove policies historicas owner/family que podiam existir em ambientes que aplicaram migrations antigas.
+A migration 043 restaura FKs financeiras e consolida a limpeza RLS relacionada.
 ```
 
 ## 4. RLS atual
@@ -180,7 +182,8 @@ Ja existem testes RLS gated versionados no repositorio para:
 - `banks`;
 - `profiles`;
 - `user_module_permissions`;
-- `user_feature_permissions`.
+- `user_feature_permissions`;
+- `admin-multi-org`.
 
 Os testes RLS gated versionados rodam somente quando o ambiente dedicado esta configurado:
 
@@ -273,11 +276,39 @@ Observacoes do gate:
 - `npm run lint`: 0 erros e 1 warning conhecido em `components/app/app-data-table.tsx` por `useReactTable` e `react-hooks/incompatible-library`;
 - `npm run test:e2e`: 33 passed, 22 skipped no contrato local reportado.
 
+### Evidencia operacional de 2026-06-03
+
+O RLS Live Gate dedicado foi executado com sucesso no GitHub Actions contra
+ambiente Supabase de teste isolado.
+
+```txt
+Workflow: RLS Live Gate
+Run ID: 26913026310
+Run attempt: 5
+Ref: refs/heads/main
+SHA: 40093ab24559f064da59d46f5c88b48dc1b65d2c
+Actor: Joao-Matheus-Amorim
+Event: workflow_dispatch
+APP_ENV: rls-live-gate
+RUN_RLS_TESTS: true
+Evidence target environment: dedicated-rls-test
+Evidence reason: G-001 RLS Live Gate evidence
+Expected scope: rls-only
+Environment validation outcome: passed
+Validation step outcome: success
+Test step outcome: success
+Test command: npm run test
+Artifact: rls-live-gate-evidence-26913026310-5
+Run URL: https://github.com/Joao-Matheus-Amorim/controle-dividas/actions/runs/26913026310
+```
+
+O artifact registrou todas as entradas `RLS_TEST_*` como `present` e confirmou
+que valores secretos nao foram impressos.
+
 ## 9. O que ainda nao esta pronto
 
 Ainda nao foi feito:
 
-- execucao verde do RLS Live Gate no GitHub Actions com ambiente Supabase dedicado e artifact `rls-live-gate-evidence-*`;
 - Execucao real dedicada do E2E `RUN_ORGSLUG_E2E=true` para registrar evidencia verde de `/org/[orgSlug]`;
 - conta Stripe de teste/credenciais e evidencia real de checkout e portal;
 - webhook Stripe, subscription sync e enforcement comercial, com runtime bloqueado ate a evidencia real de checkout e portal exigida por `docs/audits/BILLING_WEBHOOK_RUNTIME_CONTRACT.md`;
@@ -290,14 +321,11 @@ Ainda nao foi feito:
 Ordem segura:
 
 1. manter CI comum verde com lint, typecheck, build e testes;
-2. executar RLS Live Gate em CI dedicado depois de configurar secrets/vars;
-   - o workflow ja publica GitHub Step Summary e artifact `rls-live-gate-evidence-*`;
-   - registrar evidencia neste status somente depois de uma execucao real verde;
-3. executar E2E especifico para troca de organizacao ativa com usuario multi-org dedicado;
-4. rodar E2E dedicado para rotas por `orgSlug` seguindo ADR 0007 quando o ambiente dedicado estiver configurado;
-5. billing apenas depois de isolamento/UX estarem maduros;
-6. planejar GAP-015 por issues separadas antes de runtime de rate limiting ou retention;
-7. remocao de `owner_id` apenas em gate futuro apos schema/read-path final e rollback.
+2. executar E2E especifico para troca de organizacao ativa com usuario multi-org dedicado;
+3. rodar E2E dedicado para rotas por `orgSlug` seguindo ADR 0007 quando o ambiente dedicado estiver configurado;
+4. billing apenas depois de isolamento/UX estarem maduros;
+5. planejar GAP-015 por issues separadas antes de runtime de rate limiting ou retention;
+6. remocao de `owner_id` apenas em gate futuro apos schema/read-path final e rollback.
 
 ## 11. Regra de manutencao
 

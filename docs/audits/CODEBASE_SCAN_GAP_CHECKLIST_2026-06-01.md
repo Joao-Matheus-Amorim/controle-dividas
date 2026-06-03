@@ -65,7 +65,7 @@ Estimativa: 0,5 dia.
 
 ### P0.2 - Validar efeito da migration 043 em producao
 
-Status: aberto
+Status: fechado em 2026-06-03
 
 Problema:
 
@@ -152,7 +152,7 @@ Status: aberto
 
 Problema:
 
-O workflow existe, mas a evidencia live depende de execucao manual com ambiente dedicado.
+O workflow existe e a evidencia live foi executada manualmente com ambiente dedicado.
 
 Arquivos:
 
@@ -161,16 +161,16 @@ Arquivos:
 
 Acao recomendada:
 
-- [ ] Configurar `RLS_TEST_SUPABASE_URL`.
-- [ ] Configurar secrets `RLS_TEST_SUPABASE_*`.
-- [ ] Rodar workflow manual.
-- [ ] Salvar artifact/summary como evidencia.
-- [ ] Atualizar docs somente apos execucao verde.
+- [x] Configurar `RLS_TEST_SUPABASE_URL`.
+- [x] Configurar secrets `RLS_TEST_SUPABASE_*`.
+- [x] Rodar workflow manual.
+- [x] Salvar artifact/summary como evidencia.
+- [x] Atualizar docs somente apos execucao verde.
 
 Criterio de fechamento:
 
-- [ ] RLS Live Gate executado com sucesso em ambiente dedicado.
-- [ ] Evidencia registrada.
+- [x] RLS Live Gate executado com sucesso em ambiente dedicado.
+- [x] Evidencia registrada: run `26913026310`, attempt `5`, artifact `rls-live-gate-evidence-26913026310-5`, SHA `40093ab24559f064da59d46f5c88b48dc1b65d2c`.
 
 Estimativa: 0,5 a 1 dia depois das credenciais prontas.
 

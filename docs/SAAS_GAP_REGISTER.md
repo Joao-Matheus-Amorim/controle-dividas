@@ -74,7 +74,7 @@ GAP-015 billing portal note: billing portal audit runtime uses `record_audit_eve
 | --- | --- | --- | --- |
 | GAP-001 | Organization UX | ADR 0002, active organization indicator, switch action, and gated multi-org switch E2E | Active organization UX is implemented and covered as a transitional contract. |
 | GAP-002 | Routes | ADR 0007, `/org/[orgSlug]` routes, shared protected page implementations, and gated orgSlug E2E | `/protected` remains as compatibility, not as the only protected route family. |
-| GAP-003 | RLS | Migrations `030` to `039` and RLS gated suites | Final fallback removal and legacy owner/family policy cleanup are versioned; CI evidence still depends on the manual RLS Live Gate. |
+| GAP-003 | RLS | Migrations `030` to `039`, RLS gated suites, and RLS Live Gate evidence | Final fallback removal and legacy owner/family policy cleanup are versioned; RLS Live Gate is green in run `26913026310` with artifact `rls-live-gate-evidence-26913026310-5`. |
 | GAP-004 | Legacy data | Hardening migrations `020` to `028` plus fallback-removal migrations `030` to `038` | Legacy `organization_id IS NULL` fallback is no longer the runtime/RLS contract. |
 | GAP-008 | Multi-org tests | `tests/e2e/multi-org-switch-authenticated-gated.spec.ts` | Switching between organizations has cleanup-backed gated coverage. |
 | GAP-009 | Schema hardening | Migrations `020` to `028` | `organization_id NOT NULL` hardening is versioned for tenant-scoped tables. |
@@ -91,7 +91,7 @@ GAP-014 through GAP-019 came from external review and must be handled as separat
 
 Reason:
 
-- RLS Live Gate evidence and orgSlug E2E evidence still need dedicated environment runs before claiming full external proof;
+- orgSlug E2E evidence still needs a dedicated environment run before claiming full external route proof; RLS Live Gate evidence is green in run `26913026310`;
 - billing webhook and subscription sync work should not start until checkout and portal evidence gates have real Stripe test evidence;
 - GAP-011 is reduced by dashboard, finance list, finance form, selective visual snapshot, dashboard summary deterministic fixture, and gated screenshot contracts; broad visual redesign still needs explicit evidence before any wider visual coverage;
 - GAP-015 tracks controls expected by users handling sensitive financial data; billing checkout audit, billing checkout rate limiting, billing portal audit, billing portal rate limiting, expense delete rate limiting, expense write audit and rate limiting, payable delete rate limiting, payable status rate limiting, payable write audit and rate limiting, receivable delete rate limiting, receivable status rate limiting, receivable write audit and rate limiting, bank delete rate limiting, bank balance rate limiting, bank write audit and rate limiting, member limit audit and rate limiting, member status audit and rate limiting, member write audit and rate limiting, category delete audit and rate limiting, category write audit and rate limiting, admin permission audit and rate limiting, admin user audit and rate limiting, payable bill, receivable income, expense, and bank audit runtime exist, but broader rate limiting and retention cleanup runtime are still pending.

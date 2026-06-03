@@ -53,7 +53,7 @@ Nenhum gap ou divida tecnica pode ser considerado fechado sem todos os itens:
 | WBS | Pacote | Objetivo | Saida esperada |
 | --- | --- | --- | --- |
 | 1.0 | Evidencias live | provar que controles criticos funcionam fora da inspecao local | artefatos GitHub/Stripe anexaveis a docs |
-| 1.1 | RLS Live Gate | executar gate dedicado de RLS com ambiente isolado | workflow verde + artifact `rls-live-gate-evidence-*` |
+| 1.1 | RLS Live Gate | executado em ambiente isolado | workflow verde `26913026310` + artifact `rls-live-gate-evidence-26913026310-5` |
 | 1.2 | Visual snapshot gate | executar snapshot deterministico do dashboard summary | screenshot gated aprovado |
 | 1.3 | Stripe checkout/portal evidence | provar checkout e portal reais em modo teste | evidencia antes de webhook |
 | 2.0 | Billing | completar caminho de assinatura sem falso verde | webhook, sync e enforcement em PRs separados |
@@ -75,7 +75,7 @@ Nenhum gap ou divida tecnica pode ser considerado fechado sem todos os itens:
 
 | ID | Tipo | Status | Evidencia para fechar | Proximo PR seguro |
 | --- | --- | --- | --- | --- |
-| G-001 | Evidencia | Aberto | RLS Live Gate verde com artifact | rodar e documentar gate |
+| G-001 | Evidencia | Fechado | RLS Live Gate verde com artifact `rls-live-gate-evidence-26913026310-5` | manter evidencia viva quando fixtures RLS mudarem |
 | G-002 | Evidencia | Aberto | Stripe checkout e portal reais em modo teste | executar runbook Stripe |
 | G-003 | Billing | Bloqueado por G-002 | webhook com assinatura, raw body e idempotencia | webhook runtime somente depois da evidencia |
 | G-004 | Billing | Bloqueado por G-003 | subscription sync validado | sync em PR proprio |
@@ -179,10 +179,10 @@ Para cada ciclo semanal:
 
 A proxima frente deve ser escolhida por objetivo:
 
-- confianca operacional: G-001 RLS Live Gate;
+- confianca operacional: G-001 RLS Live Gate fechado no run `26913026310`;
 - receita/billing: G-002 Stripe evidence;
 - qualidade visual: G-006 auth/onboarding visual migration;
 - arquitetura: G-005 `owner_id` retirement inventory.
 
-Recomendacao PMBOK: executar G-001 primeiro, porque ele reduz risco tecnico
-sem misturar produto, UI ou billing.
+Recomendacao PMBOK: apos G-001 fechado, priorizar G-002 Stripe evidence ou o
+proximo gate dedicado de rotas/E2E, sem misturar produto, UI ou billing.
