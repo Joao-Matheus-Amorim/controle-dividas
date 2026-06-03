@@ -151,6 +151,22 @@ Regras de deploy:
 - O job aplica migrations Supabase antes do deploy frontend Vercel.
 - Dependabot e CodeQL nao executam deploy e nao dependem de secrets de Supabase ou Vercel.
 
+Gate manual de smoke pos-deploy:
+
+```env
+PRODUCTION_APP_URL=URL_PUBLICA_DO_DEPLOY
+E2E_POST_DEPLOY_EMAIL=EMAIL_DE_USUARIO_COM_ORGANIZACAO_ATIVA
+E2E_POST_DEPLOY_PASSWORD=SENHA_DO_USUARIO_DE_SMOKE
+```
+
+Regras do smoke pos-deploy:
+
+- workflow: `.github/workflows/post-deploy-smoke.yml`;
+- spec: `tests/e2e/post-deploy-protected-smoke-gated.spec.ts`;
+- usa `PLAYWRIGHT_SKIP_WEB_SERVER=true` para testar a URL real em vez de subir servidor local;
+- valida `/protected`, `/protected/gastos`, `/protected/contas-a-pagar`, `/protected/contas-a-receber`, `/protected/bancos` e `/protected/configuracoes`;
+- evidencia so existe apos execucao manual verde e artifact do Playwright.
+
 ## Migrations obrigatorias
 
 O historico versionado atual vai de `001` ate `043`. Em operacao normal, o deploy automatizado aplica esta cadeia com `supabase db push` usando `SUPABASE_DB_URL`.

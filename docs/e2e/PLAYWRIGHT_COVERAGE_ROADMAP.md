@@ -107,6 +107,7 @@ No data-mutating E2E flow before a documented cleanup strategy exists.
 | Update records | Gated cleanup-backed covered |
 | Remaining record flow | Gated cleanup-backed covered |
 | Dashboard summary visual snapshot | Gated deterministic fixture covered |
+| Post-deploy protected-route smoke | Manual gate exists; evidence pending |
 
 ## Protected route matrix
 
@@ -126,6 +127,25 @@ No data-mutating E2E flow before a documented cleanup strategy exists.
 | `/protected/admin/permissoes` | Gated covered | Read-only smoke. |
 | `/org/[orgSlug]` | Gated cleanup-backed covered | Creates allowed and denied temporary organizations, proves allowed dashboard, denied slug handling, and `/protected` compatibility. |
 | `/org/[orgSlug]/gastos` | Gated cleanup-backed covered | Reached through real dashboard navigation while preserving the slug. |
+
+## Post-deploy smoke matrix
+
+| Route | Status | Notes |
+| --- | --- | --- |
+| `/protected` | Manual post-deploy smoke gate | Covered by `tests/e2e/post-deploy-protected-smoke-gated.spec.ts` when `RUN_POST_DEPLOY_SMOKE_E2E=true`. |
+| `/protected/gastos` | Manual post-deploy smoke gate | Checks deployed route render and absence of the generic error boundary copy. |
+| `/protected/contas-a-pagar` | Manual post-deploy smoke gate | Checks deployed route render and absence of the generic error boundary copy. |
+| `/protected/contas-a-receber` | Manual post-deploy smoke gate | Checks deployed route render and absence of the generic error boundary copy. |
+| `/protected/bancos` | Manual post-deploy smoke gate | Checks deployed route render and absence of the generic error boundary copy. |
+| `/protected/configuracoes` | Manual post-deploy smoke gate | Checks deployed route render and absence of the generic error boundary copy. |
+
+Required workflow inputs/secrets:
+
+```txt
+workflow input deployment_url or repository variable PRODUCTION_APP_URL/NEXT_PUBLIC_APP_URL
+E2E_POST_DEPLOY_EMAIL
+E2E_POST_DEPLOY_PASSWORD
+```
 
 ## Visual snapshot matrix
 
