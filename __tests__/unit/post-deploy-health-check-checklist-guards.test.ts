@@ -25,7 +25,7 @@ describe("post-deploy health check checklist guards", () => {
   const healthCheck = section(
     checklist,
     "### p1.1 - health check pos-deploy",
-    "### p1.2 - rls live gate recorrente",
+    "### p1.2 - rls live gate com evidencia real",
   );
 
   it("keeps P1.1 status tied to protected-route smoke evidence", () => {
