@@ -4,6 +4,7 @@
 > Uso atual: contrato para retirar futuramente `owner_id` de Admin e
 > access-control sem falso verde.
 > Fonte-base: `docs/audits/OWNER_ID_ACTIVE_CONSUMERS_2026-06-01.md`.
+> Gate relacionado: `docs/audits/ADMIN_INVITATION_BOOTSTRAP_CONTRACT.md`.
 
 Atualizado em: 2026-06-01
 
@@ -56,7 +57,7 @@ Nenhum PR pode trocar `adminProfile.owner_id` sem:
 
 1. RLS Live Gate verde com artifact;
 2. fixture RLS cobrindo admin em duas organizacoes;
-3. contrato de convite/admin final aprovado;
+3. contrato de convite/admin final aprovado em `docs/audits/ADMIN_INVITATION_BOOTSTRAP_CONTRACT.md`;
 4. definicao de substituto para `ADMIN_EMAIL`;
 5. prova de que `profile_id`, `linked_family_member_id`, module permissions e feature permissions sao resolvidos por `organization_id`;
 6. manutencao dos audit events admin;
@@ -69,7 +70,7 @@ Nenhum PR pode trocar `adminProfile.owner_id` sem:
 | --- | --- | --- | --- |
 | 1 | contrato admin/access-control | este documento e guard | runtime |
 | 2 | fixture RLS admin multi-org | `__tests__/integration/rls/admin-multi-org.rls.test.ts` prova leitura RLS admin em duas organizacoes sem `owner_id` compartilhado | alterar policies |
-| 3 | modelo de convite/admin | definir bootstrap final e papel de `ADMIN_EMAIL` | remover coluna |
+| 3 | modelo de convite/admin | definir bootstrap final e papel de `ADMIN_EMAIL` em `ADMIN_INVITATION_BOOTSTRAP_CONTRACT.md` | remover coluna |
 | 4 | read path admin | trocar leituras admin para organization-first | writes admin |
 | 5 | write path admin | trocar validates/writes admin para organization-first | schema drop |
 | 6 | access-control | trocar calculo de membros/permissoes para organization-first | schema drop |
@@ -91,14 +92,21 @@ Estado atual:
 admin/access-control permanece transicional.
 ```
 
-Proximo PR seguro:
+Contrato de convite/admin criado:
 
 ```txt
-fixture RLS admin multi-org, sem alterar runtime.
+docs/audits/ADMIN_INVITATION_BOOTSTRAP_CONTRACT.md
 ```
 
 Fixture criada:
 
 ```txt
 __tests__/integration/rls/admin-multi-org.rls.test.ts
+```
+
+Proximo PR seguro:
+
+```txt
+schema/preflight ou runtime de convite/admin em PR dedicado, sem remover
+ADMIN_EMAIL e sem retirar owner_id.
 ```
