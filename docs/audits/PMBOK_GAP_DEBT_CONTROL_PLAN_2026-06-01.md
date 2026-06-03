@@ -84,7 +84,7 @@ Nenhum gap ou divida tecnica pode ser considerado fechado sem todos os itens:
 | G-007 | Produto | Aberto | edit flows e settings testados | escolher um fluxo por PR |
 | G-008 | Documentacao | Continuo | DocDoc headers coerentes | atualizar docs afetados em cada PR |
 | G-009 | GAP-015 | Parcial | storage/retention final definidos | ampliar controles em PR dedicado |
-| G-010 | Admin lifecycle | Aberto | convite/admin final definido | contrato antes de runtime |
+| G-010 | Admin lifecycle | Contrato pre-runtime criado | `docs/audits/ADMIN_INVITATION_BOOTSTRAP_CONTRACT.md`; runtime de convite/admin ainda pendente | schema/preflight ou runtime de convite em PR dedicado |
 
 ## 6. Criterios de aceite por tipo de entrega
 
@@ -182,7 +182,10 @@ A proxima frente deve ser escolhida por objetivo:
 - confianca operacional: G-001 RLS Live Gate fechado no run `26913026310`;
 - receita/billing: G-002 Stripe evidence;
 - qualidade visual: G-006 auth/onboarding visual migration;
-- arquitetura: G-005 `owner_id` retirement inventory.
+- arquitetura: G-005 `owner_id` retirement inventory e G-010 convite/admin
+  pre-runtime criado.
 
 Recomendacao PMBOK: apos G-001 fechado, priorizar G-002 Stripe evidence ou o
-proximo gate dedicado de rotas/E2E, sem misturar produto, UI ou billing.
+proximo gate dedicado de rotas/E2E. Se a frente escolhida for arquitetura,
+seguir G-010 com schema/preflight ou runtime de convite/admin em PR dedicado,
+sem misturar produto, UI, billing ou retirada de `owner_id`.

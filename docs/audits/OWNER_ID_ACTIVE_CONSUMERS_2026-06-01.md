@@ -81,12 +81,21 @@ Fixture RLS criada neste ciclo:
 __tests__/integration/rls/admin-multi-org.rls.test.ts
 ```
 
-Esse contrato ainda bloqueia runtime ate decidir:
+Esse contrato ainda bloqueia runtime ate concluir:
 
 - como substituir `adminProfile.owner_id`;
 - como resolver `profile_id`, `linked_family_member_id` e permissoes por organizacao;
 - como manter owner/admin-only sem depender de `ADMIN_EMAIL` como garantia final;
 - como executar e arquivar o RLS Live Gate verde com artifact para a fixture admin multi-org.
+
+O contrato de convite/admin que define a direcao final existe em:
+
+```txt
+docs/audits/ADMIN_INVITATION_BOOTSTRAP_CONTRACT.md
+```
+
+Esse contrato nao implementa runtime e nao autoriza remover `ADMIN_EMAIL` ou
+`owner_id`; ele apenas fecha a decisao pre-runtime para o proximo PR pequeno.
 
 ## 6. Fora de escopo
 

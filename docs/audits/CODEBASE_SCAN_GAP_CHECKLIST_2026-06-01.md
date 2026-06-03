@@ -121,7 +121,7 @@ Estimativa: 0,5 a 1 dia para preflight; 0,5 a 1 dia para cleanup se necessario.
 
 ### P1.1 - Health check pos-deploy
 
-Status: aberto
+Status: contrato pre-runtime criado; runtime aberto
 
 Problema:
 
@@ -312,15 +312,16 @@ Problema:
 
 Acao recomendada:
 
-- [ ] Definir modelo de convite/admin inicial.
+- [x] Definir modelo de convite/admin inicial em `docs/audits/ADMIN_INVITATION_BOOTSTRAP_CONTRACT.md`.
 - [ ] Definir recuperacao de ownership.
-- [ ] Definir papel de `ADMIN_EMAIL` como dev-only/emergencia.
-- [ ] Criar ADR ou atualizar ADR existente.
+- [x] Definir papel de `ADMIN_EMAIL` como dev-only/emergencia no contrato pre-runtime.
+- [ ] Criar ADR ou atualizar ADR existente se a decisao mudar arquitetura alem do contrato.
 
 Criterio de fechamento:
 
 - [ ] Novo owner/admin nao depende de secret global.
 - [ ] Transicao tem rollback.
+- [ ] Runtime de convite/admin implementado sem remover `ADMIN_EMAIL` antes dos gates.
 
 Estimativa: 3 a 5 dias.
 
