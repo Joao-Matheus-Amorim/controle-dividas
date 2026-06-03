@@ -58,6 +58,19 @@ describe("SaaS hardening status docs", () => {
     expect(liveStatus).toContain("npm run test:e2e");
   });
 
+  it("records the dedicated RLS Live Gate CI evidence", () => {
+    expect(liveStatus).toContain("evidencia operacional de 2026-06-03");
+    expect(liveStatus).toContain("run id: 26913026310");
+    expect(liveStatus).toContain("run attempt: 5");
+    expect(liveStatus).toContain("sha: 40093ab24559f064da59d46f5c88b48dc1b65d2c");
+    expect(liveStatus).toContain("environment validation outcome: passed");
+    expect(liveStatus).toContain("test step outcome: success");
+    expect(liveStatus).toContain("artifact: rls-live-gate-evidence-26913026310-5");
+    expect(roadmap).toContain("fechado-004 - rls live gate com evidencia de ci");
+    expect(roadmap).toContain("rls-live-gate-evidence-26913026310-5");
+    expect(gapRegister).toContain("rls live gate is green in run `26913026310`");
+  });
+
   it("keeps the hardening plan explicit about completed profiles hardening", () => {
     expect(hardeningPlan).toContain("`expense_categories` | hardened");
     expect(hardeningPlan).toContain("`family_members` | hardened");

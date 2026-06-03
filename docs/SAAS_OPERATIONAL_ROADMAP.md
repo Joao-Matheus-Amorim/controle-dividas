@@ -118,7 +118,7 @@ A limpeza final de policies antigas owner/family foi versionada em:
 - Password reset rate limit runtime esta versionado em `app/auth/forgot-password/actions.ts` para `auth.password_reset.request`, com actor por email normalizado, escopo `public-auth`, rollback por `DISABLE_SENSITIVE_RATE_LIMITS=true` e sem audit runtime pelo mesmo limite de autenticacao/membership.
 - Password update rate limit runtime esta versionado em `app/auth/update-password/actions.ts` para `auth.password_update.submit`, com actor pelo auth user id atual, bucket compartilhado `missing-session`, escopo `public-auth`, rollback por `DISABLE_SENSITIVE_RATE_LIMITS=true` e sem audit runtime pelo mesmo limite de autenticacao/membership.
 - Onboarding organization rate limit runtime esta versionado em `app/onboarding/organizacao/actions.ts` para `onboarding.organization.create`, com actor pelo auth user id atual, bucket compartilhado `missing-session`, escopo `onboarding`, rollback por `DISABLE_SENSITIVE_RATE_LIMITS=true` e sem audit runtime porque a organizacao e criada por essa boundary.
-- RLS Live Gate existe em `.github/workflows/rls-live-gate.yml` e ja gera GitHub Step Summary + artifact `rls-live-gate-evidence-*`, mas ainda precisa de vars/secrets e execucao dedicada para virar evidencia verde de CI.
+- RLS Live Gate existe em `.github/workflows/rls-live-gate.yml` e possui evidencia verde de CI dedicada no run `26913026310`, attempt `5`, artifact `rls-live-gate-evidence-26913026310-5`, SHA `40093ab24559f064da59d46f5c88b48dc1b65d2c`.
 
 ## 3. Estado de fechamento e gaps reais antes de declarar 100% coerente
 
@@ -139,17 +139,20 @@ Resultado atual:
 - Supabase vivo validado recebeu a limpeza manual e o RLS gated focado passou depois do alinhamento;
 - ambientes que nao receberam a limpeza manual ainda precisam aplicar a migration `039`.
 
-### GAP-001 - RLS Live Gate com evidencia de CI
+### FECHADO-004 - RLS Live Gate com evidencia de CI
 
-O workflow existe e ja possui plumbing de evidencia auditavel. O estado ainda pendente e a execucao real no GitHub Actions com ambiente Supabase dedicado.
+O workflow foi executado com sucesso no GitHub Actions contra ambiente Supabase dedicado.
 
-Resultado esperado:
+Evidencia registrada:
 
-- configurar `RLS_TEST_SUPABASE_URL` como repository variable;
-- configurar `RLS_TEST_SUPABASE_ANON_KEY`, `RLS_TEST_SUPABASE_SERVICE_ROLE_KEY`, `RLS_TEST_USER_A_*`, `RLS_TEST_USER_B_*` como secrets;
-- rodar `RLS Live Gate` via `workflow_dispatch`;
-- confirmar o GitHub Step Summary e o artifact `rls-live-gate-evidence-*`;
-- registrar evidencia no status vivo somente depois de uma execucao real verde.
+- run: `26913026310`;
+- attempt: `5`;
+- artifact: `rls-live-gate-evidence-26913026310-5`;
+- SHA: `40093ab24559f064da59d46f5c88b48dc1b65d2c`;
+- resultado: environment validation `passed` e test step `success`.
+
+O workflow continua publicando artifacts no padrao `rls-live-gate-evidence-*`
+e GitHub Step Summary para runs futuros.
 
 ### FECHADO-002 - Contrato E2E de troca de organizacao ativa
 
@@ -291,23 +294,17 @@ Resultado esperado:
 
 ## 4. Ordem recomendada dos proximos PRs
 
-1. **RLS Live Gate evidence**
-   - Configurar ambiente GitHub dedicado.
-   - Rodar workflow manual.
-   - Validar GitHub Step Summary e artifact `rls-live-gate-evidence-*`.
-   - Documentar resultado somente depois de uma execucao real verde.
-
-2. **Confirmar E2E multi-org switch em ambiente dedicado quando necessario**
+1. **Confirmar E2E multi-org switch em ambiente dedicado quando necessario**
    - Configurar usuario dedicado.
    - Rodar `RUN_MULTI_ORG_SWITCH_E2E=true`.
    - Registrar evidencia depois de uma execucao real verde.
 
-3. **Confirmar E2E dedicado de `orgSlug` em ambiente dedicado quando necessario**
+2. **Confirmar E2E dedicado de `orgSlug` em ambiente dedicado quando necessario**
    - Configurar usuario dedicado em `E2E_ORGSLUG_EMAIL`/`E2E_ORGSLUG_PASSWORD`.
    - Rodar `RUN_ORGSLUG_E2E=true`.
    - Registrar evidencia depois de uma execucao real verde.
 
-4. **Billing design**
+3. **Billing design**
    - Usar `docs/audits/BILLING_SETTINGS_STATUS_CONTRACT.md`.
    - Usar `docs/audits/BILLING_SUBSCRIPTION_FLOW_CONTRACT.md`.
    - Usar `docs/audits/BILLING_STRIPE_CONFIGURATION_BOUNDARY.md`.
@@ -317,7 +314,7 @@ Resultado esperado:
    - Implementar webhook em PR proprio depois do contrato pre-runtime.
    - Planejar Stripe sem misturar com RLS/rotas.
 
-5. **Primeiro snapshot visual seletivo**
+4. **Primeiro snapshot visual seletivo**
    - Usar `docs/audits/DASHBOARD_SUMMARY_VISUAL_FIXTURE.md`.
    - Usar `__tests__/fixtures/dashboard-summary-visual-snapshot.ts`.
    - Rodar `tests/e2e/dashboard-summary-visual-snapshot-gated.spec.ts` com `RUN_DASHBOARD_SUMMARY_VISUAL_SNAPSHOT=true`.
