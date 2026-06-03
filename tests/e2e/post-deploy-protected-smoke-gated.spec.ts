@@ -13,7 +13,7 @@ const protectedRoutes = [
   { path: "/protected", heading: /m[eê]s/i },
   { path: "/protected/gastos", heading: /^gastos$/i },
   { path: "/protected/contas-a-pagar", heading: /contas e dividas/i },
-  { path: "/protected/contas-a-receber", heading: /contas a receber/i },
+  { path: "/protected/contas-a-receber", heading: /^receber$/i },
   { path: "/protected/bancos", heading: /^bancos$/i },
   { path: "/protected/configuracoes", heading: /configura/i },
 ] as const;
