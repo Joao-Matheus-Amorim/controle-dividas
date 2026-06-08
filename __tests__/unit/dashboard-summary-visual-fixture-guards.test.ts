@@ -21,6 +21,7 @@ describe("dashboard summary visual snapshot fixture", () => {
   const fixtureSource = read("__tests__/fixtures/dashboard-summary-visual-snapshot.ts");
   const e2eSpec = read("tests/e2e/dashboard-summary-visual-snapshot-gated.spec.ts");
   const visualPage = read("tests/e2e/fixtures/dashboard-summary-visual-page.ts");
+  const playwrightConfig = read("playwright.config.ts");
   const fixtureDoc = read("docs/audits/DASHBOARD_SUMMARY_VISUAL_FIXTURE.md");
   const strategy = read("docs/audits/SELECTIVE_VISUAL_SNAPSHOT_STRATEGY.md");
   const roadmap = read("docs/SAAS_OPERATIONAL_ROADMAP.md");
@@ -77,6 +78,9 @@ describe("dashboard summary visual snapshot fixture", () => {
     expect(e2eSpec).toContain("test.skip");
     expect(e2eSpec).toContain("tohavescreenshot");
     expect(e2eSpec).toContain("dashboard-summary-above-fold");
+    expect(playwrightConfig).toContain("snapshotpathtemplate");
+    expect(playwrightConfig).toContain("{testdir}/{testfilepath}-snapshots/{arg}{ext}");
+    expect(playwrightConfig).not.toContain("{platform}");
     expect(e2eSpec).not.toContain("auth/login");
     expect(e2eSpec).not.toContain("supabase");
     expect(visualPage).toContain("renderdashboardsummaryvisualfixturepage");
@@ -113,10 +117,12 @@ describe("dashboard summary visual snapshot fixture", () => {
   it("keeps GAP-011 docs aligned with fixture-before-snapshot sequencing", () => {
     expect(strategy).toContain("dashboard_summary_visual_fixture.md");
     expect(strategy).toContain("fixture local deterministica definida");
-    expect(strategy).toContain("dashboard-summary-above-fold-chromium-win32.png");
+    expect(strategy).toContain("dashboard-summary-above-fold.png");
+    expect(strategy).toContain("sem sufixo de plataforma");
     expect(roadmap).toContain("dashboard_summary_visual_fixture.md");
     expect(roadmap).toContain("primeira evidencia versionada");
     expect(fixtureDoc).toContain("evidencia versionada");
+    expect(fixtureDoc).toContain("windows, linux e macos");
     expect(fixtureDoc).toContain("2 passed");
     expect(gapRegister).toContain("first versioned dashboard summary snapshot evidence");
     expect(gapRegister).toContain("use the versioned dashboard summary baseline");

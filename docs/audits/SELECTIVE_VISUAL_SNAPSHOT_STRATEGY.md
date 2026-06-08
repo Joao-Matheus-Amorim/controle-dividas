@@ -112,5 +112,6 @@ Estado atual:
 - viewport inicial unico definido;
 - criterio de atualizacao e rollback definidos;
 - Playwright screenshot gated implementado em `tests/e2e/dashboard-summary-visual-snapshot-gated.spec.ts`;
-- PNG versionado em `tests/e2e/dashboard-summary-visual-snapshot-gated.spec.ts-snapshots/dashboard-summary-above-fold-chromium-win32.png`;
+- PNG versionado em `tests/e2e/dashboard-summary-visual-snapshot-gated.spec.ts-snapshots/dashboard-summary-above-fold.png`;
+- baseline portavel por `snapshotPathTemplate` sem sufixo de plataforma;
 - nenhum snapshot visual amplo implementado.

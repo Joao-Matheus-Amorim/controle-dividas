@@ -151,7 +151,7 @@ E2E_POST_DEPLOY_PASSWORD
 
 | Surface | Status | Notes |
 | --- | --- | --- |
-| `dashboard-summary-above-fold` | Gated deterministic snapshot covered | Uses `RUN_DASHBOARD_SUMMARY_VISUAL_SNAPSHOT=true`, `tests/e2e/dashboard-summary-visual-snapshot-gated.spec.ts`, `__tests__/fixtures/dashboard-summary-visual-snapshot.ts`, and the versioned PNG `tests/e2e/dashboard-summary-visual-snapshot-gated.spec.ts-snapshots/dashboard-summary-above-fold-chromium-win32.png`. It captures only the contracted dashboard summary surface, not the full protected app. |
+| `dashboard-summary-above-fold` | Gated deterministic snapshot covered | Uses `RUN_DASHBOARD_SUMMARY_VISUAL_SNAPSHOT=true`, `tests/e2e/dashboard-summary-visual-snapshot-gated.spec.ts`, `__tests__/fixtures/dashboard-summary-visual-snapshot.ts`, and the versioned PNG `tests/e2e/dashboard-summary-visual-snapshot-gated.spec.ts-snapshots/dashboard-summary-above-fold.png`. `playwright.config.ts` keeps the screenshot path platform-independent. It captures only the contracted dashboard summary surface, not the full protected app. |
 
 ## Public/auth matrix
 

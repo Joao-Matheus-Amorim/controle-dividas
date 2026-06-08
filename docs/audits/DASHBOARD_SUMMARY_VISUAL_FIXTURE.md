@@ -77,8 +77,11 @@ RUN_DASHBOARD_SUMMARY_VISUAL_SNAPSHOT=true
 O primeiro snapshot foi gerado localmente com o gate dedicado e versionado em:
 
 ```txt
-tests/e2e/dashboard-summary-visual-snapshot-gated.spec.ts-snapshots/dashboard-summary-above-fold-chromium-win32.png
+tests/e2e/dashboard-summary-visual-snapshot-gated.spec.ts-snapshots/dashboard-summary-above-fold.png
 ```
+
+O Playwright usa `snapshotPathTemplate` sem sufixo de plataforma para este
+baseline, entao o mesmo arquivo e usado em Windows, Linux e macOS.
 
 Evidencia de execucao local:
 
