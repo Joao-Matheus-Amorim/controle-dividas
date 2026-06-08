@@ -37,8 +37,10 @@ describe("sensitive operation controls contract guards", () => {
     expect(contract).toContain("member status rate limit runtime exists");
     expect(contract).toContain("category delete rate limit runtime exists");
     expect(contract).toContain("admin permission rate limit runtime exists");
+    expect(contract).toContain("admin invitation rate limit runtime exists");
     expect(contract).toContain("admin user rate limit runtime exists");
     expect(contract).toContain("admin permission audit runtime exists");
+    expect(contract).toContain("admin invitation audit runtime exists");
     expect(contract).toContain("admin user audit runtime exists");
     expect(contract).toContain("audit event retention preflight runtime exists");
     expect(contract).toContain("audit event retention cleanup runtime exists");
@@ -98,6 +100,7 @@ describe("sensitive operation controls contract guards", () => {
     expect(gapRegister).toContain("member status rate limit runtime");
     expect(gapRegister).toContain("category delete rate limit runtime");
     expect(gapRegister).toContain("admin permission rate limit runtime");
+    expect(gapRegister).toContain("admin invitation rate limit runtime");
     expect(gapRegister).toContain("admin user rate limit runtime");
     expect(gapRegister).toContain("audit event retention preflight and cleanup runtime");
     expect(gapRegister).toContain("remaining broader rate limiting and data retention cleanup runtime controls are not implemented");

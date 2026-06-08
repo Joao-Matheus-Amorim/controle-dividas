@@ -20,7 +20,7 @@ describe("admin invitation bootstrap contract guards", () => {
   const statusMap = read("docs/DOCUMENTATION_STATUS.md");
 
   it("keeps ADMIN_EMAIL transitional instead of final SaaS admin authority", () => {
-    expect(contract).toContain("status docdoc: atual como contrato pre-runtime");
+    expect(contract).toContain("status docdoc: atual como contrato com schema/preflight e runtime parcial");
     expect(contract).toContain("admin_email apenas como bootstrap emergencial/transicional");
     expect(contract).toContain("admin_email como modelo saas final de administracao");
     expect(contract).toContain("estado proibido como conclusao");
@@ -40,6 +40,7 @@ describe("admin invitation bootstrap contract guards", () => {
 
   it("blocks owner_id retirement and ADMIN_EMAIL removal until the gates exist", () => {
     expect(contract).toContain("remover `admin_email` e remover `owner_id` nao podem ocorrer no mesmo pr");
+    expect(contract).toContain("runtime criar/revogar/reenviar versionado");
     expect(contract).toContain("runtime final de convite/admin ainda nao implementado");
     expect(contract).toContain("sem remover admin_email e sem retirar owner_id");
     expect(ownerContract).toContain("admin_invitation_bootstrap_contract.md");
@@ -51,7 +52,8 @@ describe("admin invitation bootstrap contract guards", () => {
       expect(source).toContain("admin_invitation_bootstrap_contract.md");
     }
 
-    expect(gapRegister).toContain("runtime is not implemented");
+    expect(gapRegister).toContain("create/revoke/resend runtime is versioned");
+    expect(gapRegister).toContain("acceptance/linking runtime is not implemented");
     expect(pmbokPlan).toContain("contrato pre-runtime criado");
   });
 });

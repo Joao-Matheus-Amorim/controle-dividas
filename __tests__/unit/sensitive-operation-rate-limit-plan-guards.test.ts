@@ -52,6 +52,10 @@ describe("sensitive operation rate limit plan guards", () => {
     expect(plan).toContain("admin.user.auth_link.sync");
     expect(plan).toContain("admin.user.delete");
     expect(plan).toContain("admin.user.status.update");
+    expect(plan).toContain("admin invitation rate limit runtime exists");
+    expect(plan).toContain("admin.invitation.create");
+    expect(plan).toContain("admin.invitation.revoke");
+    expect(plan).toContain("admin.invitation.resend");
     expect(plan).toContain("process-local memory");
     expect(plan).toContain("disable_sensitive_rate_limits=true");
     expect(plan).toContain("no middleware change");
@@ -102,6 +106,8 @@ describe("sensitive operation rate limit plan guards", () => {
     expect(plan).toContain("admin.feature_permission.update");
     expect(plan).toContain("admin.user.create");
     expect(plan).toContain("admin.user.status.update");
+    expect(plan).toContain("admin.invitation.create");
+    expect(plan).toContain("admin.invitation.resend");
     expect(plan).toContain("admin mutations");
     expect(plan).toContain("destructive finance actions");
     expect(plan).toContain("rate_limit:{operation_key}:{actor_key}:{organization_key}:{target_key?}");
@@ -136,6 +142,7 @@ describe("sensitive operation rate limit plan guards", () => {
     expect(gapRegister).toContain("category delete rate limit runtime");
     expect(gapRegister).toContain("admin permission rate limit runtime");
     expect(gapRegister).toContain("admin user rate limit runtime");
+    expect(gapRegister).toContain("admin invitation rate limit runtime");
     expect(gapRegister).toContain("remaining broader rate limiting and data retention cleanup runtime controls are not implemented");
   });
 });

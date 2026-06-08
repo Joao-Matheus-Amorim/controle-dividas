@@ -25,6 +25,7 @@ describe("sensitive-action audit event schema plan guards", () => {
     expect(plan).toContain("billing portal");
     expect(plan).toContain("admin permission audit runtime exists");
     expect(plan).toContain("admin user audit runtime exists");
+    expect(plan).toContain("admin invitation audit runtime exists");
     expect(plan).toContain("payable bill audit runtime exists");
     expect(plan).toContain("receivable income audit runtime exists");
     expect(plan).toContain("expense audit runtime exists");
@@ -63,6 +64,8 @@ describe("sensitive-action audit event schema plan guards", () => {
     expect(plan).toContain("billing.checkout.start");
     expect(plan).toContain("billing.portal");
     expect(plan).toContain("admin.permission.update");
+    expect(plan).toContain("admin.invitation.create");
+    expect(plan).toContain("admin.invitation.resend");
     expect(plan).toContain("finance.expense.delete");
     expect(plan).toContain("finance.payable.status.update");
     expect(plan).toContain("finance.bank.balance.update");
@@ -90,6 +93,7 @@ describe("sensitive-action audit event schema plan guards", () => {
     expect(gapRegister).toContain("audit event schema/read-side rls");
     expect(gapRegister).toContain("admin permission audit runtime");
     expect(gapRegister).toContain("admin user audit runtime");
+    expect(gapRegister).toContain("admin invitation audit runtime");
     expect(gapRegister).toContain("payable bill audit runtime");
     expect(gapRegister).toContain("receivable income audit runtime");
     expect(gapRegister).toContain("expense audit runtime");
