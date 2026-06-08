@@ -41,6 +41,7 @@ Fontes cruzadas nesta revisao:
 - `supabase/migrations/040_audit_events_schema.sql`
 - `supabase/migrations/041_audit_events_write_boundary.sql`
 - `supabase/migrations/042_audit_events_retention_cleanup.sql`
+- `supabase/migrations/044_admin_invitations_schema.sql`
 - `docs/runbooks/BILLING_STRIPE_TEST_ACCOUNT_RUNBOOK.md`
 - `docs/rls/RLS_LIVE_GATE.md`
 - `.github/workflows/rls-live-gate.yml`
@@ -54,6 +55,8 @@ Fontes cruzadas nesta revisao:
 - `app/protected/layout.tsx` carrega `getCurrentOrganization()` e `getUserOrganizations()`.
 - `components/app/active-organization-indicator.tsx` exibe organizacao ativa e permite troca quando ha mais de uma.
 - `app/protected/organization-switcher-actions.ts` persiste a troca de organizacao ativa.
+- Schema/preflight de convites admin esta versionado em `supabase/migrations/044_admin_invitations_schema.sql`, com tabela `organization_invitations`, email normalizado, hash de token, expiracao, estados minimos e RLS admin-scoped.
+- Runtime de convite/admin segue pendente: criar/revogar/reenviar convite, aceitar convite, audit events, rate limit, email delivery, cron de expiracao e remocao de `ADMIN_EMAIL` continuam fora deste passo.
 
 ### Schema tenant-scoped
 
