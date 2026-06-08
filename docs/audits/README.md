@@ -29,6 +29,7 @@ historica ate reconciliar o status.
 | `ADMIN_ACCESS_CONTROL_OWNER_ID_RETIREMENT_CONTRACT.md` | Contrato pre-runtime para retirar `owner_id` de Admin/access-control sem falso verde. |
 | `ADMIN_INVITATION_BOOTSTRAP_CONTRACT.md` | Contrato pre-runtime para substituir futuramente `ADMIN_EMAIL` por convite/admin por organizacao sem falso verde. |
 | `ONBOARDING_TERMINOLOGY_CONTRACT.md` | Contrato vigente do GAP-016 para linguagem do onboarding e adocao inicial de copy runtime. |
+| `NOTIFICATION_SCOPE_CONTRACT.md` | Contrato vigente do GAP-017 para alertas, canais e opt-in antes de notificacoes runtime. |
 | `SENSITIVE_OPERATION_CONTROLS_CONTRACT.md` | Contrato vigente do GAP-015 para rate limit, audit runtime e retention. |
 | `SENSITIVE_OPERATION_RATE_LIMIT_PLAN.md` | Plano/registro do runtime de rate limit; cruzar com o contrato central antes de abrir novo PR. |
 | `SENSITIVE_ACTION_AUDIT_EVENT_SCHEMA_PLAN.md` | Plano/contrato do schema e write boundary de audit events. |
