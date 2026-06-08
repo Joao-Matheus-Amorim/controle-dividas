@@ -20,8 +20,9 @@ Ele define quando usar:
 - server data e Server Actions;
 - uma store global futura.
 
-Este documento nao implementa runtime novo. Ele cria o contrato para impedir
-decisoes ad hoc quando novas telas ou filtros forem adicionados.
+Este documento nao implementa runtime novo e nao adiciona dependencias. Ele
+cria o contrato para impedir decisoes ad hoc quando novas telas ou filtros
+forem adicionados.
 
 ## Estado atual por inspecao
 
