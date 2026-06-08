@@ -36,6 +36,7 @@ Fontes cruzadas nesta revisao:
 - `docs/audits/SENSITIVE_OPERATION_RATE_LIMIT_PLAN.md`
 - `docs/audits/SENSITIVE_DATA_RETENTION_PLAN.md`
 - `docs/audits/CLIENT_STATE_STRATEGY_CONTRACT.md`
+- `docs/audits/ONBOARDING_TERMINOLOGY_CONTRACT.md`
 - `supabase/migrations/040_audit_events_schema.sql`
 - `supabase/migrations/041_audit_events_write_boundary.sql`
 - `supabase/migrations/042_audit_events_retention_cleanup.sql`
@@ -121,6 +122,7 @@ A limpeza final de policies antigas owner/family foi versionada em:
 - Password reset rate limit runtime esta versionado em `app/auth/forgot-password/actions.ts` para `auth.password_reset.request`, com actor por email normalizado, escopo `public-auth`, rollback por `DISABLE_SENSITIVE_RATE_LIMITS=true` e sem audit runtime pelo mesmo limite de autenticacao/membership.
 - Password update rate limit runtime esta versionado em `app/auth/update-password/actions.ts` para `auth.password_update.submit`, com actor pelo auth user id atual, bucket compartilhado `missing-session`, escopo `public-auth`, rollback por `DISABLE_SENSITIVE_RATE_LIMITS=true` e sem audit runtime pelo mesmo limite de autenticacao/membership.
 - Onboarding organization rate limit runtime esta versionado em `app/onboarding/organizacao/actions.ts` para `onboarding.organization.create`, com actor pelo auth user id atual, bucket compartilhado `missing-session`, escopo `onboarding`, rollback por `DISABLE_SENSITIVE_RATE_LIMITS=true` e sem audit runtime porque a organizacao e criada por essa boundary.
+- O contrato do GAP-016 esta documentado em `docs/audits/ONBOARDING_TERMINOLOGY_CONTRACT.md`, definindo `espaco financeiro`, `responsavel principal`, `identificador do link`, limites de termo tecnico, inventario da copy atual e bloqueio de mudanca de rota/runtime antes de PR dedicado de copy.
 - O contrato do GAP-019 esta documentado em `docs/audits/CLIENT_STATE_STRATEGY_CONTRACT.md`, definindo quando usar estado local, URL state, useActionState, useTransition, @tanstack/react-table, server data e quando bloquear store global futura ate existir ADR/contrato dedicado.
 - RLS Live Gate existe em `.github/workflows/rls-live-gate.yml` e possui evidencia verde de CI dedicada no run `26913026310`, attempt `5`, artifact `rls-live-gate-evidence-26913026310-5`, SHA `40093ab24559f064da59d46f5c88b48dc1b65d2c`.
 
@@ -324,13 +326,19 @@ Resultado esperado:
    - Rodar `tests/e2e/dashboard-summary-visual-snapshot-gated.spec.ts` com `RUN_DASHBOARD_SUMMARY_VISUAL_SNAPSHOT=true`.
    - Evitar snapshot amplo sem contrato visual claro.
 
-5. **Dashboard visualization adoption**
+5. **Onboarding terminology adoption**
+   - Usar `docs/audits/ONBOARDING_TERMINOLOGY_CONTRACT.md`.
+   - Trocar apenas uma superficie de copy por PR.
+   - Manter `/onboarding/organizacao` ate existir ADR de rota.
+   - Nao alterar roles, schema, RLS, billing ou membership no PR de copy.
+
+6. **Dashboard visualization adoption**
    - Usar `docs/audits/DASHBOARD_VISUALIZATION_CONTRACT.md`.
    - Escolher apenas um insight inicial antes de charting.
    - Manter dataset e permissao server-side.
    - Nao adicionar biblioteca de chart sem impacto de bundle, fallback textual e rollback.
 
-6. **Sensitive operation controls**
+7. **Sensitive operation controls**
    - Usar `docs/audits/SENSITIVE_OPERATION_CONTROLS_CONTRACT.md`.
    - Usar `docs/audits/SENSITIVE_ACTION_AUDIT_EVENT_SCHEMA_PLAN.md`.
    - Usar `docs/audits/SENSITIVE_OPERATION_RATE_LIMIT_PLAN.md`.
@@ -338,13 +346,13 @@ Resultado esperado:
    - Criar issues separadas para rate limiting, sensitive-action audit logging e data retention.
    - Nao implementar runtime, schema, RLS, billing ou UI sem PR dedicado, validacao e rollback.
 
-7. **Client state strategy adoption**
+8. **Client state strategy adoption**
    - Usar `docs/audits/CLIENT_STATE_STRATEGY_CONTRACT.md`.
    - Ao adicionar filtros em gastos, contas a receber, bancos ou relatorios, preferir URL state.
    - Ao adicionar paginacao, decidir server-side versus TanStack antes de codar.
    - Nao introduzir store global sem ADR/contrato proprio.
 
-8. **Owner_id retirement plan**
+9. **Owner_id retirement plan**
    - Apenas depois dos passos anteriores.
 
 ## 5. Nao fazer agora
