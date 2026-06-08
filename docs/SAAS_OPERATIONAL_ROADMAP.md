@@ -5,7 +5,7 @@
 > revisao. Para estado operacional vigente, usar `docs/VALIDACAO_TECNICA.md`,
 > `docs/SAAS_GAP_REGISTER.md` e o checklist ativo em `docs/audits/`.
 
-Atualizado em: 2026-05-28
+Atualizado em: 2026-06-08
 
 ## 1. Objetivo
 
@@ -28,6 +28,7 @@ Fontes cruzadas nesta revisao:
 - `docs/audits/FINANCE_FORM_UI_CONTRACT.md`
 - `docs/audits/SELECTIVE_VISUAL_SNAPSHOT_STRATEGY.md`
 - `docs/audits/DASHBOARD_SUMMARY_VISUAL_FIXTURE.md`
+- `tests/e2e/dashboard-summary-visual-snapshot-gated.spec.ts-snapshots/dashboard-summary-above-fold-chromium-win32.png`
 - `docs/audits/BILLING_SETTINGS_STATUS_CONTRACT.md`
 - `docs/audits/BILLING_SUBSCRIPTION_FLOW_CONTRACT.md`
 - `docs/audits/BILLING_STRIPE_CONFIGURATION_BOUNDARY.md`
@@ -240,10 +241,12 @@ Resultado atual:
 - viewport inicial unico `390x844`;
 - regra de atualizacao e rollback registrada;
 - screenshot gated definido por `RUN_DASHBOARD_SUMMARY_VISUAL_SNAPSHOT=true`.
+- primeira evidencia versionada em `tests/e2e/dashboard-summary-visual-snapshot-gated.spec.ts-snapshots/dashboard-summary-above-fold-chromium-win32.png`.
 
 Resultado esperado:
 
-- validar o primeiro screenshot gated usando a fixture deterministica do dashboard summary acima da dobra.
+- usar o snapshot versionado como baseline seletivo do dashboard summary acima da dobra;
+- adicionar qualquer nova superficie visual apenas em PR proprio, com fixture deterministica, gate dedicado e rollback.
 
 ### GAP-015 - Controles de operacoes sensiveis
 
@@ -321,11 +324,11 @@ Resultado esperado:
    - Implementar webhook em PR proprio depois do contrato pre-runtime.
    - Planejar Stripe sem misturar com RLS/rotas.
 
-4. **Primeiro snapshot visual seletivo**
+4. **Proxima superficie visual seletiva**
    - Usar `docs/audits/DASHBOARD_SUMMARY_VISUAL_FIXTURE.md`.
    - Usar `__tests__/fixtures/dashboard-summary-visual-snapshot.ts`.
-   - Rodar `tests/e2e/dashboard-summary-visual-snapshot-gated.spec.ts` com `RUN_DASHBOARD_SUMMARY_VISUAL_SNAPSHOT=true`.
-   - Evitar snapshot amplo sem contrato visual claro.
+   - Usar o baseline `dashboard-summary-above-fold` antes de ampliar cobertura.
+   - Evitar snapshot amplo sem contrato visual claro, fixture deterministica e gate dedicado.
 
 5. **Onboarding terminology adoption**
    - Usar `docs/audits/ONBOARDING_TERMINOLOGY_CONTRACT.md`.

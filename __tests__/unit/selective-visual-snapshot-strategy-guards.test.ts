@@ -16,7 +16,7 @@ describe("selective visual snapshot strategy", () => {
   const gapRegister = read("docs/SAAS_GAP_REGISTER.md");
   const visualTokens = read("docs/design/VISUAL_TOKENS_AND_COMPONENT_CONVENTIONS.md");
 
-  it("defines selective snapshots without implementing visual snapshots", () => {
+  it("defines selective snapshots without allowing broad visual snapshots", () => {
     expect(strategy).toContain("gap-011");
     expect(strategy).toContain("snapshots visuais devem ser seletivos, pequenos e deterministas");
     expect(strategy).toContain("nao deve adicionar snapshot amplo");
@@ -51,10 +51,10 @@ describe("selective visual snapshot strategy", () => {
     expect(roadmap).toContain("docs/audits/selective_visual_snapshot_strategy.md");
     expect(roadmap).toContain("estrategia de snapshot visual seletivo");
     expect(roadmap).toContain("dashboard summary acima da dobra");
-    expect(roadmap).toContain("primeiro snapshot visual seletivo");
+    expect(roadmap).toContain("proxima superficie visual seletiva");
 
-    expect(gapRegister).toContain("selective visual snapshot strategy, dashboard summary deterministic fixture, and gated dashboard summary screenshot are documented");
-    expect(gapRegister).toContain("validate the first gated screenshot");
+    expect(gapRegister).toContain("selective visual snapshot strategy, dashboard summary deterministic fixture, gated dashboard summary screenshot, and the first versioned dashboard summary snapshot evidence are covered");
+    expect(gapRegister).toContain("use the versioned dashboard summary baseline");
   });
 
   it("keeps visual token docs pointing to the strategy instead of broad redesign", () => {

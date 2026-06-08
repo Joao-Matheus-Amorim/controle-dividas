@@ -41,6 +41,7 @@ historica ate reconciliar o status.
 | `FINANCE_LIST_UI_CONTRACT.md` | Contrato textual vigente das listas financeiras primarias. |
 | `FINANCE_FORM_UI_CONTRACT.md` | Contrato textual vigente dos formularios financeiros primarios. |
 | `SELECTIVE_VISUAL_SNAPSHOT_STRATEGY.md` | Estrategia vigente de snapshot visual seletivo. |
+| `DASHBOARD_SUMMARY_VISUAL_FIXTURE.md` | Contrato e evidencia do primeiro snapshot visual seletivo do dashboard summary acima da dobra. |
 | `CURRENT_RLS_POLICIES_INVENTORY.md` | Inventario de leitura; validar contra migrations e banco alvo antes de decisao operacional. |
 
 ## Readiness parcialmente superados
