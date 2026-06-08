@@ -38,6 +38,7 @@ describe("sensitive operation controls contract guards", () => {
     expect(contract).toContain("category delete rate limit runtime exists");
     expect(contract).toContain("admin permission rate limit runtime exists");
     expect(contract).toContain("admin invitation rate limit runtime exists");
+    expect(contract).toContain("admin.invitation.accept");
     expect(contract).toContain("admin user rate limit runtime exists");
     expect(contract).toContain("admin permission audit runtime exists");
     expect(contract).toContain("admin invitation audit runtime exists");

@@ -57,10 +57,10 @@ describe("admin invitations schema guards", () => {
 
     expect(contract).toContain("schema/preflight versionado");
     expect(contract).toContain("runtime criar/revogar/reenviar versionado");
-    expect(contract).toContain("runtime final de convite/admin ainda nao implementado");
+    expect(contract).toContain("runtime aceitar/linking versionado");
     expect(gapRegister).toContain("schema/preflight is versioned");
     expect(gapRegister).toContain("create/revoke/resend runtime is versioned");
-    expect(gapRegister).toContain("acceptance/linking runtime is not implemented");
-    expect(statusMap).toContain("runtime final seguem pendentes");
+    expect(gapRegister).toContain("acceptance/linking runtime is versioned");
+    expect(statusMap).toContain("email delivery, ui, cron de expiracao e runtime final seguem pendentes");
   });
 });
