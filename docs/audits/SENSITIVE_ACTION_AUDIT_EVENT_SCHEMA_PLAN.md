@@ -16,6 +16,7 @@ Write boundary exists in supabase/migrations/041_audit_events_write_boundary.sql
 Billing checkout audit runtime exists in app/protected/configuracoes/billing-actions.ts using record_audit_event.
 Admin permission audit runtime exists in app/protected/admin/actions.ts using record_audit_event.
 Admin user audit runtime exists in app/protected/admin/actions.ts using record_audit_event.
+Admin invitation audit runtime exists in app/protected/admin/invitation-actions.ts using record_audit_event.
 Payable bill audit runtime exists in app/protected/contas-a-pagar/actions.ts using record_audit_event.
 Payable write audit runtime exists in app/protected/contas-a-pagar/actions.ts using record_audit_event.
 Receivable income audit runtime exists in app/protected/contas-a-receber/actions.ts using record_audit_event.
@@ -36,7 +37,7 @@ No billing webhook, subscription sync, or commercial enforcement change.
 No E2E change.
 ```
 
-Audit event storage is versioned. Billing checkout, billing portal, admin permission, admin user, payable bill, payable write, receivable income, receivable write, expense, expense write, category delete, category write, bank, bank write, member limit, member status, and member write audit logging are implemented. Other operation families remain pending.
+Audit event storage is versioned. Billing checkout, billing portal, admin permission, admin user, admin invitation create/revoke/resend, payable bill, payable write, receivable income, receivable write, expense, expense write, category delete, category write, bank, bank write, member limit, member status, and member write audit logging are implemented. Other operation families remain pending.
 
 ## Event shape candidate
 
@@ -67,6 +68,7 @@ Initial operation keys should be stable strings, not translated UI labels:
 | Billing checkout | `billing.checkout.start`, `billing.checkout.denied`, `billing.checkout.failed` |
 | Billing portal | `billing.portal.start`, `billing.portal.failed` |
 | Admin users | `admin.user.create`, `admin.user.update`, `admin.user.activate`, `admin.user.deactivate`, `admin.user.delete`, `admin.user.auth_link.sync` |
+| Admin invitations | `admin.invitation.create`, `admin.invitation.revoke`, `admin.invitation.resend` |
 | Permissions | `admin.permission.update`, `admin.feature_permission.update` |
 | Finance deletes | `finance.expense.delete`, `finance.payable.delete`, `finance.receivable.delete`, `finance.bank.delete`, `finance.category.delete` |
 | Finance expense writes | `finance.expense.create`, `finance.expense.update` |
@@ -117,6 +119,7 @@ The initial audit event storage decision is:
 - Billing portal runtime calls `record_audit_event` for `billing.portal.start` session creation and `billing.portal.failed` setup failures.
 - Admin permission runtime calls `record_audit_event` for module and feature permission updates.
 - Admin user runtime calls `record_audit_event` for family access creation, update, auth link sync, activation/deactivation, and deletion.
+- Admin invitation runtime calls `record_audit_event` for create, revoke, and resend preparation without storing raw email addresses, invitation tokens, hashes, or links in metadata.
 - Payable bill runtime calls `record_audit_event` for creation, update, status updates, and deletion without storing amounts, names, notes, or full payloads.
 - Receivable income runtime calls `record_audit_event` for creation, update, status updates, and deletion without storing amounts, sources, banks, notes, or full payloads.
 - Expense runtime calls `record_audit_event` for creation, update, and deletion without storing amounts, descriptions, locations, payment details, or notes.

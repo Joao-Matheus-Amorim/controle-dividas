@@ -1,6 +1,6 @@
 # Admin Invitation Bootstrap Contract
 
-> Status DocDoc: Atual como contrato pre-runtime com schema/preflight versionado
+> Status DocDoc: Atual como contrato com schema/preflight e runtime parcial
 > Uso atual: contrato para substituir futuramente `ADMIN_EMAIL` por um
 > modelo SaaS de convite/admin por organizacao, sem falso verde.
 > Fonte-base: `docs/audits/ADMIN_ACCESS_CONTROL_OWNER_ID_RETIREMENT_CONTRACT.md`.
@@ -13,7 +13,9 @@ Este contrato define o alvo final para administracao inicial, convites e
 recuperacao de ownership antes de qualquer runtime que remova a dependencia
 transicional de `ADMIN_EMAIL`.
 
-Ele nao altera runtime, UI, billing, seeds ou deploy.
+Ele registra schema/preflight e runtime parcial para criar, revogar e preparar
+reenvio de convites. Ele nao altera UI, billing, seeds, deploy, aceite de
+convite ou remocao de `ADMIN_EMAIL`.
 
 ## 2. Estado atual permitido
 
@@ -100,7 +102,7 @@ gates:
 | --- | --- | --- | --- |
 | 1 | contrato convite/admin | este documento, mapas DocDoc e guard | runtime |
 | 2 | schema/preflight de convites | `supabase/migrations/044_admin_invitations_schema.sql` e guard unitario | UI ampla |
-| 3 | runtime criar/revogar/reenviar convite | server actions, audit e rate limit | remover `ADMIN_EMAIL` |
+| 3 | runtime criar/revogar/reenviar convite | `app/protected/admin/invitation-actions.ts`, audit e rate limit | remover `ADMIN_EMAIL` |
 | 4 | runtime aceitar convite | membership/profile linking por organizacao | owner_id retirement |
 | 5 | read path admin organization-first | leituras admin sem `adminProfile.owner_id` como filtro primario | writes admin |
 | 6 | write path admin organization-first | writes admin preservando audit/rate-limit | schema final |
@@ -122,12 +124,12 @@ gates:
 Estado atual:
 
 ```txt
-contrato criado; schema/preflight versionado em `supabase/migrations/044_admin_invitations_schema.sql`; runtime final de convite/admin ainda nao implementado.
+contrato criado; schema/preflight versionado em `supabase/migrations/044_admin_invitations_schema.sql`; runtime criar/revogar/reenviar versionado em `app/protected/admin/invitation-actions.ts`; runtime final de convite/admin ainda nao implementado.
 ```
 
 Proximo PR seguro:
 
 ```txt
-iniciar runtime de criar/revogar/reenviar convite em PR dedicado, com audit
-events e rate limit, sem remover ADMIN_EMAIL e sem retirar owner_id.
+implementar aceite de convite com membership/profile linking por organizacao em
+PR dedicado, sem remover ADMIN_EMAIL e sem retirar owner_id.
 ```

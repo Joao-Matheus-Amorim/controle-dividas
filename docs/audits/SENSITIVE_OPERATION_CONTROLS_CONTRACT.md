@@ -35,6 +35,7 @@ Billing portal audit runtime exists via record_audit_event.
 Billing portal runtime exists for billing.portal.start.
 Admin permission audit runtime exists via record_audit_event.
 Admin user audit runtime exists via record_audit_event.
+Admin invitation audit runtime exists via record_audit_event.
 Billing checkout rate limit runtime exists for billing.checkout.start.
 Billing portal rate limit runtime exists for billing.portal.start.
 Login rate limit runtime exists for auth.login.password with no auth audit runtime.
@@ -70,6 +71,7 @@ Category delete rate limit runtime exists for finance.category.delete.
 Category write rate limit runtime exists for finance.category.create and finance.category.update.
 Admin permission rate limit runtime exists for admin.permission.update and admin.feature_permission.update.
 Admin user rate limit runtime exists for admin.user.create, admin.user.update, admin.user.auth_link.sync, admin.user.delete, and admin.user.status.update.
+Admin invitation rate limit runtime exists for admin.invitation.create, admin.invitation.revoke, and admin.invitation.resend.
 Audit event retention cleanup runtime exists for confirmed owner/admin-only cleanup of expired audit_events through cleanup_expired_audit_events.
 Audit event retention preflight runtime exists for owner/admin-only organization-scoped `audit_events` older than 365 days, with confirmed cleanup runtime and no cleanup job.
 No UI change.
@@ -87,7 +89,7 @@ Initial candidates that need explicit control decisions before runtime work:
 | --- | --- | --- |
 | Auth and session flows | login, signup, password reset, password update | Login password, signup authorized email, signup submit, auth confirm, password reset request, and password update rate limit runtime exist for public auth entry/recovery; remaining auth/session flows still need rate limits and audit outcome model. |
 | Initial organization onboarding | `app/onboarding/organizacao/actions.ts` and `create_initial_organization_onboarding` | Onboarding organization rate limit runtime exists for `onboarding.organization.create`; no onboarding audit runtime exists because the organization context is created by this boundary. |
-| Organization administration | membership role changes, user activation/deactivation, permission changes | Admin permission and admin user audit/rate limit runtime exist; remaining organization administration work still needs retention decisions. |
+| Organization administration | membership role changes, user activation/deactivation, permission changes, invitation create/revoke/resend | Admin permission, admin user, and admin invitation audit/rate limit runtime exist; remaining organization administration work still needs retention decisions. |
 | Billing checkout and portal | `app/protected/configuracoes/billing-actions.ts`, checkout session creation, and portal session creation | Billing checkout and billing portal rate limit runtime exists; Stripe metadata/customer boundaries and audit events are covered for these steps. |
 | Finance mutations | create/update/delete/status transitions in expenses, payables, receivables, banks, categories, and people | Audit event categories and payload redaction. Expense delete, expense write, payable delete, payable status update, payable write, receivable delete, receivable status update, receivable write, bank delete, bank balance update, bank write, member limit update, member status update, member write, category delete, and category write rate limit runtime exist for this step. |
 | Destructive actions | deletes and irreversible state transitions | Confirmation, audit event, rate limit, retention, and recovery decision. |
@@ -109,7 +111,7 @@ Each implementation PR must define:
 - bypass policy for internal/admin flows;
 - rollback strategy.
 
-Rate limiting must be enforced server-side. Client-only throttling is not a GAP-015 control. The current runtime implementations are scoped to `billing.checkout.start`, `billing.portal.start`, `auth.login.password`, `auth.signup.authorized_email.check`, `auth.signup.submit`, `auth.confirm.verify`, `auth.password_reset.request`, `auth.password_update.submit`, `onboarding.organization.create`, `finance.expense.delete`, `finance.expense.create`, `finance.expense.update`, `finance.payable.delete`, `finance.payable.status.update`, `finance.payable.create`, `finance.payable.update`, `finance.receivable.delete`, `finance.receivable.status.update`, `finance.receivable.create`, `finance.receivable.update`, `finance.bank.delete`, `finance.bank.balance.update`, `finance.bank.create`, `finance.bank.update`, `finance.member.limit.update`, `finance.member.status.update`, `finance.member.create`, `finance.member.update`, `finance.category.delete`, `finance.category.create`, `finance.category.update`, `admin.permission.update`, `admin.feature_permission.update`, `admin.user.create`, `admin.user.update`, `admin.user.auth_link.sync`, `admin.user.delete`, and `admin.user.status.update` and can be disabled with `DISABLE_SENSITIVE_RATE_LIMITS=true`.
+Rate limiting must be enforced server-side. Client-only throttling is not a GAP-015 control. The current runtime implementations are scoped to `billing.checkout.start`, `billing.portal.start`, `auth.login.password`, `auth.signup.authorized_email.check`, `auth.signup.submit`, `auth.confirm.verify`, `auth.password_reset.request`, `auth.password_update.submit`, `onboarding.organization.create`, `finance.expense.delete`, `finance.expense.create`, `finance.expense.update`, `finance.payable.delete`, `finance.payable.status.update`, `finance.payable.create`, `finance.payable.update`, `finance.receivable.delete`, `finance.receivable.status.update`, `finance.receivable.create`, `finance.receivable.update`, `finance.bank.delete`, `finance.bank.balance.update`, `finance.bank.create`, `finance.bank.update`, `finance.member.limit.update`, `finance.member.status.update`, `finance.member.create`, `finance.member.update`, `finance.category.delete`, `finance.category.create`, `finance.category.update`, `admin.permission.update`, `admin.feature_permission.update`, `admin.user.create`, `admin.user.update`, `admin.user.auth_link.sync`, `admin.user.delete`, `admin.user.status.update`, `admin.invitation.create`, `admin.invitation.revoke`, and `admin.invitation.resend` and can be disabled with `DISABLE_SENSITIVE_RATE_LIMITS=true`.
 
 ## Sensitive-action audit logging contract
 
