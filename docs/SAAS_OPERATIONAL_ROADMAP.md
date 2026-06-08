@@ -28,7 +28,7 @@ Fontes cruzadas nesta revisao:
 - `docs/audits/FINANCE_FORM_UI_CONTRACT.md`
 - `docs/audits/SELECTIVE_VISUAL_SNAPSHOT_STRATEGY.md`
 - `docs/audits/DASHBOARD_SUMMARY_VISUAL_FIXTURE.md`
-- `tests/e2e/dashboard-summary-visual-snapshot-gated.spec.ts-snapshots/dashboard-summary-above-fold-chromium-win32.png`
+- `tests/e2e/dashboard-summary-visual-snapshot-gated.spec.ts-snapshots/dashboard-summary-above-fold.png`
 - `docs/audits/BILLING_SETTINGS_STATUS_CONTRACT.md`
 - `docs/audits/BILLING_SUBSCRIPTION_FLOW_CONTRACT.md`
 - `docs/audits/BILLING_STRIPE_CONFIGURATION_BOUNDARY.md`
@@ -241,7 +241,8 @@ Resultado atual:
 - viewport inicial unico `390x844`;
 - regra de atualizacao e rollback registrada;
 - screenshot gated definido por `RUN_DASHBOARD_SUMMARY_VISUAL_SNAPSHOT=true`.
-- primeira evidencia versionada em `tests/e2e/dashboard-summary-visual-snapshot-gated.spec.ts-snapshots/dashboard-summary-above-fold-chromium-win32.png`.
+- primeira evidencia versionada em `tests/e2e/dashboard-summary-visual-snapshot-gated.spec.ts-snapshots/dashboard-summary-above-fold.png`;
+- baseline visual portavel via `snapshotPathTemplate` sem sufixo de plataforma.
 
 Resultado esperado:
 
