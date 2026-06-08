@@ -123,6 +123,7 @@ A limpeza final de policies antigas owner/family foi versionada em:
 - Password update rate limit runtime esta versionado em `app/auth/update-password/actions.ts` para `auth.password_update.submit`, com actor pelo auth user id atual, bucket compartilhado `missing-session`, escopo `public-auth`, rollback por `DISABLE_SENSITIVE_RATE_LIMITS=true` e sem audit runtime pelo mesmo limite de autenticacao/membership.
 - Onboarding organization rate limit runtime esta versionado em `app/onboarding/organizacao/actions.ts` para `onboarding.organization.create`, com actor pelo auth user id atual, bucket compartilhado `missing-session`, escopo `onboarding`, rollback por `DISABLE_SENSITIVE_RATE_LIMITS=true` e sem audit runtime porque a organizacao e criada por essa boundary.
 - O contrato do GAP-016 esta documentado em `docs/audits/ONBOARDING_TERMINOLOGY_CONTRACT.md`; a primeira adocao de copy runtime usa `espaco financeiro`, `responsavel principal` e `identificador do link` em `app/onboarding/organizacao/page.tsx`, `app/onboarding/organizacao/actions.ts` e `components/onboarding/organization-onboarding-form.tsx`, sem mudar rota, layout, schema, RLS, billing ou dependencias.
+- O contrato do GAP-017 esta documentado em `docs/audits/NOTIFICATION_SCOPE_CONTRACT.md`, definindo alertas de vencimento/atraso, canal in-app primeiro, gates para email/push, opt-in, tenant scope, permissoes, deduplicacao e rollback antes de qualquer runtime de notificacao.
 - O contrato do GAP-019 esta documentado em `docs/audits/CLIENT_STATE_STRATEGY_CONTRACT.md`, definindo quando usar estado local, URL state, useActionState, useTransition, @tanstack/react-table, server data e quando bloquear store global futura ate existir ADR/contrato dedicado.
 - RLS Live Gate existe em `.github/workflows/rls-live-gate.yml` e possui evidencia verde de CI dedicada no run `26913026310`, attempt `5`, artifact `rls-live-gate-evidence-26913026310-5`, SHA `40093ab24559f064da59d46f5c88b48dc1b65d2c`.
 
@@ -332,13 +333,19 @@ Resultado esperado:
    - Manter `/onboarding/organizacao` ate existir ADR de rota.
    - Nao alterar roles, schema, RLS, billing ou membership no PR de copy.
 
-6. **Dashboard visualization adoption**
+6. **Notification scope adoption**
+   - Usar `docs/audits/NOTIFICATION_SCOPE_CONTRACT.md`.
+   - Escolher apenas um alerta inicial antes de implementar notificacoes.
+   - Preferir canal in-app antes de email ou push.
+   - Nao adicionar provider, cron, schema ou dependencia sem opt-in, deduplicacao e rollback.
+
+7. **Dashboard visualization adoption**
    - Usar `docs/audits/DASHBOARD_VISUALIZATION_CONTRACT.md`.
    - Escolher apenas um insight inicial antes de charting.
    - Manter dataset e permissao server-side.
    - Nao adicionar biblioteca de chart sem impacto de bundle, fallback textual e rollback.
 
-7. **Sensitive operation controls**
+8. **Sensitive operation controls**
    - Usar `docs/audits/SENSITIVE_OPERATION_CONTROLS_CONTRACT.md`.
    - Usar `docs/audits/SENSITIVE_ACTION_AUDIT_EVENT_SCHEMA_PLAN.md`.
    - Usar `docs/audits/SENSITIVE_OPERATION_RATE_LIMIT_PLAN.md`.
@@ -346,13 +353,13 @@ Resultado esperado:
    - Criar issues separadas para rate limiting, sensitive-action audit logging e data retention.
    - Nao implementar runtime, schema, RLS, billing ou UI sem PR dedicado, validacao e rollback.
 
-8. **Client state strategy adoption**
+9. **Client state strategy adoption**
    - Usar `docs/audits/CLIENT_STATE_STRATEGY_CONTRACT.md`.
    - Ao adicionar filtros em gastos, contas a receber, bancos ou relatorios, preferir URL state.
    - Ao adicionar paginacao, decidir server-side versus TanStack antes de codar.
    - Nao introduzir store global sem ADR/contrato proprio.
 
-9. **Owner_id retirement plan**
+10. **Owner_id retirement plan**
    - Apenas depois dos passos anteriores.
 
 ## 5. Nao fazer agora
