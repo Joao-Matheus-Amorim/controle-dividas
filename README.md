@@ -199,14 +199,23 @@ Gatilhos:
 Sequencia do pipeline:
 
 1. Aplica migrations no backend Supabase (`supabase db push`).
-2. Publica frontend na Vercel (`vercel deploy --prod`).
+2. Sincroniza as variaveis Supabase do GitHub para o ambiente Production da Vercel.
+3. Publica frontend na Vercel (`vercel deploy --prod`).
+
+Variavel necessaria no GitHub:
+
+- `NEXT_PUBLIC_SUPABASE_URL`
 
 Secrets necessarios no GitHub:
 
 - `SUPABASE_DB_URL`
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
 - `VERCEL_TOKEN`
 - `VERCEL_ORG_ID`
 - `VERCEL_PROJECT_ID`
+
+Contrato operacional: os valores Supabase usados no runtime Production da Vercel devem ser sincronizados pelo workflow a partir do GitHub. Nao manter Vercel Production como fonte manual separada para `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` ou `SUPABASE_SERVICE_ROLE_KEY`, porque divergencia entre URL e chave publica causa erro de API key em runtime mesmo com deploy verde.
 
 ## Scripts disponiveis
 

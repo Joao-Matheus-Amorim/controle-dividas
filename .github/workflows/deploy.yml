@@ -80,10 +80,28 @@ jobs:
       - name: Validate frontend deploy secrets
         shell: bash
         env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
+          if [ -z "$NEXT_PUBLIC_SUPABASE_URL" ]; then
+            echo "::error title=Missing variable::NEXT_PUBLIC_SUPABASE_URL must be configured in GitHub Actions repository variables."
+            exit 1
+          fi
+
+          if [ -z "$NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY" ]; then
+            echo "::error title=Missing secret::NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY must be configured in GitHub Actions repository secrets."
+            exit 1
+          fi
+
+          if [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
+            echo "::error title=Missing secret::SUPABASE_SERVICE_ROLE_KEY must be configured in GitHub Actions repository secrets."
+            exit 1
+          fi
+
           if [ -z "$VERCEL_TOKEN" ]; then
             echo "::error title=Missing secret::VERCEL_TOKEN must be configured to deploy on Vercel."
             exit 1
@@ -101,6 +119,54 @@ jobs:
 
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
+
+      - name: Validate Supabase public API key registration
+        shell: bash
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          response_file="$(mktemp)"
+          status_code="$(curl --silent --show-error --output "$response_file" --write-out "%{http_code}" \
+            "$NEXT_PUBLIC_SUPABASE_URL/rest/v1/" \
+            --header "apikey: $NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY" \
+            --header "Authorization: Bearer $NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY")"
+
+          if grep --ignore-case --quiet --extended-regexp "invalid api key|unregistered api key" "$response_file"; then
+            echo "::error title=Invalid Supabase public key::NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY is not registered for NEXT_PUBLIC_SUPABASE_URL."
+            exit 1
+          fi
+
+          if [ "$status_code" -lt 200 ] || [ "$status_code" -ge 500 ]; then
+            echo "::error title=Supabase REST check failed::Supabase REST returned HTTP $status_code before Vercel deploy."
+            exit 1
+          fi
+
+      - name: Sync Supabase environment to Vercel production
+        shell: bash
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          printf "%s" "$NEXT_PUBLIC_SUPABASE_URL" | vercel env add NEXT_PUBLIC_SUPABASE_URL production \
+            --force \
+            --yes \
+            --token "$VERCEL_TOKEN"
+
+          printf "%s" "$NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY" | vercel env add NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY production \
+            --force \
+            --yes \
+            --token "$VERCEL_TOKEN"
+
+          printf "%s" "$SUPABASE_SERVICE_ROLE_KEY" | vercel env add SUPABASE_SERVICE_ROLE_KEY production \
+            --force \
+            --yes \
+            --sensitive \
+            --token "$VERCEL_TOKEN"
 
       - name: Pull Vercel project settings
         shell: bash
