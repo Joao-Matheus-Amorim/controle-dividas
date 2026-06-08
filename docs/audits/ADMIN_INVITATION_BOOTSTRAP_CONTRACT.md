@@ -1,11 +1,11 @@
 # Admin Invitation Bootstrap Contract
 
-> Status DocDoc: Atual como contrato pre-runtime
+> Status DocDoc: Atual como contrato pre-runtime com schema/preflight versionado
 > Uso atual: contrato para substituir futuramente `ADMIN_EMAIL` por um
 > modelo SaaS de convite/admin por organizacao, sem falso verde.
 > Fonte-base: `docs/audits/ADMIN_ACCESS_CONTROL_OWNER_ID_RETIREMENT_CONTRACT.md`.
 
-Atualizado em: 2026-06-03
+Atualizado em: 2026-06-08
 
 ## 1. Objetivo
 
@@ -13,7 +13,7 @@ Este contrato define o alvo final para administracao inicial, convites e
 recuperacao de ownership antes de qualquer runtime que remova a dependencia
 transicional de `ADMIN_EMAIL`.
 
-Ele nao altera runtime, schema, RLS, UI, billing, seeds ou deploy.
+Ele nao altera runtime, UI, billing, seeds ou deploy.
 
 ## 2. Estado atual permitido
 
@@ -99,7 +99,7 @@ gates:
 | Ordem | PR | Escopo | Fora de escopo |
 | --- | --- | --- | --- |
 | 1 | contrato convite/admin | este documento, mapas DocDoc e guard | runtime |
-| 2 | schema/preflight de convites | tabela/RPC/preflight, se necessario | UI ampla |
+| 2 | schema/preflight de convites | `supabase/migrations/044_admin_invitations_schema.sql` e guard unitario | UI ampla |
 | 3 | runtime criar/revogar/reenviar convite | server actions, audit e rate limit | remover `ADMIN_EMAIL` |
 | 4 | runtime aceitar convite | membership/profile linking por organizacao | owner_id retirement |
 | 5 | read path admin organization-first | leituras admin sem `adminProfile.owner_id` como filtro primario | writes admin |
@@ -122,12 +122,12 @@ gates:
 Estado atual:
 
 ```txt
-contrato criado; runtime final de convite/admin ainda nao implementado.
+contrato criado; schema/preflight versionado em `supabase/migrations/044_admin_invitations_schema.sql`; runtime final de convite/admin ainda nao implementado.
 ```
 
 Proximo PR seguro:
 
 ```txt
-definir schema/preflight de convites ou iniciar runtime de convite em PR
-dedicado, sem remover ADMIN_EMAIL e sem retirar owner_id.
+iniciar runtime de criar/revogar/reenviar convite em PR dedicado, com audit
+events e rate limit, sem remover ADMIN_EMAIL e sem retirar owner_id.
 ```
