@@ -148,6 +148,8 @@ Regras de deploy:
 
 - `SUPABASE_DB_URL` e secret de CI/CD para `supabase db push`; nao e env runtime do app.
 - `VERCEL_ORG_ID` e `VERCEL_PROJECT_ID` evitam prompt/link interativo da Vercel no runner.
+- `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` e `SUPABASE_SERVICE_ROLE_KEY` sao a fonte GitHub para o runtime Production da Vercel; o deploy sincroniza esses valores antes de publicar o frontend para evitar drift entre GitHub Actions e Vercel.
+- Nao manter valores Supabase divergentes editados manualmente apenas na Vercel Production. Uma URL de projeto com publishable key de outro projeto deixa o deploy verde, mas quebra rotas protegidas com erro de API key em runtime.
 - O job aplica migrations Supabase antes do deploy frontend Vercel.
 - Dependabot e CodeQL nao executam deploy e nao dependem de secrets de Supabase ou Vercel.
 
