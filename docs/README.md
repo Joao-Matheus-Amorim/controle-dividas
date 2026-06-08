@@ -58,3 +58,12 @@ conflito, prevalece:
 4. checklist tecnico ativo;
 5. ADR mais recente aplicavel;
 6. documentos historicos/propostas.
+
+Todo PR que fecha ou reduz gap, bloco ou funcionalidade deve atualizar a
+documentacao viva correspondente no mesmo escopo. No minimo, conferir
+`docs/SAAS_GAP_REGISTER.md`, `docs/VALIDACAO_TECNICA.md`,
+`docs/SAAS_OPERATIONAL_ROADMAP.md`, os indices DocDoc e o contrato/auditoria da
+area tocada.
+
+Decisao arquitetural, mudanca de rota, troca de boundary ou alteracao de
+compatibilidade deve ter ADR ou registro decisorio proprio antes do runtime.
