@@ -23,6 +23,7 @@ Fontes cruzadas nesta revisao:
 - `docs/audits/CURRENT_RLS_POLICIES_INVENTORY.md`
 - `docs/audits/ORGANIZATION_SCOPE_HARDENING_PLAN.md`
 - `docs/audits/DASHBOARD_UI_CONTRACT.md`
+- `docs/audits/DASHBOARD_VISUALIZATION_CONTRACT.md`
 - `docs/audits/FINANCE_LIST_UI_CONTRACT.md`
 - `docs/audits/FINANCE_FORM_UI_CONTRACT.md`
 - `docs/audits/SELECTIVE_VISUAL_SNAPSHOT_STRATEGY.md`
@@ -99,6 +100,7 @@ A limpeza final de policies antigas owner/family foi versionada em:
 - Troca de organizacao ativa tem contrato Playwright gated cleanup-backed em `tests/e2e/multi-org-switch-authenticated-gated.spec.ts`.
 - Rotas `orgSlug` tem contrato Playwright gated cleanup-backed em `tests/e2e/orgslug-authenticated-gated.spec.ts`.
 - O dashboard possui contrato de UI nao fragil em `docs/audits/DASHBOARD_UI_CONTRACT.md` e guard dedicado para preservar textos, secoes, permissao e rotas compartilhadas.
+- O contrato do GAP-018 esta documentado em `docs/audits/DASHBOARD_VISUALIZATION_CONTRACT.md`, definindo candidatos de insight, regras de dados server-side, permissoes, fallback textual, comportamento mobile e bloqueios antes de dependencia de charting.
 - As listas financeiras primarias possuem contrato de UI nao fragil em `docs/audits/FINANCE_LIST_UI_CONTRACT.md` e guard dedicado para preservar estrutura, estados vazios/filtros e acoes condicionadas por permissao.
 - Os formularios financeiros primarios possuem contrato de UI nao fragil em `docs/audits/FINANCE_FORM_UI_CONTRACT.md` e guard dedicado para preservar `useActionState`, feedback, pending state, `AppFormSheet` e campos essenciais.
 - A estrategia de snapshot visual seletivo esta documentada em `docs/audits/SELECTIVE_VISUAL_SNAPSHOT_STRATEGY.md`; nenhum snapshot visual amplo foi implementado neste passo.
@@ -321,6 +323,12 @@ Resultado esperado:
    - Usar `__tests__/fixtures/dashboard-summary-visual-snapshot.ts`.
    - Rodar `tests/e2e/dashboard-summary-visual-snapshot-gated.spec.ts` com `RUN_DASHBOARD_SUMMARY_VISUAL_SNAPSHOT=true`.
    - Evitar snapshot amplo sem contrato visual claro.
+
+5. **Dashboard visualization adoption**
+   - Usar `docs/audits/DASHBOARD_VISUALIZATION_CONTRACT.md`.
+   - Escolher apenas um insight inicial antes de charting.
+   - Manter dataset e permissao server-side.
+   - Nao adicionar biblioteca de chart sem impacto de bundle, fallback textual e rollback.
 
 6. **Sensitive operation controls**
    - Usar `docs/audits/SENSITIVE_OPERATION_CONTROLS_CONTRACT.md`.
