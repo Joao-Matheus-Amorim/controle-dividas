@@ -5,7 +5,6 @@ const skipWebServer = process.env.PLAYWRIGHT_SKIP_WEB_SERVER === "true";
 
 export default defineConfig({
   testDir: "./tests/e2e",
-  snapshotPathTemplate: "{testDir}/{testFilePath}-snapshots/{arg}{ext}",
   timeout: 30_000,
   expect: {
     timeout: 5_000,

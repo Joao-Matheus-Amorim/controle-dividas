@@ -78,9 +78,10 @@ describe("dashboard summary visual snapshot fixture", () => {
     expect(e2eSpec).toContain("test.skip");
     expect(e2eSpec).toContain("tohavescreenshot");
     expect(e2eSpec).toContain("dashboard-summary-above-fold");
-    expect(playwrightConfig).toContain("snapshotpathtemplate");
-    expect(playwrightConfig).toContain("{testdir}/{testfilepath}-snapshots/{arg}{ext}");
+    expect(playwrightConfig).not.toContain("snapshotpathtemplate");
     expect(playwrightConfig).not.toContain("{platform}");
+    expect(visualPage).toContain("system-ui");
+    expect(visualPage).toContain("segoe ui");
     expect(e2eSpec).not.toContain("auth/login");
     expect(e2eSpec).not.toContain("supabase");
     expect(visualPage).toContain("renderdashboardsummaryvisualfixturepage");
@@ -117,12 +118,14 @@ describe("dashboard summary visual snapshot fixture", () => {
   it("keeps GAP-011 docs aligned with fixture-before-snapshot sequencing", () => {
     expect(strategy).toContain("dashboard_summary_visual_fixture.md");
     expect(strategy).toContain("fixture local deterministica definida");
-    expect(strategy).toContain("dashboard-summary-above-fold.png");
-    expect(strategy).toContain("sem sufixo de plataforma");
+    expect(strategy).toContain("dashboard-summary-above-fold-chromium-win32.png");
+    expect(strategy).toContain("sufixos de plataforma padrao do playwright");
     expect(roadmap).toContain("dashboard_summary_visual_fixture.md");
-    expect(roadmap).toContain("primeira evidencia versionada");
+    expect(roadmap).toContain("primeira evidencia windows versionada");
     expect(fixtureDoc).toContain("evidencia versionada");
-    expect(fixtureDoc).toContain("windows, linux e macos");
+    expect(fixtureDoc).toContain("baseline e especifico de plataforma");
+    expect(fixtureDoc).toContain("dashboard-summary-above-fold-chromium-linux.png");
+    expect(fixtureDoc).toContain("dashboard-summary-above-fold-chromium-darwin.png");
     expect(fixtureDoc).toContain("2 passed");
     expect(gapRegister).toContain("first versioned dashboard summary snapshot evidence");
     expect(gapRegister).toContain("use the versioned dashboard summary baseline");

@@ -150,8 +150,8 @@ describe("SaaS hardening status docs", () => {
     expect(e2eRoadmap).toContain("/org/[orgslug]");
     expect(e2eRoadmap).toContain("inaccessible slug");
     expect(e2eRoadmap).toContain("dashboard-summary-above-fold");
-    expect(e2eRoadmap).toContain("dashboard-summary-above-fold.png");
-    expect(e2eRoadmap).toContain("platform-independent");
+    expect(e2eRoadmap).toContain("dashboard-summary-above-fold-chromium-win32.png");
+    expect(e2eRoadmap).toContain("platform-specific screenshot suffixes");
     expect(e2eRoadmap).toContain("run_dashboard_summary_visual_snapshot=true");
   });
 
