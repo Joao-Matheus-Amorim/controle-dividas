@@ -154,6 +154,12 @@ arquivo raiz isolado.
 | `docs/runbooks/*_ORG_SCOPE_HARDENING.md` | Parcialmente superado/historico | Contexto e rollback das migrations de hardening. | Todos possuem nota DocDoc; confirmar estado atual em `VALIDACAO_TECNICA.md` e no banco alvo. |
 | `docs/runbooks/*_RLS_FALLBACK_REMOVAL.md` | Parcialmente superado/historico | Contexto e rollback das migrations de fallback removal. | Todos possuem nota DocDoc; confirmar migrations e politicas atuais antes de executar SQL. |
 
+## Audits DocDoc - contratos de produto
+
+| Documento | Status DocDoc | Uso seguro | Observacao |
+| --- | --- | --- | --- |
+| `docs/audits/ONBOARDING_TERMINOLOGY_CONTRACT.md` | Atual | Contrato vigente do GAP-016 para linguagem e UX do onboarding. | Nao implementa runtime nem altera rota. |
+
 ## PM DocDoc
 
 | Documento | Status DocDoc | Uso seguro | Observacao |
