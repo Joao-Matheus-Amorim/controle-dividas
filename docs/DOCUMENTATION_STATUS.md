@@ -139,6 +139,7 @@ arquivo raiz isolado.
 | `docs/audits/FINANCE_LIST_UI_CONTRACT.md` | Atual | Contrato textual das listas financeiras. | Complementa guards e permissao. |
 | `docs/audits/FINANCE_FORM_UI_CONTRACT.md` | Atual | Contrato textual dos formularios financeiros. | Complementa server actions e RLS. |
 | `docs/audits/SELECTIVE_VISUAL_SNAPSHOT_STRATEGY.md` | Atual | Estrategia de snapshot seletivo. | Evita snapshot amplo sem contrato. |
+| `docs/audits/DASHBOARD_SUMMARY_VISUAL_FIXTURE.md` | Atual | Contrato e evidencia do primeiro snapshot visual seletivo. | Baseline restrito ao dashboard summary acima da dobra. |
 | `docs/audits/ORGANIZATION_SCOPE_HARDENING_PLAN.md` | Parcialmente superado | Historico/controle do hardening `organization_id`. | Estado atual fica em migrations e `VALIDACAO_TECNICA.md`. |
 | `docs/audits/LEGACY_ORGANIZATION_FALLBACK_REMOVAL_READINESS.md` | Parcialmente superado | Historico/controle da remocao de fallback legado. | Revalidar codigo antes de abrir novo PR baseado nele. |
 | `docs/audits/*_ORGANIZATION_SCOPE_READINESS.md` | Parcialmente superado | Readiness por tabela. | Usar como contexto, nao como estado atual isolado. |

@@ -106,7 +106,7 @@ No data-mutating E2E flow before a documented cleanup strategy exists.
 | Create bank account | Gated cleanup-backed covered |
 | Update records | Gated cleanup-backed covered |
 | Remaining record flow | Gated cleanup-backed covered |
-| Dashboard summary visual snapshot | Gated deterministic fixture covered |
+| Dashboard summary visual snapshot | Gated deterministic snapshot covered |
 | Post-deploy protected-route smoke | Manual gate exists; evidence pending |
 
 ## Protected route matrix
@@ -151,7 +151,7 @@ E2E_POST_DEPLOY_PASSWORD
 
 | Surface | Status | Notes |
 | --- | --- | --- |
-| `dashboard-summary-above-fold` | Gated deterministic fixture covered | Uses `RUN_DASHBOARD_SUMMARY_VISUAL_SNAPSHOT=true`, `tests/e2e/dashboard-summary-visual-snapshot-gated.spec.ts`, and `__tests__/fixtures/dashboard-summary-visual-snapshot.ts`. It captures only the contracted dashboard summary surface, not the full protected app. |
+| `dashboard-summary-above-fold` | Gated deterministic snapshot covered | Uses `RUN_DASHBOARD_SUMMARY_VISUAL_SNAPSHOT=true`, `tests/e2e/dashboard-summary-visual-snapshot-gated.spec.ts`, `__tests__/fixtures/dashboard-summary-visual-snapshot.ts`, and the versioned PNG `tests/e2e/dashboard-summary-visual-snapshot-gated.spec.ts-snapshots/dashboard-summary-above-fold-chromium-win32.png`. It captures only the contracted dashboard summary surface, not the full protected app. |
 
 ## Public/auth matrix
 
@@ -210,5 +210,5 @@ OrgSlug routing is covered by a cleanup-backed gated contract for allowed slug, 
 Admin and limited-user coverage are blocked only by explicit fixture contracts.
 No data-changing E2E test exists without cleanup strategy.
 The data-changing E2E coverage block has cleanup-backed coverage for create, update, and remaining record lifecycle flows.
-The first visual snapshot is gated, deterministic, and restricted to the dashboard summary above the fold.
+The first visual snapshot is gated, deterministic, versioned, and restricted to the dashboard summary above the fold.
 ```

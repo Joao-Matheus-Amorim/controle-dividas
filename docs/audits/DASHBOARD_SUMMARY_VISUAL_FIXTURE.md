@@ -1,6 +1,6 @@
 # Dashboard summary visual fixture
 
-Atualizado em: 2026-05-28
+Atualizado em: 2026-06-08
 
 ## Objetivo
 
@@ -72,6 +72,33 @@ RUN_DASHBOARD_SUMMARY_VISUAL_SNAPSHOT=true
 - Nao misturar billing, RLS, schema ou rotas.
 - Nao atualizar snapshot sem explicar a mudanca de contrato.
 
+## Evidencia versionada
+
+O primeiro snapshot foi gerado localmente com o gate dedicado e versionado em:
+
+```txt
+tests/e2e/dashboard-summary-visual-snapshot-gated.spec.ts-snapshots/dashboard-summary-above-fold-chromium-win32.png
+```
+
+Evidencia de execucao local:
+
+```txt
+RUN_DASHBOARD_SUMMARY_VISUAL_SNAPSHOT=true
+tests/e2e/dashboard-summary-visual-snapshot-gated.spec.ts
+2 passed
+2026-06-08
+```
+
+Esta evidencia cobre somente `dashboard-summary-above-fold`.
+
+Ela nao cobre:
+
+- app protegido completo;
+- fluxo autenticado real;
+- dados remotos;
+- multiplos viewports;
+- listas, formularios, billing, RLS, schema ou rotas.
+
 ## Comando local esperado neste passo
 
 PowerShell:
@@ -88,4 +115,7 @@ RUN_DASHBOARD_SUMMARY_VISUAL_SNAPSHOT=true npm run test:e2e -- tests/e2e/dashboa
 
 ## Proximo passo
 
-Validar o snapshot gerado localmente e manter o escopo restrito ao dashboard summary acima da dobra.
+Usar este snapshot como baseline seletivo do dashboard summary acima da dobra.
+
+Qualquer novo snapshot deve continuar em PR proprio, com superficie documentada,
+fixture deterministica, comando gated e rollback simples.

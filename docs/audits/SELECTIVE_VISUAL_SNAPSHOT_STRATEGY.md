@@ -4,7 +4,7 @@
 > Uso atual: estrategia vigente para snapshot visual seletivo e deterministico.
 > Observacao: nao autoriza snapshot amplo sem contrato de superficie e fixture.
 
-Atualizado em: 2026-05-28
+Atualizado em: 2026-06-08
 
 ## Objetivo
 
@@ -84,9 +84,9 @@ Este documento nao:
 
 ## Proximo passo seguro
 
-O primeiro PR de snapshot visual deve escolher apenas uma superficie e provar estabilidade com fixture local deterministica.
+O primeiro snapshot visual seletivo ja escolheu apenas uma superficie e gerou baseline versionado com fixture local deterministica.
 
-Recomendacao inicial:
+Baseline inicial:
 
 ```txt
 dashboard summary acima da dobra com fixture local deterministica
@@ -112,4 +112,5 @@ Estado atual:
 - viewport inicial unico definido;
 - criterio de atualizacao e rollback definidos;
 - Playwright screenshot gated implementado em `tests/e2e/dashboard-summary-visual-snapshot-gated.spec.ts`;
+- PNG versionado em `tests/e2e/dashboard-summary-visual-snapshot-gated.spec.ts-snapshots/dashboard-summary-above-fold-chromium-win32.png`;
 - nenhum snapshot visual amplo implementado.

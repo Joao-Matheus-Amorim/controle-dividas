@@ -141,8 +141,8 @@ describe("SaaS hardening status docs", () => {
     expect(gapRegister).toContain("billing portal runtime");
     expect(gapRegister).toContain("real stripe checkout and portal evidence is pending");
     expect(gapRegister).toContain("stripe test account and credentials");
-    expect(gapRegister).toContain("dashboard, primary finance lists, primary data-changing forms, selective visual snapshot strategy, dashboard summary deterministic fixture, and gated dashboard summary screenshot are documented");
-    expect(gapRegister).toContain("validate the first gated screenshot");
+    expect(gapRegister).toContain("dashboard, primary finance lists, primary data-changing forms, selective visual snapshot strategy, dashboard summary deterministic fixture, gated dashboard summary screenshot, and the first versioned dashboard summary snapshot evidence are covered");
+    expect(gapRegister).toContain("use the versioned dashboard summary baseline");
     expect(gapRegister).not.toContain("protected routes still use `/protected` instead of explicit organization routes");
     expect(gapRegister).not.toContain("switching between organizations has no dedicated tests");
 
@@ -150,6 +150,7 @@ describe("SaaS hardening status docs", () => {
     expect(e2eRoadmap).toContain("/org/[orgslug]");
     expect(e2eRoadmap).toContain("inaccessible slug");
     expect(e2eRoadmap).toContain("dashboard-summary-above-fold");
+    expect(e2eRoadmap).toContain("dashboard-summary-above-fold-chromium-win32.png");
     expect(e2eRoadmap).toContain("run_dashboard_summary_visual_snapshot=true");
   });
 

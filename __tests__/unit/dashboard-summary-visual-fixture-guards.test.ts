@@ -26,7 +26,7 @@ describe("dashboard summary visual snapshot fixture", () => {
   const roadmap = read("docs/SAAS_OPERATIONAL_ROADMAP.md");
   const gapRegister = read("docs/SAAS_GAP_REGISTER.md");
 
-  it("defines the first selective snapshot surface without adding a screenshot", () => {
+  it("defines the first selective snapshot surface without broad visual coverage", () => {
     expect(dashboardSummaryVisualSnapshotSurface.id).toBe("dashboard-summary-above-fold");
     expect(dashboardSummaryVisualSnapshotSurface.route).toBe("/protected");
     expect(dashboardSummaryVisualSnapshotSurface.includes).toEqual([
@@ -113,9 +113,12 @@ describe("dashboard summary visual snapshot fixture", () => {
   it("keeps GAP-011 docs aligned with fixture-before-snapshot sequencing", () => {
     expect(strategy).toContain("dashboard_summary_visual_fixture.md");
     expect(strategy).toContain("fixture local deterministica definida");
+    expect(strategy).toContain("dashboard-summary-above-fold-chromium-win32.png");
     expect(roadmap).toContain("dashboard_summary_visual_fixture.md");
-    expect(roadmap).toContain("fixture deterministica do dashboard summary acima da dobra");
-    expect(gapRegister).toContain("dashboard summary deterministic fixture, and gated dashboard summary screenshot");
-    expect(gapRegister).toContain("validate the first gated screenshot");
+    expect(roadmap).toContain("primeira evidencia versionada");
+    expect(fixtureDoc).toContain("evidencia versionada");
+    expect(fixtureDoc).toContain("2 passed");
+    expect(gapRegister).toContain("first versioned dashboard summary snapshot evidence");
+    expect(gapRegister).toContain("use the versioned dashboard summary baseline");
   });
 });
