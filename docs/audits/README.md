@@ -34,6 +34,7 @@ historica ate reconciliar o status.
 | `SENSITIVE_DATA_RETENTION_PLAN.md` | Plano de retention; nao usar como evidencia de cleanup automatizado amplo. |
 | `BILLING_WEBHOOK_RUNTIME_CONTRACT.md` | Contrato pre-runtime do futuro webhook Stripe; webhook segue bloqueado ate evidencia real de checkout e portal. |
 | `CLIENT_STATE_STRATEGY_CONTRACT.md` | Contrato vigente do GAP-019 para escolher estado local, URL state, Server Actions, TanStack table e stores futuras. |
+| `DASHBOARD_VISUALIZATION_CONTRACT.md` | Contrato vigente do GAP-018 para graficos, series temporais e insights do dashboard antes de charting. |
 | `DASHBOARD_UI_CONTRACT.md` | Contrato textual vigente do dashboard. |
 | `FINANCE_LIST_UI_CONTRACT.md` | Contrato textual vigente das listas financeiras primarias. |
 | `FINANCE_FORM_UI_CONTRACT.md` | Contrato textual vigente dos formularios financeiros primarios. |
