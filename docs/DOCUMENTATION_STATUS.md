@@ -133,6 +133,7 @@ arquivo raiz isolado.
 | `docs/audits/SENSITIVE_ACTION_AUDIT_EVENT_SCHEMA_PLAN.md` | Atual como plano/registro | Plano de audit events e write boundary. | Confirmar migrations atuais antes de operar. |
 | `docs/audits/SENSITIVE_DATA_RETENTION_PLAN.md` | Atual como plano | Plano de retention. | Nao prova cleanup automatizado amplo. |
 | `docs/audits/BILLING_WEBHOOK_RUNTIME_CONTRACT.md` | Atual como contrato pre-runtime | Requisitos do futuro webhook Stripe. | Webhook segue bloqueado ate evidencia real de checkout e portal. |
+| `docs/audits/CLIENT_STATE_STRATEGY_CONTRACT.md` | Atual | Contrato vigente do GAP-019 para estado local, URL state, Server Actions, TanStack table e stores futuras. | Nao implementa runtime nem adiciona dependencia. |
 | `docs/audits/DASHBOARD_UI_CONTRACT.md` | Atual | Contrato textual do dashboard. | Complementa guards, nao substitui teste visual. |
 | `docs/audits/FINANCE_LIST_UI_CONTRACT.md` | Atual | Contrato textual das listas financeiras. | Complementa guards e permissao. |
 | `docs/audits/FINANCE_FORM_UI_CONTRACT.md` | Atual | Contrato textual dos formularios financeiros. | Complementa server actions e RLS. |

@@ -48,7 +48,7 @@ A gap is not solved until a small PR is merged with green CI and the related doc
 | GAP-016 | Onboarding terminology | The onboarding path and wording expose organization terminology that can feel abstract for personal/family finance users. | Define product copy and UX contract before UI changes. |
 | GAP-017 | Notifications | Due-date alerts and notification channels are not implemented. | Define notification scope, channel, and opt-in model before implementation. |
 | GAP-018 | Dashboard visualization | Dashboard chart/time-series visualization is not explicitly covered as a product capability. | Define dashboard insight requirements before adding charting dependencies. |
-| GAP-019 | Client state strategy | There is no explicit client state strategy for growing filters, pagination, optimistic updates, and local UI coordination. | Document when local state, URL state, server actions, or a store should be used. |
+| GAP-019 | Client state strategy | Client state strategy contract exists in `docs/audits/CLIENT_STATE_STRATEGY_CONTRACT.md`, covering local state, URL state, useActionState, useTransition, @tanstack/react-table, server data, and the boundary for any future store. No runtime, UI, schema, RLS, billing, or dependency change is implemented. | Use the contract before adding filters, pagination, optimistic updates, or a global store; update it when the first runtime implementation lands. |
 
 GAP-015 public auth note: login rate limit runtime covers `auth.login.password` in `app/auth/login/actions.ts` using the normalized email as actor key and `public-auth` as organization key, with shared buckets for missing or malformed emails. This step has sem audit runtime because `record_audit_event` requires an authenticated organization member.
 
@@ -95,6 +95,8 @@ Reason:
 - billing webhook and subscription sync work should not start until checkout and portal evidence gates have real Stripe test evidence;
 - GAP-011 is reduced by dashboard, finance list, finance form, selective visual snapshot, dashboard summary deterministic fixture, and gated screenshot contracts; broad visual redesign still needs explicit evidence before any wider visual coverage;
 - GAP-015 tracks controls expected by users handling sensitive financial data; billing checkout audit, billing checkout rate limiting, billing portal audit, billing portal rate limiting, expense delete rate limiting, expense write audit and rate limiting, payable delete rate limiting, payable status rate limiting, payable write audit and rate limiting, receivable delete rate limiting, receivable status rate limiting, receivable write audit and rate limiting, bank delete rate limiting, bank balance rate limiting, bank write audit and rate limiting, member limit audit and rate limiting, member status audit and rate limiting, member write audit and rate limiting, category delete audit and rate limiting, category write audit and rate limiting, admin permission audit and rate limiting, admin user audit and rate limiting, payable bill, receivable income, expense, and bank audit runtime exist, but broader rate limiting and retention cleanup runtime are still pending.
+
+GAP-019 now has a client state strategy contract, but runtime adoption remains future work.
 
 ## Boundaries
 
