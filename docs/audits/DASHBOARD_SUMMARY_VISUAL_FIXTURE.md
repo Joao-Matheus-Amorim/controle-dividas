@@ -77,11 +77,18 @@ RUN_DASHBOARD_SUMMARY_VISUAL_SNAPSHOT=true
 O primeiro snapshot foi gerado localmente com o gate dedicado e versionado em:
 
 ```txt
-tests/e2e/dashboard-summary-visual-snapshot-gated.spec.ts-snapshots/dashboard-summary-above-fold.png
+tests/e2e/dashboard-summary-visual-snapshot-gated.spec.ts-snapshots/dashboard-summary-above-fold-chromium-win32.png
 ```
 
-O Playwright usa `snapshotPathTemplate` sem sufixo de plataforma para este
-baseline, entao o mesmo arquivo e usado em Windows, Linux e macOS.
+Este baseline e especifico de plataforma. A fixture renderiza texto com fontes
+de sistema (`Inter`, `ui-sans-serif`, `system-ui`, `"Segoe UI"`, `sans-serif`),
+entao Linux e macOS devem manter seus proprios baselines com o sufixo padrao do
+Playwright, por exemplo:
+
+```txt
+dashboard-summary-above-fold-chromium-linux.png
+dashboard-summary-above-fold-chromium-darwin.png
+```
 
 Evidencia de execucao local:
 

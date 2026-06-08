@@ -112,6 +112,6 @@ Estado atual:
 - viewport inicial unico definido;
 - criterio de atualizacao e rollback definidos;
 - Playwright screenshot gated implementado em `tests/e2e/dashboard-summary-visual-snapshot-gated.spec.ts`;
-- PNG versionado em `tests/e2e/dashboard-summary-visual-snapshot-gated.spec.ts-snapshots/dashboard-summary-above-fold.png`;
-- baseline portavel por `snapshotPathTemplate` sem sufixo de plataforma;
+- PNG Windows versionado em `tests/e2e/dashboard-summary-visual-snapshot-gated.spec.ts-snapshots/dashboard-summary-above-fold-chromium-win32.png`;
+- baselines Linux/macOS devem usar os sufixos de plataforma padrao do Playwright enquanto a fixture usar fontes de sistema;
 - nenhum snapshot visual amplo implementado.
