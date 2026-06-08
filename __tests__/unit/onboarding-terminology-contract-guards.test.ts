@@ -20,10 +20,10 @@ describe("onboarding terminology contract guards", () => {
   const auditsReadme = read("docs/audits/README.md");
   const docStatus = read("docs/DOCUMENTATION_STATUS.md");
 
-  it("defines GAP-016 without implementing runtime", () => {
+  it("defines GAP-016 copy adoption without changing route or data boundaries", () => {
     expect(contract).toContain("gap-016");
-    expect(contract).toContain("nao altera runtime");
-    expect(contract).toContain("nao altera ui");
+    expect(contract).toContain("altera apenas copy runtime do onboarding");
+    expect(contract).toContain("nao altera layout");
     expect(contract).toContain("nao altera rota");
     expect(contract).toContain("nao altera schema");
     expect(contract).toContain("nao altera rls");
@@ -40,14 +40,20 @@ describe("onboarding terminology contract guards", () => {
     expect(contract).toContain("slug");
   });
 
-  it("keeps current onboarding copy inventoried before runtime adoption", () => {
-    expect(page).toContain("crie sua organizacao financeira");
-    expect(page).toContain("owner");
-    expect(actions).toContain("nome da organizacao");
-    expect(actions).toContain("slug");
-    expect(form).toContain("nome da organizacao");
+  it("keeps runtime copy aligned with the adopted user-facing terms", () => {
+    expect(page).toContain("crie seu espaco financeiro");
+    expect(page).toContain("responsavel principal");
+    expect(page).not.toContain("owner");
+    expect(actions).toContain("nome do espaco financeiro");
+    expect(actions).toContain("identificador do link");
+    expect(form).toContain("nome do espaco financeiro");
+    expect(form).toContain("identificador do link");
     expect(form).toContain("familia-amorim");
 
+    expect(contract).toContain("crie seu espaco financeiro");
+    expect(contract).toContain("nome do espaco financeiro");
+    expect(contract).toContain("identificador do link");
+    expect(contract).toContain("responsavel principal");
     expect(contract).toContain("crie sua organizacao financeira");
     expect(contract).toContain("nome da organizacao");
     expect(contract).toContain("familia-amorim");
@@ -62,6 +68,6 @@ describe("onboarding terminology contract guards", () => {
     expect(gapRegister).toContain("onboarding terminology contract exists");
     expect(roadmap).toContain("onboarding terminology adoption");
     expect(auditsReadme).toContain("contrato vigente do gap-016");
-    expect(docStatus).toContain("nao implementa runtime nem altera rota");
+    expect(docStatus).toContain("runtime de copy inicial implementado; nao altera rota");
   });
 });

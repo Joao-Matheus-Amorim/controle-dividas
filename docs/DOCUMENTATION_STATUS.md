@@ -158,7 +158,7 @@ arquivo raiz isolado.
 
 | Documento | Status DocDoc | Uso seguro | Observacao |
 | --- | --- | --- | --- |
-| `docs/audits/ONBOARDING_TERMINOLOGY_CONTRACT.md` | Atual | Contrato vigente do GAP-016 para linguagem e UX do onboarding. | Nao implementa runtime nem altera rota. |
+| `docs/audits/ONBOARDING_TERMINOLOGY_CONTRACT.md` | Atual | Contrato vigente do GAP-016 para linguagem e UX do onboarding. | Runtime de copy inicial implementado; nao altera rota. |
 
 ## PM DocDoc
 

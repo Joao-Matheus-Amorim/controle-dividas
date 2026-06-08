@@ -1,30 +1,30 @@
 # Onboarding Terminology Contract
 
 > Status DocDoc: Atual
-> Uso atual: contrato vigente do GAP-016 para copy e UX do onboarding antes de
-> qualquer mudanca de UI/runtime.
+> Uso atual: contrato vigente do GAP-016 para copy e UX do onboarding, incluindo
+> a adocao inicial de linguagem em runtime.
 
 Atualizado em: 2026-06-08
 
 ## Objetivo
 
 Definir a linguagem de produto para o primeiro onboarding financeiro sem mudar
-runtime, rota, schema, RLS, billing, permissoes ou dependencias.
+rota, schema, RLS, billing, permissoes ou dependencias.
 
 Este contrato existe porque o fluxo atual expoe termos tecnicos como
 `organizacao`, `owner` e `slug` para usuarios pessoais/familiares. Esses termos
 continuam validos como modelo tecnico multi-tenant, mas nao devem ser a primeira
 camada de linguagem de produto quando o usuario esta criando o primeiro espaco.
 
-## Escopo deste PR
+## Escopo da adocao inicial
 
-- Documenta o GAP-016.
+- Implementa a primeira troca de copy do GAP-016.
 - Define o mapa de termos para futuras mudancas de copy.
-- Inventaria a copy atual do onboarding.
+- Inventaria a copy anterior e a copy adotada no onboarding.
 - Mantem `/onboarding/organizacao` como rota vigente.
 
-Este PR nao altera runtime.
-Este PR nao altera UI.
+Este PR altera apenas copy runtime do onboarding.
+Este PR nao altera layout.
 Este PR nao altera rota.
 Este PR nao altera schema.
 Este PR nao altera RLS.
@@ -32,15 +32,32 @@ Este PR nao altera billing.
 Este PR nao adiciona dependencia.
 Este PR nao muda /onboarding/organizacao.
 
-## Superficie atual inventariada
+## Superficie runtime adotada
 
-Arquivos de runtime que continuam inalterados neste contrato:
+Arquivos de runtime com copy adotada:
 
 - `app/onboarding/organizacao/page.tsx`
 - `app/onboarding/organizacao/actions.ts`
 - `components/onboarding/organization-onboarding-form.tsx`
 
-Termos atuais que explicam o gap:
+Termos adotados:
+
+- `Crie seu espaco financeiro`
+- `seu espaco financeiro inicial`
+- `responsavel principal`
+- `Nome do espaco financeiro`
+- `Identificador do link`
+- `familia-amorim`
+
+## Superficie anterior inventariada
+
+Arquivos de runtime que explicavam o gap antes da adocao:
+
+- `app/onboarding/organizacao/page.tsx`
+- `app/onboarding/organizacao/actions.ts`
+- `components/onboarding/organization-onboarding-form.tsx`
+
+Termos anteriores que explicavam o gap:
 
 - `Crie sua organizacao financeira`
 - `sua organizacao financeira inicial`
@@ -75,9 +92,9 @@ deve priorizar o nome do espaco e tornar o identificador secundario.
 | slug | identificador do link | Explicar apenas quando o campo estiver visivel. |
 | Nome da organizacao | Nome do espaco financeiro | Label de formulario futura. |
 
-## Regras de adocao futura
+## Regras de adocao futura restante
 
-1. Fazer a primeira troca de copy em PR pequeno e dedicado.
+1. Fazer qualquer troca restante de copy em PR pequeno e dedicado.
 2. Nao misturar copy com route rename, billing, RLS, schema ou permissao.
 3. Manter `/onboarding/organizacao` ate existir ADR ou decisao de rota.
 4. Atualizar este contrato no mesmo PR que mudar a copy.
@@ -92,9 +109,10 @@ deve priorizar o nome do espaco e tornar o identificador secundario.
 - Nao substituir `organization` no codigo sem decisao arquitetural separada.
 - Nao remover `owner` do modelo de permissao neste bloco.
 - Nao renomear `/onboarding/organizacao` neste bloco.
-- Nao declarar GAP-016 runtime como implementado ate existir PR de copy.
+- Nao declarar GAP-016 totalmente fechado enquanto a rota publica permanecer
+  `/onboarding/organizacao` sem decisao de rota.
 
-## Criterios de aceite para runtime futuro
+## Criterios de aceite do runtime de copy
 
 - O primeiro titulo deve falar em `espaco financeiro`, nao em `organizacao`.
 - O texto deve explicar que o espaco agrupa pessoas, contas, gastos, bancos,

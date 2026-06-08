@@ -14,12 +14,12 @@ export default function InitialOrganizationOnboardingPage() {
             Onboarding inicial
           </p>
           <h1 className="text-3xl font-black tracking-tight">
-            Crie sua organizacao financeira
+            Crie seu espaco financeiro
           </h1>
           <p className="text-sm leading-6 text-white/55">
             Este espaco vai agrupar pessoas, contas, gastos, bancos, permissoes e
-            relatorios. Ao continuar, sua organizacao financeira inicial sera
-            criada e seu usuario sera vinculado como owner dela.
+            relatorios. Ao continuar, seu espaco financeiro inicial sera criado e
+            seu usuario sera vinculado como responsavel principal.
           </p>
         </div>
 
@@ -28,9 +28,9 @@ export default function InitialOrganizationOnboardingPage() {
         </div>
 
         <div className="rounded-2xl border border-[#8b72f8]/20 bg-[#8b72f8]/10 p-4 text-sm leading-6 text-[#d8d0ff]">
-          Escolha um nome e um slug para identificar sua organizacao. Depois da
-          criacao, use Voltar para o app para acessar o ambiente protegido com
-          acesso inicial de owner.
+          Escolha um nome para o espaco financeiro e, se quiser, ajuste o
+          identificador do link. Depois da criacao, use Voltar para o app para
+          acessar o ambiente protegido como responsavel principal.
         </div>
 
         <a

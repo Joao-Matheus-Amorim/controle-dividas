@@ -27,7 +27,7 @@ function normalizeOrganizationSlug(value: string) {
 
 function getOnboardingErrorMessage(message: string) {
   if (message.toLowerCase().includes("duplicate key value")) {
-    return "Este slug já está em uso.";
+    return "Este identificador do link ja esta em uso.";
   }
 
   return message;
@@ -42,19 +42,19 @@ export async function createInitialOrganizationFromOnboarding(
   const slug = rawSlug ? normalizeOrganizationSlug(rawSlug) : normalizeOrganizationSlug(name);
 
   if (!name) {
-    return { error: "Informe o nome da organização." };
+    return { error: "Informe o nome do espaco financeiro." };
   }
 
   if (name.length < 3) {
-    return { error: "O nome da organização deve ter pelo menos 3 caracteres." };
+    return { error: "O nome do espaco financeiro deve ter pelo menos 3 caracteres." };
   }
 
   if (!slug) {
-    return { error: "Informe um slug válido para a organização." };
+    return { error: "Informe um identificador do link valido para o espaco financeiro." };
   }
 
   if (!slugPattern.test(slug)) {
-    return { error: "Use apenas letras minúsculas, números e hífens no slug." };
+    return { error: "Use apenas letras minusculas, numeros e hifens no identificador do link." };
   }
 
   const supabase = await createClient();
@@ -68,7 +68,7 @@ export async function createInitialOrganizationFromOnboarding(
 
   if (!rateLimit.allowed) {
     return {
-      error: "Muitas tentativas de criacao de organizacao. Tente novamente em alguns minutos.",
+      error: "Muitas tentativas de criacao de espaco financeiro. Tente novamente em alguns minutos.",
     };
   }
 
@@ -81,5 +81,5 @@ export async function createInitialOrganizationFromOnboarding(
     return { error: getOnboardingErrorMessage(error.message) };
   }
 
-  return { success: "Organização criada com sucesso." };
+  return { success: "Espaco financeiro criado com sucesso." };
 }
