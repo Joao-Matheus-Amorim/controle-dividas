@@ -50,6 +50,8 @@ Sem mudanca funcional escondida em PR documental.
 Sem billing antes de isolamento, UX multi-org e permissoes amadurecerem.
 Rotas por orgSlug seguem o contrato ADR 0007 e mantem `/protected` como compatibilidade transicional.
 Sem remover owner_id antes de preflight, dry-run, gates e rollback.
+Todo PR que fecha ou reduz gap, bloco ou funcionalidade precisa atualizar a documentacao viva correspondente.
+Decisao arquitetural ou mudanca de rota exige ADR ou registro decisorio proprio antes do runtime.
 ```
 
 ## Estado SaaS multi-tenant

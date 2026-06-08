@@ -361,7 +361,8 @@ Workflow manual de RLS real:
 8. Usuario inativo fica bloqueado?
 9. A rota precisa aparecer no menu?
 10. Precisa de teste unitario, integracao ou E2E gated?
-11. Precisa atualizar README/status/roadmap?
+11. Atualiza documentacao viva do gap, bloco ou funcionalidade no mesmo PR?
+12. Se houver decisao arquitetural, mudanca de rota, boundary ou compatibilidade, existe ADR ou registro decisorio antes do runtime?
 ```
 
 ## Roadmap arquitetural

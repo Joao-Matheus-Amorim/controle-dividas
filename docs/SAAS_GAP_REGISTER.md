@@ -17,6 +17,10 @@ This is documentation only.
 
 ```txt
 A gap is not solved until a small PR is merged with green CI and the related documentation is updated.
+Every PR that closes or reduces a gap, block, or feature must update the living documentation in the same scope.
+Architecture decisions, route changes, boundary changes, and compatibility changes require an ADR or decision record before runtime.
+Regra operacional: todo PR que fecha ou reduz gap, bloco ou funcionalidade atualiza a documentacao viva no mesmo escopo.
+Decisao arquitetural, mudanca de rota, boundary ou compatibilidade exige ADR ou registro decisorio antes do runtime.
 ```
 
 ## Completed blocks
