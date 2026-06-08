@@ -20,7 +20,7 @@ describe("initial organization onboarding route guards", () => {
 
     expect(source).toContain("InitialOrganizationOnboardingPage");
     expect(source).toContain("Onboarding inicial");
-    expect(source).toContain("Crie sua organizacao financeira");
+    expect(source).toContain("Crie seu espaco financeiro");
     expect(source).toContain("OrganizationOnboardingForm");
     expect(source).not.toContain("createClient");
     expect(source).not.toContain("createAdminClient");
@@ -31,9 +31,9 @@ describe("initial organization onboarding route guards", () => {
   it("keeps onboarding copy aligned with organization creation behavior", () => {
     const source = readSource("app/onboarding/organizacao/page.tsx");
 
-    expect(source).toContain("organizacao financeira inicial sera");
-    expect(source).toContain("criada");
-    expect(source).toContain("usuario sera vinculado como owner");
+    expect(source).toContain("espaco financeiro inicial sera");
+    expect(source).toContain("criado");
+    expect(source).toContain("usuario sera vinculado como responsavel principal");
     expect(source).toContain("Depois da");
     expect(source).toContain("criacao");
     expect(source).toContain("use Voltar para o app");

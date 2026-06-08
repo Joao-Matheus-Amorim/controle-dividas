@@ -67,7 +67,7 @@ describe("onboarding organization rate limit runtime actions", () => {
           organization_slug: "familia-amorim",
         }),
       ),
-    ).resolves.toEqual({ success: "Organiza\u00e7\u00e3o criada com sucesso." });
+    ).resolves.toEqual({ success: "Espaco financeiro criado com sucesso." });
 
     expect(mockState.rateLimitChecks).toEqual([
       expect.objectContaining({
@@ -102,7 +102,7 @@ describe("onboarding organization rate limit runtime actions", () => {
         }),
       ),
     ).resolves.toEqual({
-      error: "Muitas tentativas de criacao de organizacao. Tente novamente em alguns minutos.",
+      error: "Muitas tentativas de criacao de espaco financeiro. Tente novamente em alguns minutos.",
     });
 
     expect(mockState.rateLimitChecks).toEqual([
@@ -147,7 +147,7 @@ describe("onboarding organization rate limit runtime actions", () => {
           organization_slug: "familia-amorim",
         }),
       ),
-    ).resolves.toEqual({ error: "Informe o nome da organiza\u00e7\u00e3o." });
+    ).resolves.toEqual({ error: "Informe o nome do espaco financeiro." });
 
     expect(mockState.rateLimitChecks).toHaveLength(0);
     expect(mockState.rpcCalls).toHaveLength(0);

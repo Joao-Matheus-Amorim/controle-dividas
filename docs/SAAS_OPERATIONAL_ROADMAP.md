@@ -122,7 +122,7 @@ A limpeza final de policies antigas owner/family foi versionada em:
 - Password reset rate limit runtime esta versionado em `app/auth/forgot-password/actions.ts` para `auth.password_reset.request`, com actor por email normalizado, escopo `public-auth`, rollback por `DISABLE_SENSITIVE_RATE_LIMITS=true` e sem audit runtime pelo mesmo limite de autenticacao/membership.
 - Password update rate limit runtime esta versionado em `app/auth/update-password/actions.ts` para `auth.password_update.submit`, com actor pelo auth user id atual, bucket compartilhado `missing-session`, escopo `public-auth`, rollback por `DISABLE_SENSITIVE_RATE_LIMITS=true` e sem audit runtime pelo mesmo limite de autenticacao/membership.
 - Onboarding organization rate limit runtime esta versionado em `app/onboarding/organizacao/actions.ts` para `onboarding.organization.create`, com actor pelo auth user id atual, bucket compartilhado `missing-session`, escopo `onboarding`, rollback por `DISABLE_SENSITIVE_RATE_LIMITS=true` e sem audit runtime porque a organizacao e criada por essa boundary.
-- O contrato do GAP-016 esta documentado em `docs/audits/ONBOARDING_TERMINOLOGY_CONTRACT.md`, definindo `espaco financeiro`, `responsavel principal`, `identificador do link`, limites de termo tecnico, inventario da copy atual e bloqueio de mudanca de rota/runtime antes de PR dedicado de copy.
+- O contrato do GAP-016 esta documentado em `docs/audits/ONBOARDING_TERMINOLOGY_CONTRACT.md`; a primeira adocao de copy runtime usa `espaco financeiro`, `responsavel principal` e `identificador do link` em `app/onboarding/organizacao/page.tsx`, `app/onboarding/organizacao/actions.ts` e `components/onboarding/organization-onboarding-form.tsx`, sem mudar rota, layout, schema, RLS, billing ou dependencias.
 - O contrato do GAP-019 esta documentado em `docs/audits/CLIENT_STATE_STRATEGY_CONTRACT.md`, definindo quando usar estado local, URL state, useActionState, useTransition, @tanstack/react-table, server data e quando bloquear store global futura ate existir ADR/contrato dedicado.
 - RLS Live Gate existe em `.github/workflows/rls-live-gate.yml` e possui evidencia verde de CI dedicada no run `26913026310`, attempt `5`, artifact `rls-live-gate-evidence-26913026310-5`, SHA `40093ab24559f064da59d46f5c88b48dc1b65d2c`.
 
@@ -328,7 +328,7 @@ Resultado esperado:
 
 5. **Onboarding terminology adoption**
    - Usar `docs/audits/ONBOARDING_TERMINOLOGY_CONTRACT.md`.
-   - Trocar apenas uma superficie de copy por PR.
+   - A primeira superficie de copy do onboarding ja foi adotada.
    - Manter `/onboarding/organizacao` ate existir ADR de rota.
    - Nao alterar roles, schema, RLS, billing ou membership no PR de copy.
 

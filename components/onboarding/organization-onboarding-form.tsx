@@ -22,15 +22,15 @@ export function OrganizationOnboardingForm() {
   return (
     <form action={formAction} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="organization_name">Nome da organização</Label>
-        <Input id="organization_name" name="organization_name" placeholder="Ex: Família Amorim" required />
+        <Label htmlFor="organization_name">Nome do espaco financeiro</Label>
+        <Input id="organization_name" name="organization_name" placeholder="Ex: Familia Amorim" required />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="organization_slug">Slug</Label>
+        <Label htmlFor="organization_slug">Identificador do link</Label>
         <Input id="organization_slug" name="organization_slug" placeholder="familia-amorim" />
         <p className="text-xs leading-5 text-white/35">
-          Use letras minúsculas, números e hífens. Se ficar vazio, será sugerido a partir do nome.
+          Use letras minusculas, numeros e hifens. Se ficar vazio, sera sugerido a partir do nome.
         </p>
       </div>
 
