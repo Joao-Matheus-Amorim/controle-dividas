@@ -28,7 +28,7 @@ historica ate reconciliar o status.
 | `OWNER_ID_ACTIVE_CONSUMERS_2026-06-01.md` | Inventario dos consumidores ativos dos helpers owner-only antes de qualquer retirada de `owner_id`. |
 | `ADMIN_ACCESS_CONTROL_OWNER_ID_RETIREMENT_CONTRACT.md` | Contrato pre-runtime para retirar `owner_id` de Admin/access-control sem falso verde. |
 | `ADMIN_INVITATION_BOOTSTRAP_CONTRACT.md` | Contrato pre-runtime para substituir futuramente `ADMIN_EMAIL` por convite/admin por organizacao sem falso verde. |
-| `ADMIN_INVITATION_DELIVERY_UI_CONTRACT.md` | Contrato com delivery adapter e UI de aceite para convite admin sem armazenar, logar ou expor token bruto. |
+| `ADMIN_INVITATION_DELIVERY_UI_CONTRACT.md` | Contrato com delivery adapter, UI de aceite e cron de expiracao para convite admin sem armazenar, logar ou expor token bruto. |
 | `ONBOARDING_TERMINOLOGY_CONTRACT.md` | Contrato vigente do GAP-016 para linguagem do onboarding e adocao inicial de copy runtime. |
 | `NOTIFICATION_SCOPE_CONTRACT.md` | Contrato vigente do GAP-017 para alertas, canais e opt-in antes de notificacoes runtime. |
 | `SENSITIVE_OPERATION_CONTROLS_CONTRACT.md` | Contrato vigente do GAP-015 para rate limit, audit runtime e retention. |
