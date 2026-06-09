@@ -34,7 +34,7 @@ rg -n 'get.*ByOwner|FromClient|get.*DashboardData|seedInitialFinanceDataForOwner
 | Contas a receber | `features/protected-pages/contas-a-receber-page.tsx` usa `lib/organizations/receivables` | nao consome helper owner-only direto | manter fora do primeiro piloto |
 | Bancos | `features/protected-pages/bancos-page.tsx` usa `lib/organizations/banks` | nao consome helper owner-only direto | manter fora do primeiro piloto |
 | Relatorios | `features/protected-pages/relatorios-page.tsx` usa `lib/organizations/reports` | nao consome helper owner-only direto | nao voltar para `lib/finance/reports-server.ts` |
-| Admin | `features/protected-pages/admin*.tsx` usa `lib/finance/admin-server.ts` | excecao admin parcial; read/write path ja exigem admin da organizacao ativa e estao organization-first, access-control ainda transicional | seguir contrato admin/access-control proprio |
+| Admin | `features/protected-pages/admin*.tsx` usa `lib/finance/admin-server.ts` | excecao admin parcial; read/write path e access-control ja estao organization-first, com `owner_id` ainda transicional no modelo | seguir contrato admin/access-control proprio |
 | Seeds/bootstrap | `lib/finance/server.ts` chama `seedInitialFinanceDataForOwner` | ativo na criacao inicial | manter ate schema final |
 | Facade legado | `lib/finance/server.ts` exporta agregadores owner-based | sem consumidor direto nas protected pages migradas | nao remover sem inventario de imports externo |
 | Reports legado | `lib/finance/reports-server.ts` agrega helpers owner-based | sem consumidor direto nas protected pages migradas | manter bloqueado por guard |
@@ -52,7 +52,9 @@ nao devem importar `lib/finance/server.ts`, `lib/finance/banks-server.ts` ou
 Excecao ativa parcial:
 
 ```txt
-Admin usa `lib/finance/admin-server.ts` e `app/protected/admin/actions.ts`; read/write path estao organization-first com gate admin por organizacao ativa, mas access-control ainda deve ser tratado em PR proprio.
+Admin usa `lib/finance/admin-server.ts`, `app/protected/admin/actions.ts` e
+`lib/finance/access-control.ts`; read/write path e access-control estao
+organization-first, com gate admin por organizacao ativa nos reads/writes admin.
 ```
 
 Essa excecao nao libera outras importacoes legadas nas paginas admin. As paginas
@@ -81,9 +83,9 @@ Fixture RLS criada neste ciclo:
 __tests__/integration/rls/admin-multi-org.rls.test.ts
 ```
 
-Esse contrato ainda bloqueia access-control e schema final ate concluir:
+Esse contrato ainda bloqueia schema final ate concluir:
 
-- como substituir `adminProfile.owner_id`;
+- como substituir consumidores restantes de `owner_id`;
 - como resolver `profile_id`, `linked_family_member_id` e permissoes por organizacao;
 - como manter owner/admin-only sem depender de `ADMIN_EMAIL` como garantia final;
 - como executar e arquivar o RLS Live Gate verde com artifact para a fixture admin multi-org.

@@ -162,13 +162,12 @@ export async function getCurrentProfile() {
   redirect("/onboarding/organizacao");
 }
 
-async function getAllActiveMemberIds(ownerId: string, organizationId: string) {
+async function getAllActiveMemberIds(organizationId: string) {
   const adminSupabase = createAdminClient();
 
   const { data, error } = await adminSupabase
     .from("family_members")
     .select("id")
-    .eq("owner_id", ownerId)
     .eq("is_active", true)
     .eq("organization_id", organizationId);
 
@@ -301,7 +300,7 @@ export async function getAccessibleMemberIds(
   const organizationId = await getActiveOrganizationId(orgSlug);
 
   if (profile.role === "admin") {
-    return getAllActiveMemberIds(profile.owner_id, organizationId);
+    return getAllActiveMemberIds(organizationId);
   }
 
   const permission = await getModulePermission(profile.id, module, organizationId);
@@ -311,11 +310,11 @@ export async function getAccessibleMemberIds(
   }
 
   if (permission.scope === "family") {
-    return getAllActiveMemberIds(profile.owner_id, organizationId);
+    return getAllActiveMemberIds(organizationId);
   }
 
   if (permission.scope === "selected") {
-    const activeMemberIds = await getAllActiveMemberIds(profile.owner_id, organizationId);
+    const activeMemberIds = await getAllActiveMemberIds(organizationId);
     return (permission.allowed_member_ids ?? []).filter((memberId) => activeMemberIds.includes(memberId));
   }
 
