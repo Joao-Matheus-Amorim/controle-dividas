@@ -89,4 +89,10 @@ describe("finance server facade boundary", () => {
     expect(serverSource).toContain("@/lib/finance/payable-dashboard-server");
     expect(serverSource).toContain("@/lib/finance/receivable-dashboard-server");
   });
+
+  it("seeds legacy owner data from the active organization owner", () => {
+    expect(serverSource).toContain("organization.owner_auth_user_id");
+    expect(serverSource).toContain("seedInitialFinanceDataForOwner(");
+    expect(serverSource).not.toContain("await seedInitialFinanceDataForOwner(supabase, ownerId, organization.id)");
+  });
 });
