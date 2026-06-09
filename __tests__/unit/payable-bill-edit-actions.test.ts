@@ -9,6 +9,7 @@ const mockState = vi.hoisted(() => ({
   currentOrganization: {
     id: "org-1",
     slug: "amorim",
+    owner_auth_user_id: "org-owner-1",
   },
   updatedPayloads: [] as Array<Record<string, unknown>>,
   auditEvents: [] as Array<Record<string, unknown>>,
@@ -205,7 +206,7 @@ describe("payable bill edit action", () => {
       bank_used: "Wise",
       notes: "Pago antecipado",
       organization_id: "org-1",
-      filters: expect.objectContaining({ id: "bill-1", owner_id: "owner-1" }),
+      filters: expect.objectContaining({ id: "bill-1", organization_id: "org-1" }),
     }));
   });
 

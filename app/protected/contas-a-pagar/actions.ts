@@ -68,7 +68,6 @@ async function recordPayableBillAuditEvent({
 }
 
 async function assertResponsibleMemberBelongsToOrganization(
-  ownerId: string,
   organizationId: string,
   responsibleMemberId: string,
 ) {
@@ -78,7 +77,6 @@ async function assertResponsibleMemberBelongsToOrganization(
     .from("family_members")
     .select("id, organization_id")
     .eq("id", responsibleMemberId)
-    .eq("owner_id", ownerId)
     .eq("organization_id", organizationId)
     .maybeSingle();
 
@@ -105,7 +103,6 @@ async function assertCanManagePayableBill(
     .from("payable_bills")
     .select("id, owner_id, responsible_member_id, name, category, amount, due_date, status, bill_type, bank_used, recurrence, notes")
     .eq("id", billId)
-    .eq("owner_id", profile.owner_id)
     .eq("organization_id", organization.id)
     .maybeSingle();
 
@@ -118,7 +115,6 @@ async function assertCanManagePayableBill(
   }
 
   await assertResponsibleMemberBelongsToOrganization(
-    profile.owner_id,
     organization.id,
     String(bill.responsible_member_id),
   );
@@ -219,7 +215,6 @@ export async function createPayableBill(
 
   try {
     await assertResponsibleMemberBelongsToOrganization(
-      profile.owner_id,
       organization.id,
       input.responsibleMemberId,
     );
@@ -256,7 +251,7 @@ export async function createPayableBill(
   }
 
   const { data: createdBill, error } = await supabase.from("payable_bills").insert({
-    owner_id: profile.owner_id,
+    owner_id: organization.owner_auth_user_id,
     organization_id: organization.id,
     name: input.name,
     category: input.category || null,
@@ -316,7 +311,6 @@ export async function updatePayableBill(
 
     if (String(bill.responsible_member_id) !== input.responsibleMemberId) {
       await assertResponsibleMemberBelongsToOrganization(
-        profile.owner_id,
         organization.id,
         input.responsibleMemberId,
       );
@@ -442,7 +436,6 @@ export async function updatePayableBill(
         { count: "exact" },
       )
       .eq("id", id)
-      .eq("owner_id", profile.owner_id)
       .eq("organization_id", organization.id);
 
     if (error) {
@@ -535,18 +528,21 @@ export async function updatePayableBillStatus(
 
     const supabase = await createClient();
 
-    const { error } = await supabase
+    const { error, count } = await supabase
       .from("payable_bills")
       .update({
         status,
         organization_id: organization.id,
-      })
+      }, { count: "exact" })
       .eq("id", id)
-      .eq("owner_id", profile.owner_id)
       .eq("organization_id", organization.id);
 
     if (error) {
       return { error: error.message };
+    }
+
+    if (count !== 1) {
+      return { error: "Conta nao encontrada." };
     }
 
     if (String(bill.status) !== status) {
@@ -618,7 +614,6 @@ export async function deletePayableBill(
       .from("payable_bills")
       .delete({ count: "exact" })
       .eq("id", id)
-      .eq("owner_id", profile.owner_id)
       .eq("organization_id", organization.id);
 
     if (error) {

@@ -1,6 +1,6 @@
 import "server-only";
 
-import { getAccessibleMemberIds, getCurrentProfile } from "@/lib/finance/access-control";
+import { getAccessibleMemberIds } from "@/lib/finance/access-control";
 import type { DbFamilyMember, DbPayableBill } from "@/lib/finance/server";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { createClient } from "@/lib/supabase/server";
@@ -26,7 +26,6 @@ function normalizePayableBill(
 
 export async function getOrganizationPayableBills(orgSlug?: string) {
   const supabase = await createClient();
-  const profile = await getCurrentProfile();
   const { organization } = await requireOrganizationAccess(orgSlug);
   const accessibleMemberIds = await getAccessibleMemberIds("CONTAS_A_PAGAR", "can_view", orgSlug);
 
@@ -37,7 +36,6 @@ export async function getOrganizationPayableBills(orgSlug?: string) {
   const { data: membersData, error: membersError } = await supabase
     .from("family_members")
     .select("id, name")
-    .eq("owner_id", profile.owner_id)
     .eq("organization_id", organization.id)
     .in("id", accessibleMemberIds);
 
@@ -50,7 +48,6 @@ export async function getOrganizationPayableBills(orgSlug?: string) {
     .select(
       "id, owner_id, name, category, amount, due_date, responsible_member_id, status, bill_type, bank_used, recurrence, notes, created_at",
     )
-    .eq("owner_id", profile.owner_id)
     .eq("organization_id", organization.id)
     .in("responsible_member_id", accessibleMemberIds)
     .order("due_date", { ascending: true })
@@ -73,7 +70,6 @@ export async function getOrganizationPayableBills(orgSlug?: string) {
 }
 
 export async function getOrganizationPayableBillsDashboardData(orgSlug?: string) {
-  const profile = await getCurrentProfile();
   const accessibleMemberIds = await getAccessibleMemberIds("CONTAS_A_PAGAR", "can_view", orgSlug);
   const supabase = await createClient();
   const { organization } = await requireOrganizationAccess(orgSlug);
@@ -81,7 +77,6 @@ export async function getOrganizationPayableBillsDashboardData(orgSlug?: string)
   const { data: membersData, error: membersError } = await supabase
     .from("family_members")
     .select("id, owner_id, name, role, monthly_limit, currency, is_active, created_at")
-    .eq("owner_id", profile.owner_id)
     .eq("organization_id", organization.id)
     .order("created_at", { ascending: true });
 

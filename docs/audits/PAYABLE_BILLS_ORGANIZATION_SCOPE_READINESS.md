@@ -5,114 +5,122 @@ Related issue: #592
 
 ## Purpose
 
-Audit whether `public.payable_bills.organization_id` is ready for a future `NOT NULL` hardening migration.
+Record the current organization-scoped runtime and RLS boundary for
+`public.payable_bills`.
 
-This document does not introduce a migration. It records readiness and remaining transitional assumptions.
+This document does not remove `owner_id`. It records the transitional contract
+after `supabase/migrations/053_payable_bills_organization_write_rls.sql`.
 
 ## Current finding
 
-`payable_bills` is a candidate for a future organization scope hardening step, but it should not be hardened in this PR.
+`payable_bills` is organization-scoped for current runtime reads and writes.
 
 Current status:
 
 ```txt
-Readiness: mostly ready, still transitional
-Next safe step: future dedicated hardening PR after fresh preflight/dry-run evidence
+Read/write boundary: organization-scoped
+Legacy owner_id: still present and preserved as the target organization owner
+Schema-final owner_id removal: out of scope
 ```
 
-## Read-only checks for future hardening
+## Read-only checks for future schema work
 
-Table-scoped read-only checks now exist for future `payable_bills` hardening:
+Table-scoped read-only checks still exist for future schema hardening:
 
 ```txt
 docs/sql/payable-bills-organization-null-preflight.sql
 docs/sql/payable-bills-organization-dry-run.sql
 ```
 
-These scripts are preparation only. They do not mutate data and do not apply constraints.
+These scripts are preparation only. They do not mutate data and do not remove
+`owner_id`. They do not apply constraints.
 
 ## Write path review
 
 ### Create
 
-`app/protected/contas-a-pagar/actions.ts` creates payable bills through `createPayableBill`.
+`app/protected/contas-a-pagar/actions.ts` creates payable bills through
+`createPayableBill`.
 
 Current create behavior:
 
-- resolves current profile;
 - requires active organization access;
-- verifies the responsible member belongs to the current organization or legacy scope;
-- checks permission for the selected responsible member;
-- inserts `owner_id`;
-- inserts `organization_id` from the active organization.
+- verifies the responsible member belongs to the current organization;
+- checks `CONTAS_A_PAGAR` permission for the selected responsible member;
+- inserts `organization_id` from the active organization;
+- inserts `owner_id` from `organization.owner_auth_user_id`.
 
-This is compatible with future `payable_bills.organization_id NOT NULL` hardening.
+This keeps the legacy owner id aligned with the target organization while
+runtime remains organization-first.
 
 ### Update
 
 `updatePayableBill`:
 
-- verifies the existing bill can be managed inside the current organization or legacy scope;
-- verifies changed responsible member scope;
-- checks responsible member permission;
-- updates `organization_id` to the active organization.
+- verifies the existing bill inside the current organization;
+- verifies the current and changed responsible member belong to the current
+  organization;
+- checks `CONTAS_A_PAGAR` permission for the responsible member;
+- updates by `id` and active `organization_id`;
+- does not filter writes by `profile.owner_id`.
 
-`updatePayableBillStatus` also updates `organization_id` to the active organization while changing status.
-
-These paths are compatible with future hardening and also help move touched legacy rows into scoped rows.
+`updatePayableBillStatus` also updates by `id` and active `organization_id`,
+with exact count verification.
 
 ### Delete
 
 `deletePayableBill`:
 
 - verifies manage permission through `assertCanManagePayableBill`;
-- deletes by `id`, `owner_id`, and current organization or legacy scope.
-
-Delete does not need to write `organization_id`, but it still accepts transitional legacy rows.
+- deletes by `id` and active `organization_id`;
+- does not filter deletes by `profile.owner_id`.
 
 ## Read path review
 
-`lib/finance/payables-server.ts` reads payable bills through `getPayableBillsFromClient`.
+`lib/organizations/payables.ts` reads payable bills through
+`getOrganizationPayableBills`.
 
 Current read behavior:
 
-- filters by `owner_id`;
-- filters by accessible `responsible_member_id` values;
-- does not explicitly filter by `organization_id` in this read helper.
+- filters `family_members.organization_id` by the active organization;
+- filters `payable_bills.organization_id` by the active organization;
+- filters `payable_bills.responsible_member_id` by accessible member ids.
 
-This is still transitional. Access is indirectly constrained by member access and current profile, but a future final state should prefer explicit organization scope in the payable bill read path before removing legacy assumptions.
+The read path filters `payable_bills.organization_id` and accessible members
+instead of relying on `owner_id`.
+
+## RLS write boundary
+
+`supabase/migrations/053_payable_bills_organization_write_rls.sql` moves writes
+from authenticated-user ownership to organization-scoped writes.
+
+The direct-client RLS boundary:
+
+- requires the responsible member to belong to the target organization;
+- requires active membership in the target organization before admin or module
+  permissions are honored;
+- allows organization admins;
+- otherwise checks `CONTAS_A_PAGAR` module permissions for `can_create`,
+  `can_edit`, or `can_delete`;
+- honors `family`, `selected`, and `own` permission scopes;
+- requires `organization_legacy_owner_matches(organization_id, owner_id)` for
+  insert/update rows.
 
 ## Transitional assumptions still present
 
 The following remain intentional transitional behavior:
 
-- `owner_id` is still part of read/write/delete filters;
-- `organization_id IS NULL` legacy fallback is still accepted in manage/delete paths;
-- read path relies on accessible members instead of explicit `payable_bills.organization_id` filtering;
-- no `NOT NULL` migration exists for `payable_bills` yet.
-
-## Readiness decision
-
-`payable_bills` is not blocked by create/update payload gaps: create, update, and status update paths set `organization_id`.
-
-However, a future hardening PR should be separate and must include:
-
-- fresh null-organization preflight evidence;
-- fresh deterministic dry-run evidence;
-- migration-local preflight guard;
-- rollback instructions;
-- static guard proving the migration is scoped only to `payable_bills`;
-- no runtime, RLS, UI, billing or E2E mixing.
+- owner_id remains a legacy schema column;
+- new rows preserve the target organization owner in `owner_id`;
+- old migrations remain historical and are not rewritten;
+- schema-final owner_id removal remains out of scope.
 
 ## Out of scope
 
 This audit does not change:
 
-- schema;
-- data;
-- RLS policies;
-- runtime behavior;
+- schema-final owner_id removal;
+- historical migrations;
 - UI;
 - billing;
-- E2E;
-- legacy `owner_id` fallback.
+- E2E.
