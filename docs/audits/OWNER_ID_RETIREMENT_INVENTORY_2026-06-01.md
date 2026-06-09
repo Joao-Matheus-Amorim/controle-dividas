@@ -61,7 +61,7 @@ Documentos cruzados:
 | Actions financeiras | `app/protected/gastos/actions.ts`, `contas-a-pagar`, `contas-a-receber`, `bancos`, `pessoas`, `configuracoes` | usam `owner_id` com contexto de organizacao ativa | migrar um dominio por PR apos preflight |
 | Helpers organization-aware | `lib/organizations/*` | ainda filtram `owner_id`, mas combinam com organizacao | manter ate substituto organization-only ser provado |
 | Helpers legados | `lib/finance/server.ts`, `members-server.ts`, `categories-server.ts`, `expenses-server.ts`, `payables-server.ts`, `receivables-server.ts`, `banks-server.ts` | compatibilidade e testes ainda dependem deles | inventariar consumidores antes de remover |
-| Admin/permissoes | `lib/finance/admin-server.ts`, `app/protected/admin/actions.ts`, `lib/finance/access-control.ts` | maior risco; read path admin ja exige admin da organizacao ativa e esta organization-first, writes/access-control ainda misturam owner, perfil e organizacao | seguir contrato admin lifecycle por PR |
+| Admin/permissoes | `lib/finance/admin-server.ts`, `app/protected/admin/actions.ts`, `lib/finance/access-control.ts` | maior risco; read/write path admin ja exigem admin da organizacao ativa e estao organization-first, access-control ainda mistura owner, perfil e organizacao | seguir contrato admin lifecycle por PR |
 | Seeds/bootstrap | `lib/finance/seed-*`, `bootstrap-admin-profile.ts` | criacao inicial ainda grava `owner_id` | trocar somente quando schema final existir |
 | Testes RLS | `__tests__/integration/rls/*` | usam mesmo owner em duas organizacoes para provar isolamento por organization | manter ate novo fixture organization-only provar o mesmo caso |
 | Unit guards | `legacy-organization-fallback-removal-*`, `*-rls-policy-guards` | protegem estado transicional | atualizar junto com cada remocao |
@@ -87,7 +87,7 @@ Nenhum PR pode remover `owner_id` sem:
 | 2 | fixtures RLS organization-only | criar fixture que prove isolamento sem depender de owner compartilhado | alterar policies |
 | 3 | dominio piloto | escolher um dominio financeiro pequeno e trocar read path para organization-only | admin, billing, todos os dominios |
 | 4 | write path piloto | remover `owner_id` do write ownership do mesmo dominio, se RLS permitir | schema drop |
-| 5 | admin/access-control | read path admin ja versionado com admin gate por organizacao; seguir com writes admin e access-control em PRs proprios | misturar com dominio financeiro |
+| 5 | admin/access-control | read/write path admin ja versionado com admin gate por organizacao; seguir com access-control em PR proprio | misturar com dominio financeiro |
 | 6 | schema final | remover constraints/indices/coluna somente apos todos os callers | qualquer runtime pendente |
 
 ## 7. Criterios de aceite para fechar G-005
@@ -106,13 +106,13 @@ G-005 so pode sair de "aberto controlado" quando houver:
 Estado atual:
 
 ```txt
-G-005 permanece aberto controlado; read path admin organization-first com gate admin por organizacao esta versionado, mas writes admin, access-control, seeds e schema final seguem transicionais.
+G-005 permanece aberto controlado; read/write path admin organization-first com gate admin por organizacao esta versionado, mas access-control, seeds e schema final seguem transicionais.
 ```
 
 Proximo PR recomendado:
 
 ```txt
-write path admin organization-first em PR dedicado, sem remover ADMIN_EMAIL ou owner_id.
+access-control organization-first em PR dedicado, sem remover ADMIN_EMAIL ou owner_id.
 ```
 
 Esse proximo PR deve preservar audit/rate-limit e nao deve misturar access-control

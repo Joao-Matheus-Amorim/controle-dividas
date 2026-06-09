@@ -51,14 +51,18 @@ describe("admin permissions ownership guards", () => {
     const source = readSource("app/protected/admin/actions.ts");
 
     expect(source).toContain("@/lib/organizations/server");
-    expect(source).toContain("requireOrganizationAccess");
+    expect(source).toContain("requireOrganizationAdmin");
     expect(source).not.toContain("function organizationOrLegacyFilter");
     expect(source).not.toContain("organization_id.eq.${organizationId}");
     expect(source).not.toContain("organization_id.is.null");
     expect(source).toContain("async function ensureMemberBelongsToOrganization");
     expect(source).toContain("async function ensureProfileBelongsToOrganization");
+    expect(source).toContain("const legacyOwnerId = organization.owner_auth_user_id");
     expect(source).toContain("organization_id: organization.id");
+    expect(source).toContain("owner_id: legacyOwnerId");
     expect(source).toContain('.eq("organization_id", organization.id)');
+    expect(source).not.toContain('.eq("owner_id", adminProfile.owner_id)');
+    expect(source).not.toContain("owner_id: adminProfile.owner_id");
     expect(source).not.toContain(".or(organizationOrLegacyFilter(organization.id))");
   });
 
@@ -67,8 +71,9 @@ describe("admin permissions ownership guards", () => {
 
     expect(source).toContain("export async function saveProfileFeaturePermissions");
     expect(source).toContain("FEATURE_PERMISSIONS.map");
-    expect(source).toContain("await ensureProfileBelongsToOrganization(adminProfile.owner_id, organization.id, profileId)");
-    expect(source).toContain("owner_id: adminProfile.owner_id");
+    expect(source).toContain("await ensureProfileBelongsToOrganization(organization.id, profileId)");
+    expect(source).toContain("const legacyOwnerId = organization.owner_auth_user_id");
+    expect(source).toContain("owner_id: legacyOwnerId");
     expect(source).toContain("organization_id: organization.id");
     expect(source).toContain("profile_id: profileId");
     expect(source).toContain("feature_key: feature.key");

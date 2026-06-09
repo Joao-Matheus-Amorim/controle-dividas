@@ -10,6 +10,7 @@ const mockState = vi.hoisted(() => ({
   currentOrganization: {
     id: "org-1",
     slug: "amorim",
+    owner_auth_user_id: "org-owner-1",
   },
   profileLookup: {
     id: "profile-1",
@@ -138,7 +139,7 @@ vi.mock("@/lib/supabase/server", () => ({
 }));
 
 vi.mock("@/lib/organizations/server", () => ({
-  requireOrganizationAccess: vi.fn(async () => ({
+  requireOrganizationAdmin: vi.fn(async () => ({
     organization: mockState.currentOrganization,
     membership: {
       role: "owner",
@@ -273,7 +274,6 @@ describe("admin family user actions", () => {
       organization_id: "org-1",
       filters: expect.objectContaining({
         id: "profile-1",
-        owner_id: "owner-1",
         organization_id: "org-1",
       }),
     }));
@@ -301,7 +301,6 @@ describe("admin family user actions", () => {
       organization_id: "org-1",
       filters: expect.objectContaining({
         id: "profile-1",
-        owner_id: "owner-1",
         organization_id: "org-1",
       }),
     }));

@@ -11,7 +11,7 @@ import {
   type PermissionScope,
 } from "@/lib/finance/permissions";
 import { revalidateOrganizationPaths } from "@/lib/organizations/revalidation";
-import { requireOrganizationAccess } from "@/lib/organizations/server";
+import { requireOrganizationAdmin } from "@/lib/organizations/server";
 import { checkSensitiveOperationRateLimit } from "@/lib/security/sensitive-rate-limit";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -200,12 +200,10 @@ function getDefaultPermissionForAccessModel(accessModel: string, module: Finance
 }
 
 async function ensureUniqueEmail({
-  ownerId,
   organizationId,
   email,
   ignoreProfileId,
 }: {
-  ownerId: string;
   organizationId: string;
   email: string;
   ignoreProfileId?: string;
@@ -214,7 +212,6 @@ async function ensureUniqueEmail({
   const { data, error } = await supabase
     .from("profiles")
     .select("id")
-    .eq("owner_id", ownerId)
     .eq("organization_id", organizationId)
     .ilike("email", email)
     .maybeSingle();
@@ -229,12 +226,10 @@ async function ensureUniqueEmail({
 }
 
 async function ensureUniqueMemberAccess({
-  ownerId,
   organizationId,
   memberId,
   ignoreProfileId,
 }: {
-  ownerId: string;
   organizationId: string;
   memberId: string;
   ignoreProfileId?: string;
@@ -243,7 +238,6 @@ async function ensureUniqueMemberAccess({
   const { data, error } = await supabase
     .from("profiles")
     .select("id")
-    .eq("owner_id", ownerId)
     .eq("organization_id", organizationId)
     .eq("linked_family_member_id", memberId)
     .maybeSingle();
@@ -257,13 +251,12 @@ async function ensureUniqueMemberAccess({
   }
 }
 
-async function ensureMemberBelongsToOrganization(ownerId: string, organizationId: string, memberId: string) {
+async function ensureMemberBelongsToOrganization(organizationId: string, memberId: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("family_members")
     .select("id, organization_id")
     .eq("id", memberId)
-    .eq("owner_id", ownerId)
     .eq("organization_id", organizationId)
     .maybeSingle();
 
@@ -276,13 +269,12 @@ async function ensureMemberBelongsToOrganization(ownerId: string, organizationId
   }
 }
 
-async function ensureProfileBelongsToOrganization(ownerId: string, organizationId: string, profileId: string) {
+async function ensureProfileBelongsToOrganization(organizationId: string, profileId: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("profiles")
     .select("id, organization_id")
     .eq("id", profileId)
-    .eq("owner_id", ownerId)
     .eq("organization_id", organizationId)
     .maybeSingle();
 
@@ -344,16 +336,16 @@ export async function createFamilyUser(
 
   const supabase = await createClient();
   const adminProfile = await ensureAdminProfile();
-  const { organization } = await requireOrganizationAccess();
+  const { organization } = await requireOrganizationAdmin();
+  const legacyOwnerId = organization.owner_auth_user_id;
 
   try {
-    await ensureUniqueEmail({ ownerId: adminProfile.owner_id, organizationId: organization.id, email });
+    await ensureUniqueEmail({ organizationId: organization.id, email });
     await ensureUniqueMemberAccess({
-      ownerId: adminProfile.owner_id,
       organizationId: organization.id,
       memberId: linkedFamilyMemberId,
     });
-    await ensureMemberBelongsToOrganization(adminProfile.owner_id, organization.id, linkedFamilyMemberId);
+    await ensureMemberBelongsToOrganization(organization.id, linkedFamilyMemberId);
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Nao foi possivel validar o acesso." };
   }
@@ -383,7 +375,7 @@ export async function createFamilyUser(
   const { data: profile, error } = await supabase
     .from("profiles")
     .insert({
-      owner_id: adminProfile.owner_id,
+      owner_id: legacyOwnerId,
       organization_id: organization.id,
       auth_user_id: null,
       linked_family_member_id: linkedFamilyMemberId,
@@ -402,7 +394,7 @@ export async function createFamilyUser(
       const defaults = getDefaultPermissionForAccessModel(accessModel, module.key as FinanceModuleKey);
 
       return {
-        owner_id: adminProfile.owner_id,
+        owner_id: legacyOwnerId,
         organization_id: organization.id,
         profile_id: profile.id,
         module: module.key,
@@ -455,13 +447,12 @@ export async function updateFamilyUser(formData: FormData): Promise<FamilyUserAc
 
   const supabase = await createClient();
   const adminProfile = await ensureAdminProfile();
-  const { organization } = await requireOrganizationAccess();
+  const { organization } = await requireOrganizationAdmin();
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("id, role")
     .eq("id", id)
-    .eq("owner_id", adminProfile.owner_id)
     .eq("organization_id", organization.id)
     .maybeSingle();
 
@@ -471,18 +462,16 @@ export async function updateFamilyUser(formData: FormData): Promise<FamilyUserAc
 
   try {
     await ensureUniqueEmail({
-      ownerId: adminProfile.owner_id,
       organizationId: organization.id,
       email,
       ignoreProfileId: id,
     });
     await ensureUniqueMemberAccess({
-      ownerId: adminProfile.owner_id,
       organizationId: organization.id,
       memberId: linkedFamilyMemberId,
       ignoreProfileId: id,
     });
-    await ensureMemberBelongsToOrganization(adminProfile.owner_id, organization.id, linkedFamilyMemberId);
+    await ensureMemberBelongsToOrganization(organization.id, linkedFamilyMemberId);
   } catch (error) {
     return {
       error: error instanceof Error ? error.message : "Nao foi possivel validar o acesso familiar.",
@@ -514,7 +503,6 @@ export async function updateFamilyUser(formData: FormData): Promise<FamilyUserAc
     .from("profiles")
     .update({ name, email, linked_family_member_id: linkedFamilyMemberId, organization_id: organization.id })
     .eq("id", id)
-    .eq("owner_id", adminProfile.owner_id)
     .eq("organization_id", organization.id);
 
   if (error) return { error: error.message };
@@ -547,13 +535,12 @@ export async function syncFamilyUserAuthLink(formData: FormData): Promise<Family
 
   const supabase = await createClient();
   const adminProfile = await ensureAdminProfile();
-  const { organization } = await requireOrganizationAccess();
+  const { organization } = await requireOrganizationAdmin();
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("id, owner_id, email, role")
+    .select("id, email, role")
     .eq("id", id)
-    .eq("owner_id", adminProfile.owner_id)
     .eq("organization_id", organization.id)
     .maybeSingle();
 
@@ -589,7 +576,6 @@ export async function syncFamilyUserAuthLink(formData: FormData): Promise<Family
   const { error: clearLinkError } = await supabase
     .from("profiles")
     .update({ auth_user_id: null })
-    .eq("owner_id", adminProfile.owner_id)
     .eq("organization_id", organization.id)
     .eq("auth_user_id", authUserId);
 
@@ -599,7 +585,6 @@ export async function syncFamilyUserAuthLink(formData: FormData): Promise<Family
     .from("profiles")
     .update({ auth_user_id: authUserId, organization_id: organization.id })
     .eq("id", profile.id)
-    .eq("owner_id", adminProfile.owner_id)
     .eq("organization_id", organization.id);
 
   if (linkError) return { error: linkError.message };
@@ -631,13 +616,12 @@ export async function deleteFamilyUser(formData: FormData): Promise<FamilyUserAc
 
   const supabase = await createClient();
   const adminProfile = await ensureAdminProfile();
-  const { organization } = await requireOrganizationAccess();
+  const { organization } = await requireOrganizationAdmin();
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("id, role")
     .eq("id", id)
-    .eq("owner_id", adminProfile.owner_id)
     .eq("organization_id", organization.id)
     .maybeSingle();
 
@@ -669,7 +653,6 @@ export async function deleteFamilyUser(formData: FormData): Promise<FamilyUserAc
     .from("profiles")
     .delete()
     .eq("id", id)
-    .eq("owner_id", adminProfile.owner_id)
     .eq("organization_id", organization.id);
 
   if (error) return { error: error.message };
@@ -703,13 +686,12 @@ export async function toggleFamilyUserStatus(formData: FormData): Promise<Family
 
   const supabase = await createClient();
   const adminProfile = await ensureAdminProfile();
-  const { organization } = await requireOrganizationAccess();
+  const { organization } = await requireOrganizationAdmin();
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("id, role, is_active")
     .eq("id", id)
-    .eq("owner_id", adminProfile.owner_id)
     .eq("organization_id", organization.id)
     .maybeSingle();
 
@@ -750,7 +732,6 @@ export async function toggleFamilyUserStatus(formData: FormData): Promise<Family
     .from("profiles")
     .update({ is_active: nextActive, organization_id: organization.id })
     .eq("id", id)
-    .eq("owner_id", adminProfile.owner_id)
     .eq("organization_id", organization.id);
 
   if (error) return { error: error.message };
@@ -787,10 +768,11 @@ export async function saveProfilePermissions(
 
   const supabase = await createClient();
   const adminProfile = await ensureAdminProfile();
-  const { organization } = await requireOrganizationAccess();
+  const { organization } = await requireOrganizationAdmin();
+  const legacyOwnerId = organization.owner_auth_user_id;
 
   try {
-    await ensureProfileBelongsToOrganization(adminProfile.owner_id, organization.id, profileId);
+    await ensureProfileBelongsToOrganization(organization.id, profileId);
   } catch (error) {
     return {
       error:
@@ -827,7 +809,7 @@ export async function saveProfilePermissions(
     const scope = normalizeScope(formData.get(`${key}.scope`));
 
     return {
-      owner_id: adminProfile.owner_id,
+      owner_id: legacyOwnerId,
       organization_id: organization.id,
       profile_id: profileId,
       module: key,
@@ -873,10 +855,11 @@ export async function saveProfileFeaturePermissions(
 
   const supabase = await createClient();
   const adminProfile = await ensureAdminProfile();
-  const { organization } = await requireOrganizationAccess();
+  const { organization } = await requireOrganizationAdmin();
+  const legacyOwnerId = organization.owner_auth_user_id;
 
   try {
-    await ensureProfileBelongsToOrganization(adminProfile.owner_id, organization.id, profileId);
+    await ensureProfileBelongsToOrganization(organization.id, profileId);
   } catch (error) {
     return {
       error:
@@ -909,7 +892,7 @@ export async function saveProfileFeaturePermissions(
   }
 
   const rows = FEATURE_PERMISSIONS.map((feature) => ({
-    owner_id: adminProfile.owner_id,
+    owner_id: legacyOwnerId,
     organization_id: organization.id,
     profile_id: profileId,
     feature_key: feature.key,

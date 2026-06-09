@@ -112,7 +112,7 @@ gates:
 | 5 | contrato delivery/UI de convite | `docs/audits/ADMIN_INVITATION_DELIVERY_UI_CONTRACT.md`, mapas DocDoc e guard | provider/UI runtime |
 | 6 | cron de expiracao | `supabase/migrations/046_admin_invitation_expiry_cleanup.sql`, `app/api/cron/admin-invitations/expire/route.ts` e agenda Vercel | remover `ADMIN_EMAIL` |
 | 7 | read path admin organization-first | `lib/finance/admin-server.ts` com `requireOrganizationAdmin(orgSlug)` e sem `adminProfile.owner_id` como filtro primario | writes admin |
-| 8 | write path admin organization-first | writes admin preservando audit/rate-limit | schema final |
+| 8 | write path admin organization-first | `app/protected/admin/actions.ts` com `requireOrganizationAdmin` e validates/writes por organization-first | access-control |
 | 9 | access-control organization-first | permissoes por organization/membership | remover coluna |
 | 10 | deprecacao `ADMIN_EMAIL` | fallback dev-only/emergencia documentado | mudanca sem rollback |
 
@@ -134,12 +134,12 @@ gates:
 Estado atual:
 
 ```txt
-contrato criado; schema/preflight versionado em `supabase/migrations/044_admin_invitations_schema.sql`; runtime criar/revogar/reenviar versionado em `app/protected/admin/invitation-actions.ts`; runtime aceitar/linking versionado em `supabase/migrations/045_accept_admin_invitation_rpc.sql` e `app/auth/convite/actions.ts`; contrato delivery/UI versionado em `docs/audits/ADMIN_INVITATION_DELIVERY_UI_CONTRACT.md`; delivery adapter server-only versionado em `lib/admin-invitations/delivery.ts`; UI de aceite versionada em `app/auth/convite/page.tsx` e `components/admin-invitation-acceptance-form.tsx`; cron de expiracao versionado em `supabase/migrations/046_admin_invitation_expiry_cleanup.sql`, `app/api/cron/admin-invitations/expire/route.ts` e `vercel.json`; read path admin organization-first com admin gate por organizacao versionado em `lib/finance/admin-server.ts`; remocao de `ADMIN_EMAIL` ainda nao implementada.
+contrato criado; schema/preflight versionado em `supabase/migrations/044_admin_invitations_schema.sql`; runtime criar/revogar/reenviar versionado em `app/protected/admin/invitation-actions.ts`; runtime aceitar/linking versionado em `supabase/migrations/045_accept_admin_invitation_rpc.sql` e `app/auth/convite/actions.ts`; contrato delivery/UI versionado em `docs/audits/ADMIN_INVITATION_DELIVERY_UI_CONTRACT.md`; delivery adapter server-only versionado em `lib/admin-invitations/delivery.ts`; UI de aceite versionada em `app/auth/convite/page.tsx` e `components/admin-invitation-acceptance-form.tsx`; cron de expiracao versionado em `supabase/migrations/046_admin_invitation_expiry_cleanup.sql`, `app/api/cron/admin-invitations/expire/route.ts` e `vercel.json`; read/write path admin organization-first com admin gate por organizacao versionado em `lib/finance/admin-server.ts` e `app/protected/admin/actions.ts`; remocao de `ADMIN_EMAIL` ainda nao implementada.
 ```
 
 Proximo PR seguro:
 
 ```txt
-implementar write path admin organization-first em PR dedicado,
+implementar access-control organization-first em PR dedicado,
 preservando audit/rate-limit, sem remover ADMIN_EMAIL e sem retirar owner_id.
 ```

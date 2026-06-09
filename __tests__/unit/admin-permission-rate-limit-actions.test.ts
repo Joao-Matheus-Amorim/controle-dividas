@@ -9,6 +9,7 @@ const mockState = vi.hoisted(() => ({
   currentOrganization: {
     id: "org-1",
     slug: "amorim",
+    owner_auth_user_id: "org-owner-1",
   },
   profileLookup: {
     id: "profile-1",
@@ -91,7 +92,7 @@ vi.mock("@/lib/finance/admin-server", () => ({
 }));
 
 vi.mock("@/lib/organizations/server", () => ({
-  requireOrganizationAccess: vi.fn(async () => ({
+  requireOrganizationAdmin: vi.fn(async () => ({
     organization: mockState.currentOrganization,
     membership: {
       role: "owner",

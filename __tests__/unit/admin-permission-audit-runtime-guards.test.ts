@@ -30,7 +30,7 @@ describe("admin permission audit runtime guards", () => {
   });
 
   it("keeps permission writes organization scoped before emitting audit events", () => {
-    expect(actions).toContain("requireorganizationaccess");
+    expect(actions).toContain("requireorganizationadmin");
     expect(actions).toContain("ensureprofilebelongstoorganization");
     expect(actions).toContain("organization_id: organization.id");
     expect(actions).toContain('from("user_module_permissions")');
