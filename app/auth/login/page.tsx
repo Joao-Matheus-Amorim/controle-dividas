@@ -1,6 +1,38 @@
 import { LoginForm } from "@/components/login-form";
 
-export default function Page() {
+type LoginPageProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
+
+function getInviteReturnPath(searchParams?: Record<string, string | string[] | undefined>) {
+  const value = searchParams?.next;
+  const nextPath = Array.isArray(value) ? value[0] : value;
+
+  if (typeof nextPath !== "string") {
+    return undefined;
+  }
+
+  try {
+    const url = new URL(nextPath, "https://familyfinance.local");
+
+    if (url.origin !== "https://familyfinance.local") {
+      return undefined;
+    }
+
+    if (url.pathname !== "/auth/convite" || !url.searchParams.get("token")) {
+      return undefined;
+    }
+
+    return `${url.pathname}${url.search}`;
+  } catch {
+    return undefined;
+  }
+}
+
+export default async function Page({ searchParams }: LoginPageProps) {
+  const resolvedSearchParams = await searchParams;
+  const inviteReturnPath = getInviteReturnPath(resolvedSearchParams);
+
   return (
     <main className="dark relative min-h-svh overflow-hidden bg-[#080810] text-white">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(139,114,248,0.22),transparent_34%),radial-gradient(circle_at_82%_72%,rgba(29,233,178,0.12),transparent_28%),linear-gradient(135deg,#080810_0%,#0f0b22_48%,#07070c_100%)]" />
@@ -37,7 +69,7 @@ export default function Page() {
         </section>
 
         <section className="mx-auto w-full max-w-md">
-          <LoginForm />
+          <LoginForm redirectTo={inviteReturnPath} />
         </section>
       </div>
     </main>

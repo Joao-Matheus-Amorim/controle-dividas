@@ -12,9 +12,10 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
 export function LoginForm({
+  redirectTo,
   className,
   ...props
-}: React.ComponentPropsWithoutRef<"div">) {
+}: React.ComponentPropsWithoutRef<"div"> & { redirectTo?: string }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -33,7 +34,7 @@ export function LoginForm({
         throw new Error(result.error);
       }
 
-      router.push("/protected");
+      router.push(redirectTo ?? "/protected");
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "Não foi possível entrar.");
     } finally {
