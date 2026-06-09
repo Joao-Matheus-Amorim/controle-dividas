@@ -59,7 +59,7 @@ Documentos cruzados:
 | Migrations historicas | `001_family_finance_schema.sql`, `004_permission_scope_and_features.sql`, `005_payable_bill_types.sql` | `owner_id` e parte do historico versionado | nao reescrever migrations antigas |
 | RLS atual | migrations `030` a `039`, guards RLS | select ja privilegia organizacao; writes ainda podem manter ownership | alterar apenas com migration nova e gate RLS |
 | Actions financeiras | `app/protected/gastos/actions.ts`, `contas-a-pagar`, `contas-a-receber`, `bancos`, `pessoas`, `configuracoes` | `pessoas` ja usa reads organization-first, mas writes seguem owner-compatible com a RLS atual de `family_members`; demais actions ainda usam `owner_id` com contexto de organizacao ativa | migrar um dominio por PR apos preflight |
-| Helpers organization-aware | `lib/organizations/*` | `lib/organizations/people.ts` ja le por organizacao; demais helpers ainda filtram `owner_id`, mas combinam com organizacao | manter ate substituto organization-only ser provado |
+| Helpers organization-aware | `lib/organizations/*` | `lib/organizations/people.ts` e o helper org-wide de `lib/organizations/categories.ts` ja leem por organizacao; Configuracoes usa lista manejavel owner-compatible para edit/delete; demais helpers ainda filtram `owner_id`, mas combinam com organizacao | manter ate substituto organization-only ser provado |
 | Helpers legados | `lib/finance/server.ts`, `members-server.ts`, `categories-server.ts`, `expenses-server.ts`, `payables-server.ts`, `receivables-server.ts`, `banks-server.ts` | compatibilidade e testes ainda dependem deles | inventariar consumidores antes de remover |
 | Admin/permissoes | `lib/finance/admin-server.ts`, `app/protected/admin/actions.ts`, `lib/finance/access-control.ts` | maior risco; read/write path admin e access-control ja estao organization-first, com `owner_id` ainda transicional no modelo | seguir contrato admin lifecycle por PR |
 | Seeds/bootstrap | `lib/finance/seed-*`, `bootstrap-admin-profile.ts` | criacao inicial ainda grava `owner_id` | trocar somente quando schema final existir |
@@ -106,7 +106,7 @@ G-005 so pode sair de "aberto controlado" quando houver:
 Estado atual:
 
 ```txt
-G-005 permanece aberto controlado; read/write path admin, access-control e reads de pessoas organization-first estao versionados, mas writes de pessoas, seeds, demais consumidores e schema final seguem transicionais.
+G-005 permanece aberto controlado; read/write path admin, access-control e reads de pessoas/categorias organization-first estao versionados, mas settings category management, writes, seeds, demais consumidores e schema final seguem transicionais.
 ```
 
 Proximo PR recomendado:

@@ -6,7 +6,7 @@ import { SettingsMemberLimits } from "@/components/settings/settings-member-limi
 import { SettingsPageHeader } from "@/components/settings/settings-page-header";
 import { SettingsSummaryCards } from "@/components/settings/settings-summary-cards";
 import { getStripeConfigurationBoundary } from "@/lib/billing/stripe-config";
-import { getOrganizationExpenseCategories } from "@/lib/organizations/categories";
+import { getManageableOrganizationExpenseCategories } from "@/lib/organizations/categories";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { getOrganizationFamilyMembers } from "@/lib/organizations/people";
 
@@ -23,7 +23,7 @@ export async function ConfiguracoesPage({
 }: ConfiguracoesPageProps = {}) {
   const [members, categories, organization] = await Promise.all([
     getOrganizationFamilyMembers(orgSlug),
-    getOrganizationExpenseCategories(orgSlug),
+    getManageableOrganizationExpenseCategories(orgSlug),
     requireOrganizationAccess(orgSlug),
   ]);
   const stripeBoundary = getStripeConfigurationBoundary();

@@ -137,6 +137,8 @@ The removed surface includes:
 
 These reads now require active organization scope and no longer use `owner_id` as read authority in this helper during the transition.
 
+Configuracoes still uses a manageable category list scoped to `owner_id = auth.uid()` while category edit/delete actions and `expense_categories` write RLS remain owner-compatible.
+
 ### Payable organization helper reads
 
 lib/organizations/payables.ts no longer accepts legacy null organization rows when reading payable organization helper data.
@@ -179,7 +181,7 @@ The removed surface includes:
 
 - people reads from `family_members`.
 
-These reads now require active organization scope and keep owner checks where still needed during the transition.
+These reads now require active organization scope and no longer use `owner_id` as read authority in this helper during the transition.
 
 ### People page and action paths
 
