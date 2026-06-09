@@ -119,6 +119,13 @@ vi.mock("@/lib/organizations/server", () => ({
       is_active: true,
     },
   })),
+  requireOrganizationAdmin: vi.fn(async () => ({
+    organization: mockState.currentOrganization,
+    membership: {
+      role: "owner",
+      is_active: true,
+    },
+  })),
 }));
 
 vi.mock("@/lib/finance/access-control", () => ({

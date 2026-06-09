@@ -4,6 +4,7 @@ const mockState = vi.hoisted(() => ({
   currentOrganization: {
     id: "org-1",
     slug: "amorim",
+    owner_auth_user_id: "org-owner-1",
   },
   claims: {
     sub: "owner-1",
@@ -108,6 +109,13 @@ vi.mock("@/lib/organizations/server", () => ({
       is_active: true,
     },
   })),
+  requireOrganizationAdmin: vi.fn(async () => ({
+    organization: mockState.currentOrganization,
+    membership: {
+      role: "owner",
+      is_active: true,
+    },
+  })),
 }));
 
 vi.mock("@/lib/finance/access-control", () => ({
@@ -156,7 +164,6 @@ describe("expense category audit runtime actions", () => {
         table: "expense_categories",
         filters: {
           id: "category-1",
-          owner_id: "owner-1",
           is_default: false,
           organization_id: "org-1",
         },

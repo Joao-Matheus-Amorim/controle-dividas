@@ -6,7 +6,7 @@ import { SettingsMemberLimits } from "@/components/settings/settings-member-limi
 import { SettingsPageHeader } from "@/components/settings/settings-page-header";
 import { SettingsSummaryCards } from "@/components/settings/settings-summary-cards";
 import { getStripeConfigurationBoundary } from "@/lib/billing/stripe-config";
-import { getManageableOrganizationExpenseCategories } from "@/lib/organizations/categories";
+import { getOrganizationExpenseCategories } from "@/lib/organizations/categories";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { getOrganizationFamilyMembers } from "@/lib/organizations/people";
 
@@ -23,11 +23,12 @@ export async function ConfiguracoesPage({
 }: ConfiguracoesPageProps = {}) {
   const [members, categories, organization] = await Promise.all([
     getOrganizationFamilyMembers(orgSlug),
-    getManageableOrganizationExpenseCategories(orgSlug),
+    getOrganizationExpenseCategories(orgSlug),
     requireOrganizationAccess(orgSlug),
   ]);
   const stripeBoundary = getStripeConfigurationBoundary();
   const canManageBilling = ["owner", "admin"].includes(organization.membership.role);
+  const canManageCategories = ["owner", "admin"].includes(organization.membership.role);
 
   const totalLimit = members.reduce(
     (total, member) => total + Number(member.monthly_limit),
@@ -66,7 +67,7 @@ export async function ConfiguracoesPage({
 
       <SettingsMemberLimits members={members} />
 
-      <SettingsCategories categories={categories} />
+      <SettingsCategories categories={categories} canManageCategories={canManageCategories} />
 
       <SettingsAutomaticRules />
     </div>

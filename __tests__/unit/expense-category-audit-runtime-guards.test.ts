@@ -34,9 +34,10 @@ describe("expense category audit runtime guards", () => {
     expect(actions).toContain('targettype: "expense_category"');
     expect(actions).toContain('outcome = "success"');
     expect(actions).toContain('operationkey: "finance.category.delete"');
+    expect(deleteExpenseCategoryAction).toContain("requireorganizationadmin");
     expect(deleteExpenseCategoryAction).toContain("checksensitiveoperationratelimit");
-    expect(deleteExpenseCategoryAction).toContain("actorkey: ownerid");
-    expect(deleteExpenseCategoryAction).toContain("owner_id\", ownerid");
+    expect(deleteExpenseCategoryAction).toContain("actorkey: currentuserid");
+    expect(deleteExpenseCategoryAction).not.toContain('eq("owner_id"');
     expect(deleteExpenseCategoryAction).toContain("organizationid: organization.id");
     expect(deleteExpenseCategoryAction).not.toContain("targetkey: id");
     expect(deleteExpenseCategoryAction).toContain('delete({ count: "exact" })');
