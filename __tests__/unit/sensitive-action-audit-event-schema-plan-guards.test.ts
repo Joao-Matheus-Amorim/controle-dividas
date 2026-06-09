@@ -66,6 +66,7 @@ describe("sensitive-action audit event schema plan guards", () => {
     expect(plan).toContain("admin.permission.update");
     expect(plan).toContain("admin.invitation.create");
     expect(plan).toContain("admin.invitation.resend");
+    expect(plan).toContain("admin.invitation.accept");
     expect(plan).toContain("finance.expense.delete");
     expect(plan).toContain("finance.payable.status.update");
     expect(plan).toContain("finance.bank.balance.update");

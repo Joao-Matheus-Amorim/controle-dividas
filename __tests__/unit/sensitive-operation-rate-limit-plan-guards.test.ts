@@ -56,6 +56,7 @@ describe("sensitive operation rate limit plan guards", () => {
     expect(plan).toContain("admin.invitation.create");
     expect(plan).toContain("admin.invitation.revoke");
     expect(plan).toContain("admin.invitation.resend");
+    expect(plan).toContain("admin.invitation.accept");
     expect(plan).toContain("process-local memory");
     expect(plan).toContain("disable_sensitive_rate_limits=true");
     expect(plan).toContain("no middleware change");
@@ -108,6 +109,7 @@ describe("sensitive operation rate limit plan guards", () => {
     expect(plan).toContain("admin.user.status.update");
     expect(plan).toContain("admin.invitation.create");
     expect(plan).toContain("admin.invitation.resend");
+    expect(plan).toContain("admin.invitation.accept");
     expect(plan).toContain("admin mutations");
     expect(plan).toContain("destructive finance actions");
     expect(plan).toContain("rate_limit:{operation_key}:{actor_key}:{organization_key}:{target_key?}");
