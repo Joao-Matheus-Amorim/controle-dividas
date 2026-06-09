@@ -43,6 +43,7 @@ vi.mock("@/lib/finance/expenses-server", () => ({
 import { getExpenseDashboardData } from "@/lib/finance/server";
 
 const ownerId = "owner-123";
+const organizationOwnerId = "org-owner-123";
 const organizationId = "org-123";
 
 function createSupabaseAuthClient() {
@@ -62,7 +63,9 @@ describe("expense dashboard aggregation", () => {
 
     mocks.createClient.mockResolvedValue(createSupabaseAuthClient());
     mocks.seedInitialFinanceDataForOwner.mockResolvedValue(undefined);
-    mocks.requireOrganizationAccess.mockResolvedValue({ organization: { id: organizationId } });
+    mocks.requireOrganizationAccess.mockResolvedValue({
+      organization: { id: organizationId, owner_auth_user_id: organizationOwnerId },
+    });
     mocks.getCurrentProfile.mockResolvedValue({ owner_id: ownerId });
     mocks.getAccessibleMemberIds.mockResolvedValue(["member-visible", "member-zero"]);
   });
@@ -114,7 +117,7 @@ describe("expense dashboard aggregation", () => {
     expect(mocks.seedInitialFinanceDataForOwner).toHaveBeenCalledTimes(2);
     expect(mocks.seedInitialFinanceDataForOwner).toHaveBeenCalledWith(
       expect.anything(),
-      ownerId,
+      organizationOwnerId,
       organizationId,
     );
     expect(mocks.requireOrganizationAccess).toHaveBeenCalledTimes(2);

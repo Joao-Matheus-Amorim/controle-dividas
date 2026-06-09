@@ -39,10 +39,13 @@ async function getCurrentUserId() {
 
 export async function seedInitialFinanceData() {
   const supabase = await createClient();
-  const ownerId = await getCurrentUserId();
   const { organization } = await requireOrganizationAccess();
 
-  await seedInitialFinanceDataForOwner(supabase, ownerId, organization.id);
+  await seedInitialFinanceDataForOwner(
+    supabase,
+    organization.owner_auth_user_id,
+    organization.id,
+  );
 }
 
 export async function getFamilyMembers() {
