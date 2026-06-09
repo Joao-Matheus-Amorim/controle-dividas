@@ -34,7 +34,7 @@ rg -n 'get.*ByOwner|FromClient|get.*DashboardData|seedInitialFinanceDataForOwner
 | Contas a receber | `features/protected-pages/contas-a-receber-page.tsx` usa `lib/organizations/receivables` | nao consome helper owner-only direto | manter fora do primeiro piloto |
 | Bancos | `features/protected-pages/bancos-page.tsx` usa `lib/organizations/banks` | nao consome helper owner-only direto | manter fora do primeiro piloto |
 | Relatorios | `features/protected-pages/relatorios-page.tsx` usa `lib/organizations/reports` | nao consome helper owner-only direto | nao voltar para `lib/finance/reports-server.ts` |
-| Admin | `features/protected-pages/admin*.tsx` usa `lib/finance/admin-server.ts` | consumidor owner-based ativo | exige contrato admin/access-control proprio |
+| Admin | `features/protected-pages/admin*.tsx` usa `lib/finance/admin-server.ts` | excecao admin parcial; read path ja exige admin da organizacao ativa e esta organization-first, writes/access-control ainda transicionais | seguir contrato admin/access-control proprio |
 | Seeds/bootstrap | `lib/finance/server.ts` chama `seedInitialFinanceDataForOwner` | ativo na criacao inicial | manter ate schema final |
 | Facade legado | `lib/finance/server.ts` exporta agregadores owner-based | sem consumidor direto nas protected pages migradas | nao remover sem inventario de imports externo |
 | Reports legado | `lib/finance/reports-server.ts` agrega helpers owner-based | sem consumidor direto nas protected pages migradas | manter bloqueado por guard |
@@ -49,10 +49,10 @@ nao devem importar `lib/finance/server.ts`, `lib/finance/banks-server.ts` ou
 `lib/finance/reports-server.ts`.
 ```
 
-Excecao ativa:
+Excecao ativa parcial:
 
 ```txt
-Admin usa `lib/finance/admin-server.ts` e deve ser tratado em PR proprio.
+Admin usa `lib/finance/admin-server.ts`; read path esta organization-first com gate admin por organizacao ativa, mas writes admin e access-control ainda devem ser tratados em PRs proprios.
 ```
 
 Essa excecao nao libera outras importacoes legadas nas paginas admin. As paginas
@@ -63,7 +63,7 @@ Essa excecao nao libera outras importacoes legadas nas paginas admin. As paginas
 ## 5. Estado do contrato admin/access-control
 
 Antes de qualquer retirada de `owner_id`, o contrato admin/access-control deve
-continuar como gate pre-runtime:
+continuar como gate para writes/access-control:
 
 ```txt
 admin/access-control owner_id retirement contract
@@ -81,7 +81,7 @@ Fixture RLS criada neste ciclo:
 __tests__/integration/rls/admin-multi-org.rls.test.ts
 ```
 
-Esse contrato ainda bloqueia runtime ate concluir:
+Esse contrato ainda bloqueia writes admin, access-control e schema final ate concluir:
 
 - como substituir `adminProfile.owner_id`;
 - como resolver `profile_id`, `linked_family_member_id` e permissoes por organizacao;
@@ -94,8 +94,10 @@ O contrato de convite/admin que define a direcao final existe em:
 docs/audits/ADMIN_INVITATION_BOOTSTRAP_CONTRACT.md
 ```
 
-Esse contrato nao implementa runtime e nao autoriza remover `ADMIN_EMAIL` ou
-`owner_id`; ele apenas fecha a decisao pre-runtime para o proximo PR pequeno.
+Esse contrato ja possui runtime parcial de convite/admin, delivery/UI, cron de
+expiracao e read path admin organization-first com admin gate por organizacao,
+mas nao autoriza remover
+`ADMIN_EMAIL` ou `owner_id`.
 
 ## 6. Fora de escopo
 
