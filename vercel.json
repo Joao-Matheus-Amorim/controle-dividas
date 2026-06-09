@@ -6,7 +6,7 @@
   "crons": [
     {
       "path": "/api/cron/admin-invitations/expire",
-      "schedule": "0 * * * *"
+      "schedule": "0 3 * * *"
     }
   ]
 }

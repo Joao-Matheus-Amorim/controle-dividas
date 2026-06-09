@@ -41,7 +41,7 @@ describe("admin invitation expiry cron guards", () => {
 
   it("schedules the cleanup and updates live planning state", () => {
     expect(vercelConfig).toContain("\"path\": \"/api/cron/admin-invitations/expire\"");
-    expect(vercelConfig).toContain("\"schedule\": \"0 * * * *\"");
+    expect(vercelConfig).toContain("\"schedule\": \"0 3 * * *\"");
     expect(deliveryContract).toContain("cron de expiracao versionado");
     expect(deliveryContract).toContain("cron_secret");
     expect(deliveryContract).toContain("invitation expiry cron must not expose a public cleanup endpoint");
