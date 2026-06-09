@@ -26,8 +26,8 @@ Admin e permissoes nao devem mais ser descritos como puramente owner-centric.
 
 O estado atual da `main` e transicional e active-organization scoped:
 
-- leituras admin usam `requireOrganizationAccess()`;
-- leituras de profiles, membros, module permissions e feature permissions filtram por `owner_id` mais organization ativa ou legado;
+- leituras admin usam `requireOrganizationAdmin(orgSlug)`;
+- leituras de profiles, membros, module permissions e feature permissions filtram por organization ativa;
 - escritas admin gravam `organization_id` nos principais fluxos;
 - escritas validam que membros/perfis pertencem a organization ativa ou legado antes de alterar dados;
 - guardas unitarios impedem regressao para admin/permissoes sem escopo de organization ativa.
@@ -61,7 +61,7 @@ Paginas impactadas:
 - `/protected/admin/usuarios`
 - `/protected/admin/permissoes`
 
-Classificacao atual: desejavel para evitar logica duplicada nas paginas. O helper central agora chama `requireOrganizationAccess()` e repassa `organization.id` para as leituras admin.
+Classificacao atual: desejavel para evitar logica duplicada nas paginas. O helper central agora chama `requireOrganizationAdmin(orgSlug)` e repassa `organization.id` para as leituras admin.
 
 ### 2. Admin ainda depende de `ADMIN_EMAIL` para bootstrap
 
@@ -69,38 +69,38 @@ O fluxo de bootstrap administrativo ainda depende de email configurado.
 
 Classificacao atual: aceitavel apenas como mecanismo transicional de bootstrap. Nao substitui um modelo SaaS final com owner/admin por organization, convites, billing e governanca de conta.
 
-### 3. Profiles agora sao filtrados por owner mais organization ativa ou legado
+### 3. Profiles agora sao filtrados por organization ativa com admin gate
 
 `getFamilyProfiles` usa:
 
 ```txt
-owner_id = adminProfile.owner_id
-AND (organization_id = active organization OR organization_id IS NULL)
+requireOrganizationAdmin()
+AND organization_id = active organization
 ```
 
-Classificacao atual: escopo transicional correto para a fase atual.
+Classificacao atual: read path organization-first correto para a fase atual.
 
 Risco restante:
 
-- ainda depende de `owner_id`;
-- ainda aceita legado `organization_id IS NULL`;
-- ainda nao representa o modelo final baseado apenas em membership/organization.
+- writes admin ainda preservam `owner_id`;
+- access-control ainda precisa de PR dedicado;
+- schema final ainda nao pode remover `owner_id`.
 
-### 4. Permissoes agora sao filtradas por owner mais organization ativa ou legado
+### 4. Permissoes agora sao filtradas por organization ativa com admin gate
 
 `getFamilyPermissions` e `getFamilyFeaturePermissions` usam o mesmo padrao transicional:
 
 ```txt
-owner_id = adminProfile.owner_id
-AND (organization_id = active organization OR organization_id IS NULL)
+requireOrganizationAdmin()
+AND organization_id = active organization
 ```
 
-Classificacao atual: escopo transicional correto para a fase atual.
+Classificacao atual: read path organization-first correto para a fase atual.
 
 Risco restante:
 
-- permissions ainda nao devem ser consideradas SaaS final;
-- RLS final e UX multi-org ainda precisam ser planejadas antes de remover fallback legado.
+- writes de permissions ainda nao devem ser considerados SaaS final;
+- RLS final e UX multi-org ainda precisam ser planejadas antes de remover `owner_id`.
 
 ### 5. Escritas admin gravam e validam organization ativa
 
@@ -133,10 +133,10 @@ Classificacao atual: melhor que o estado owner-centric historico, mas ainda tran
 `__tests__/unit/admin-permissions-guards.test.ts` protege o estado atual ao exigir:
 
 - centralizacao das paginas admin em `getAdminDashboardData`;
-- uso de `requireOrganizationAccess`;
-- filtro `organization_id.eq.${organizationId}`;
-- fallback `organization_id.is.null`;
-- leituras admin filtradas por owner mais organization/legado;
+- uso de `requireOrganizationAdmin` nas leituras admin;
+- filtro `.eq("organization_id", organizationId)`;
+- bloqueio de fallback `organization_id.is.null`;
+- leituras admin filtradas por organization ativa;
 - escritas admin amarradas a organization ativa;
 - access control documentado como active-organization scoped.
 

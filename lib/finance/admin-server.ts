@@ -7,7 +7,7 @@ import type {
 } from "@/lib/finance/admin-types";
 import type { DbFamilyMember } from "@/lib/finance/types";
 import { getOrganizationPath } from "@/lib/organizations/paths";
-import { requireOrganizationAccess } from "@/lib/organizations/server";
+import { requireOrganizationAdmin } from "@/lib/organizations/server";
 import { createClient } from "@/lib/supabase/server";
 import {
   FEATURE_PERMISSIONS,
@@ -113,11 +113,11 @@ export async function requireAdminProfile(orgSlug?: string) {
 }
 
 export async function getAdminDashboardData(orgSlug?: string) {
+  const { organization } = await requireOrganizationAdmin(orgSlug);
   const adminProfile = await requireAdminProfile(orgSlug);
-  const { organization } = await requireOrganizationAccess(orgSlug);
   const [profiles, members, permissions, featurePermissions] = await Promise.all([
     getFamilyProfiles(adminProfile, organization.id),
-    getAdminFamilyMembers(adminProfile, organization.id),
+    getAdminFamilyMembers(organization.id),
     getFamilyPermissions(adminProfile, organization.id),
     getFamilyFeaturePermissions(adminProfile, organization.id),
   ]);
@@ -133,13 +133,12 @@ export async function getAdminDashboardData(orgSlug?: string) {
   };
 }
 
-async function getAdminFamilyMembers(adminProfile: DbProfile, organizationId: string) {
+async function getAdminFamilyMembers(organizationId: string) {
   const supabase = await createClient();
 
   const { data, error } = await supabase
     .from("family_members")
     .select("id, owner_id, name, role, monthly_limit, currency, is_active, created_at")
-    .eq("owner_id", adminProfile.owner_id)
     .eq("organization_id", organizationId)
     .order("created_at", { ascending: true });
 
@@ -150,15 +149,27 @@ async function getAdminFamilyMembers(adminProfile: DbProfile, organizationId: st
   return (data ?? []) as DbFamilyMember[];
 }
 
+async function resolveAdminReadOrganizationId(adminProfileParam?: DbProfile, organizationIdParam?: string) {
+  if (adminProfileParam && organizationIdParam) {
+    return organizationIdParam;
+  }
+
+  const { organization } = await requireOrganizationAdmin();
+
+  if (organizationIdParam && organizationIdParam !== organization.id) {
+    throw new Error("Voce nao tem permissao administrativa nesta organizacao.");
+  }
+
+  return organization.id;
+}
+
 export async function getFamilyProfiles(adminProfileParam?: DbProfile, organizationIdParam?: string) {
   const supabase = await createClient();
-  const adminProfile = adminProfileParam ?? (await requireAdminProfile());
-  const organizationId = organizationIdParam ?? (await requireOrganizationAccess()).organization.id;
+  const organizationId = await resolveAdminReadOrganizationId(adminProfileParam, organizationIdParam);
 
   const { data, error } = await supabase
     .from("profiles")
     .select("id, owner_id, organization_id, auth_user_id, linked_family_member_id, name, email, role, is_active, created_at, family_members(id, name)")
-    .eq("owner_id", adminProfile.owner_id)
     .eq("organization_id", organizationId)
     .order("role", { ascending: true })
     .order("created_at", { ascending: true });
@@ -172,13 +183,11 @@ export async function getFamilyProfiles(adminProfileParam?: DbProfile, organizat
 
 export async function getFamilyPermissions(adminProfileParam?: DbProfile, organizationIdParam?: string) {
   const supabase = await createClient();
-  const adminProfile = adminProfileParam ?? (await requireAdminProfile());
-  const organizationId = organizationIdParam ?? (await requireOrganizationAccess()).organization.id;
+  const organizationId = await resolveAdminReadOrganizationId(adminProfileParam, organizationIdParam);
 
   const { data, error } = await supabase
     .from("user_module_permissions")
     .select("id, owner_id, organization_id, profile_id, module, can_view, can_create, can_edit, can_delete, scope, allowed_member_ids, granted_by, created_at")
-    .eq("owner_id", adminProfile.owner_id)
     .eq("organization_id", organizationId);
 
   if (error) {
@@ -194,13 +203,11 @@ export async function getFamilyPermissions(adminProfileParam?: DbProfile, organi
 
 export async function getFamilyFeaturePermissions(adminProfileParam?: DbProfile, organizationIdParam?: string) {
   const supabase = await createClient();
-  const adminProfile = adminProfileParam ?? (await requireAdminProfile());
-  const organizationId = organizationIdParam ?? (await requireOrganizationAccess()).organization.id;
+  const organizationId = await resolveAdminReadOrganizationId(adminProfileParam, organizationIdParam);
 
   const { data, error } = await supabase
     .from("user_feature_permissions")
     .select("id, owner_id, organization_id, profile_id, feature_key, is_enabled, granted_by, created_at")
-    .eq("owner_id", adminProfile.owner_id)
     .eq("organization_id", organizationId);
 
   if (error) {

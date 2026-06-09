@@ -1,6 +1,6 @@
 # Admin Access-Control Owner ID Retirement Contract
 
-> Status DocDoc: Atual como contrato pre-runtime
+> Status DocDoc: Atual como contrato com read path admin organization-first
 > Uso atual: contrato para retirar futuramente `owner_id` de Admin e
 > access-control sem falso verde.
 > Fonte-base: `docs/audits/OWNER_ID_ACTIVE_CONSUMERS_2026-06-01.md`.
@@ -18,7 +18,10 @@ Este contrato define o que precisa estar provado antes de mexer em:
 - `ADMIN_EMAIL`;
 - permissoes por modulo e feature.
 
-Ele nao altera runtime, schema, RLS, UI, seeds ou billing.
+Ele registra o primeiro runtime de leitura admin organization-first em
+`lib/finance/admin-server.ts`, gated por `requireOrganizationAdmin(orgSlug)`.
+Ele nao altera writes admin, access-control, schema, RLS, UI, seeds, billing,
+remocao de `ADMIN_EMAIL` ou drop de `owner_id`.
 
 ## 2. Estado atual permitido
 
@@ -46,14 +49,15 @@ admin/access-control pronto para remover owner_id agora.
 
 | Superficie | Uso atual de `owner_id` | Risco |
 | --- | --- | --- |
-| `lib/finance/admin-server.ts` | filtra profiles, membros, module permissions e feature permissions por `adminProfile.owner_id` + `organizationId` | admin multi-org pode ser restringido pelo owner transicional |
+| `lib/finance/admin-server.ts` | leituras de dashboard admin exigem admin da organizacao ativa e filtram profiles, membros, module permissions e feature permissions por `organizationId` | writes admin ainda preservam owner transicional |
 | `app/protected/admin/actions.ts` | valida email, membro, perfil e writes com `adminProfile.owner_id` + `organization.id` | write path admin e sensivel; nao pode mudar sem audit/rate-limit preservados |
 | `lib/finance/access-control.ts` | calcula membros acessiveis usando `profile.owner_id` e `organizationId` | permissoes de usuario podem divergir se owner sair antes do modelo final |
 | `ADMIN_EMAIL` | bootstrap global enquanto onboarding/admin final nao esta fechado | nao escala como modelo SaaS final |
 
 ## 4. Criterios antes de runtime
 
-Nenhum PR pode trocar `adminProfile.owner_id` sem:
+Nenhum PR pode trocar `adminProfile.owner_id` em writes admin, access-control
+ou schema final sem:
 
 1. RLS Live Gate verde com artifact;
 2. fixture RLS cobrindo admin em duas organizacoes;
@@ -71,7 +75,7 @@ Nenhum PR pode trocar `adminProfile.owner_id` sem:
 | 1 | contrato admin/access-control | este documento e guard | runtime |
 | 2 | fixture RLS admin multi-org | `__tests__/integration/rls/admin-multi-org.rls.test.ts` prova leitura RLS admin em duas organizacoes sem `owner_id` compartilhado | alterar policies |
 | 3 | modelo de convite/admin | definir bootstrap final e papel de `ADMIN_EMAIL` em `ADMIN_INVITATION_BOOTSTRAP_CONTRACT.md` | remover coluna |
-| 4 | read path admin | trocar leituras admin para organization-first | writes admin |
+| 4 | read path admin | `lib/finance/admin-server.ts` com `requireOrganizationAdmin(orgSlug)` e sem `adminProfile.owner_id` como filtro primario de leitura | writes admin |
 | 5 | write path admin | trocar validates/writes admin para organization-first | schema drop |
 | 6 | access-control | trocar calculo de membros/permissoes para organization-first | schema drop |
 | 7 | schema final | retirar dependencias residuais de `owner_id` | qualquer runtime pendente |
@@ -89,7 +93,7 @@ Nenhum PR pode trocar `adminProfile.owner_id` sem:
 Estado atual:
 
 ```txt
-admin/access-control permanece transicional.
+read path admin em `lib/finance/admin-server.ts` exige admin da organizacao ativa e esta organization-first; writes admin, access-control, ADMIN_EMAIL e owner_id permanecem transicionais.
 ```
 
 Contrato de convite/admin criado:
@@ -107,6 +111,6 @@ __tests__/integration/rls/admin-multi-org.rls.test.ts
 Proximo PR seguro:
 
 ```txt
-schema/preflight ou runtime de convite/admin em PR dedicado, sem remover
-ADMIN_EMAIL e sem retirar owner_id.
+write path admin organization-first em PR dedicado,
+preservando audit/rate-limit, sem remover ADMIN_EMAIL e sem retirar owner_id.
 ```

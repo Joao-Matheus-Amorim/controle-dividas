@@ -31,7 +31,9 @@ describe("admin permissions ownership guards", () => {
     expect(source).toContain("function getConfiguredAdminEmail");
     expect(source).toContain("process.env.ADMIN_EMAIL");
     expect(source).toContain("@/lib/organizations/server");
-    expect(source).toContain("requireOrganizationAccess");
+    expect(source).toContain("requireOrganizationAdmin");
+    expect(source).toContain("await requireOrganizationAdmin(orgSlug)");
+    expect(source).toContain("async function resolveAdminReadOrganizationId");
     expect(source).not.toContain("function organizationOrLegacyFilter");
     expect(source).not.toContain("organization_id.eq.${organizationId}");
     expect(source).not.toContain("organization_id.is.null");
@@ -40,8 +42,8 @@ describe("admin permissions ownership guards", () => {
     expect(source).toContain("export async function getFamilyFeaturePermissions");
     expect(source).toContain("organization_id, auth_user_id");
     expect(source).toContain("owner_id, organization_id, profile_id");
-    expect(source).toContain('.eq("owner_id", adminProfile.owner_id)');
     expect(source).toContain('.eq("organization_id", organizationId)');
+    expect(source).not.toContain('.eq("owner_id", adminProfile.owner_id)');
     expect(source).not.toContain(".or(organizationOrLegacyFilter(organizationId))");
   });
 
