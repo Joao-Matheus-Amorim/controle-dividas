@@ -273,7 +273,6 @@ describe("admin family user actions", () => {
       organization_id: "org-1",
       filters: expect.objectContaining({
         id: "profile-1",
-        owner_id: "owner-1",
         organization_id: "org-1",
       }),
     }));
@@ -301,7 +300,6 @@ describe("admin family user actions", () => {
       organization_id: "org-1",
       filters: expect.objectContaining({
         id: "profile-1",
-        owner_id: "owner-1",
         organization_id: "org-1",
       }),
     }));

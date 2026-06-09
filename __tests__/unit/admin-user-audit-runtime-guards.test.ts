@@ -57,7 +57,7 @@ describe("admin user audit runtime guards", () => {
   });
 
   it("keeps lifecycle events scoped after organization-owned profile writes", () => {
-    expect(actions).toContain("requireorganizationaccess");
+    expect(actions).toContain("requireorganizationadmin");
     expect(actions).toContain("ensureadminprofile");
     expect(actions).toContain("organization_id: organization.id");
     expect(actions).toContain('from("profiles")');
