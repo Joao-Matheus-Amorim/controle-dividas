@@ -85,7 +85,7 @@ Nenhum gap ou divida tecnica pode ser considerado fechado sem todos os itens:
 | G-007 | Produto | Aberto | edit flows e settings testados | escolher um fluxo por PR |
 | G-008 | Documentacao | Continuo | DocDoc headers coerentes | atualizar docs afetados em cada PR |
 | G-009 | GAP-015 | Parcial | storage/retention final definidos | ampliar controles em PR dedicado |
-| G-010 | Admin lifecycle | Read/write path admin organization-first versionado | `docs/audits/ADMIN_INVITATION_BOOTSTRAP_CONTRACT.md`; convite/admin, delivery/UI, cron de expiracao e leituras/writes admin organization-first com admin gate por organizacao ja versionados; access-control, `ADMIN_EMAIL` e owner_id retirement ainda pendentes | access-control organization-first em PR dedicado |
+| G-010 | Admin lifecycle | Read/write/access-control admin organization-first versionado | `docs/audits/ADMIN_INVITATION_BOOTSTRAP_CONTRACT.md`; convite/admin, delivery/UI, cron de expiracao e admin read/write/access-control organization-first ja versionados; `ADMIN_EMAIL` e owner_id retirement ainda pendentes | bootstrap final/ADMIN_EMAIL em PR dedicado |
 
 ## 6. Criterios de aceite por tipo de entrega
 
@@ -184,9 +184,9 @@ A proxima frente deve ser escolhida por objetivo:
 - receita/billing: G-002 Stripe evidence;
 - qualidade visual: G-006 auth/onboarding visual migration;
 - arquitetura: G-005 `owner_id` retirement inventory e G-010 convite/admin
-  com read/write path admin organization-first e admin gate por organizacao versionados.
+  com read/write/access-control admin organization-first versionado.
 
 Recomendacao PMBOK: apos G-001 fechado, priorizar G-002 Stripe evidence ou o
 proximo gate dedicado de rotas/E2E. Se a frente escolhida for arquitetura,
-seguir G-010 com access-control organization-first em PR dedicado,
-sem misturar produto, UI, billing, remocao de `ADMIN_EMAIL` ou retirada de `owner_id`.
+seguir G-010 com bootstrap final/ADMIN_EMAIL em PR dedicado,
+sem misturar produto, UI, billing ou retirada de `owner_id`.

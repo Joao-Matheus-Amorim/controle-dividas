@@ -90,7 +90,10 @@ describe("admin permissions ownership guards", () => {
     expect(source).toContain("requireOrganizationAccess");
     expect(source).toContain("organization_id: string | null");
     expect(source).toContain("async function getActiveOrganizationId");
+    expect(source).toContain("async function getAllActiveMemberIds(organizationId: string)");
     expect(source).toContain('.eq("organization_id", organizationId)');
+    expect(source).not.toContain('.eq("owner_id", profile.owner_id)');
+    expect(source).not.toContain("getAllActiveMemberIds(profile.owner_id");
     expect(source).not.toContain("function organizationOrLegacyFilter");
     expect(source).not.toContain("organization_id.eq.${organizationId}");
     expect(source).not.toContain("organization_id.is.null");

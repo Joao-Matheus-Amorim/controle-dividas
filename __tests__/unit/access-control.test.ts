@@ -253,16 +253,17 @@ describe("access-control RBAC", () => {
 
     mockState.familyMembers = [
       { id: "member-1", owner_id: "owner-1", organization_id: "org-1", is_active: true },
+      { id: "member-org-owner", owner_id: "owner-org-1", organization_id: "org-1", is_active: true },
       { id: "member-legacy", owner_id: "owner-1", organization_id: null, is_active: true },
       { id: "member-other-org", owner_id: "owner-1", organization_id: "org-2", is_active: true },
     ];
     setPermission({
       action: "can_view",
       scope: "selected",
-      allowedMemberIds: ["member-1", "member-legacy", "member-other-org"],
+      allowedMemberIds: ["member-1", "member-org-owner", "member-legacy", "member-other-org"],
     });
 
-    await expect(getAccessibleMemberIds("GASTOS", "can_view")).resolves.toEqual(["member-1"]);
+    await expect(getAccessibleMemberIds("GASTOS", "can_view")).resolves.toEqual(["member-1", "member-org-owner"]);
     expectNoLegacyRuntimePermissionFallback();
   });
 
@@ -271,12 +272,13 @@ describe("access-control RBAC", () => {
 
     mockState.familyMembers = [
       { id: "member-1", owner_id: "owner-1", organization_id: "org-1", is_active: true },
+      { id: "member-org-owner", owner_id: "owner-org-1", organization_id: "org-1", is_active: true },
       { id: "member-legacy", owner_id: "owner-1", organization_id: null, is_active: true },
       { id: "member-other-org", owner_id: "owner-1", organization_id: "org-2", is_active: true },
     ];
     setPermission({ action: "can_view", scope: "family" });
 
-    await expect(getAccessibleMemberIds("GASTOS", "can_view")).resolves.toEqual(["member-1"]);
+    await expect(getAccessibleMemberIds("GASTOS", "can_view")).resolves.toEqual(["member-1", "member-org-owner"]);
     expectNoLegacyRuntimePermissionFallback();
   });
 
@@ -351,11 +353,12 @@ describe("access-control RBAC", () => {
     mockState.modulePermissions = [];
     mockState.familyMembers = [
       { id: "member-1", owner_id: "owner-1", organization_id: "org-1", is_active: true },
+      { id: "member-org-owner", owner_id: "owner-org-1", organization_id: "org-1", is_active: true },
       { id: "member-legacy", owner_id: "owner-1", organization_id: null, is_active: true },
       { id: "member-other-org", owner_id: "owner-1", organization_id: "org-2", is_active: true },
     ];
 
-    await expect(getAccessibleMemberIds("GASTOS", "can_delete")).resolves.toEqual(["member-1"]);
+    await expect(getAccessibleMemberIds("GASTOS", "can_delete")).resolves.toEqual(["member-1", "member-org-owner"]);
     await expect(getVisibleModuleKeys(["GASTOS", "BANCOS"])).resolves.toEqual(["GASTOS", "BANCOS"]);
     expectNoLegacyRuntimePermissionFallback();
   });

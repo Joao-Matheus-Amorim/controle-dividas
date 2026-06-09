@@ -18,7 +18,7 @@ describe("admin access-control owner_id retirement contract guards", () => {
   const adminMultiOrgRls = read("__tests__/integration/rls/admin-multi-org.rls.test.ts");
 
   it("keeps admin/access-control transitional until the required gates exist", () => {
-    expect(contract).toContain("status docdoc: atual como contrato com read/write path admin organization-first");
+    expect(contract).toContain("status docdoc: atual como contrato com read/write/access-control admin organization-first");
     expect(contract).toContain("organization admin gate + organization.id");
     expect(contract).toContain("admin/access-control pronto para remover owner_id agora");
     expect(contract).toContain("estado proibido como conclusao");
@@ -26,8 +26,8 @@ describe("admin access-control owner_id retirement contract guards", () => {
     expect(contract).toContain("fixture rls cobrindo admin em duas organizacoes");
     expect(contract).toContain("rollback documentado");
     expect(contract).toContain("requireorganizationadmin(orgslug)");
-    expect(contract).toContain("read/write path admin em `lib/finance/admin-server.ts` e `app/protected/admin/actions.ts` exige admin da organizacao ativa e esta organization-first");
-    expect(contract).toContain("access-control organization-first em pr dedicado");
+    expect(contract).toContain("access-control tambem calcula permissoes e membros por organizacao");
+    expect(contract).toContain("proximo pr dedicado deve tratar bootstrap final/admin_email");
   });
 
   it("preserves admin audit and rate-limit boundaries before any refactor", () => {

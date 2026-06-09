@@ -83,7 +83,7 @@ Classificacao atual: read path organization-first correto para a fase atual.
 Risco restante:
 
 - writes admin ainda preservam `owner_id`;
-- access-control ainda precisa de PR dedicado;
+- access-control ja resolve permissoes e membros por organizacao ativa;
 - schema final ainda nao pode remover `owner_id`.
 
 ### 4. Permissoes agora sao filtradas por organization ativa com admin gate

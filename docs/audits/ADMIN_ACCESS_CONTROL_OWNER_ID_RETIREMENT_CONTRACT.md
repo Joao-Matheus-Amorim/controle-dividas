@@ -1,6 +1,6 @@
 # Admin Access-Control Owner ID Retirement Contract
 
-> Status DocDoc: Atual como contrato com read/write path admin organization-first
+> Status DocDoc: Atual como contrato com read/write/access-control admin organization-first
 > Uso atual: contrato para retirar futuramente `owner_id` de Admin e
 > access-control sem falso verde.
 > Fonte-base: `docs/audits/OWNER_ID_ACTIVE_CONSUMERS_2026-06-01.md`.
@@ -19,9 +19,11 @@ Este contrato define o que precisa estar provado antes de mexer em:
 - permissoes por modulo e feature.
 
 Ele registra os primeiros runtimes admin organization-first em
-`lib/finance/admin-server.ts` e `app/protected/admin/actions.ts`, gated por
-`requireOrganizationAdmin`. Ele nao altera access-control, schema, RLS, UI,
-seeds, billing, remocao de `ADMIN_EMAIL` ou drop de `owner_id`.
+`lib/finance/admin-server.ts`, `app/protected/admin/actions.ts` e
+`lib/finance/access-control.ts`. Reads/writes admin sao gated por
+`requireOrganizationAdmin`; access-control resolve permissoes e membros por
+organizacao ativa. Ele nao altera schema, RLS, UI, seeds, billing, remocao de
+`ADMIN_EMAIL` ou drop de `owner_id`.
 
 ## 2. Estado atual permitido
 
@@ -51,12 +53,12 @@ admin/access-control pronto para remover owner_id agora.
 | --- | --- | --- |
 | `lib/finance/admin-server.ts` | leituras de dashboard admin exigem admin da organizacao ativa e filtram profiles, membros, module permissions e feature permissions por `organizationId` | preserva owner transicional apenas nos campos selecionados |
 | `app/protected/admin/actions.ts` | writes admin exigem admin da organizacao ativa, validam email, membro e perfil por `organization.id`, e preservam `owner_id` apenas em payloads transicionais usando `organization.owner_auth_user_id` da organizacao alvo | audit/rate-limit seguem obrigatorios antes de qualquer retirada final |
-| `lib/finance/access-control.ts` | calcula membros acessiveis usando `profile.owner_id` e `organizationId` | permissoes de usuario podem divergir se owner sair antes do modelo final |
+| `lib/finance/access-control.ts` | calcula permissoes e membros acessiveis por `organizationId`, sem filtro `profile.owner_id` para membros ativos | `owner_id` segue no tipo transicional ate schema final |
 | `ADMIN_EMAIL` | bootstrap global enquanto onboarding/admin final nao esta fechado | nao escala como modelo SaaS final |
 
 ## 4. Criterios antes de runtime
 
-Nenhum PR pode trocar `adminProfile.owner_id` em access-control ou schema final
+Nenhum PR pode retirar `owner_id` do schema final
 sem:
 
 1. RLS Live Gate verde com artifact;
@@ -77,7 +79,7 @@ sem:
 | 3 | modelo de convite/admin | definir bootstrap final e papel de `ADMIN_EMAIL` em `ADMIN_INVITATION_BOOTSTRAP_CONTRACT.md` | remover coluna |
 | 4 | read path admin | `lib/finance/admin-server.ts` com `requireOrganizationAdmin(orgSlug)` e sem `adminProfile.owner_id` como filtro primario de leitura | writes admin |
 | 5 | write path admin | `app/protected/admin/actions.ts` com `requireOrganizationAdmin` e validates/writes por organization-first | access-control |
-| 6 | access-control | trocar calculo de membros/permissoes para organization-first | schema drop |
+| 6 | access-control | `lib/finance/access-control.ts` calcula membros/permissoes por `organizationId`, sem filtro `profile.owner_id` para membros ativos | schema drop |
 | 7 | schema final | retirar dependencias residuais de `owner_id` | qualquer runtime pendente |
 
 ## 6. Guardrails
@@ -93,7 +95,7 @@ sem:
 Estado atual:
 
 ```txt
-read/write path admin em `lib/finance/admin-server.ts` e `app/protected/admin/actions.ts` exige admin da organizacao ativa e esta organization-first; access-control, ADMIN_EMAIL e owner_id permanecem transicionais.
+read/write path admin em `lib/finance/admin-server.ts` e `app/protected/admin/actions.ts` exige admin da organizacao ativa e esta organization-first; access-control tambem calcula permissoes e membros por organizacao. ADMIN_EMAIL e owner_id permanecem transicionais.
 ```
 
 Contrato de convite/admin criado:
@@ -111,6 +113,6 @@ __tests__/integration/rls/admin-multi-org.rls.test.ts
 Proximo PR seguro:
 
 ```txt
-access-control organization-first em PR dedicado,
-preservando audit/rate-limit, sem remover ADMIN_EMAIL e sem retirar owner_id.
+proximo PR dedicado deve tratar bootstrap final/ADMIN_EMAIL ou outro consumidor
+de `owner_id`, sem remover owner_id antes dos gates de schema/RLS.
 ```

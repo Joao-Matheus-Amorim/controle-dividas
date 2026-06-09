@@ -30,13 +30,13 @@ describe("owner_id retirement inventory guards", () => {
     expect(inventory).toContain("migration nova, nunca reescrita de migration antiga");
     expect(inventory).toContain("dominio piloto");
     expect(inventory).toContain("admin/access-control");
-    expect(inventory).toContain("read/write path admin ja versionado com admin gate por organizacao");
+    expect(inventory).toContain("read/write path admin e access-control ja versionados organization-first");
     expect(inventory).toContain("schema final");
   });
 
   it("registers the current inventory in DocDoc and PMBOK sources", () => {
     expect(inventory).toContain("status docdoc: atual");
-    expect(inventory).toContain("access-control organization-first em pr dedicado");
+    expect(inventory).toContain("proximo consumidor de `owner_id` em pr dedicado");
     expect(auditsReadme).toContain("owner_id_retirement_inventory_2026-06-01.md");
     expect(statusMap).toContain("owner_id_retirement_inventory_2026-06-01.md");
     expect(pmbokPlan).toContain("g-005");
