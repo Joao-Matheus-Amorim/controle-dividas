@@ -123,13 +123,16 @@ const rlsCoverage: RlsTableExpectation[] = [
   },
   {
     table: "payable_bills",
-    rlsFiles: ["033_payable_bills_rls_remove_legacy_fallback.sql"],
+    rlsFiles: [
+      "033_payable_bills_rls_remove_legacy_fallback.sql",
+      "053_payable_bills_organization_write_rls.sql",
+    ],
     status: "covered",
     policies: [
       { file: "033_payable_bills_rls_remove_legacy_fallback.sql", name: "payable_bills_select_organization", operation: "select" },
-      { file: "033_payable_bills_rls_remove_legacy_fallback.sql", name: "payable_bills_insert_owner_organization", operation: "insert" },
-      { file: "033_payable_bills_rls_remove_legacy_fallback.sql", name: "payable_bills_update_owner_organization", operation: "update" },
-      { file: "033_payable_bills_rls_remove_legacy_fallback.sql", name: "payable_bills_delete_owner_organization", operation: "delete" },
+      { file: "053_payable_bills_organization_write_rls.sql", name: "payable_bills_insert_organization", operation: "insert" },
+      { file: "053_payable_bills_organization_write_rls.sql", name: "payable_bills_update_organization", operation: "update" },
+      { file: "053_payable_bills_organization_write_rls.sql", name: "payable_bills_delete_organization", operation: "delete" },
     ],
   },
   {

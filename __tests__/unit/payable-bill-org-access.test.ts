@@ -7,7 +7,7 @@ type QueryRecord = {
 
 const mockState = vi.hoisted(() => ({
   currentProfile: { id: "profile-1", owner_id: "owner-1", role: "admin" },
-  currentOrganization: { id: "org-1", slug: "familia-a" },
+  currentOrganization: { id: "org-1", slug: "familia-a", owner_auth_user_id: "org-owner-1" },
   insertedPayloads: [] as Array<Record<string, unknown>>,
   queryRecords: [] as QueryRecord[],
   memberLookup: { id: "member-1", organization_id: "org-1" } as Record<string, unknown> | null,
@@ -40,7 +40,7 @@ function expectMemberLookupFilters(id: string) {
   const record = mockState.queryRecords.filter((item) => item.table === "family_members").at(-1);
   expect(record).toEqual({
     table: "family_members",
-    eq: { id, owner_id: "owner-1", organization_id: "org-1" },
+    eq: { id, organization_id: "org-1" },
   });
 }
 

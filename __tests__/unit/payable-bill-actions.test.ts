@@ -9,6 +9,7 @@ const mockState = vi.hoisted(() => ({
   currentOrganization: {
     id: "org-1",
     slug: "amorim",
+    owner_auth_user_id: "org-owner-1",
   },
   insertedPayloads: [] as Array<Record<string, unknown>>,
   updatedPayloads: [] as Array<Record<string, unknown>>,
@@ -280,7 +281,7 @@ describe("payable bill actions", () => {
     expect(result).toEqual({ success: "Conta avulsa cadastrada com sucesso." });
     expect(mockState.insertedPayloads).toEqual([
       expect.objectContaining({
-        owner_id: "owner-1",
+        owner_id: "org-owner-1",
         organization_id: "org-1",
         name: "Boleto eventual",
         amount: 90.5,
@@ -419,7 +420,7 @@ describe("payable bill actions", () => {
       recurrence: null,
       notes: "Observacao nova",
       organization_id: "org-1",
-      filters: expect.objectContaining({ id: "bill-1", owner_id: "owner-1" }),
+      filters: expect.objectContaining({ id: "bill-1", organization_id: "org-1" }),
     }));
     expect(mockState.rateLimitChecks).toEqual([
       {
@@ -466,7 +467,7 @@ describe("payable bill actions", () => {
       bill_type: "fixa",
       recurrence: "mensal",
       organization_id: "org-1",
-      filters: expect.objectContaining({ id: "bill-1", owner_id: "owner-1" }),
+      filters: expect.objectContaining({ id: "bill-1", organization_id: "org-1" }),
     }));
   });
 
@@ -527,7 +528,7 @@ describe("payable bill actions", () => {
     }));
 
     expect(result).toEqual({ error: "Conta nao encontrada." });
-    expect(mockState.updatedPayloads).toHaveLength(3);
+    expect(mockState.updatedPayloads).toHaveLength(2);
     expect(mockState.auditEvents).toHaveLength(0);
   });
 
@@ -808,7 +809,7 @@ describe("payable bill actions", () => {
     expect(lastUpdatePayload()).toEqual(expect.objectContaining({
       status: "pago",
       organization_id: "org-1",
-      filters: expect.objectContaining({ id: "bill-1", owner_id: "owner-1" }),
+      filters: expect.objectContaining({ id: "bill-1", organization_id: "org-1" }),
     }));
     expect(mockState.auditEvents).toEqual([
       expect.objectContaining({
@@ -844,7 +845,7 @@ describe("payable bill actions", () => {
     expect(lastUpdatePayload()).toEqual(expect.objectContaining({
       status: "pago",
       organization_id: "org-1",
-      filters: expect.objectContaining({ id: "bill-1", owner_id: "owner-1" }),
+      filters: expect.objectContaining({ id: "bill-1", organization_id: "org-1" }),
     }));
     expect(mockState.auditEvents).toHaveLength(0);
   });

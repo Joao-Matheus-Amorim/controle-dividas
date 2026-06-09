@@ -46,7 +46,7 @@ function extractFunctionBody(source: string, signature: string) {
 
 describe("payable bills organization scope readiness", () => {
   const actions = read("app/protected/contas-a-pagar/actions.ts");
-  const payableReads = read("lib/finance/payables-server.ts");
+  const payableReads = read("lib/organizations/payables.ts");
   const audit = read("docs/audits/PAYABLE_BILLS_ORGANIZATION_SCOPE_READINESS.md");
 
   const createPayableBillBody = extractFunctionBody(
@@ -69,14 +69,16 @@ describe("payable bills organization scope readiness", () => {
     actions,
     "export async function deletepayablebill",
   );
-  const getPayableBillsFromClientBody = extractFunctionBody(
+  const getOrganizationPayableBillsBody = extractFunctionBody(
     payableReads,
-    "export async function getpayablebillsfromclient",
+    "export async function getorganizationpayablebills",
   );
 
   it("keeps createPayableBill writing organization_id from the active organization", () => {
     expect(createPayableBillBody).toContain("requireorganizationaccess");
     expect(createPayableBillBody).toContain("organization_id: organization.id");
+    expect(createPayableBillBody).toContain("owner_id: organization.owner_auth_user_id");
+    expect(createPayableBillBody).not.toContain("owner_id: profile.owner_id");
     expect(createPayableBillBody).toContain("assertresponsiblememberbelongstoorganization");
     expect(createPayableBillBody).toContain("assertcanaccessmember");
   });
@@ -93,31 +95,31 @@ describe("payable bills organization scope readiness", () => {
     expect(updatePayableBillStatusBody).toContain(".eq(\"organization_id\", organization.id)");
   });
 
-  it("keeps manage path scoped by owner and active organization", () => {
-    expect(assertCanManagePayableBillBody).toContain(".eq(\"owner_id\", profile.owner_id)");
+  it("keeps manage path scoped by active organization", () => {
+    expect(assertCanManagePayableBillBody).not.toContain(".eq(\"owner_id\", profile.owner_id)");
     expect(assertCanManagePayableBillBody).toContain(".eq(\"organization_id\", organization.id)");
     expect(assertCanManagePayableBillBody).toContain("assertresponsiblememberbelongstoorganization");
     expect(assertCanManagePayableBillBody).toContain("assertcanaccessmember");
   });
 
-  it("keeps delete path scoped by owner and active organization", () => {
+  it("keeps delete path scoped by active organization", () => {
     expect(deletePayableBillBody).toContain("assertcanmanagepayablebill");
-    expect(deletePayableBillBody).toContain(".eq(\"owner_id\", profile.owner_id)");
+    expect(deletePayableBillBody).not.toContain(".eq(\"owner_id\", profile.owner_id)");
     expect(deletePayableBillBody).toContain(".eq(\"organization_id\", organization.id)");
   });
 
-  it("records that the read path remains transitional", () => {
-    expect(getPayableBillsFromClientBody).toContain(".eq(\"owner_id\", profile.owner_id)");
-    expect(getPayableBillsFromClientBody).toContain(".in(\"responsible_member_id\", accessiblememberids)");
-    expect(audit).toContain("read path relies on accessible members instead of explicit `payable_bills.organization_id` filtering");
+  it("records that the read path is organization scoped", () => {
+    expect(getOrganizationPayableBillsBody).not.toContain(".eq(\"owner_id\", profile.owner_id)");
+    expect(getOrganizationPayableBillsBody).toContain(".eq(\"organization_id\", organization.id)");
+    expect(getOrganizationPayableBillsBody).toContain(".in(\"responsible_member_id\", accessiblememberids)");
+    expect(audit).toContain("read path filters `payable_bills.organization_id` and accessible members");
   });
 
-  it("keeps the audit as readiness-only, not a hardening migration", () => {
-    expect(audit).toContain("this document does not introduce a migration");
-    expect(audit).toContain("should not be hardened in this pr");
-    expect(audit).toContain("fresh null-organization preflight evidence");
-    expect(audit).toContain("fresh deterministic dry-run evidence");
-    expect(audit).toContain("migration-local preflight guard");
-    expect(audit).toContain("no runtime, rls, ui, billing or e2e mixing");
+  it("records the payable write boundary migration contract", () => {
+    expect(audit).toContain("supabase/migrations/053_payable_bills_organization_write_rls.sql");
+    expect(audit).toContain("owner_id remains a legacy schema column");
+    expect(audit).toContain("organization.owner_auth_user_id");
+    expect(audit).toContain("contas_a_pagar");
+    expect(audit).toContain("schema-final owner_id removal remains out of scope");
   });
 });

@@ -48,6 +48,7 @@ Arquivos revisados:
 - `supabase/migrations/039_drop_legacy_owner_family_policies.sql`
 - `supabase/migrations/051_banks_organization_write_rls.sql`
 - `supabase/migrations/052_expenses_organization_write_rls.sql`
+- `supabase/migrations/053_payable_bills_organization_write_rls.sql`
 
 Busca base:
 
@@ -80,7 +81,7 @@ Classificacao atual:
 | `expenses` | hardened | `organization_id NOT NULL`; select por membership; writes por permissao `GASTOS` por membro/acao com constraint de `owner_id` legado igual ao owner da organizacao alvo. |
 | `expense_categories` | hardened | `organization_id NOT NULL`; select por membership; writes por owner/admin da organizacao. |
 | `banks` | hardened | `organization_id NOT NULL`; select por membership; writes por permissao `BANCOS` por membro/acao com constraint de `owner_id` legado igual ao owner da organizacao alvo; nao depende de membro ativo por preservar historico. |
-| `payable_bills` | hardened | `organization_id NOT NULL`; select por membership; writes por owner + membership. |
+| `payable_bills` | hardened | `organization_id NOT NULL`; select por membership; writes por permissao `CONTAS_A_PAGAR` por membro/acao com constraint de `owner_id` legado igual ao owner da organizacao alvo. |
 | `receivable_incomes` | hardened | `organization_id NOT NULL`; select por membership; writes por owner + membership. |
 | `user_module_permissions` | hardened | `organization_id NOT NULL`; select por membership; writes por owner + membership. |
 | `user_feature_permissions` | hardened | `organization_id NOT NULL`; select por membership; writes por owner + membership. |
@@ -119,7 +120,7 @@ Modelo atual:
 
 ```txt
 select: public.is_organization_member(organization_id)
-insert/update/delete: `expenses` usa permissao `GASTOS`; `banks` usa permissao `BANCOS`; `expense_categories` e `family_members` usam owner/admin da organizacao; demais tabelas ainda transicionais usam owner + membership
+insert/update/delete: `expenses` usa permissao `GASTOS`; `banks` usa permissao `BANCOS`; `payable_bills` usa permissao `CONTAS_A_PAGAR`; `expense_categories` e `family_members` usam owner/admin da organizacao; demais tabelas ainda transicionais usam owner + membership
 ```
 
 O fallback `organization_id IS NULL` foi removido pelas migrations `030` a `035`.
