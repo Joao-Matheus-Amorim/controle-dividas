@@ -6,13 +6,14 @@ function createPayableBillsClient(data: unknown[] | null, error: { message: stri
   const orderCreatedAt = vi.fn(async () => ({ data, error }));
   const orderDueDate = vi.fn(() => ({ order: orderCreatedAt }));
   const inFilter = vi.fn(() => ({ order: orderDueDate }));
-  const eq = vi.fn(() => ({ in: inFilter }));
+  const organizationEq = vi.fn(() => ({ in: inFilter }));
+  const eq = vi.fn(() => ({ eq: organizationEq }));
   const select = vi.fn(() => ({ eq }));
   const from = vi.fn(() => ({ select }));
 
   return {
     client: { from },
-    calls: { from, select, eq, inFilter, orderDueDate, orderCreatedAt },
+    calls: { from, select, eq, organizationEq, inFilter, orderDueDate, orderCreatedAt },
   };
 }
 
@@ -21,7 +22,7 @@ describe("finance payables server", () => {
     const { client, calls } = createPayableBillsClient([]);
 
     await expect(
-      getPayableBillsFromClient(client, { owner_id: "owner-123" }, []),
+      getPayableBillsFromClient(client, { owner_id: "owner-123", organization_id: "org-123" }, []),
     ).resolves.toEqual([]);
 
     expect(calls.from).not.toHaveBeenCalled();
@@ -29,6 +30,7 @@ describe("finance payables server", () => {
 
   it("reads payable bills scoped by owner and accessible member ids", async () => {
     const ownerId = "owner-123";
+    const organizationId = "org-123";
     const accessibleMemberIds = ["member-1", "member-2"];
     const billRows = [
       {
@@ -52,7 +54,7 @@ describe("finance payables server", () => {
 
     const result = await getPayableBillsFromClient(
       client,
-      { owner_id: ownerId },
+      { owner_id: ownerId, organization_id: organizationId },
       accessibleMemberIds,
     );
 
@@ -67,6 +69,7 @@ describe("finance payables server", () => {
       "id, owner_id, name, category, amount, due_date, responsible_member_id, status, bill_type, bank_used, recurrence, notes, created_at, family_members(id, name)",
     );
     expect(calls.eq).toHaveBeenCalledWith("owner_id", ownerId);
+    expect(calls.organizationEq).toHaveBeenCalledWith("organization_id", organizationId);
     expect(calls.inFilter).toHaveBeenCalledWith("responsible_member_id", accessibleMemberIds);
     expect(calls.orderDueDate).toHaveBeenCalledWith("due_date", { ascending: true });
     expect(calls.orderCreatedAt).toHaveBeenCalledWith("created_at", { ascending: false });
@@ -94,7 +97,11 @@ describe("finance payables server", () => {
     const { client } = createPayableBillsClient(billRows);
 
     await expect(
-      getPayableBillsFromClient(client, { owner_id: "owner-123" }, ["member-1"]),
+      getPayableBillsFromClient(
+        client,
+        { owner_id: "owner-123", organization_id: "org-123" },
+        ["member-1"],
+      ),
     ).resolves.toEqual([
       {
         ...billRows[0],
@@ -107,7 +114,11 @@ describe("finance payables server", () => {
     const { client } = createPayableBillsClient(null);
 
     await expect(
-      getPayableBillsFromClient(client, { owner_id: "owner-123" }, ["member-1"]),
+      getPayableBillsFromClient(
+        client,
+        { owner_id: "owner-123", organization_id: "org-123" },
+        ["member-1"],
+      ),
     ).resolves.toEqual([]);
   });
 
@@ -115,7 +126,11 @@ describe("finance payables server", () => {
     const { client } = createPayableBillsClient(null, { message: "read failed" });
 
     await expect(
-      getPayableBillsFromClient(client, { owner_id: "owner-123" }, ["member-1"]),
+      getPayableBillsFromClient(
+        client,
+        { owner_id: "owner-123", organization_id: "org-123" },
+        ["member-1"],
+      ),
     ).rejects.toThrow("read failed");
   });
 });
