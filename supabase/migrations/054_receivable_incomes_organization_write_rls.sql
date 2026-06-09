@@ -1,0 +1,93 @@
+-- Move receivable income writes from authenticated-user ownership to organization-scoped writes.
+-- Preconditions:
+-- - public.receivable_incomes.organization_id is NOT NULL.
+-- - public.organization_legacy_owner_matches(uuid, uuid) exists from migration 050.
+-- - Application actions enforce the same CONTAS_A_RECEBER module/member permissions before writes.
+
+alter table public.receivable_incomes enable row level security;
+
+create or replace function public.can_manage_organization_receivable_income(
+  target_organization_id uuid,
+  target_receiver_member_id uuid,
+  target_action text
+)
+returns boolean
+language sql
+security definer
+set search_path = public
+as $$
+  select
+    case
+      when target_receiver_member_id is null then false
+      when not exists (
+        select 1
+        from public.family_members fm
+        where fm.id = target_receiver_member_id
+          and fm.organization_id = target_organization_id
+      ) then false
+      when not public.is_organization_member(target_organization_id) then false
+      when public.is_organization_admin(target_organization_id) then true
+      when target_action not in ('can_create', 'can_edit', 'can_delete') then false
+      else exists (
+        select 1
+        from public.profiles p
+        join public.user_module_permissions ump
+          on ump.profile_id = p.id
+          and ump.organization_id = target_organization_id
+          and ump.module = 'CONTAS_A_RECEBER'
+        where p.auth_user_id = auth.uid()
+          and p.organization_id = target_organization_id
+          and p.is_active = true
+          and case target_action
+            when 'can_create' then ump.can_create
+            when 'can_edit' then ump.can_edit
+            when 'can_delete' then ump.can_delete
+            else false
+          end
+          and (
+            ump.scope = 'family'
+            or (
+              ump.scope = 'selected'
+              and target_receiver_member_id = any(coalesce(ump.allowed_member_ids, '{}'::uuid[]))
+            )
+            or (
+              ump.scope = 'own'
+              and p.linked_family_member_id = target_receiver_member_id
+            )
+          )
+      )
+    end;
+$$;
+
+revoke all on function public.can_manage_organization_receivable_income(uuid, uuid, text) from public;
+grant execute on function public.can_manage_organization_receivable_income(uuid, uuid, text) to authenticated;
+
+drop policy if exists "receivable_incomes_insert_owner_organization" on public.receivable_incomes;
+drop policy if exists "receivable_incomes_update_owner_organization" on public.receivable_incomes;
+drop policy if exists "receivable_incomes_delete_owner_organization" on public.receivable_incomes;
+
+create policy "receivable_incomes_insert_organization"
+  on public.receivable_incomes
+  for insert
+  with check (
+    public.can_manage_organization_receivable_income(organization_id, receiver_member_id, 'can_create')
+    and public.organization_legacy_owner_matches(organization_id, owner_id)
+  );
+
+create policy "receivable_incomes_update_organization"
+  on public.receivable_incomes
+  for update
+  using (
+    public.can_manage_organization_receivable_income(organization_id, receiver_member_id, 'can_edit')
+  )
+  with check (
+    public.can_manage_organization_receivable_income(organization_id, receiver_member_id, 'can_edit')
+    and public.organization_legacy_owner_matches(organization_id, owner_id)
+  );
+
+create policy "receivable_incomes_delete_organization"
+  on public.receivable_incomes
+  for delete
+  using (
+    public.can_manage_organization_receivable_income(organization_id, receiver_member_id, 'can_delete')
+  );

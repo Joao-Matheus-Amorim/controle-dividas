@@ -1,4 +1,4 @@
-import { getAccessibleMemberIds, getCurrentProfile } from "@/lib/finance/access-control";
+import { getAccessibleMemberIds } from "@/lib/finance/access-control";
 import type { DbFamilyMember, DbReceivableIncome } from "@/lib/finance/server";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { createClient } from "@/lib/supabase/server";
@@ -23,7 +23,6 @@ function normalizeReceivableIncome(
 
 export async function getOrganizationReceivableIncomes(orgSlug?: string) {
   const supabase = await createClient();
-  const profile = await getCurrentProfile();
   const { organization } = await requireOrganizationAccess(orgSlug);
   const accessibleMemberIds = await getAccessibleMemberIds("CONTAS_A_RECEBER", "can_view", orgSlug);
 
@@ -34,7 +33,6 @@ export async function getOrganizationReceivableIncomes(orgSlug?: string) {
   const { data: membersData, error: membersError } = await supabase
     .from("family_members")
     .select("id, name")
-    .eq("owner_id", profile.owner_id)
     .eq("organization_id", organization.id)
     .in("id", accessibleMemberIds);
 
@@ -47,7 +45,6 @@ export async function getOrganizationReceivableIncomes(orgSlug?: string) {
     .select(
       "id, owner_id, receiver_member_id, source, income_type, amount, expected_date, status, receiving_bank, notes, created_at",
     )
-    .eq("owner_id", profile.owner_id)
     .eq("organization_id", organization.id)
     .in("receiver_member_id", accessibleMemberIds)
     .order("expected_date", { ascending: true })
@@ -71,14 +68,12 @@ export async function getOrganizationReceivableIncomes(orgSlug?: string) {
 
 export async function getOrganizationReceivableIncomesDashboardData(orgSlug?: string) {
   const supabase = await createClient();
-  const profile = await getCurrentProfile();
   const { organization } = await requireOrganizationAccess(orgSlug);
   const accessibleMemberIds = await getAccessibleMemberIds("CONTAS_A_RECEBER", "can_view", orgSlug);
 
   const { data: membersData, error: membersError } = await supabase
     .from("family_members")
     .select("id, owner_id, name, role, monthly_limit, currency, is_active, created_at")
-    .eq("owner_id", profile.owner_id)
     .eq("is_active", true)
     .eq("organization_id", organization.id)
     .order("created_at", { ascending: true });

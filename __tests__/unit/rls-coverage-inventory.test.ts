@@ -137,13 +137,16 @@ const rlsCoverage: RlsTableExpectation[] = [
   },
   {
     table: "receivable_incomes",
-    rlsFiles: ["034_receivable_incomes_rls_remove_legacy_fallback.sql"],
+    rlsFiles: [
+      "034_receivable_incomes_rls_remove_legacy_fallback.sql",
+      "054_receivable_incomes_organization_write_rls.sql",
+    ],
     status: "covered",
     policies: [
       { file: "034_receivable_incomes_rls_remove_legacy_fallback.sql", name: "receivable_incomes_select_organization", operation: "select" },
-      { file: "034_receivable_incomes_rls_remove_legacy_fallback.sql", name: "receivable_incomes_insert_owner_organization", operation: "insert" },
-      { file: "034_receivable_incomes_rls_remove_legacy_fallback.sql", name: "receivable_incomes_update_owner_organization", operation: "update" },
-      { file: "034_receivable_incomes_rls_remove_legacy_fallback.sql", name: "receivable_incomes_delete_owner_organization", operation: "delete" },
+      { file: "054_receivable_incomes_organization_write_rls.sql", name: "receivable_incomes_insert_organization", operation: "insert" },
+      { file: "054_receivable_incomes_organization_write_rls.sql", name: "receivable_incomes_update_organization", operation: "update" },
+      { file: "054_receivable_incomes_organization_write_rls.sql", name: "receivable_incomes_delete_organization", operation: "delete" },
     ],
   },
   {
