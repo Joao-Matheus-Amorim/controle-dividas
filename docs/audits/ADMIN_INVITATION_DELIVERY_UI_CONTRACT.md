@@ -1,11 +1,11 @@
 # Admin Invitation Delivery and UI Contract
 
-> Status DocDoc: Atual como contrato com delivery adapter parcial
-> Uso atual: contrato para delivery server-only e UI futura de aceite de
+> Status DocDoc: Atual como contrato com delivery adapter e UI de aceite
+> Uso atual: contrato para delivery server-only e UI de aceite de
 > convite admin sem armazenar, logar ou expor token bruto.
 > Fonte-base: `docs/audits/ADMIN_INVITATION_BOOTSTRAP_CONTRACT.md`.
 
-Atualizado em: 2026-06-08
+Atualizado em: 2026-06-09
 
 ## 1. Objetivo
 
@@ -13,15 +13,17 @@ Este contrato define a fronteira segura entre o runtime ja versionado de
 convites admin e a futura entrega do link de aceite.
 
 Ele registra o delivery adapter server-only versionado em
-`lib/admin-invitations/delivery.ts`. Ele nao implementa UI, fila, schema, cron,
-remocao de `ADMIN_EMAIL`, retirement de `owner_id` ou mudanca de billing.
+`lib/admin-invitations/delivery.ts` e a UI de aceite versionada em
+`app/auth/convite/page.tsx` e `components/admin-invitation-acceptance-form.tsx`.
+Ele nao implementa fila, schema novo, cron, remocao de `ADMIN_EMAIL`,
+retirement de `owner_id` ou mudanca de billing.
 
 ## 2. Estado atual
 
 O estado atual permitido e:
 
 ```txt
-schema/preflight de convite, create/revoke/resend runtime, accept/linking runtime e delivery adapter server-only existem; UI ainda e pendente.
+schema/preflight de convite, create/revoke/resend runtime, accept/linking runtime, delivery adapter server-only e UI de aceite existem; cron ainda e pendente.
 ```
 
 O estado proibido e:
@@ -86,7 +88,7 @@ rollback transacional/compensatorio que revoga o convite preparado
 
 ## 5. UI de aceite
 
-A futura UI deve usar a rota:
+A UI de aceite usa a rota:
 
 ```txt
 /auth/convite?token=...
@@ -129,7 +131,7 @@ O delivery deve manter:
 | --- | --- | --- | --- |
 | 1 | contrato delivery/UI | este documento, mapas DocDoc e guard | provider/UI runtime |
 | 2 | delivery adapter | `lib/admin-invitations/delivery.ts`, env validation, fail closed e compensacao | UI ampla |
-| 3 | UI de aceite | pagina `/auth/convite`, estados e POST seguro | remover `ADMIN_EMAIL` |
+| 3 | UI de aceite | `app/auth/convite/page.tsx`, `components/admin-invitation-acceptance-form.tsx`, estados e POST seguro | remover `ADMIN_EMAIL` |
 | 4 | cron de expiracao | cleanup/expiracao de convites pendentes | owner_id retirement |
 
 ## 8. Guardrails
@@ -146,11 +148,11 @@ O delivery deve manter:
 Estado atual:
 
 ```txt
-contrato delivery/UI criado; delivery adapter server-only versionado em `lib/admin-invitations/delivery.ts`; UI de aceite, cron de expiracao, remocao de ADMIN_EMAIL e owner_id retirement seguem pendentes.
+contrato delivery/UI criado; delivery adapter server-only versionado em `lib/admin-invitations/delivery.ts`; UI de aceite versionada em `app/auth/convite/page.tsx` e `components/admin-invitation-acceptance-form.tsx`; cron de expiracao, remocao de ADMIN_EMAIL e owner_id retirement seguem pendentes.
 ```
 
 Proximo PR seguro:
 
 ```txt
-implementar UI de aceite `/auth/convite` em PR dedicado, mantendo token bruto fora de storage, logs, audit metadata e estado client-side persistente.
+implementar cron de expiracao de convites pendentes em PR dedicado, mantendo `ADMIN_EMAIL` e owner_id retirement fora do escopo.
 ```
