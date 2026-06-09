@@ -1,7 +1,7 @@
 # Admin Invitation Delivery and UI Contract
 
-> Status DocDoc: Atual como contrato pre-runtime
-> Uso atual: contrato para implementar email delivery e UI de aceite de
+> Status DocDoc: Atual como contrato com delivery adapter parcial
+> Uso atual: contrato para delivery server-only e UI futura de aceite de
 > convite admin sem armazenar, logar ou expor token bruto.
 > Fonte-base: `docs/audits/ADMIN_INVITATION_BOOTSTRAP_CONTRACT.md`.
 
@@ -12,15 +12,16 @@ Atualizado em: 2026-06-08
 Este contrato define a fronteira segura entre o runtime ja versionado de
 convites admin e a futura entrega do link de aceite.
 
-Ele nao implementa provider de email, fila, UI, schema, cron, remocao de
-`ADMIN_EMAIL`, retirement de `owner_id` ou mudanca de billing.
+Ele registra o delivery adapter server-only versionado em
+`lib/admin-invitations/delivery.ts`. Ele nao implementa UI, fila, schema, cron,
+remocao de `ADMIN_EMAIL`, retirement de `owner_id` ou mudanca de billing.
 
 ## 2. Estado atual
 
 O estado atual permitido e:
 
 ```txt
-schema/preflight de convite, create/revoke/resend runtime e accept/linking runtime existem; delivery e UI ainda sao pendentes.
+schema/preflight de convite, create/revoke/resend runtime, accept/linking runtime e delivery adapter server-only existem; UI ainda e pendente.
 ```
 
 O estado proibido e:
@@ -48,7 +49,21 @@ O proximo runtime de delivery deve preservar estas regras:
 
 ## 4. Delivery de email
 
-Antes de chamar um provider real, o PR de runtime deve decidir explicitamente:
+O delivery adapter atual usa provider server-only via webhook configurado por
+ambiente, sem adicionar dependencia de email. A entrega so roda quando:
+
+```txt
+ENABLE_ADMIN_INVITATION_EMAIL_DELIVERY=true
+ADMIN_INVITATION_EMAIL_WEBHOOK_URL configurado
+NEXT_PUBLIC_APP_URL configurado
+```
+
+Sem essa configuracao, a criacao/reenvio continua podendo preparar convites
+sem enviar email. Quando a flag esta ligada, o delivery falha fechado se
+provider ou env estiver ausente.
+
+Antes de trocar para outro provider real, o PR de runtime deve decidir
+explicitamente:
 
 - provider server-only e dependencias permitidas;
 - variaveis de ambiente obrigatorias;
@@ -62,20 +77,12 @@ O delivery nao pode aceitar email, organization id, role ou link vindos do
 cliente como fonte de verdade. Esses valores devem vir da organizacao ativa e
 do convite resolvido no servidor.
 
-Se o provider falhar depois da escrita do convite, o runtime deve escolher uma
-das estrategias abaixo antes de merge:
+Se o provider falhar depois da escrita ou rotacao do convite com delivery
+habilitado, o runtime usa a estrategia abaixo:
 
 ```txt
 rollback transacional/compensatorio que revoga o convite preparado
 ```
-
-ou
-
-```txt
-estado de delivery explicito e reenviavel sem marcar o convite como entregue
-```
-
-Sem uma dessas escolhas, nao ha runtime seguro de delivery.
 
 ## 5. UI de aceite
 
@@ -121,7 +128,7 @@ O delivery deve manter:
 | Ordem | PR | Escopo | Fora de escopo |
 | --- | --- | --- | --- |
 | 1 | contrato delivery/UI | este documento, mapas DocDoc e guard | provider/UI runtime |
-| 2 | delivery adapter | provider server-only, env validation, fail closed e compensacao | UI ampla |
+| 2 | delivery adapter | `lib/admin-invitations/delivery.ts`, env validation, fail closed e compensacao | UI ampla |
 | 3 | UI de aceite | pagina `/auth/convite`, estados e POST seguro | remover `ADMIN_EMAIL` |
 | 4 | cron de expiracao | cleanup/expiracao de convites pendentes | owner_id retirement |
 
@@ -139,11 +146,11 @@ O delivery deve manter:
 Estado atual:
 
 ```txt
-contrato delivery/UI criado; provider de email, delivery runtime, UI de aceite, cron de expiracao, remocao de ADMIN_EMAIL e owner_id retirement seguem pendentes.
+contrato delivery/UI criado; delivery adapter server-only versionado em `lib/admin-invitations/delivery.ts`; UI de aceite, cron de expiracao, remocao de ADMIN_EMAIL e owner_id retirement seguem pendentes.
 ```
 
 Proximo PR seguro:
 
 ```txt
-implementar delivery adapter server-only para convite admin, com provider feature-flagged, env validation, fail closed e compensacao antes de UI ampla.
+implementar UI de aceite `/auth/convite` em PR dedicado, mantendo token bruto fora de storage, logs, audit metadata e estado client-side persistente.
 ```
