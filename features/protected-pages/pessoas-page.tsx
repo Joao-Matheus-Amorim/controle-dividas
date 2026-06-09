@@ -4,18 +4,16 @@ import { PeopleList } from "@/components/people/people-list";
 import { PeoplePageHeader } from "@/components/people/people-page-header";
 import { PeopleSummaryCards } from "@/components/people/people-summary-cards";
 import type { AccessProfileSummary } from "@/components/people/people-utils";
-import { getCurrentProfile } from "@/lib/finance/access-control";
 import { getOrganizationFamilyMembers } from "@/lib/organizations/people";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { createClient } from "@/lib/supabase/server";
 
-async function getAccessProfilesByMember(ownerId: string, organizationId: string) {
+async function getAccessProfilesByMember(organizationId: string) {
   const supabase = await createClient();
 
   const { data, error } = await supabase
     .from("profiles")
     .select("id, name, email, role, is_active, auth_user_id, linked_family_member_id")
-    .eq("owner_id", ownerId)
     .eq("organization_id", organizationId);
 
   if (error) {
@@ -34,11 +32,10 @@ type PessoasPageProps = {
 };
 
 export async function PessoasPage({ orgSlug }: PessoasPageProps = {}) {
-  const profile = await getCurrentProfile();
   const { organization } = await requireOrganizationAccess(orgSlug);
   const [members, accessByMember] = await Promise.all([
     getOrganizationFamilyMembers(orgSlug),
-    getAccessProfilesByMember(profile.owner_id, organization.id),
+    getAccessProfilesByMember(organization.id),
   ]);
   const activeMembers = members.filter((member) => member.is_active);
   const totalLimit = members.reduce(
