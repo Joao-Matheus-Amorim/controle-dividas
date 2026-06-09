@@ -19,6 +19,18 @@ function getSection(source: string, heading: string, nextHeading: string) {
   return source.slice(start, end);
 }
 
+function getFunctionSource(source: string, functionName: string, nextFunctionName?: string) {
+  const start = source.indexOf(`function ${functionName}`.toLowerCase());
+  const end = nextFunctionName
+    ? source.indexOf(`function ${nextFunctionName}`.toLowerCase(), start + functionName.length)
+    : source.length;
+
+  expect(start, `missing function: ${functionName}`).toBeGreaterThanOrEqual(0);
+  expect(end, `missing next function: ${nextFunctionName}`).toBeGreaterThan(start);
+
+  return source.slice(start, end);
+}
+
 describe("legacy organization fallback removal readiness", () => {
   it("keeps admin actions scoped to active organization equality", () => {
     const source = readSource("app/protected/admin/actions.ts");
@@ -42,12 +54,26 @@ describe("legacy organization fallback removal readiness", () => {
 
   it("keeps category organization helper reads scoped to active organization equality", () => {
     const source = readSource("lib/organizations/categories.ts");
+    const organizationRead = getFunctionSource(
+      source,
+      "getorganizationexpensecategories",
+      "getmanageableorganizationexpensecategories",
+    );
 
     expect(source).toContain("requireorganizationaccess");
-    expect(source).toContain('.eq("owner_id", profile.owner_id)');
-    expect(source).toContain('.eq("organization_id", organization.id)');
+    expect(organizationRead).not.toContain('.eq("owner_id"');
+    expect(organizationRead).toContain('.eq("organization_id", organization.id)');
+    expect(source).toContain("getmanageableorganizationexpensecategories");
+    expect(source).toContain('.eq("owner_id", currentuserid)');
     expect(source).not.toContain("organizationorlegacyfilter");
     expect(source).not.toContain("organization_id.is.null");
+  });
+
+  it("keeps settings category list scoped to rows the current user can modify", () => {
+    const source = readSource("features/protected-pages/configuracoes-page.tsx");
+
+    expect(source).toContain("getmanageableorganizationexpensecategories");
+    expect(source).not.toContain("getorganizationexpensecategories(orgslug)");
   });
 
   it("keeps payable organization helper reads scoped to active organization equality", () => {
