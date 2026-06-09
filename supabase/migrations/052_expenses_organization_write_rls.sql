@@ -32,6 +32,7 @@ as $$
         where ec.id = target_category_id
           and ec.organization_id = target_organization_id
       ) then false
+      when not public.is_organization_member(target_organization_id) then false
       when public.is_organization_admin(target_organization_id) then true
       when target_action not in ('can_create', 'can_edit', 'can_delete') then false
       else exists (

@@ -108,12 +108,27 @@ describe("expenses RLS policies", () => {
     expect(writeMigrationSql).toContain("from public.expense_categories ec");
     expect(writeMigrationSql).toContain("ec.id = target_category_id");
     expect(writeMigrationSql).toContain("ec.organization_id = target_organization_id");
+    expect(writeMigrationSql).toContain("not public.is_organization_member(target_organization_id) then false");
     expect(writeMigrationSql).toContain("public.is_organization_admin(target_organization_id)");
     expect(writeMigrationSql).toContain("ump.module = 'GASTOS'");
     expect(writeMigrationSql).toContain("ump.scope = 'family'");
     expect(writeMigrationSql).toContain("ump.scope = 'selected'");
     expect(writeMigrationSql).toContain("ump.scope = 'own'");
     expect(writeMigrationSql).toContain("grant execute on function public.can_manage_organization_expense(uuid, uuid, uuid, text) to authenticated");
+  });
+
+  it("checks active organization membership before honoring admin or module permissions", () => {
+    const membershipCheckIndex = writeMigrationSql.indexOf(
+      "not public.is_organization_member(target_organization_id) then false",
+    );
+    const adminCheckIndex = writeMigrationSql.indexOf(
+      "public.is_organization_admin(target_organization_id)",
+    );
+    const permissionsCheckIndex = writeMigrationSql.indexOf("ump.module = 'GASTOS'");
+
+    expect(membershipCheckIndex).toBeGreaterThanOrEqual(0);
+    expect(adminCheckIndex).toBeGreaterThan(membershipCheckIndex);
+    expect(permissionsCheckIndex).toBeGreaterThan(membershipCheckIndex);
   });
 
   it("does not depend on family member active status in executable SQL", () => {
