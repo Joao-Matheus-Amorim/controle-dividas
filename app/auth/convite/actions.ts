@@ -20,6 +20,7 @@ type AcceptInvitationRpcResult = {
   role?: string;
   email_domain?: string;
   profile_linked?: boolean;
+  profile_created?: boolean;
 };
 
 const acceptInvitationRateLimit = {
@@ -79,6 +80,7 @@ async function recordAcceptAudit(result: AcceptInvitationRpcResult) {
       role: result.role ?? "member",
       email_domain: result.email_domain ?? "unknown",
       profile_linked: Boolean(result.profile_linked),
+      profile_created: Boolean(result.profile_created),
     },
   });
 }

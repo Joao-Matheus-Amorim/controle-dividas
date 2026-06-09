@@ -20,12 +20,12 @@ describe("admin invitation bootstrap contract guards", () => {
   const statusMap = read("docs/DOCUMENTATION_STATUS.md");
 
   it("keeps ADMIN_EMAIL transitional instead of final SaaS admin authority", () => {
-    expect(contract).toContain("status docdoc: atual como contrato com schema/preflight e runtime parcial");
+    expect(contract).toContain("status docdoc: atual como contrato com schema/preflight e runtime de bootstrap final");
     expect(contract).toContain("admin_email apenas como bootstrap emergencial/transicional");
     expect(contract).toContain("admin_email como modelo saas final de administracao");
     expect(contract).toContain("estado proibido como conclusao");
     expect(contract).toContain("organization_memberships(role owner/admin)");
-    expect(contract).toContain("fallback emergencial/dev-only");
+    expect(contract).toContain("nao pode ser gate runtime de admin/onboarding");
   });
 
   it("defines the invitation lifecycle before runtime implementation", () => {
@@ -35,18 +35,18 @@ describe("admin invitation bootstrap contract guards", () => {
     expect(contract).toContain("pendente, aceito, revogado e expirado");
     expect(contract).toContain("auditoria para criar, reenviar, aceitar, revogar e expirar convite");
     expect(contract).toContain("rate limit para criar, reenviar e aceitar convite");
-    expect(contract).toContain("rollback que mantenha `admin_email` emergencial");
+    expect(contract).toContain("rollback documentado sem reintroduzir `admin_email` como autoridade normal");
   });
 
-  it("blocks owner_id retirement and ADMIN_EMAIL removal until the gates exist", () => {
+  it("blocks owner_id retirement and ADMIN_EMAIL runtime gate regressions", () => {
     expect(contract).toContain("remover `admin_email` e remover `owner_id` nao podem ocorrer no mesmo pr");
     expect(contract).toContain("runtime criar/revogar/reenviar versionado");
     expect(contract).toContain("runtime aceitar/linking versionado");
     expect(contract).toContain("contrato delivery/ui versionado");
     expect(contract).toContain("ui de aceite versionada");
     expect(contract).toContain("cron de expiracao versionado");
-    expect(contract).toContain("remocao de `admin_email` ainda nao implementada");
-    expect(contract).toContain("preservando rollback e sem retirar owner_id");
+    expect(contract).toContain("gate runtime de `admin_email` removido");
+    expect(contract).toContain("sem reintroduzir `admin_email` como gate runtime");
     expect(ownerContract).toContain("admin_invitation_bootstrap_contract.md");
     expect(activeConsumers).toContain("admin_invitation_bootstrap_contract.md");
   });

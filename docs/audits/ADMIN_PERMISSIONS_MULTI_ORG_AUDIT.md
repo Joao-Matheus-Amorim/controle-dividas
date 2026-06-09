@@ -42,7 +42,7 @@ Esse diagnostico foi correto para o momento da auditoria, mas ficou desatualizad
 
 O risco atual nao e mais "Admin puramente owner-centric". O risco atual e manter o modelo transicional seguro enquanto ainda existem:
 
-- `ADMIN_EMAIL` como bootstrap administrativo;
+- `ADMIN_EMAIL` historico como bootstrap administrativo;
 - dependencia de `owner_id` para compatibilidade;
 - fallback legado `organization_id IS NULL`;
 - ausencia de selector multi-org completo;
@@ -63,11 +63,15 @@ Paginas impactadas:
 
 Classificacao atual: desejavel para evitar logica duplicada nas paginas. O helper central agora chama `requireOrganizationAdmin(orgSlug)` e repassa `organization.id` para as leituras admin.
 
-### 2. Admin ainda depende de `ADMIN_EMAIL` para bootstrap
+### 2. Admin nao depende mais de `ADMIN_EMAIL` como gate runtime
 
-O fluxo de bootstrap administrativo ainda depende de email configurado.
+O fluxo de bootstrap administrativo em `lib/finance/access-control.ts` e
+`lib/finance/admin-server.ts` redireciona usuario autenticado sem perfil para
+`/onboarding/organizacao` sem comparar email com `ADMIN_EMAIL`.
 
-Classificacao atual: aceitavel apenas como mecanismo transicional de bootstrap. Nao substitui um modelo SaaS final com owner/admin por organization, convites, billing e governanca de conta.
+Classificacao atual: `ADMIN_EMAIL` nao substitui owner/admin por organization,
+convites, billing e governanca de conta, e nao deve voltar como autoridade
+runtime.
 
 ### 3. Profiles agora sao filtrados por organization ativa com admin gate
 
@@ -158,7 +162,7 @@ Ainda nao existe implementacao completa de:
 2. Nao aplicar RLS final em profiles/permissoes antes de decidir UX multi-org e legado.
 3. Planejar selector de organization ativa antes de rotas por `orgSlug`.
 4. Planejar remocao gradual de fallback legado apenas depois de backfill completo e testes.
-5. Tratar `ADMIN_EMAIL` como bootstrap transicional, nao como modelo SaaS final.
+5. Manter `ADMIN_EMAIL` fora dos gates runtime de admin/onboarding.
 
 ## Ordem sugerida
 

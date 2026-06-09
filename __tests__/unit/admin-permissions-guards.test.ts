@@ -28,8 +28,6 @@ describe("admin permissions ownership guards", () => {
   it("keeps admin profile and permission reads scoped to the active organization without legacy rows", () => {
     const source = readSource("lib/finance/admin-server.ts");
 
-    expect(source).toContain("function getConfiguredAdminEmail");
-    expect(source).toContain("process.env.ADMIN_EMAIL");
     expect(source).toContain("@/lib/organizations/server");
     expect(source).toContain("requireOrganizationAdmin");
     expect(source).toContain("await requireOrganizationAdmin(orgSlug)");
@@ -45,6 +43,9 @@ describe("admin permissions ownership guards", () => {
     expect(source).toContain('.eq("organization_id", organizationId)');
     expect(source).not.toContain('.eq("owner_id", adminProfile.owner_id)');
     expect(source).not.toContain(".or(organizationOrLegacyFilter(organizationId))");
+    expect(source).not.toContain("getConfiguredAdminEmail");
+    expect(source).not.toContain("isConfiguredAdminEmail");
+    expect(source).not.toContain("process.env.ADMIN_EMAIL");
   });
 
   it("keeps admin user and permission writes tied to the active organization without legacy rows", () => {
@@ -98,6 +99,10 @@ describe("admin permissions ownership guards", () => {
     expect(source).not.toContain("organization_id.eq.${organizationId}");
     expect(source).not.toContain("organization_id.is.null");
     expect(source).not.toContain("pickOrganizationScopedRow");
+    expect(source).not.toContain("getConfiguredAdminEmail");
+    expect(source).not.toContain("isConfiguredAdminEmail");
+    expect(source).not.toContain("process.env.ADMIN_EMAIL");
+    expect(source).not.toContain("Seu email ainda nao foi autorizado pelo Admin familiar.");
   });
 
   it("keeps bootstrap admin profile helper isolated from runtime callers", () => {
@@ -114,6 +119,7 @@ describe("admin permissions ownership guards", () => {
       expect(source).not.toContain('.from("profiles").upsert');
       expect(source).not.toContain('.from("profiles").insert');
       expect(source).toContain('redirect("/onboarding/organizacao")');
+      expect(source).not.toContain("process.env.ADMIN_EMAIL");
     }
   });
 });

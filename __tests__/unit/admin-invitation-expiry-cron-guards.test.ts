@@ -45,8 +45,8 @@ describe("admin invitation expiry cron guards", () => {
     expect(deliveryContract).toContain("cron de expiracao versionado");
     expect(deliveryContract).toContain("cron_secret");
     expect(deliveryContract).toContain("invitation expiry cron must not expose a public cleanup endpoint");
-    expect(deliveryContract).toContain("remocao de admin_email e owner_id retirement seguem pendentes");
+    expect(deliveryContract).toContain("gate runtime de admin_email removido e owner_id retirement segue pendente");
     expect(gapRegister).toContain("cron expiry is versioned");
-    expect(gapRegister).toContain("admin_email` removal is not implemented");
+    expect(gapRegister).toContain("no longer use `admin_email` as a runtime gate");
   });
 });

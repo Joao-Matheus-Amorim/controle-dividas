@@ -13,6 +13,7 @@ const mockState = vi.hoisted(() => ({
     role: "admin",
     email_domain: "example.com",
     profile_linked: true,
+    profile_created: false,
   } as Record<string, unknown>,
   rpcError: null as { message: string } | null,
   rpcCalls: [] as Array<{ name: string; args: Record<string, unknown> }>,
@@ -91,6 +92,7 @@ describe("admin invitation acceptance action", () => {
       role: "admin",
       email_domain: "example.com",
       profile_linked: true,
+      profile_created: false,
     };
     mockState.rpcError = null;
     mockState.rpcCalls = [];
@@ -133,6 +135,7 @@ describe("admin invitation acceptance action", () => {
           role: "admin",
           email_domain: "example.com",
           profile_linked: true,
+          profile_created: false,
         },
       }),
     ]);

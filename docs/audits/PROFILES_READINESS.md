@@ -14,7 +14,7 @@ This audit tracks read-only SQL preparation, the profile bootstrap runtime bound
 
 Profiles should not be schema-hardened in this PR.
 
-The current product has explicit initial organization onboarding, and family profile write paths set the active organization scope. Profile bootstrap redirects the configured admin to explicit organization onboarding instead of creating an organization-less profile as a hidden side effect.
+The current product has explicit initial organization onboarding, and family profile write paths set the active organization scope. Profile bootstrap redirects authenticated users without a profile to explicit organization onboarding instead of creating an organization-less profile as a hidden side effect.
 
 The profile table is ready for target-environment evidence review, but hardening remains blocked until that output is reviewed and recorded.
 
@@ -43,8 +43,8 @@ Current status: pending target-environment output.
 
 The profile bootstrap callers keep onboarding organization-first:
 
-- `lib/finance/access-control.ts` redirects the configured admin without a profile to `/onboarding/organizacao`.
-- `lib/finance/admin-server.ts` redirects the configured admin without a profile to `/onboarding/organizacao`.
+- `lib/finance/access-control.ts` redirects an authenticated user without a profile to `/onboarding/organizacao`.
+- `lib/finance/admin-server.ts` redirects an authenticated user without a profile to `/onboarding/organizacao`.
 - The onboarding action remains the explicit path that calls the initial organization onboarding RPC.
 - Bootstrap callers do not create organizations or memberships implicitly.
 - Bootstrap callers do not insert or upsert organization-less profiles.
