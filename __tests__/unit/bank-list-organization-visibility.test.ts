@@ -115,7 +115,7 @@ describe("organization bank listing", () => {
     expect(result.totalAccounts).toBe(1);
   });
 
-  it("keeps bank helper member reads scoped to active organization without active status filtering", async () => {
+  it("keeps bank helper member reads scoped to active organization without owner or active status filtering", async () => {
     const { getOrganizationBanksDashboardData } = await import("@/lib/organizations/banks");
 
     await getOrganizationBanksDashboardData();
@@ -125,7 +125,7 @@ describe("organization bank listing", () => {
     expect(memberQueries).not.toHaveLength(0);
     expect(memberQueries.at(-1)).toEqual({
       table: "family_members",
-      eq: { owner_id: "owner-1", organization_id: "org-1" },
+      eq: { organization_id: "org-1" },
       in: { id: ["inactive-member"] },
       or: undefined,
     });
@@ -142,7 +142,7 @@ describe("organization bank listing", () => {
     expect(bankQueries).not.toHaveLength(0);
     expect(bankQueries.at(-1)).toEqual({
       table: "banks",
-      eq: { owner_id: "owner-1", organization_id: "org-1" },
+      eq: { organization_id: "org-1" },
       in: { family_member_id: ["inactive-member"] },
       or: undefined,
     });

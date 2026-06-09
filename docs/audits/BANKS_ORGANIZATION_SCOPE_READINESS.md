@@ -11,13 +11,13 @@ This document does not introduce a migration. It records readiness and remaining
 
 ## Current finding
 
-`banks` is a candidate for a future organization scope hardening step, but it should not be hardened in this PR.
+`banks` already has `organization_id NOT NULL` hardening and now has an organization-first read/write boundary for the organization-aware runtime path.
 
 Current status:
 
 ```txt
-Readiness: mostly ready, still transitional
-Next safe step: future dedicated hardening PR after fresh preflight/dry-run evidence
+Readiness: organization-aware runtime path ready, still transitional because owner_id remains in the schema
+Next safe step: continue the next owner_id consumer in a dedicated PR
 ```
 
 ## Read-only checks for future hardening
@@ -39,11 +39,10 @@ These scripts are preparation only. They do not mutate data and do not apply con
 
 Current create behavior:
 
-- resolves current profile;
 - requires active organization access;
-- verifies the linked family member belongs to the current organization or legacy scope;
+- verifies the linked family member belongs to the current organization;
 - checks permission for the selected linked member;
-- inserts `owner_id`;
+- inserts `owner_id` from `organization.owner_auth_user_id` for legacy compatibility;
 - inserts `organization_id` from the active organization.
 
 This is compatible with future `banks.organization_id NOT NULL` hardening.
@@ -52,7 +51,7 @@ This is compatible with future `banks.organization_id NOT NULL` hardening.
 
 `updateBankAccount`:
 
-- verifies the existing bank account can be managed inside the current organization or legacy scope;
+- verifies the existing bank account can be managed inside the current organization;
 - verifies changed linked member scope;
 - checks linked member permission;
 - updates `organization_id` to the active organization.
@@ -66,55 +65,51 @@ These paths are compatible with future hardening and also help move touched lega
 `deleteBankAccount`:
 
 - verifies manage permission through `assertCanManageBankAccount`;
-- deletes by `id`, `owner_id`, and current organization or legacy scope.
+- deletes by `id` and current organization.
 
-Delete does not need to write `organization_id`, but it still accepts transitional legacy rows.
+Delete does not need to write `organization_id`.
 
 ## Read path review
 
-`lib/finance/banks-server.ts` reads bank accounts through `getBankAccounts`.
+`lib/organizations/banks.ts` reads bank accounts through `getOrganizationBankAccounts`.
 
 Current read behavior:
 
-- filters by `owner_id`;
+- filters by `organization_id`;
 - filters by accessible `family_member_id` values;
-- does not explicitly filter by `organization_id` in this read helper.
+- reads members through `organization_id` and accessible member ids;
+- does not filter by member active status so historical bank accounts remain visible.
 
-`getActiveFamilyMembersByOwner` also reads active members by `owner_id`; the visible members are later restricted to accessible member ids.
-
-This is still transitional. Access is indirectly constrained by member access and current profile, but a future final state should prefer explicit organization scope in the bank account read path before removing legacy assumptions.
+Organization-aware bank reads filter by `organization_id` and accessible members, not `profile.owner_id`.
 
 ## Transitional assumptions still present
 
 The following remain intentional transitional behavior:
 
-- `owner_id` is still part of read/write/delete filters;
-- `organization_id IS NULL` legacy fallback is still accepted in manage/delete paths;
-- read path relies on accessible members instead of explicit `banks.organization_id` filtering;
-- no `NOT NULL` migration exists for `banks` yet.
+- `owner_id` is still selected and written as a legacy compatibility column;
+- RLS writes rely on `can_manage_organization_bank(organization_id, family_member_id, action)` plus `organization_legacy_owner_matches(organization_id, owner_id)` while the legacy column exists;
+- legacy finance facade helpers under `lib/finance/banks-server.ts` remain compatibility-only.
 
 ## Readiness decision
 
-`banks` is not blocked by create/update payload gaps: create, update, and balance update paths set `organization_id`.
+`banks` is not blocked by create/update payload gaps: create, update, and balance update paths set `organization_id`; create also preserves the target organization's legacy owner id.
 
-However, a future hardening PR should be separate and must include:
+Any future schema-retirement PR should be separate and must include:
 
 - fresh null-organization preflight evidence;
 - fresh deterministic dry-run evidence;
 - migration-local preflight guard;
 - rollback instructions;
 - static guard proving the migration is scoped only to `banks`;
-- no runtime, RLS, UI, billing or E2E mixing.
+- no UI, billing or E2E mixing.
 
 ## Out of scope
 
 This audit does not change:
 
-- schema;
-- data;
-- RLS policies;
-- runtime behavior;
+- schema drop;
+- data backfill;
 - UI;
 - billing;
 - E2E;
-- legacy `owner_id` fallback.
+- removal of the legacy `owner_id` column.

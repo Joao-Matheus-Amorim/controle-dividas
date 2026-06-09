@@ -46,7 +46,7 @@ function extractFunctionBody(source: string, signature: string) {
 
 describe("banks organization scope readiness", () => {
   const actions = read("app/protected/bancos/actions.ts");
-  const bankReads = read("lib/finance/banks-server.ts");
+  const bankReads = read("lib/organizations/banks.ts");
   const audit = read("docs/audits/BANKS_ORGANIZATION_SCOPE_READINESS.md");
 
   const createBankAccountBody = extractFunctionBody(
@@ -69,10 +69,14 @@ describe("banks organization scope readiness", () => {
     actions,
     "export async function deletebankaccount",
   );
-  const getBankAccountsBody = extractFunctionBody(bankReads, "export async function getbankaccounts");
+  const getOrganizationBankAccountsBody = extractFunctionBody(
+    bankReads,
+    "export async function getorganizationbankaccounts",
+  );
 
   it("keeps createBankAccount writing organization_id from the active organization", () => {
     expect(createBankAccountBody).toContain("requireorganizationaccess");
+    expect(createBankAccountBody).toContain("owner_id: organization.owner_auth_user_id");
     expect(createBankAccountBody).toContain("organization_id: organization.id");
     expect(createBankAccountBody).toContain("assertmemberbelongstoorganization");
     expect(createBankAccountBody).toContain("assertcanaccessmember");
@@ -90,31 +94,33 @@ describe("banks organization scope readiness", () => {
     expect(updateBankAccountBalanceBody).toContain(".eq(\"organization_id\", organization.id)");
   });
 
-  it("keeps manage path scoped by owner and active organization", () => {
-    expect(assertCanManageBankAccountBody).toContain(".eq(\"owner_id\", profile.owner_id)");
+  it("keeps manage path scoped by active organization and BANCOS permissions", () => {
     expect(assertCanManageBankAccountBody).toContain(".eq(\"organization_id\", organization.id)");
+    expect(assertCanManageBankAccountBody).not.toContain(".eq(\"owner_id\", profile.owner_id)");
     expect(assertCanManageBankAccountBody).toContain("assertmemberbelongstoorganization");
     expect(assertCanManageBankAccountBody).toContain("assertcanaccessmember");
   });
 
-  it("keeps delete path scoped by owner and active organization", () => {
+  it("keeps delete path scoped by active organization", () => {
     expect(deleteBankAccountBody).toContain("assertcanmanagebankaccount");
-    expect(deleteBankAccountBody).toContain(".eq(\"owner_id\", profile.owner_id)");
     expect(deleteBankAccountBody).toContain(".eq(\"organization_id\", organization.id)");
+    expect(deleteBankAccountBody).not.toContain(".eq(\"owner_id\", profile.owner_id)");
   });
 
-  it("records that the read path remains transitional", () => {
-    expect(getBankAccountsBody).toContain(".eq(\"owner_id\", profile.owner_id)");
-    expect(getBankAccountsBody).toContain(".in(\"family_member_id\", accessiblememberids)");
-    expect(audit).toContain("read path relies on accessible members instead of explicit `banks.organization_id` filtering");
+  it("records that the organization read path is organization-first", () => {
+    expect(getOrganizationBankAccountsBody).toContain(".eq(\"organization_id\", organization.id)");
+    expect(getOrganizationBankAccountsBody).toContain(".in(\"family_member_id\", scopedmemberids)");
+    expect(getOrganizationBankAccountsBody).not.toContain(".eq(\"owner_id\", profile.owner_id)");
+    expect(audit).toContain("organization-aware bank reads filter by `organization_id` and accessible members, not `profile.owner_id`");
   });
 
-  it("keeps the audit as readiness-only, not a hardening migration", () => {
-    expect(audit).toContain("this document does not introduce a migration");
-    expect(audit).toContain("should not be hardened in this pr");
+  it("keeps the audit scoped to banks owner-id retirement, not schema retirement", () => {
+    expect(audit).toContain("organization-aware runtime path ready");
+    expect(audit).toContain("still transitional because owner_id remains in the schema");
     expect(audit).toContain("fresh null-organization preflight evidence");
     expect(audit).toContain("fresh deterministic dry-run evidence");
     expect(audit).toContain("migration-local preflight guard");
-    expect(audit).toContain("no runtime, rls, ui, billing or e2e mixing");
+    expect(audit).toContain("no ui, billing or e2e mixing");
+    expect(audit).toContain("removal of the legacy `owner_id` column");
   });
 });

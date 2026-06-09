@@ -9,6 +9,7 @@ const mockState = vi.hoisted(() => ({
   currentOrganization: {
     id: "org-1",
     slug: "amorim",
+    owner_auth_user_id: "org-owner-1",
   },
   bankLookup: {
     id: "bank-1",
@@ -233,7 +234,7 @@ describe("bank audit runtime actions", () => {
       {
         table: "banks",
         payload: expect.objectContaining({
-          owner_id: "owner-1",
+          owner_id: "org-owner-1",
           organization_id: "org-1",
           family_member_id: "member-1",
           bank_name: "Nubank",

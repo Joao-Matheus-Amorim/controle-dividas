@@ -69,7 +69,6 @@ async function recordBankAuditEvent({
 }
 
 async function assertMemberBelongsToOrganization(
-  ownerId: string,
   organizationId: string,
   familyMemberId: string,
 ) {
@@ -79,7 +78,6 @@ async function assertMemberBelongsToOrganization(
     .from("family_members")
     .select("id, organization_id")
     .eq("id", familyMemberId)
-    .eq("owner_id", ownerId)
     .eq("organization_id", organizationId)
     .maybeSingle();
 
@@ -106,7 +104,6 @@ async function assertCanManageBankAccount(
     .from("banks")
     .select("id, owner_id, family_member_id, bank_name, account_type, current_balance, currency, notes")
     .eq("id", accountId)
-    .eq("owner_id", profile.owner_id)
     .eq("organization_id", organization.id)
     .maybeSingle();
 
@@ -119,7 +116,6 @@ async function assertCanManageBankAccount(
   }
 
   await assertMemberBelongsToOrganization(
-    profile.owner_id,
     organization.id,
     String(account.family_member_id),
   );
@@ -197,7 +193,6 @@ export async function createBankAccount(
 
   try {
     await assertMemberBelongsToOrganization(
-      profile.owner_id,
       organization.id,
       input.familyMemberId,
     );
@@ -234,7 +229,7 @@ export async function createBankAccount(
   }
 
   const { data: createdBank, error } = await supabase.from("banks").insert({
-    owner_id: profile.owner_id,
+    owner_id: organization.owner_auth_user_id,
     organization_id: organization.id,
     family_member_id: input.familyMemberId,
     bank_name: input.bankName,
@@ -286,7 +281,6 @@ export async function updateBankAccount(
 
     if (String(account.family_member_id) !== input.familyMemberId) {
       await assertMemberBelongsToOrganization(
-        profile.owner_id,
         organization.id,
         input.familyMemberId,
       );
@@ -412,7 +406,6 @@ export async function updateBankAccount(
         organization_id: organization.id,
       }, { count: "exact" })
       .eq("id", id)
-      .eq("owner_id", profile.owner_id)
       .eq("organization_id", organization.id);
 
     if (error) {
@@ -512,7 +505,6 @@ export async function updateBankAccountBalance(
         organization_id: organization.id,
       }, { count: "exact" })
       .eq("id", id)
-      .eq("owner_id", profile.owner_id)
       .eq("organization_id", organization.id);
 
     if (error) {
@@ -597,7 +589,6 @@ export async function deleteBankAccount(
       .from("banks")
       .delete({ count: "exact" })
       .eq("id", id)
-      .eq("owner_id", profile.owner_id)
       .eq("organization_id", organization.id);
 
     if (error) {

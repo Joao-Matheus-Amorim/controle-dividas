@@ -1,4 +1,4 @@
-import { getAccessibleMemberIds, getCurrentProfile } from "@/lib/finance/access-control";
+import { getAccessibleMemberIds } from "@/lib/finance/access-control";
 import type { DbBankAccount, DbFamilyMember } from "@/lib/finance/types";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { createClient } from "@/lib/supabase/server";
@@ -23,7 +23,6 @@ function normalizeBankAccount(
 
 async function getOrganizationAccessibleMembers(orgSlug?: string) {
   const supabase = await createClient();
-  const profile = await getCurrentProfile();
   const { organization } = await requireOrganizationAccess(orgSlug);
   const accessibleMemberIds = await getAccessibleMemberIds("BANCOS", "can_view", orgSlug);
 
@@ -34,7 +33,6 @@ async function getOrganizationAccessibleMembers(orgSlug?: string) {
   const { data, error } = await supabase
     .from("family_members")
     .select("id, owner_id, name, role, monthly_limit, currency, is_active, created_at")
-    .eq("owner_id", profile.owner_id)
     .eq("organization_id", organization.id)
     .in("id", accessibleMemberIds)
     .order("created_at", { ascending: true });
@@ -48,7 +46,6 @@ async function getOrganizationAccessibleMembers(orgSlug?: string) {
 
 export async function getOrganizationBankAccounts(orgSlug?: string) {
   const supabase = await createClient();
-  const profile = await getCurrentProfile();
   const { organization } = await requireOrganizationAccess(orgSlug);
   const members = await getOrganizationAccessibleMembers(orgSlug);
   const scopedMemberIds = members.map((member) => member.id);
@@ -62,7 +59,6 @@ export async function getOrganizationBankAccounts(orgSlug?: string) {
     .select(
       "id, owner_id, family_member_id, bank_name, account_type, current_balance, currency, notes, created_at",
     )
-    .eq("owner_id", profile.owner_id)
     .eq("organization_id", organization.id)
     .in("family_member_id", scopedMemberIds)
     .order("bank_name", { ascending: true })

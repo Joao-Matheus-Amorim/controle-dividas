@@ -7,7 +7,7 @@ type QueryRecord = {
 
 const mockState = vi.hoisted(() => ({
   currentProfile: { id: "profile-1", owner_id: "owner-1", role: "admin" },
-  currentOrganization: { id: "org-1", slug: "familia-a" },
+  currentOrganization: { id: "org-1", slug: "familia-a", owner_auth_user_id: "org-owner-1" },
   insertedPayloads: [] as Array<Record<string, unknown>>,
   queryRecords: [] as QueryRecord[],
   memberLookup: { id: "member-1", organization_id: "org-1" } as Record<string, unknown> | null,
@@ -36,7 +36,7 @@ function expectMemberLookupFilters(id: string) {
   const record = mockState.queryRecords.filter((item) => item.table === "family_members").at(-1);
   expect(record).toEqual({
     table: "family_members",
-    eq: { id, owner_id: "owner-1", organization_id: "org-1" },
+    eq: { id, organization_id: "org-1" },
   });
 }
 
@@ -51,7 +51,15 @@ function makeQuery(table: string) {
     },
     insert(payload: Record<string, unknown>) {
       mockState.insertedPayloads.push(payload);
-      return Promise.resolve({ error: null });
+      return {
+        select() {
+          return {
+            single() {
+              return Promise.resolve({ data: { id: "bank-1" }, error: null });
+            },
+          };
+        },
+      };
     },
   };
   return query;
@@ -69,6 +77,11 @@ function makeSupabaseClient() {
 }
 
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
+vi.mock("@/lib/audit/events", () => ({ recordAuditEvent: vi.fn(async () => undefined) }));
+vi.mock("@/lib/organizations/revalidation", () => ({ revalidateOrganizationPaths: vi.fn() }));
+vi.mock("@/lib/security/sensitive-rate-limit", () => ({
+  checkSensitiveOperationRateLimit: vi.fn(() => ({ allowed: true })),
+}));
 vi.mock("@/lib/supabase/server", () => ({ createClient: vi.fn(async () => makeSupabaseClient()) }));
 vi.mock("@/lib/organizations/server", () => ({
   requireOrganizationAccess: vi.fn(async () => ({
@@ -111,5 +124,21 @@ describe("bank account organization access actions", () => {
     expect(result).toEqual({ error: "Pessoa vinculada nao pertence a esta organizacao." });
     expectMemberLookupFilters("legacy-member");
     expect(mockState.insertedPayloads).toHaveLength(0);
+  });
+
+  it("creates bank accounts with the target organization's legacy owner id", async () => {
+    const { createBankAccount } = await import("@/app/protected/bancos/actions");
+
+    const result = await createBankAccount({}, validBankAccountForm());
+
+    expect(result).toEqual({ success: "Banco cadastrado com sucesso." });
+    expect(mockState.insertedPayloads).toEqual([
+      expect.objectContaining({
+        owner_id: "org-owner-1",
+        organization_id: "org-1",
+        family_member_id: "member-1",
+      }),
+    ]);
+    expectMemberLookupFilters("member-1");
   });
 });
