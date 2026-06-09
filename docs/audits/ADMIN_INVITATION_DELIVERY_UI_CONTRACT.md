@@ -1,0 +1,149 @@
+# Admin Invitation Delivery and UI Contract
+
+> Status DocDoc: Atual como contrato pre-runtime
+> Uso atual: contrato para implementar email delivery e UI de aceite de
+> convite admin sem armazenar, logar ou expor token bruto.
+> Fonte-base: `docs/audits/ADMIN_INVITATION_BOOTSTRAP_CONTRACT.md`.
+
+Atualizado em: 2026-06-08
+
+## 1. Objetivo
+
+Este contrato define a fronteira segura entre o runtime ja versionado de
+convites admin e a futura entrega do link de aceite.
+
+Ele nao implementa provider de email, fila, UI, schema, cron, remocao de
+`ADMIN_EMAIL`, retirement de `owner_id` ou mudanca de billing.
+
+## 2. Estado atual
+
+O estado atual permitido e:
+
+```txt
+schema/preflight de convite, create/revoke/resend runtime e accept/linking runtime existem; delivery e UI ainda sao pendentes.
+```
+
+O estado proibido e:
+
+```txt
+retornar token bruto em server action state, JSON, audit metadata, log, toast, query de admin ou payload persistido.
+```
+
+## 3. Token bruto
+
+O proximo runtime de delivery deve preservar estas regras:
+
+1. token bruto deve ser gerado no servidor;
+2. `organization_invitations` deve armazenar somente token hash;
+3. token bruto so pode existir em memoria pelo tempo minimo necessario para
+   montar o link de convite;
+4. server actions de criar e reenviar convite nao podem retornar token bruto ao
+   client;
+5. audit metadata, logs, erros, rate-limit keys e mensagens de UI nao podem
+   conter token bruto, token hash ou link completo;
+6. qualquer resend deve gerar novo token bruto e substituir apenas o hash
+   persistido;
+7. rollback deve manter convites pendentes revogaveis sem exigir token bruto
+   antigo.
+
+## 4. Delivery de email
+
+Antes de chamar um provider real, o PR de runtime deve decidir explicitamente:
+
+- provider server-only e dependencias permitidas;
+- variaveis de ambiente obrigatorias;
+- feature flag de delivery;
+- comportamento fail closed quando provider, env ou template estiver ausente;
+- compensacao para convite preparado mas nao entregue;
+- redacao segura de erro operacional;
+- template sem dados financeiros ou permissao alem de organizacao e papel.
+
+O delivery nao pode aceitar email, organization id, role ou link vindos do
+cliente como fonte de verdade. Esses valores devem vir da organizacao ativa e
+do convite resolvido no servidor.
+
+Se o provider falhar depois da escrita do convite, o runtime deve escolher uma
+das estrategias abaixo antes de merge:
+
+```txt
+rollback transacional/compensatorio que revoga o convite preparado
+```
+
+ou
+
+```txt
+estado de delivery explicito e reenviavel sem marcar o convite como entregue
+```
+
+Sem uma dessas escolhas, nao ha runtime seguro de delivery.
+
+## 5. UI de aceite
+
+A futura UI deve usar a rota:
+
+```txt
+/auth/convite?token=...
+```
+
+Regras:
+
+- a pagina nao pode imprimir token bruto;
+- a pagina nao pode salvar token em localStorage, sessionStorage ou cookie
+  criado pelo app;
+- se o usuario nao estiver autenticado, o fluxo deve preservar a intencao do
+  convite sem expor token em estado client-side persistente;
+- o POST de aceite deve continuar passando pelo server action
+  `acceptAdminInvitation`;
+- erros devem ser genericos para token invalido, expirado, aceito ou revogado;
+- email mismatch pode informar que a conta autenticada nao corresponde ao
+  convite, sem exibir o email convidado completo.
+
+## 6. Audit, rate limit e privacidade
+
+O runtime existente ja cobre:
+
+- `admin.invitation.create`;
+- `admin.invitation.revoke`;
+- `admin.invitation.resend`;
+- `admin.invitation.accept`.
+
+O delivery deve manter:
+
+- rate-limit keys sem raw email, token bruto, token hash ou link completo;
+- audit metadata redigida para dominio do email, role, status e categoria de
+  falha;
+- nenhuma gravacao de email completo quando dominio e suficiente;
+- nenhum audit event anonimo que dependa de service role para mascarar ausencia
+  de membership.
+
+## 7. Sequencia segura
+
+| Ordem | PR | Escopo | Fora de escopo |
+| --- | --- | --- | --- |
+| 1 | contrato delivery/UI | este documento, mapas DocDoc e guard | provider/UI runtime |
+| 2 | delivery adapter | provider server-only, env validation, fail closed e compensacao | UI ampla |
+| 3 | UI de aceite | pagina `/auth/convite`, estados e POST seguro | remover `ADMIN_EMAIL` |
+| 4 | cron de expiracao | cleanup/expiracao de convites pendentes | owner_id retirement |
+
+## 8. Guardrails
+
+- Raw invitation token must never be stored, logged, audited, returned, or
+  exposed outside the invite link sent to the invited email.
+- Email delivery must fail closed when provider configuration is missing.
+- Invitation UI must not persist invitation tokens in browser storage.
+- Admin email fallback and owner_id retirement stay out of delivery/UI PRs.
+- No provider dependency may be added without env validation and rollback.
+
+## 9. Decisao operacional
+
+Estado atual:
+
+```txt
+contrato delivery/UI criado; provider de email, delivery runtime, UI de aceite, cron de expiracao, remocao de ADMIN_EMAIL e owner_id retirement seguem pendentes.
+```
+
+Proximo PR seguro:
+
+```txt
+implementar delivery adapter server-only para convite admin, com provider feature-flagged, env validation, fail closed e compensacao antes de UI ampla.
+```
