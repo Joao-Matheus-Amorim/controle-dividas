@@ -46,7 +46,7 @@ function extractFunctionBody(source: string, signature: string) {
 
 describe("receivable incomes organization scope readiness", () => {
   const actions = read("app/protected/contas-a-receber/actions.ts");
-  const receivableReads = read("lib/finance/receivables-server.ts");
+  const receivableReads = read("lib/organizations/receivables.ts");
   const audit = read("docs/audits/RECEIVABLE_INCOMES_ORGANIZATION_SCOPE_READINESS.md");
 
   const createReceivableIncomeBody = extractFunctionBody(
@@ -69,14 +69,16 @@ describe("receivable incomes organization scope readiness", () => {
     actions,
     "export async function deletereceivableincome",
   );
-  const getReceivableIncomesFromClientBody = extractFunctionBody(
+  const getOrganizationReceivableIncomesBody = extractFunctionBody(
     receivableReads,
-    "export async function getreceivableincomesfromclient",
+    "export async function getorganizationreceivableincomes",
   );
 
   it("keeps createReceivableIncome writing organization_id from the active organization", () => {
     expect(createReceivableIncomeBody).toContain("requireorganizationaccess");
     expect(createReceivableIncomeBody).toContain("organization_id: organization.id");
+    expect(createReceivableIncomeBody).toContain("owner_id: organization.owner_auth_user_id");
+    expect(createReceivableIncomeBody).not.toContain("owner_id: profile.owner_id");
     expect(createReceivableIncomeBody).toContain("assertreceivermemberbelongstoorganization");
     expect(createReceivableIncomeBody).toContain("assertcanaccessmember");
   });
@@ -93,31 +95,31 @@ describe("receivable incomes organization scope readiness", () => {
     expect(updateReceivableIncomeStatusBody).toContain(".eq(\"organization_id\", organization.id)");
   });
 
-  it("keeps manage path scoped by owner and active organization", () => {
-    expect(assertCanManageReceivableIncomeBody).toContain(".eq(\"owner_id\", profile.owner_id)");
+  it("keeps manage path scoped by active organization", () => {
+    expect(assertCanManageReceivableIncomeBody).not.toContain(".eq(\"owner_id\", profile.owner_id)");
     expect(assertCanManageReceivableIncomeBody).toContain(".eq(\"organization_id\", organization.id)");
     expect(assertCanManageReceivableIncomeBody).toContain("assertreceivermemberbelongstoorganization");
     expect(assertCanManageReceivableIncomeBody).toContain("assertcanaccessmember");
   });
 
-  it("keeps delete path scoped by owner and active organization", () => {
+  it("keeps delete path scoped by active organization", () => {
     expect(deleteReceivableIncomeBody).toContain("assertcanmanagereceivableincome");
-    expect(deleteReceivableIncomeBody).toContain(".eq(\"owner_id\", profile.owner_id)");
+    expect(deleteReceivableIncomeBody).not.toContain(".eq(\"owner_id\", profile.owner_id)");
     expect(deleteReceivableIncomeBody).toContain(".eq(\"organization_id\", organization.id)");
   });
 
-  it("records that the read path remains transitional", () => {
-    expect(getReceivableIncomesFromClientBody).toContain(".eq(\"owner_id\", profile.owner_id)");
-    expect(getReceivableIncomesFromClientBody).toContain(".in(\"receiver_member_id\", accessiblememberids)");
-    expect(audit).toContain("read path relies on accessible members instead of explicit `receivable_incomes.organization_id` filtering");
+  it("records that the read path is organization scoped", () => {
+    expect(getOrganizationReceivableIncomesBody).not.toContain(".eq(\"owner_id\", profile.owner_id)");
+    expect(getOrganizationReceivableIncomesBody).toContain(".eq(\"organization_id\", organization.id)");
+    expect(getOrganizationReceivableIncomesBody).toContain(".in(\"receiver_member_id\", accessiblememberids)");
+    expect(audit).toContain("read path filters `receivable_incomes.organization_id` and accessible members");
   });
 
-  it("keeps the audit as readiness-only, not a hardening migration", () => {
-    expect(audit).toContain("this document does not introduce a migration");
-    expect(audit).toContain("should not be hardened in this pr");
-    expect(audit).toContain("fresh null-organization preflight evidence");
-    expect(audit).toContain("fresh deterministic dry-run evidence");
-    expect(audit).toContain("migration-local preflight guard");
-    expect(audit).toContain("no runtime, rls, ui, billing or e2e mixing");
+  it("records the receivable write boundary migration contract", () => {
+    expect(audit).toContain("supabase/migrations/054_receivable_incomes_organization_write_rls.sql");
+    expect(audit).toContain("owner_id remains a legacy schema column");
+    expect(audit).toContain("organization.owner_auth_user_id");
+    expect(audit).toContain("contas_a_receber");
+    expect(audit).toContain("schema-final owner_id removal remains out of scope");
   });
 });

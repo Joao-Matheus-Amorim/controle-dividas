@@ -105,6 +105,7 @@ describe("organization_id insert guards", () => {
     ["family members", "app/protected/pessoas/actions.ts", "createFamilyMember"],
     ["expenses", "app/protected/gastos/actions.ts", "createExpense"],
     ["payable bills", "app/protected/contas-a-pagar/actions.ts", "createPayableBill"],
+    ["receivable incomes", "app/protected/contas-a-receber/actions.ts", "createReceivableIncome"],
     ["bank accounts", "app/protected/bancos/actions.ts", "createBankAccount"],
   ])("preserves the target organization legacy owner id when creating %s", (_label, path, functionName) => {
     const source = readSource(path);

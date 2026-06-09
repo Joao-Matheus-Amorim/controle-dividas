@@ -68,7 +68,6 @@ async function recordReceivableIncomeAuditEvent({
 }
 
 async function assertReceiverMemberBelongsToOrganization(
-  ownerId: string,
   organizationId: string,
   receiverMemberId: string,
 ) {
@@ -78,7 +77,6 @@ async function assertReceiverMemberBelongsToOrganization(
     .from("family_members")
     .select("id, organization_id")
     .eq("id", receiverMemberId)
-    .eq("owner_id", ownerId)
     .eq("organization_id", organizationId)
     .maybeSingle();
 
@@ -105,7 +103,6 @@ async function assertCanManageReceivableIncome(
     .from("receivable_incomes")
     .select("id, owner_id, receiver_member_id, source, income_type, amount, expected_date, status, receiving_bank, notes")
     .eq("id", incomeId)
-    .eq("owner_id", profile.owner_id)
     .eq("organization_id", organization.id)
     .maybeSingle();
 
@@ -118,7 +115,6 @@ async function assertCanManageReceivableIncome(
   }
 
   await assertReceiverMemberBelongsToOrganization(
-    profile.owner_id,
     organization.id,
     String(income.receiver_member_id),
   );
@@ -216,7 +212,6 @@ export async function createReceivableIncome(
 
   try {
     await assertReceiverMemberBelongsToOrganization(
-      profile.owner_id,
       organization.id,
       input.receiverMemberId,
     );
@@ -253,7 +248,7 @@ export async function createReceivableIncome(
   }
 
   const { data: createdIncome, error } = await supabase.from("receivable_incomes").insert({
-    owner_id: profile.owner_id,
+    owner_id: organization.owner_auth_user_id,
     organization_id: organization.id,
     receiver_member_id: input.receiverMemberId,
     source: input.source,
@@ -306,7 +301,6 @@ export async function updateReceivableIncome(
 
     if (String(income.receiver_member_id) !== input.receiverMemberId) {
       await assertReceiverMemberBelongsToOrganization(
-        profile.owner_id,
         organization.id,
         input.receiverMemberId,
       );
@@ -427,7 +421,6 @@ export async function updateReceivableIncome(
         organization_id: organization.id,
       }, { count: "exact" })
       .eq("id", id)
-      .eq("owner_id", profile.owner_id)
       .eq("organization_id", organization.id);
 
     if (error) {
@@ -519,18 +512,21 @@ export async function updateReceivableIncomeStatus(
 
     const supabase = await createClient();
 
-    const { error } = await supabase
+    const { error, count } = await supabase
       .from("receivable_incomes")
       .update({
         status,
         organization_id: organization.id,
-      })
+      }, { count: "exact" })
       .eq("id", id)
-      .eq("owner_id", profile.owner_id)
       .eq("organization_id", organization.id);
 
     if (error) {
       return { error: error.message };
+    }
+
+    if (count !== 1) {
+      return { error: "Recebimento nao encontrado." };
     }
 
     if (String(income.status) !== status) {
@@ -607,7 +603,6 @@ export async function deleteReceivableIncome(
       .from("receivable_incomes")
       .delete({ count: "exact" })
       .eq("id", id)
-      .eq("owner_id", profile.owner_id)
       .eq("organization_id", organization.id);
 
     if (error) {

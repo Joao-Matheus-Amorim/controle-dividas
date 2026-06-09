@@ -9,6 +9,7 @@ const mockState = vi.hoisted(() => ({
   currentOrganization: {
     id: "org-1",
     slug: "amorim",
+    owner_auth_user_id: "org-owner-1",
   },
   insertedPayloads: [] as Array<Record<string, unknown>>,
   insertedIncome: {
@@ -268,7 +269,7 @@ describe("receivable income actions", () => {
     ]);
     expect(mockState.insertedPayloads).toEqual([
       expect.objectContaining({
-        owner_id: "owner-1",
+        owner_id: "org-owner-1",
         organization_id: "org-1",
         receiver_member_id: "member-1",
         source: "Freelance",
@@ -359,7 +360,7 @@ describe("receivable income actions", () => {
     expect(lastUpdatePayload()).toEqual(expect.objectContaining({
       status: "recebido",
       organization_id: "org-1",
-      filters: expect.objectContaining({ id: "income-1", owner_id: "owner-1" }),
+      filters: expect.objectContaining({ id: "income-1", organization_id: "org-1" }),
     }));
   });
 
@@ -385,7 +386,7 @@ describe("receivable income actions", () => {
     expect(lastUpdatePayload()).toEqual(expect.objectContaining({
       status: "recebido",
       organization_id: "org-1",
-      filters: expect.objectContaining({ id: "income-1", owner_id: "owner-1" }),
+      filters: expect.objectContaining({ id: "income-1", organization_id: "org-1" }),
     }));
     expect(mockState.auditEvents).toEqual([
       expect.objectContaining({
@@ -421,7 +422,7 @@ describe("receivable income actions", () => {
     expect(lastUpdatePayload()).toEqual(expect.objectContaining({
       status: "recebido",
       organization_id: "org-1",
-      filters: expect.objectContaining({ id: "income-1", owner_id: "owner-1" }),
+      filters: expect.objectContaining({ id: "income-1", organization_id: "org-1" }),
     }));
     expect(mockState.auditEvents).toHaveLength(0);
   });
@@ -535,7 +536,7 @@ describe("receivable income actions", () => {
       status: "previsto",
       receiving_bank: "Banco B",
       organization_id: "org-1",
-      filters: expect.objectContaining({ id: "income-1", owner_id: "owner-1" }),
+      filters: expect.objectContaining({ id: "income-1", organization_id: "org-1" }),
     }));
     expect(mockState.auditEvents).toEqual([
       expect.objectContaining({
