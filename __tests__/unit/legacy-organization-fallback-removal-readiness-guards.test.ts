@@ -126,16 +126,26 @@ describe("legacy organization fallback removal readiness", () => {
   it("keeps people page and action paths scoped to active organization equality", () => {
     const pageSource = readSource("features/protected-pages/pessoas-page.tsx");
     const actionSource = readSource("app/protected/pessoas/actions.ts");
+    const createSectionSource = readSource("components/people/people-create-section.tsx");
+    const listItemSource = readSource("components/people/people-list-item.tsx");
 
     expect(pageSource).toContain("requireorganizationaccess");
     expect(pageSource).not.toContain('.eq("owner_id", ownerid)');
     expect(pageSource).toContain('.eq("organization_id", organizationid)');
+    expect(pageSource).toContain("const canmanagepeople");
+    expect(pageSource).toContain('["owner", "admin"].includes(membership.role)');
+    expect(pageSource).toContain("canmanagepeople={canmanagepeople}");
     expect(pageSource).not.toContain("organizationorlegacyfilter");
     expect(pageSource).not.toContain("organization_id.is.null");
 
-    expect(actionSource).toContain("requireorganizationaccess");
-    expect(actionSource).toContain('.eq("owner_id", profile.owner_id)');
-    expect(actionSource).toContain("owner_id: profile.owner_id");
+    expect(createSectionSource).toContain("canmanagepeople = false");
+    expect(createSectionSource).toContain("if (!canmanagepeople)");
+    expect(listItemSource).toContain("canmanagepeople = false");
+    expect(listItemSource).toContain("canmanagepeople ? (");
+
+    expect(actionSource).toContain("requireorganizationadmin");
+    expect(actionSource).not.toContain('.eq("owner_id", profile.owner_id)');
+    expect(actionSource).toContain("owner_id: organization.owner_auth_user_id");
     expect(actionSource).toContain('.eq("organization_id", organization.id)');
     expect(actionSource).not.toContain("organizationorlegacyfilter");
     expect(actionSource).not.toContain("organization_id.is.null");
@@ -143,19 +153,27 @@ describe("legacy organization fallback removal readiness", () => {
 
   it("keeps settings action paths scoped to active organization equality", () => {
     const source = readSource("app/protected/configuracoes/actions.ts");
+    const pageSource = readSource("features/protected-pages/configuracoes-page.tsx");
+    const memberLimitsSource = readSource("components/settings/settings-member-limits.tsx");
     const categoryCreate = getFunctionSource(source, "createexpensecategory", "updateexpensecategory");
     const categoryUpdate = getFunctionSource(source, "updateexpensecategory", "deleteexpensecategory");
     const categoryDelete = getFunctionSource(source, "deleteexpensecategory", "deleteexpensecategorywithstate");
+    const memberLimitUpdate = getFunctionSource(source, "updatefamilymemberlimit");
 
-    expect(source).toContain("requireorganizationaccess");
     expect(source).toContain("requireorganizationadmin");
     expect(source).toContain('.eq("organization_id", organization.id)');
     expect(categoryCreate).toContain("requireorganizationadmin");
     expect(categoryUpdate).toContain("requireorganizationadmin");
     expect(categoryDelete).toContain("requireorganizationadmin");
+    expect(memberLimitUpdate).toContain("requireorganizationadmin");
     expect(categoryCreate).toContain("owner_id: organization.owner_auth_user_id");
     expect(categoryUpdate).not.toContain('.eq("owner_id"');
     expect(categoryDelete).not.toContain('.eq("owner_id"');
+    expect(memberLimitUpdate).not.toContain('.eq("owner_id"');
+    expect(pageSource).toContain("const canmanagepeople");
+    expect(pageSource).toContain("canmanagepeople={canmanagepeople}");
+    expect(memberLimitsSource).toContain("canmanagepeople = false");
+    expect(memberLimitsSource).toContain("canmanagepeople ? (");
     expect(source).not.toContain("organizationorlegacyfilter");
     expect(source).not.toContain("organization_id.is.null");
   });

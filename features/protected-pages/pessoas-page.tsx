@@ -32,7 +32,8 @@ type PessoasPageProps = {
 };
 
 export async function PessoasPage({ orgSlug }: PessoasPageProps = {}) {
-  const { organization } = await requireOrganizationAccess(orgSlug);
+  const { organization, membership } = await requireOrganizationAccess(orgSlug);
+  const canManagePeople = ["owner", "admin"].includes(membership.role);
   const [members, accessByMember] = await Promise.all([
     getOrganizationFamilyMembers(orgSlug),
     getAccessProfilesByMember(organization.id),
@@ -59,9 +60,9 @@ export async function PessoasPage({ orgSlug }: PessoasPageProps = {}) {
         missingLoginCount={members.length - accessByMember.size}
       />
 
-      <PeopleCreateSection />
+      <PeopleCreateSection canManagePeople={canManagePeople} />
 
-      <PeopleList members={members} profiles={accessByMember} />
+      <PeopleList members={members} profiles={accessByMember} canManagePeople={canManagePeople} />
     </div>
   );
 }

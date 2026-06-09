@@ -9,7 +9,7 @@ import {
   recordFamilyMemberLimitAuditEvent,
 } from "@/lib/finance/member-limit-controls";
 import { revalidateOrganizationPaths } from "@/lib/organizations/revalidation";
-import { requireOrganizationAccess, requireOrganizationAdmin } from "@/lib/organizations/server";
+import { requireOrganizationAdmin } from "@/lib/organizations/server";
 import { checkSensitiveOperationRateLimit } from "@/lib/security/sensitive-rate-limit";
 import { createClient } from "@/lib/supabase/server";
 
@@ -347,13 +347,12 @@ export async function updateFamilyMemberLimit(
 
   const supabase = await createClient();
   const profile = await getCurrentProfile();
-  const { organization } = await requireOrganizationAccess();
+  const { organization } = await requireOrganizationAdmin();
 
   const { data: member, error: fetchError } = await supabase
     .from("family_members")
     .select("id, monthly_limit")
     .eq("id", id)
-    .eq("owner_id", profile.owner_id)
     .eq("organization_id", organization.id)
     .maybeSingle();
 
@@ -397,7 +396,6 @@ export async function updateFamilyMemberLimit(
       organization_id: organization.id,
     }, { count: "exact" })
     .eq("id", id)
-    .eq("owner_id", profile.owner_id)
     .eq("organization_id", organization.id);
 
   if (error) {

@@ -39,6 +39,7 @@ describe("family member status audit runtime guards", () => {
     expect(actions).toContain('targettype: "family_member"');
     expect(actions).toContain("checksensitiveoperationratelimit");
     expect(actions).toContain('operationkey: "finance.member.status.update"');
+    expect(toggleAction).toContain("requireorganizationadmin");
     expect(toggleAction).toContain('select("id, is_active")');
     expect(toggleAction).toContain('formdata.get("is_active")');
     expect(toggleAction).toContain('!["true", "false"].includes(submittedactivevalue)');
@@ -55,6 +56,7 @@ describe("family member status audit runtime guards", () => {
     expect(toggleAction).toContain("if (count !== 1)");
     expect(toggleAction).toContain('outcome: "denied"');
     expect(toggleAction).toContain("rate_limited");
+    expect(toggleAction).not.toContain('.eq("owner_id", profile.owner_id)');
   });
 
   it("keeps emitted metadata redacted and small", () => {

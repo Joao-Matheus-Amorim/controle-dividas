@@ -8,6 +8,11 @@ const migration = readFileSync(
   "utf8",
 );
 
+const organizationWriteMigration = readFileSync(
+  join(process.cwd(), "supabase/migrations/049_family_members_organization_write_rls.sql"),
+  "utf8",
+);
+
 const runbook = readFileSync(
   join(process.cwd(), "docs/runbooks/FAMILY_MEMBERS_RLS_FALLBACK_REMOVAL.md"),
   "utf8",
@@ -25,25 +30,27 @@ describe("family_members RLS policies", () => {
     expect(selectPolicy).not.toContain("organization_id is null");
   });
 
-  it("requires row ownership for updates", () => {
-    const updatePolicy = migration.slice(
-      migration.indexOf("create policy \"family_members_update_owner_organization\""),
-      migration.indexOf("create policy \"family_members_delete_owner_organization\""),
+  it("replaces owner-scoped writes with organization admin writes", () => {
+    const insertPolicy = organizationWriteMigration.slice(
+      organizationWriteMigration.indexOf("create policy \"family_members_insert_organization\""),
+      organizationWriteMigration.indexOf("create policy \"family_members_update_organization\""),
     );
+    const updatePolicy = organizationWriteMigration.slice(
+      organizationWriteMigration.indexOf("create policy \"family_members_update_organization\""),
+      organizationWriteMigration.indexOf("create policy \"family_members_delete_organization\""),
+    );
+    const deletePolicy = organizationWriteMigration.slice(
+      organizationWriteMigration.indexOf("create policy \"family_members_delete_organization\""),
+    );
+
+    for (const policy of [insertPolicy, updatePolicy, deletePolicy]) {
+      expect(policy).toContain("public.is_organization_admin(organization_id)");
+      expect(policy).not.toContain("owner_id = auth.uid()");
+      expect(policy).not.toContain("public.is_organization_member(organization_id)");
+    }
 
     expect(updatePolicy).toContain("for update");
-    expect(updatePolicy).toContain("owner_id = auth.uid()");
-    expect(updatePolicy).toContain("public.is_organization_member(organization_id)");
-  });
-
-  it("requires row ownership for deletes without WITH CHECK", () => {
-    const deletePolicy = migration.slice(
-      migration.indexOf("create policy \"family_members_delete_owner_organization\""),
-    );
-
     expect(deletePolicy).toContain("for delete");
-    expect(deletePolicy).toContain("owner_id = auth.uid()");
-    expect(deletePolicy).toContain("public.is_organization_member(organization_id)");
     expect(deletePolicy.toLowerCase()).not.toContain("with check");
   });
 
@@ -60,6 +67,16 @@ describe("family_members RLS policies", () => {
     expect(executablePolicySql).toContain("family_members_insert_owner_organization");
     expect(executablePolicySql).toContain("family_members_update_owner_organization");
     expect(executablePolicySql).toContain("family_members_delete_owner_organization");
+
+    const executableWritePolicySql = organizationWriteMigration
+      .split("\n")
+      .filter((line) => !line.trimStart().startsWith("--"))
+      .join("\n")
+      .toLowerCase();
+
+    expect(executableWritePolicySql).toContain("family_members_insert_organization");
+    expect(executableWritePolicySql).toContain("family_members_update_organization");
+    expect(executableWritePolicySql).toContain("family_members_delete_organization");
   });
 
   it("documents concrete rollback SQL for the fallback removal", () => {

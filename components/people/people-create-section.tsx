@@ -1,6 +1,14 @@
 import { FamilyMemberFormDialog } from "@/components/finance/family-member-form-dialog";
 
-export function PeopleCreateSection() {
+interface PeopleCreateSectionProps {
+  canManagePeople?: boolean;
+}
+
+export function PeopleCreateSection({ canManagePeople = false }: PeopleCreateSectionProps) {
+  if (!canManagePeople) {
+    return null;
+  }
+
   return (
     <section className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

@@ -9,6 +9,7 @@ const mockState = vi.hoisted(() => ({
   currentOrganization: {
     id: "org-1",
     slug: "amorim",
+    owner_auth_user_id: "owner-org-1",
   },
   claims: {
     sub: "owner-1",
@@ -219,7 +220,7 @@ describe("remaining finance mutation actions", () => {
     expect(mockState.updatedPayloads.at(-1)).toEqual(expect.objectContaining({
       table: "family_members",
       payload: expect.objectContaining({ name: "Maria", role: "Mae", monthly_limit: 500, organization_id: "org-1" }),
-      filters: expect.objectContaining({ id: "member-1", owner_id: "owner-1", organization_id: "org-1" }),
+      filters: expect.objectContaining({ id: "member-1", organization_id: "org-1" }),
     }));
   });
 
@@ -236,7 +237,7 @@ describe("remaining finance mutation actions", () => {
     expect(mockState.updatedPayloads.at(-1)).toEqual(expect.objectContaining({
       table: "family_members",
       payload: expect.objectContaining({ monthly_limit: 750, organization_id: "org-1" }),
-      filters: expect.objectContaining({ id: "member-1", owner_id: "owner-1" }),
+      filters: expect.objectContaining({ id: "member-1", organization_id: "org-1" }),
     }));
   });
 

@@ -38,10 +38,12 @@ describe("family member limit audit runtime guards", () => {
 
   it("covers both settings and people edit mutation paths", () => {
     for (const source of [settingsActions, peopleActions]) {
+      expect(source).toContain("requireorganizationadmin");
       expect(source).toContain("recordfamilymemberlimitauditevent");
       expect(source).toContain("checksensitiveoperationratelimit");
       expect(source).toContain("targetkey: id");
       expect(source).toContain("limit_changed");
+      expect(source).not.toContain('.eq("owner_id", profile.owner_id)');
     }
   });
 
