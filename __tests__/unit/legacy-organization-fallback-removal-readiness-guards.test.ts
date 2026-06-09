@@ -23,9 +23,9 @@ describe("legacy organization fallback removal readiness", () => {
   it("keeps admin actions scoped to active organization equality", () => {
     const source = readSource("app/protected/admin/actions.ts");
 
-    expect(source).toContain("requireorganizationaccess");
-    expect(source).toContain('.eq("owner_id", adminprofile.owner_id)');
+    expect(source).toContain("requireorganizationadmin");
     expect(source).toContain('.eq("organization_id", organization.id)');
+    expect(source).not.toContain('.eq("owner_id", adminprofile.owner_id)');
     expect(source).not.toContain("organization_id.is.null");
     expect(source).not.toContain(".or(organizationorlegacyfilter");
   });

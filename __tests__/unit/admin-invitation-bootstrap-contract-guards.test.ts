@@ -61,6 +61,6 @@ describe("admin invitation bootstrap contract guards", () => {
     expect(gapRegister).toContain("delivery/ui contract exists");
     expect(gapRegister).toContain("cron expiry is versioned");
     expect(gapRegister).toContain("organization admin gate");
-    expect(pmbokPlan).toContain("read path admin organization-first versionado");
+    expect(pmbokPlan).toContain("read/write path admin organization-first versionado");
   });
 });

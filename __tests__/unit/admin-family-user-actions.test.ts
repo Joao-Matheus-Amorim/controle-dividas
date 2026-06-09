@@ -138,7 +138,7 @@ vi.mock("@/lib/supabase/server", () => ({
 }));
 
 vi.mock("@/lib/organizations/server", () => ({
-  requireOrganizationAccess: vi.fn(async () => ({
+  requireOrganizationAdmin: vi.fn(async () => ({
     organization: mockState.currentOrganization,
     membership: {
       role: "owner",

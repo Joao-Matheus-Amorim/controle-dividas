@@ -63,7 +63,7 @@ describe("user module permissions organization scope readiness", () => {
   );
 
   it("keeps createFamilyUser writing organization_id on module permission rows", () => {
-    expect(createFamilyUserBody).toContain("requireorganizationaccess");
+    expect(createFamilyUserBody).toContain("requireorganizationadmin");
     expect(createFamilyUserBody).toContain("ensurememberbelongstoorganization");
     expect(createFamilyUserBody).toContain("organization_id: organization.id");
     expect(createFamilyUserBody).toContain('from("user_module_permissions")');
@@ -71,7 +71,7 @@ describe("user module permissions organization scope readiness", () => {
   });
 
   it("keeps saveProfilePermissions upserting organization-scoped rows", () => {
-    expect(saveProfilePermissionsBody).toContain("requireorganizationaccess");
+    expect(saveProfilePermissionsBody).toContain("requireorganizationadmin");
     expect(saveProfilePermissionsBody).toContain("ensureprofilebelongstoorganization");
     expect(saveProfilePermissionsBody).toContain("organization_id: organization.id");
     expect(saveProfilePermissionsBody).toContain('from("user_module_permissions")');
