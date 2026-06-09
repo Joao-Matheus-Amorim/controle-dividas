@@ -19,7 +19,7 @@ describe("owner_id active consumers inventory guards", () => {
   it("records Admin as the active owner-based runtime exception", () => {
     expect(inventory).toContain("admin usa `lib/finance/admin-server.ts`");
     expect(inventory).toContain("excecao admin parcial");
-    expect(inventory).toContain("read/write path e access-control estao organization-first");
+    expect(inventory).toContain("read/write path e access-control ja estao organization-first");
     expect(inventory).toContain("admin/access-control owner_id retirement contract");
     expect(inventory).toContain("__tests__/integration/rls/admin-multi-org.rls.test.ts");
     expect(inventory).toContain("esse contrato ainda bloqueia schema final");
