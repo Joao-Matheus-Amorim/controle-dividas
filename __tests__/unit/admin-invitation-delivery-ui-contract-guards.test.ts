@@ -17,8 +17,11 @@ describe("admin invitation delivery and UI contract guards", () => {
   const auditsReadme = read("docs/audits/README.md");
   const statusMap = read("docs/DOCUMENTATION_STATUS.md");
   const roadmap = read("docs/SAAS_OPERATIONAL_ROADMAP.md");
+  const acceptanceActions = read("app/auth/convite/actions.ts");
   const acceptancePage = read("app/auth/convite/page.tsx");
   const acceptanceForm = read("components/admin-invitation-acceptance-form.tsx");
+  const loginPage = read("app/auth/login/page.tsx");
+  const loginForm = read("components/login-form.tsx");
 
   it("tracks delivery adapter and acceptance UI while keeping expiry pending", () => {
     expect(contract).toContain("status docdoc: atual como contrato com delivery adapter e ui de aceite");
@@ -58,9 +61,25 @@ describe("admin invitation delivery and UI contract guards", () => {
     expect(acceptancePage).toContain("searchparams");
     expect(acceptanceForm).toContain("acceptadmininvitation");
     expect(acceptanceForm).toContain("type=\"hidden\"");
+    expect(acceptanceForm).toContain("/auth/login?next=");
+    expect(loginPage).toContain("getinvitereturnpath");
+    expect(loginPage).toContain('url.pathname !== "/auth/convite"');
+    expect(loginPage).toContain("loginform redirectto={invitereturnpath}");
+    expect(loginForm).toContain("router.push(redirectto ?? \"/protected\")");
     expect(acceptanceForm).not.toContain("localstorage");
     expect(acceptanceForm).not.toContain("sessionstorage");
     expect(acceptanceForm).not.toContain("document.cookie");
+  });
+
+  it("keeps invalid token lifecycle outcomes generic in the acceptance action", () => {
+    expect(contract).toContain("erros devem ser genericos para token invalido, expirado, aceito ou revogado");
+    expect(acceptanceActions).toContain('case "expired"');
+    expect(acceptanceActions).toContain('case "revoked"');
+    expect(acceptanceActions).toContain('case "accepted"');
+    expect(acceptanceActions).toContain("convite invalido ou ja utilizado");
+    expect(acceptanceActions).not.toContain("este convite expirou");
+    expect(acceptanceActions).not.toContain("este convite foi revogado");
+    expect(acceptanceActions).not.toContain("este convite ja foi aceito");
   });
 
   it("registers the contract in live planning surfaces", () => {

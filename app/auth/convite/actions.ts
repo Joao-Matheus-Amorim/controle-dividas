@@ -42,13 +42,10 @@ function acceptErrorMessage(status: string | undefined) {
       return "Entre na sua conta para aceitar o convite.";
     case "missing_token":
     case "not_found":
-      return "Convite invalido ou ja utilizado.";
     case "expired":
-      return "Este convite expirou.";
     case "revoked":
-      return "Este convite foi revogado.";
     case "accepted":
-      return "Este convite ja foi aceito.";
+      return "Convite invalido ou ja utilizado.";
     case "email_mismatch":
       return "Este convite pertence a outro email.";
     default:

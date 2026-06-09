@@ -18,12 +18,22 @@ type AdminInvitationAcceptanceFormProps = {
   className?: string;
 };
 
+function getLoginHref(token: string) {
+  if (!token) {
+    return "/auth/login";
+  }
+
+  const invitePath = `/auth/convite?token=${encodeURIComponent(token)}`;
+  return `/auth/login?next=${encodeURIComponent(invitePath)}`;
+}
+
 export function AdminInvitationAcceptanceForm({
   token,
   className,
 }: AdminInvitationAcceptanceFormProps) {
   const [state, formAction, isPending] = useActionState(acceptAdminInvitation, initialState);
   const hasToken = token.length > 0;
+  const loginHref = getLoginHref(token);
 
   return (
     <div
@@ -110,7 +120,7 @@ export function AdminInvitationAcceptanceForm({
 
           <p className="text-center text-sm text-white/40">
             Ainda nao entrou na conta?{" "}
-            <Link href="/auth/login" className="font-semibold text-white underline-offset-4 hover:underline">
+            <Link href={loginHref} className="font-semibold text-white underline-offset-4 hover:underline">
               <LogIn className="mr-1 inline h-3.5 w-3.5" />
               Entrar
             </Link>
