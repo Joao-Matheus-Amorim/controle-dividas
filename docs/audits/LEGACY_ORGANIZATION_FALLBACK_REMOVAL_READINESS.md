@@ -262,7 +262,7 @@ The removed surface includes:
 - bank balance update writes;
 - bank delete writes.
 
-These paths now require active organization scope and keep owner checks where still needed during the transition. New and updated writes continue to write the active organization id.
+These paths now require active organization scope, keep `BANCOS` member permissions in the action layer, and no longer use `profile.owner_id` as the bank write/delete filter. New and updated writes continue to write the active organization id; new bank rows preserve the target organization's legacy owner id while `owner_id` remains in the schema.
 
 ## Remaining fallback categories
 

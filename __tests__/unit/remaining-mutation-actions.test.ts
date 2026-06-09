@@ -201,8 +201,9 @@ describe("remaining finance mutation actions", () => {
     expect(mockState.updatedPayloads.at(-1)).toEqual(expect.objectContaining({
       table: "banks",
       payload: expect.objectContaining({ current_balance: 123.45, organization_id: "org-1" }),
-      filters: expect.objectContaining({ id: "bank-1", owner_id: "owner-1" }),
+      filters: expect.objectContaining({ id: "bank-1", organization_id: "org-1" }),
     }));
+    expect(mockState.updatedPayloads.at(-1)?.filters).not.toHaveProperty("owner_id");
   });
 
   it("returns family member Supabase update errors instead of swallowing them", async () => {

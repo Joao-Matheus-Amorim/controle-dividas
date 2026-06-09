@@ -46,6 +46,8 @@ describe("bank write audit runtime guards", () => {
     expect(createAction).toContain("organizationid: organization.id");
     expect(createAction).not.toContain("targetkey:");
     expect(createAction).toContain('.from("banks").insert({');
+    expect(createAction).toContain("owner_id: organization.owner_auth_user_id");
+    expect(createAction).not.toContain("owner_id: profile.owner_id");
     expect(createAction).toContain('.select("id").single()');
     expect(createAction).toContain("bank_created");
 

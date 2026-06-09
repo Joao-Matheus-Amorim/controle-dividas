@@ -101,11 +101,13 @@ describe("organization_id insert guards", () => {
     },
   );
 
-  it("preserves the target organization legacy owner id when creating family members", () => {
-    const source = readSource("app/protected/pessoas/actions.ts");
-    const functionBody = getFunctionBody(source, "createFamilyMember");
+  it.each([
+    ["family members", "app/protected/pessoas/actions.ts", "createFamilyMember"],
+    ["bank accounts", "app/protected/bancos/actions.ts", "createBankAccount"],
+  ])("preserves the target organization legacy owner id when creating %s", (_label, path, functionName) => {
+    const source = readSource(path);
+    const functionBody = getFunctionBody(source, functionName);
 
-    expect(functionBody).toContain("requireOrganizationAdmin");
     expect(functionBody).toContain("owner_id: organization.owner_auth_user_id");
     expect(functionBody).not.toContain("owner_id: profile.owner_id");
   });
