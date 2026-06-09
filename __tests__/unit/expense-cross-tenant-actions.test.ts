@@ -15,6 +15,7 @@ const mockState = vi.hoisted(() => ({
   currentOrganization: {
     id: "org-1",
     slug: "familia-a",
+    owner_auth_user_id: "owner-1",
   },
   insertedPayloads: [] as Array<Record<string, unknown>>,
   queryRecords: [] as QueryRecord[],
@@ -66,7 +67,6 @@ function expectOrganizationLookupFilters(
     table,
     eq: {
       id,
-      owner_id: "owner-1",
       organization_id: "org-1",
     },
   });

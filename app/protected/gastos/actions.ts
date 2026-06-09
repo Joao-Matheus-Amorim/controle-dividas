@@ -62,7 +62,6 @@ async function recordExpenseAuditEvent({
 }
 
 async function assertMemberBelongsToOrganization(
-  ownerId: string,
   organizationId: string,
   familyMemberId: string,
 ) {
@@ -72,7 +71,6 @@ async function assertMemberBelongsToOrganization(
     .from("family_members")
     .select("id, organization_id")
     .eq("id", familyMemberId)
-    .eq("owner_id", ownerId)
     .eq("organization_id", organizationId)
     .maybeSingle();
 
@@ -88,7 +86,6 @@ async function assertMemberBelongsToOrganization(
 }
 
 async function assertCategoryBelongsToOrganization(
-  ownerId: string,
   organizationId: string,
   categoryId: string,
 ) {
@@ -102,7 +99,6 @@ async function assertCategoryBelongsToOrganization(
     .from("expense_categories")
     .select("id, organization_id")
     .eq("id", categoryId)
-    .eq("owner_id", ownerId)
     .eq("organization_id", organizationId)
     .maybeSingle();
 
@@ -129,7 +125,6 @@ async function assertCanManageExpense(
     .from("expenses")
     .select("id, owner_id, family_member_id")
     .eq("id", expenseId)
-    .eq("owner_id", profile.owner_id)
     .eq("organization_id", organization.id)
     .maybeSingle();
 
@@ -142,7 +137,6 @@ async function assertCanManageExpense(
   }
 
   await assertMemberBelongsToOrganization(
-    profile.owner_id,
     organization.id,
     String(expense.family_member_id),
   );
@@ -219,12 +213,10 @@ export async function createExpense(
 
   try {
     await assertMemberBelongsToOrganization(
-      profile.owner_id,
       organization.id,
       input.familyMemberId,
     );
     await assertCategoryBelongsToOrganization(
-      profile.owner_id,
       organization.id,
       input.categoryId,
     );
@@ -262,7 +254,7 @@ export async function createExpense(
 
   const { data: createdExpense, error } = await supabase
     .from("expenses").insert({
-      owner_id: profile.owner_id,
+      owner_id: organization.owner_auth_user_id,
       organization_id: organization.id,
       family_member_id: input.familyMemberId,
       category_id: input.categoryId || null,
@@ -320,7 +312,6 @@ export async function updateExpense(
 
     if (String(expense.family_member_id) !== input.familyMemberId) {
       await assertMemberBelongsToOrganization(
-        profile.owner_id,
         organization.id,
         input.familyMemberId,
       );
@@ -328,7 +319,6 @@ export async function updateExpense(
     }
 
     await assertCategoryBelongsToOrganization(
-      profile.owner_id,
       organization.id,
       input.categoryId,
     );
@@ -375,7 +365,6 @@ export async function updateExpense(
         { count: "exact" },
       )
       .eq("id", id)
-      .eq("owner_id", profile.owner_id)
       .eq("organization_id", organization.id);
 
     if (error) {
@@ -455,7 +444,6 @@ export async function deleteExpense(
       .from("expenses")
       .delete({ count: "exact" })
       .eq("id", id)
-      .eq("owner_id", profile.owner_id)
       .eq("organization_id", organization.id);
 
     if (error) {
