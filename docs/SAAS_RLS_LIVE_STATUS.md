@@ -96,6 +96,7 @@ As migrations relevantes para SaaS/RLS/hardening ja mergeadas sao:
 042_audit_events_retention_cleanup.sql
 043_restore_finance_relationships_and_rls_cleanup.sql
 048_expense_categories_organization_write_rls.sql
+049_family_members_organization_write_rls.sql
 ```
 
 Observacoes operacionais:
@@ -107,6 +108,7 @@ As migrations 030 a 038 removem o fallback RLS legado `organization_id IS NULL`.
 A migration 039 remove policies historicas owner/family que podiam existir em ambientes que aplicaram migrations antigas.
 A migration 043 restaura FKs financeiras e consolida a limpeza RLS relacionada.
 A migration 048 troca writes de `expense_categories` de owner-scoped para organization-admin-scoped.
+A migration 049 troca writes de `family_members` de owner-scoped para organization-admin-scoped.
 ```
 
 ## 4. RLS atual
@@ -130,7 +132,7 @@ Leitura:
 membership ativa por organization_id via public.is_organization_member(organization_id)
 
 Escrita:
-membership ativa na organization; tabelas ainda transicionais mantem owner_id = auth.uid() onde a migration final do dominio ainda nao removeu esse requisito
+membership ativa na organization; `expense_categories` e `family_members` usam owner/admin da organizacao para writes; demais tabelas ainda transicionais mantem owner_id = auth.uid() onde a migration final do dominio ainda nao removeu esse requisito
 
 Profiles:
 auth_user_id = auth.uid() OU membership ativa por organization_id
@@ -141,6 +143,7 @@ Observacoes importantes:
 - `organization_id NOT NULL` ja foi aplicado nas tabelas tenant-scoped listadas acima;
 - nenhuma dessas migrations remove `owner_id`;
 - `expense_categories` usa write RLS por owner/admin da organizacao desde a migration `048`, mas novos registros ainda preservam o owner legado da organizacao no payload enquanto `owner_id` existir;
+- `family_members` usa write RLS por owner/admin da organizacao desde a migration `049`, mas novos registros ainda preservam o owner legado da organizacao no payload enquanto `owner_id` existir;
 - `banks` preserva comportamento historico e nao depende de `family_members.is_active` na RLS;
 - a migration `019` adiciona RPC transacional de onboarding, mas nao relaxa RLS;
 - a migration `039_drop_legacy_owner_family_policies.sql` versiona a limpeza idempotente das policies antigas `*_own`/`*_family` ja aplicada no Supabase vivo validado.

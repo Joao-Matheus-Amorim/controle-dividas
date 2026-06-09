@@ -16,7 +16,7 @@ import {
 } from "@/lib/finance/member-write-controls";
 import type { FamilyMemberFormState } from "@/lib/finance/server";
 import { revalidateOrganizationPaths } from "@/lib/organizations/revalidation";
-import { requireOrganizationAccess } from "@/lib/organizations/server";
+import { requireOrganizationAdmin } from "@/lib/organizations/server";
 import { checkSensitiveOperationRateLimit } from "@/lib/security/sensitive-rate-limit";
 import { createClient } from "@/lib/supabase/server";
 
@@ -43,7 +43,7 @@ export async function createFamilyMember(
 
   const supabase = await createClient();
   const profile = await getCurrentProfile();
-  const { organization } = await requireOrganizationAccess();
+  const { organization } = await requireOrganizationAdmin();
   const rateLimit = checkSensitiveOperationRateLimit({
     ...familyMemberCreateRateLimit,
     actorKey: profile.id,
@@ -65,7 +65,7 @@ export async function createFamilyMember(
   }
 
   const { data: member, error } = await supabase.from("family_members").insert({
-    owner_id: profile.owner_id,
+    owner_id: organization.owner_auth_user_id,
     organization_id: organization.id,
     name,
     role: role || null,
@@ -114,13 +114,12 @@ export async function updateFamilyMember(
 
   const supabase = await createClient();
   const profile = await getCurrentProfile();
-  const { organization } = await requireOrganizationAccess();
+  const { organization } = await requireOrganizationAdmin();
 
   const { data: member, error: fetchError } = await supabase
     .from("family_members")
     .select("id, name, role, monthly_limit")
     .eq("id", id)
-    .eq("owner_id", profile.owner_id)
     .eq("organization_id", organization.id)
     .maybeSingle();
 
@@ -239,7 +238,6 @@ export async function updateFamilyMember(
       organization_id: organization.id,
     }, { count: "exact" })
     .eq("id", id)
-    .eq("owner_id", profile.owner_id)
     .eq("organization_id", organization.id);
 
   if (error) {
@@ -306,13 +304,12 @@ export async function toggleFamilyMemberStatus(
 
   const supabase = await createClient();
   const profile = await getCurrentProfile();
-  const { organization } = await requireOrganizationAccess();
+  const { organization } = await requireOrganizationAdmin();
 
   const { data: member, error: fetchError } = await supabase
     .from("family_members")
     .select("id, is_active")
     .eq("id", id)
-    .eq("owner_id", profile.owner_id)
     .eq("organization_id", organization.id)
     .maybeSingle();
 
@@ -360,7 +357,6 @@ export async function toggleFamilyMemberStatus(
       organization_id: organization.id,
     }, { count: "exact" })
     .eq("id", id)
-    .eq("owner_id", profile.owner_id)
     .eq("organization_id", organization.id);
 
   if (error) {

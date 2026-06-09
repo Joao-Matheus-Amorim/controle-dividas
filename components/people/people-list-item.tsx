@@ -7,9 +7,14 @@ import { compactCurrency, initials, type AccessProfileSummary } from "./people-u
 interface PeopleListItemProps {
   member: DbFamilyMember;
   access?: AccessProfileSummary;
+  canManagePeople?: boolean;
 }
 
-export function PeopleListItem({ member, access }: PeopleListItemProps) {
+export function PeopleListItem({
+  member,
+  access,
+  canManagePeople = false,
+}: PeopleListItemProps) {
   const hasLogin = Boolean(access?.auth_user_id);
 
   return (
@@ -41,15 +46,17 @@ export function PeopleListItem({ member, access }: PeopleListItemProps) {
           </div>
         </div>
 
-        <PeopleStatusForm memberId={member.id} isActive={member.is_active} />
+        {canManagePeople ? <PeopleStatusForm memberId={member.id} isActive={member.is_active} /> : null}
       </div>
 
-      <details className="rounded-2xl border border-white/10 bg-white/[0.035] p-3">
-        <summary className="cursor-pointer text-xs font-bold uppercase tracking-[0.18em] text-white/35">
-          Editar pessoa
-        </summary>
-        <PeopleEditForm member={member} />
-      </details>
+      {canManagePeople ? (
+        <details className="rounded-2xl border border-white/10 bg-white/[0.035] p-3">
+          <summary className="cursor-pointer text-xs font-bold uppercase tracking-[0.18em] text-white/35">
+            Editar pessoa
+          </summary>
+          <PeopleEditForm member={member} />
+        </details>
+      ) : null}
     </div>
   );
 }

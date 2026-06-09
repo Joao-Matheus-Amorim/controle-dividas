@@ -4,6 +4,7 @@ const mockState = vi.hoisted(() => ({
   currentOrganization: {
     id: "org-1",
     slug: "amorim",
+    owner_auth_user_id: "owner-org-1",
   },
   claims: {
     sub: "owner-1",
@@ -186,7 +187,6 @@ describe("family member limit audit runtime actions", () => {
         },
         filters: {
           id: "member-1",
-          owner_id: "owner-1",
           organization_id: "org-1",
         },
       },
@@ -293,7 +293,6 @@ describe("family member limit audit runtime actions", () => {
         },
         filters: {
           id: "member-1",
-          owner_id: "owner-1",
           organization_id: "org-1",
         },
       },

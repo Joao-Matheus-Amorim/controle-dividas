@@ -5,9 +5,14 @@ import type { AccessProfileSummary } from "./people-utils";
 interface PeopleListProps {
   members: DbFamilyMember[];
   profiles: Map<string, AccessProfileSummary>;
+  canManagePeople?: boolean;
 }
 
-export function PeopleList({ members, profiles }: PeopleListProps) {
+export function PeopleList({
+  members,
+  profiles,
+  canManagePeople = false,
+}: PeopleListProps) {
   return (
     <section className="space-y-3 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
       <div className="flex items-center justify-between">
@@ -16,7 +21,12 @@ export function PeopleList({ members, profiles }: PeopleListProps) {
       </div>
 
       {members.map((member) => (
-        <PeopleListItem key={member.id} member={member} access={profiles.get(member.id)} />
+        <PeopleListItem
+          key={member.id}
+          member={member}
+          access={profiles.get(member.id)}
+          canManagePeople={canManagePeople}
+        />
       ))}
     </section>
   );

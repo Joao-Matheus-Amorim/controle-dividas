@@ -60,12 +60,15 @@ describe("family member write audit runtime guards", () => {
     expect(actions).toContain('operationkey: "finance.member.update"');
 
     expect(createAction).toContain("familymembercreateratelimit");
+    expect(createAction).toContain("requireorganizationadmin");
     expect(createAction).toContain("actorkey: profile.id");
     expect(createAction).toContain("organizationid: organization.id");
+    expect(createAction).toContain("owner_id: organization.owner_auth_user_id");
     expect(createAction).not.toContain("targetkey:");
     expect(createAction).toContain(".select(\"id\").single()");
     expect(createAction).toContain("member_created");
 
+    expect(updateAction).toContain("requireorganizationadmin");
     expect(updateAction).toContain('select("id, name, role, monthly_limit")');
     expect(updateAction).toContain("const profilechanged");
     expect(updateAction).toContain("familymemberupdateratelimit");
@@ -75,6 +78,7 @@ describe("family member write audit runtime guards", () => {
     expect(updateAction).toContain('outcome: "denied"');
     expect(updateAction).toContain("rate_limited");
     expect(updateAction).toContain("if (count !== 1)");
+    expect(updateAction).not.toContain('.eq("owner_id", profile.owner_id)');
   });
 
   it("keeps emitted metadata redacted and small", () => {

@@ -29,6 +29,7 @@ export async function ConfiguracoesPage({
   const stripeBoundary = getStripeConfigurationBoundary();
   const canManageBilling = ["owner", "admin"].includes(organization.membership.role);
   const canManageCategories = ["owner", "admin"].includes(organization.membership.role);
+  const canManagePeople = ["owner", "admin"].includes(organization.membership.role);
 
   const totalLimit = members.reduce(
     (total, member) => total + Number(member.monthly_limit),
@@ -65,7 +66,7 @@ export async function ConfiguracoesPage({
         />
       ) : null}
 
-      <SettingsMemberLimits members={members} />
+      <SettingsMemberLimits members={members} canManagePeople={canManagePeople} />
 
       <SettingsCategories categories={categories} canManageCategories={canManageCategories} />
 

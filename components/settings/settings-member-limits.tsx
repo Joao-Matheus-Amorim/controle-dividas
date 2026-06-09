@@ -5,9 +5,13 @@ import { compactCurrency } from "./settings-utils";
 
 interface SettingsMemberLimitsProps {
   members: DbFamilyMember[];
+  canManagePeople?: boolean;
 }
 
-export function SettingsMemberLimits({ members }: SettingsMemberLimitsProps) {
+export function SettingsMemberLimits({
+  members,
+  canManagePeople = false,
+}: SettingsMemberLimitsProps) {
   return (
     <section className="space-y-3 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
       <div className="flex items-center justify-between">
@@ -24,7 +28,9 @@ export function SettingsMemberLimits({ members }: SettingsMemberLimitsProps) {
             <p className="mt-1 text-xs text-white/35">Limite atual: {compactCurrency(Number(member.monthly_limit))}</p>
           </div>
 
-          <SettingsMemberLimitForm member={member} />
+          {canManagePeople ? (
+            <SettingsMemberLimitForm member={member} />
+          ) : null}
         </div>
       ))}
     </section>
