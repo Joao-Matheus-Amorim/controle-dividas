@@ -42,6 +42,7 @@ Fontes cruzadas nesta revisao:
 - `supabase/migrations/041_audit_events_write_boundary.sql`
 - `supabase/migrations/042_audit_events_retention_cleanup.sql`
 - `supabase/migrations/044_admin_invitations_schema.sql`
+- `docs/audits/ADMIN_INVITATION_DELIVERY_UI_CONTRACT.md`
 - `docs/runbooks/BILLING_STRIPE_TEST_ACCOUNT_RUNBOOK.md`
 - `docs/rls/RLS_LIVE_GATE.md`
 - `.github/workflows/rls-live-gate.yml`
@@ -56,7 +57,7 @@ Fontes cruzadas nesta revisao:
 - `components/app/active-organization-indicator.tsx` exibe organizacao ativa e permite troca quando ha mais de uma.
 - `app/protected/organization-switcher-actions.ts` persiste a troca de organizacao ativa.
 - Schema/preflight de convites admin esta versionado em `supabase/migrations/044_admin_invitations_schema.sql`, com tabela `organization_invitations`, email normalizado, hash de token, expiracao, estados minimos e RLS admin-scoped.
-- Runtime parcial de convite/admin esta versionado em `app/protected/admin/invitation-actions.ts` para criar, revogar e preparar reenvio; aceite/linking esta versionado em `supabase/migrations/045_accept_admin_invitation_rpc.sql` e `app/auth/convite/actions.ts`; email delivery, UI, cron de expiracao e remocao de `ADMIN_EMAIL` continuam fora deste passo.
+- Runtime parcial de convite/admin esta versionado em `app/protected/admin/invitation-actions.ts` para criar, revogar e preparar reenvio; aceite/linking esta versionado em `supabase/migrations/045_accept_admin_invitation_rpc.sql` e `app/auth/convite/actions.ts`; contrato delivery/UI esta versionado em `docs/audits/ADMIN_INVITATION_DELIVERY_UI_CONTRACT.md`; email delivery runtime, UI, cron de expiracao e remocao de `ADMIN_EMAIL` continuam fora deste passo.
 
 ### Schema tenant-scoped
 

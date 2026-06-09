@@ -18,6 +18,10 @@ reenvio e aceitar convites com linking de membership/profile por organizacao.
 Ele nao altera UI, billing, seeds, deploy, email delivery, cron de expiracao
 ou remocao de `ADMIN_EMAIL`.
 
+O contrato de delivery/UI fica separado em
+`docs/audits/ADMIN_INVITATION_DELIVERY_UI_CONTRACT.md` para bloquear vazamento
+de token bruto antes de qualquer provider ou tela de aceite.
+
 ## 2. Estado atual permitido
 
 O estado atual permitido continua sendo transicional:
@@ -105,15 +109,19 @@ gates:
 | 2 | schema/preflight de convites | `supabase/migrations/044_admin_invitations_schema.sql` e guard unitario | UI ampla |
 | 3 | runtime criar/revogar/reenviar convite | `app/protected/admin/invitation-actions.ts`, audit e rate limit | remover `ADMIN_EMAIL` |
 | 4 | runtime aceitar convite | `supabase/migrations/045_accept_admin_invitation_rpc.sql` e `app/auth/convite/actions.ts` para membership/profile linking por organizacao | owner_id retirement |
-| 5 | read path admin organization-first | leituras admin sem `adminProfile.owner_id` como filtro primario | writes admin |
-| 6 | write path admin organization-first | writes admin preservando audit/rate-limit | schema final |
-| 7 | access-control organization-first | permissoes por organization/membership | remover coluna |
-| 8 | deprecacao `ADMIN_EMAIL` | fallback dev-only/emergencia documentado | mudanca sem rollback |
+| 5 | contrato delivery/UI de convite | `docs/audits/ADMIN_INVITATION_DELIVERY_UI_CONTRACT.md`, mapas DocDoc e guard | provider/UI runtime |
+| 6 | read path admin organization-first | leituras admin sem `adminProfile.owner_id` como filtro primario | writes admin |
+| 7 | write path admin organization-first | writes admin preservando audit/rate-limit | schema final |
+| 8 | access-control organization-first | permissoes por organization/membership | remover coluna |
+| 9 | deprecacao `ADMIN_EMAIL` | fallback dev-only/emergencia documentado | mudanca sem rollback |
 
 ## 8. Guardrails
 
 - Convite/admin nao pode confiar em `organization_id` do cliente.
 - Convite/admin nao pode gravar token, segredo ou payload bruto em audit log.
+- Delivery/UI de convite deve seguir
+  `docs/audits/ADMIN_INVITATION_DELIVERY_UI_CONTRACT.md` antes de provider ou
+  tela publica.
 - `ADMIN_EMAIL` nao pode ser usado para conceder admin normal em multiplas
   organizacoes.
 - Membership owner/admin deve ser organization-scoped.
@@ -125,12 +133,13 @@ gates:
 Estado atual:
 
 ```txt
-contrato criado; schema/preflight versionado em `supabase/migrations/044_admin_invitations_schema.sql`; runtime criar/revogar/reenviar versionado em `app/protected/admin/invitation-actions.ts`; runtime aceitar/linking versionado em `supabase/migrations/045_accept_admin_invitation_rpc.sql` e `app/auth/convite/actions.ts`; email delivery, UI, cron de expiracao e remocao de `ADMIN_EMAIL` ainda nao implementados.
+contrato criado; schema/preflight versionado em `supabase/migrations/044_admin_invitations_schema.sql`; runtime criar/revogar/reenviar versionado em `app/protected/admin/invitation-actions.ts`; runtime aceitar/linking versionado em `supabase/migrations/045_accept_admin_invitation_rpc.sql` e `app/auth/convite/actions.ts`; contrato delivery/UI versionado em `docs/audits/ADMIN_INVITATION_DELIVERY_UI_CONTRACT.md`; email delivery, UI, cron de expiracao e remocao de `ADMIN_EMAIL` ainda nao implementados.
 ```
 
 Proximo PR seguro:
 
 ```txt
-implementar email delivery e UI de convite em PRs dedicados, sem remover
-ADMIN_EMAIL e sem retirar owner_id.
+implementar delivery adapter server-only e depois UI de convite em PRs
+dedicados, seguindo `docs/audits/ADMIN_INVITATION_DELIVERY_UI_CONTRACT.md`,
+sem remover ADMIN_EMAIL e sem retirar owner_id.
 ```
