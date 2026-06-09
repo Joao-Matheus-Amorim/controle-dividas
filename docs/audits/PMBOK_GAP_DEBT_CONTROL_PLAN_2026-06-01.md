@@ -85,7 +85,7 @@ Nenhum gap ou divida tecnica pode ser considerado fechado sem todos os itens:
 | G-007 | Produto | Aberto | edit flows e settings testados | escolher um fluxo por PR |
 | G-008 | Documentacao | Continuo | DocDoc headers coerentes | atualizar docs afetados em cada PR |
 | G-009 | GAP-015 | Parcial | storage/retention final definidos | ampliar controles em PR dedicado |
-| G-010 | Admin lifecycle | Read/write/access-control admin organization-first versionado | `docs/audits/ADMIN_INVITATION_BOOTSTRAP_CONTRACT.md`; convite/admin, delivery/UI, cron de expiracao e admin read/write/access-control organization-first ja versionados; `ADMIN_EMAIL` e owner_id retirement ainda pendentes | bootstrap final/ADMIN_EMAIL em PR dedicado |
+| G-010 | Admin lifecycle | Read/write/access-control admin organization-first versionado | `docs/audits/ADMIN_INVITATION_BOOTSTRAP_CONTRACT.md`; convite/admin, delivery/UI, cron de expiracao, admin read/write/access-control organization-first e remocao do gate runtime de `ADMIN_EMAIL` ja versionados; owner_id retirement ainda pendente | owner_id retirement em PR dedicado |
 
 ## 6. Criterios de aceite por tipo de entrega
 
@@ -188,5 +188,5 @@ A proxima frente deve ser escolhida por objetivo:
 
 Recomendacao PMBOK: apos G-001 fechado, priorizar G-002 Stripe evidence ou o
 proximo gate dedicado de rotas/E2E. Se a frente escolhida for arquitetura,
-seguir G-010 com bootstrap final/ADMIN_EMAIL em PR dedicado,
+seguir G-010 com owner_id retirement em PR dedicado,
 sem misturar produto, UI, billing ou retirada de `owner_id`.

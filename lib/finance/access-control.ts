@@ -51,15 +51,6 @@ async function getCurrentUser() {
   };
 }
 
-function getConfiguredAdminEmail() {
-  return process.env.ADMIN_EMAIL?.trim().toLowerCase() ?? null;
-}
-
-function isConfiguredAdminEmail(email: string | null) {
-  const adminEmail = getConfiguredAdminEmail();
-  return Boolean(adminEmail && email && email.toLowerCase() === adminEmail);
-}
-
 async function getActiveOrganizationId(orgSlug?: string) {
   const { organization } = await requireOrganizationAccess(orgSlug);
   return organization.id;
@@ -153,10 +144,6 @@ export async function getCurrentProfile() {
     if (linkedProfile) {
       return linkedProfile;
     }
-  }
-
-  if (!isConfiguredAdminEmail(user.email)) {
-    redirect("/auth/error?error=Seu email ainda nao foi autorizado pelo Admin familiar.");
   }
 
   redirect("/onboarding/organizacao");

@@ -95,7 +95,7 @@ sem:
 Estado atual:
 
 ```txt
-read/write path admin em `lib/finance/admin-server.ts` e `app/protected/admin/actions.ts` exige admin da organizacao ativa e esta organization-first; access-control tambem calcula permissoes e membros por organizacao. ADMIN_EMAIL e owner_id permanecem transicionais.
+read/write path admin em `lib/finance/admin-server.ts` e `app/protected/admin/actions.ts` exige admin da organizacao ativa e esta organization-first; access-control tambem calcula permissoes e membros por organizacao. O gate runtime de ADMIN_EMAIL foi removido dos helpers server-side; owner_id permanece transicional.
 ```
 
 Contrato de convite/admin criado:
@@ -113,6 +113,7 @@ __tests__/integration/rls/admin-multi-org.rls.test.ts
 Proximo PR seguro:
 
 ```txt
-proximo PR dedicado deve tratar bootstrap final/ADMIN_EMAIL ou outro consumidor
-de `owner_id`, sem remover owner_id antes dos gates de schema/RLS.
+proximo PR dedicado deve tratar outro consumidor de `owner_id`, sem
+reintroduzir ADMIN_EMAIL como gate runtime e sem remover owner_id antes dos
+gates de schema/RLS.
 ```

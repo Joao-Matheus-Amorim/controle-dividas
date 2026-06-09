@@ -25,7 +25,7 @@ billing.
 O estado atual permitido e:
 
 ```txt
-schema/preflight de convite, create/revoke/resend runtime, accept/linking runtime, delivery adapter server-only, UI de aceite e cron de expiracao existem; remocao de ADMIN_EMAIL ainda e pendente.
+schema/preflight de convite, create/revoke/resend runtime, accept/linking runtime com profile antes de membership, delivery adapter server-only, UI de aceite e cron de expiracao existem; gate runtime de ADMIN_EMAIL foi removido dos helpers server-side.
 ```
 
 O estado proibido e:
@@ -154,11 +154,11 @@ estiver ausente ou o header `Authorization: Bearer ...` nao bater.
 Estado atual:
 
 ```txt
-contrato delivery/UI criado; delivery adapter server-only versionado em `lib/admin-invitations/delivery.ts`; UI de aceite versionada em `app/auth/convite/page.tsx` e `components/admin-invitation-acceptance-form.tsx`; cron de expiracao versionado em `supabase/migrations/046_admin_invitation_expiry_cleanup.sql`, `app/api/cron/admin-invitations/expire/route.ts` e `vercel.json`; remocao de ADMIN_EMAIL e owner_id retirement seguem pendentes.
+contrato delivery/UI criado; delivery adapter server-only versionado em `lib/admin-invitations/delivery.ts`; UI de aceite versionada em `app/auth/convite/page.tsx` e `components/admin-invitation-acceptance-form.tsx`; cron de expiracao versionado em `supabase/migrations/046_admin_invitation_expiry_cleanup.sql`, `app/api/cron/admin-invitations/expire/route.ts` e `vercel.json`; aceite cria/linka profile antes de membership em `supabase/migrations/047_accept_admin_invitation_profile_creation.sql`; gate runtime de ADMIN_EMAIL removido e owner_id retirement segue pendente.
 ```
 
 Proximo PR seguro:
 
 ```txt
-planejar remocao de ADMIN_EMAIL em PR dedicado, mantendo owner_id retirement fora do escopo.
+seguir owner_id retirement em PR dedicado, mantendo provider/UI de convite fora do escopo.
 ```

@@ -54,15 +54,6 @@ function normalizeProfile(profile: RawProfile): DbProfile {
   };
 }
 
-function getConfiguredAdminEmail() {
-  return process.env.ADMIN_EMAIL?.trim().toLowerCase() ?? null;
-}
-
-function isConfiguredAdminEmail(email: string | null) {
-  const adminEmail = getConfiguredAdminEmail();
-  return Boolean(adminEmail && email && email.toLowerCase() === adminEmail);
-}
-
 async function getProfileByAuthUserId(authUserId: string) {
   const supabase = await createClient();
 
@@ -93,10 +84,6 @@ export async function ensureAdminProfile(orgSlug?: string) {
     }
 
     return existingProfile;
-  }
-
-  if (!isConfiguredAdminEmail(user.email)) {
-    redirect(getProtectedFallbackPath(orgSlug));
   }
 
   redirect("/onboarding/organizacao");

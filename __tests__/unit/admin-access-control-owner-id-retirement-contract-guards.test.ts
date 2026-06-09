@@ -27,7 +27,9 @@ describe("admin access-control owner_id retirement contract guards", () => {
     expect(contract).toContain("rollback documentado");
     expect(contract).toContain("requireorganizationadmin(orgslug)");
     expect(contract).toContain("access-control tambem calcula permissoes e membros por organizacao");
-    expect(contract).toContain("proximo pr dedicado deve tratar bootstrap final/admin_email");
+    expect(contract).toContain("gate runtime de admin_email foi removido dos helpers server-side");
+    expect(contract).toContain("proximo pr dedicado deve tratar outro consumidor de `owner_id`");
+    expect(contract).toContain("reintroduzir admin_email como gate runtime");
   });
 
   it("preserves admin audit and rate-limit boundaries before any refactor", () => {

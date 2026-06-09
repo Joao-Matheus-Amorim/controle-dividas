@@ -9,6 +9,7 @@ function read(path: string) {
 
 describe("admin invitation acceptance rpc guards", () => {
   const migration = read("supabase/migrations/045_accept_admin_invitation_rpc.sql");
+  const profileCreationMigration = read("supabase/migrations/047_accept_admin_invitation_profile_creation.sql");
   const action = read("app/auth/convite/actions.ts");
 
   it("keeps invitation acceptance server-side and transactional", () => {
@@ -32,6 +33,20 @@ describe("admin invitation acceptance rpc guards", () => {
     expect(action).not.toContain("createAdminClient");
     expect(action).not.toContain("formData.get(\"organization");
     expect(action).not.toContain("formdata.get(\"organization");
+  });
+
+  it("creates a linked profile before membership so invited users do not fall into onboarding", () => {
+    expect(profileCreationMigration).toContain("create or replace function public.accept_organization_invitation");
+    expect(profileCreationMigration).toContain("owner_auth_user_id");
+    expect(profileCreationMigration).toContain("organization_owner_auth_user_id");
+    expect(profileCreationMigration).toContain("insert into public.profiles");
+    expect(profileCreationMigration).toContain("owner_id");
+    expect(profileCreationMigration).toContain("invitation_record.invited_email_normalized");
+    expect(profileCreationMigration).toContain("'profile_created', profile_created");
+    expect(profileCreationMigration.indexOf("insert into public.profiles")).toBeLessThan(
+      profileCreationMigration.indexOf("insert into public.organization_memberships"),
+    );
+    expect(action).toContain("profile_created");
   });
 
   it("keeps raw invitation tokens out of storage and audit metadata", () => {
