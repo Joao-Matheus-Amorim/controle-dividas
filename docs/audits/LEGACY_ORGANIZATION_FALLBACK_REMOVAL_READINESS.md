@@ -137,7 +137,7 @@ The removed surface includes:
 
 These reads now require active organization scope and no longer use `owner_id` as read authority in this helper during the transition.
 
-Configuracoes still uses a manageable category list scoped to `owner_id = auth.uid()` while category edit/delete actions and `expense_categories` write RLS remain owner-compatible.
+Configuracoes uses the organization-scoped category list, but category create/edit/delete controls, actions, and `expense_categories` write RLS are restricted to owner/admin category managers. New categories still write the organization's legacy owner id for compatibility while `owner_id` remains in the schema.
 
 ### Payable organization helper reads
 
@@ -206,7 +206,7 @@ The removed surface includes:
 - expense category delete writes;
 - family member monthly limit update writes.
 
-These paths now require active organization scope and keep owner checks where still needed during the transition. New and updated writes continue to write the active organization id.
+These paths now require active organization scope. Category writes are restricted to owner/admin category managers and new categories preserve the organization's legacy owner id for compatibility; family member limit writes keep owner checks while `family_members` RLS remains owner-compatible. New and updated writes continue to write the active organization id.
 
 ### Expense action paths
 

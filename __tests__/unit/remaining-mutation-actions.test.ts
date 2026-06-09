@@ -151,6 +151,13 @@ vi.mock("@/lib/organizations/server", () => ({
       is_active: true,
     },
   })),
+  requireOrganizationAdmin: vi.fn(async () => ({
+    organization: mockState.currentOrganization,
+    membership: {
+      role: "owner",
+      is_active: true,
+    },
+  })),
 }));
 
 vi.mock("@/lib/finance/access-control", () => ({
@@ -244,7 +251,7 @@ describe("remaining finance mutation actions", () => {
     expect(result).toEqual({ error: "category delete failed" });
     expect(mockState.deletedRows.at(-1)).toEqual(expect.objectContaining({
       table: "expense_categories",
-      filters: expect.objectContaining({ id: "category-1", owner_id: "owner-1", is_default: false }),
+      filters: expect.objectContaining({ id: "category-1", is_default: false, organization_id: "org-1" }),
     }));
   });
 });

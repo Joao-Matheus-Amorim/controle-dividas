@@ -9,7 +9,7 @@ import {
   recordFamilyMemberLimitAuditEvent,
 } from "@/lib/finance/member-limit-controls";
 import { revalidateOrganizationPaths } from "@/lib/organizations/revalidation";
-import { requireOrganizationAccess } from "@/lib/organizations/server";
+import { requireOrganizationAccess, requireOrganizationAdmin } from "@/lib/organizations/server";
 import { checkSensitiveOperationRateLimit } from "@/lib/security/sensitive-rate-limit";
 import { createClient } from "@/lib/supabase/server";
 
@@ -105,11 +105,11 @@ export async function createExpenseCategory(
   }
 
   const supabase = await createClient();
-  const ownerId = await getCurrentUserId();
-  const { organization } = await requireOrganizationAccess();
+  const currentUserId = await getCurrentUserId();
+  const { organization } = await requireOrganizationAdmin();
   const rateLimit = checkSensitiveOperationRateLimit({
     ...categoryCreateRateLimit,
-    actorKey: ownerId,
+    actorKey: currentUserId,
     organizationId: organization.id,
   });
 
@@ -129,7 +129,7 @@ export async function createExpenseCategory(
   }
 
   const { data: category, error } = await supabase.from("expense_categories").insert({
-    owner_id: ownerId,
+    owner_id: organization.owner_auth_user_id,
     organization_id: organization.id,
     name: input.name,
     description: input.description || null,
@@ -174,14 +174,13 @@ export async function updateExpenseCategory(
   }
 
   const supabase = await createClient();
-  const ownerId = await getCurrentUserId();
-  const { organization } = await requireOrganizationAccess();
+  const currentUserId = await getCurrentUserId();
+  const { organization } = await requireOrganizationAdmin();
 
   const { data: category, error: fetchError } = await supabase
     .from("expense_categories")
     .select("id, name, description, is_default")
     .eq("id", id)
-    .eq("owner_id", ownerId)
     .eq("organization_id", organization.id)
     .maybeSingle();
 
@@ -207,7 +206,7 @@ export async function updateExpenseCategory(
 
   const rateLimit = checkSensitiveOperationRateLimit({
     ...categoryUpdateRateLimit,
-    actorKey: ownerId,
+    actorKey: currentUserId,
     organizationId: organization.id,
     targetKey: id,
   });
@@ -235,7 +234,6 @@ export async function updateExpenseCategory(
       organization_id: organization.id,
     }, { count: "exact" })
     .eq("id", id)
-    .eq("owner_id", ownerId)
     .eq("organization_id", organization.id);
 
   if (error) {
@@ -273,11 +271,11 @@ export async function deleteExpenseCategory(
   }
 
   const supabase = await createClient();
-  const ownerId = await getCurrentUserId();
-  const { organization } = await requireOrganizationAccess();
+  const currentUserId = await getCurrentUserId();
+  const { organization } = await requireOrganizationAdmin();
   const rateLimit = checkSensitiveOperationRateLimit({
     ...categoryDeleteRateLimit,
-    actorKey: ownerId,
+    actorKey: currentUserId,
     organizationId: organization.id,
   });
 
@@ -298,7 +296,6 @@ export async function deleteExpenseCategory(
     .from("expense_categories")
     .delete({ count: "exact" })
     .eq("id", id)
-    .eq("owner_id", ownerId)
     .eq("is_default", false)
     .eq("organization_id", organization.id);
 

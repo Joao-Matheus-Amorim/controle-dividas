@@ -28,7 +28,7 @@ describe("family member limit audit runtime guards", () => {
     expect(actions).toContain('targettype: "family_member"');
     expect(actions).toContain("checksensitiveoperationratelimit");
     expect(actions).toContain('operationkey: "finance.member.limit.update"');
-    expect(actions).toContain("actorkey: ownerid");
+    expect(actions).toContain("actorkey: profile.id");
     expect(actions).toContain("organizationid: organization.id");
     expect(actions).toContain("targetkey: id");
     expect(actions).toContain('outcome: "denied"');

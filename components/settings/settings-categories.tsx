@@ -6,11 +6,16 @@ import { SettingsCategoryDeleteForm } from "./settings-category-delete-form";
 
 interface SettingsCategoriesProps {
   categories: DbExpenseCategory[];
+  canManageCategories?: boolean;
 }
 
-export function SettingsCategories({ categories }: SettingsCategoriesProps) {
+export function SettingsCategories({
+  categories,
+  canManageCategories = false,
+}: SettingsCategoriesProps) {
   return (
-    <section className="grid gap-4 xl:grid-cols-[0.9fr_1.1fr]">
+    <section className={canManageCategories ? "grid gap-4 xl:grid-cols-[0.9fr_1.1fr]" : "grid gap-4"}>
+      {canManageCategories ? (
       <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
         <div className="mb-4 flex items-center justify-between">
           <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/25">Nova categoria</p>
@@ -18,6 +23,7 @@ export function SettingsCategories({ categories }: SettingsCategoriesProps) {
         </div>
         <ExpenseCategoryForm />
       </div>
+      ) : null}
 
       <div className="space-y-3 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
         <div className="flex items-center justify-between">
@@ -34,7 +40,7 @@ export function SettingsCategories({ categories }: SettingsCategoriesProps) {
               <p className="mt-1 text-xs text-white/35">{category.description || "Sem descrição"}</p>
             </div>
 
-            {!category.is_default ? (
+            {!category.is_default && canManageCategories ? (
               <div className="flex items-start gap-2">
                 <ExpenseCategoryEditDialog category={category} />
                 <SettingsCategoryDeleteForm categoryId={category.id} />

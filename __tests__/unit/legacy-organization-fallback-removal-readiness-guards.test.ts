@@ -54,26 +54,32 @@ describe("legacy organization fallback removal readiness", () => {
 
   it("keeps category organization helper reads scoped to active organization equality", () => {
     const source = readSource("lib/organizations/categories.ts");
-    const organizationRead = getFunctionSource(
-      source,
-      "getorganizationexpensecategories",
-      "getmanageableorganizationexpensecategories",
-    );
+    const organizationRead = getFunctionSource(source, "getorganizationexpensecategories");
 
     expect(source).toContain("requireorganizationaccess");
     expect(organizationRead).not.toContain('.eq("owner_id"');
     expect(organizationRead).toContain('.eq("organization_id", organization.id)');
-    expect(source).toContain("getmanageableorganizationexpensecategories");
-    expect(source).toContain('.eq("owner_id", currentuserid)');
+    expect(source).not.toContain("getmanageableorganizationexpensecategories");
     expect(source).not.toContain("organizationorlegacyfilter");
     expect(source).not.toContain("organization_id.is.null");
   });
 
-  it("keeps settings category list scoped to rows the current user can modify", () => {
-    const source = readSource("features/protected-pages/configuracoes-page.tsx");
+  it("keeps settings category list visible while write controls require category managers", () => {
+    const pageSource = readSource("features/protected-pages/configuracoes-page.tsx");
+    const componentSource = readSource("components/settings/settings-categories.tsx");
 
-    expect(source).toContain("getmanageableorganizationexpensecategories");
-    expect(source).not.toContain("getorganizationexpensecategories(orgslug)");
+    expect(pageSource).toContain("getorganizationexpensecategories");
+    expect(pageSource).toContain("getorganizationexpensecategories(orgslug)");
+    expect(pageSource).toContain("const canmanagecategories");
+    expect(pageSource).toContain('["owner", "admin"].includes(organization.membership.role)');
+    expect(pageSource).toContain("canmanagecategories={canmanagecategories}");
+    expect(pageSource).not.toContain("getmanageableorganizationexpensecategories");
+
+    expect(componentSource).toContain("canmanagecategories");
+    expect(componentSource).toContain("canmanagecategories = false");
+    expect(componentSource).toContain("canmanagecategories ? (");
+    expect(componentSource).toContain("<expensecategoryform");
+    expect(componentSource).toContain("!category.is_default && canmanagecategories");
   });
 
   it("keeps payable organization helper reads scoped to active organization equality", () => {
@@ -137,10 +143,19 @@ describe("legacy organization fallback removal readiness", () => {
 
   it("keeps settings action paths scoped to active organization equality", () => {
     const source = readSource("app/protected/configuracoes/actions.ts");
+    const categoryCreate = getFunctionSource(source, "createexpensecategory", "updateexpensecategory");
+    const categoryUpdate = getFunctionSource(source, "updateexpensecategory", "deleteexpensecategory");
+    const categoryDelete = getFunctionSource(source, "deleteexpensecategory", "deleteexpensecategorywithstate");
 
     expect(source).toContain("requireorganizationaccess");
-    expect(source).toContain('.eq("owner_id", ownerid)');
+    expect(source).toContain("requireorganizationadmin");
     expect(source).toContain('.eq("organization_id", organization.id)');
+    expect(categoryCreate).toContain("requireorganizationadmin");
+    expect(categoryUpdate).toContain("requireorganizationadmin");
+    expect(categoryDelete).toContain("requireorganizationadmin");
+    expect(categoryCreate).toContain("owner_id: organization.owner_auth_user_id");
+    expect(categoryUpdate).not.toContain('.eq("owner_id"');
+    expect(categoryDelete).not.toContain('.eq("owner_id"');
     expect(source).not.toContain("organizationorlegacyfilter");
     expect(source).not.toContain("organization_id.is.null");
   });

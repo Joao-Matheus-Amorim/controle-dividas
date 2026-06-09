@@ -41,19 +41,22 @@ describe("expense category write audit runtime guards", () => {
     expect(actions).toContain('operationkey: "finance.category.update"');
 
     expect(createAction).toContain("categorycreateratelimit");
+    expect(createAction).toContain("requireorganizationadmin");
     expect(createAction).toContain("checksensitiveoperationratelimit");
-    expect(createAction).toContain("actorkey: ownerid");
-    expect(createAction).toContain("owner_id: ownerid");
+    expect(createAction).toContain("actorkey: currentuserid");
+    expect(createAction).toContain("owner_id: organization.owner_auth_user_id");
     expect(createAction).toContain("organizationid: organization.id");
     expect(createAction).not.toContain("targetkey:");
     expect(createAction).toContain(".select(\"id\").single()");
     expect(createAction).toContain("category_created");
 
     expect(updateAction).toContain('select("id, name, description, is_default")');
+    expect(updateAction).toContain("requireorganizationadmin");
     expect(updateAction).toContain("const categorychanged");
     expect(updateAction).toContain("categoryupdateratelimit");
-    expect(updateAction).toContain("actorkey: ownerid");
-    expect(updateAction).toContain("owner_id\", ownerid");
+    expect(updateAction).toContain("actorkey: currentuserid");
+    expect(updateAction).not.toContain("owner_id:");
+    expect(updateAction).not.toContain('eq("owner_id"');
     expect(updateAction).toContain("targetkey: id");
     expect(updateAction).toContain('{ count: "exact" }');
     expect(updateAction).toContain("if (count !== 1)");
