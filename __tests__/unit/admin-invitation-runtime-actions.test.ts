@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("server-only", () => ({}));
+
 const mockState = vi.hoisted(() => ({
   adminProfile: {
     id: "admin-profile-1",
@@ -156,6 +158,9 @@ describe("admin invitation runtime actions", () => {
     mockState.rateLimitAllowed = true;
     mockState.rateLimitChecks = [];
     mockState.auditEvents = [];
+    delete process.env.ENABLE_ADMIN_INVITATION_EMAIL_DELIVERY;
+    delete process.env.ADMIN_INVITATION_EMAIL_WEBHOOK_URL;
+    delete process.env.NEXT_PUBLIC_APP_URL;
   });
 
   it("creates a pending admin invitation with normalized email, token hash, rate limit, and redacted audit", async () => {
@@ -194,6 +199,7 @@ describe("admin invitation runtime actions", () => {
           role: "admin",
           email_domain: "example.com",
           expires_in_days: 7,
+          delivery_status: "prepared",
         },
       }),
     ]);
@@ -287,9 +293,48 @@ describe("admin invitation runtime actions", () => {
           email_domain: "example.com",
           expires_in_days: 7,
           credential_refreshed: true,
+          delivery_status: "prepared",
         },
       }),
     ]);
     expect(JSON.stringify(mockState.auditEvents)).not.toContain("token");
+  });
+
+  it("revokes a newly created invitation when enabled delivery is not configured", async () => {
+    process.env.ENABLE_ADMIN_INVITATION_EMAIL_DELIVERY = "true";
+    delete process.env.ADMIN_INVITATION_EMAIL_WEBHOOK_URL;
+    delete process.env.NEXT_PUBLIC_APP_URL;
+
+    const { createAdminInvitation } = await import("@/app/protected/admin/invitation-actions");
+
+    const result = await createAdminInvitation({}, createFormData({
+      email: "ada@example.com",
+    }));
+
+    expect(result).toEqual({
+      error: "Nao foi possivel entregar o convite admin. Tente novamente mais tarde.",
+    });
+    expect(mockState.insertPayloads).toHaveLength(1);
+    expect(mockState.updatePayloads).toEqual([
+      expect.objectContaining({
+        status: "revoked",
+      }),
+    ]);
+    expect(mockState.auditEvents).toEqual([
+      expect.objectContaining({
+        action: "admin.invitation.create",
+        targetId: "invitation-1",
+        outcome: "failure",
+        metadata: {
+          status: "delivery_failed",
+          delivery_reason: "missing_configuration",
+          email_domain: "example.com",
+        },
+      }),
+    ]);
+    expect(JSON.stringify(result)).not.toContain("token");
+    expect(JSON.stringify(mockState.auditEvents)).not.toContain("ada@example.com");
+
+    delete process.env.ENABLE_ADMIN_INVITATION_EMAIL_DELIVERY;
   });
 });

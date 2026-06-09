@@ -18,11 +18,12 @@ describe("admin invitation delivery and UI contract guards", () => {
   const statusMap = read("docs/DOCUMENTATION_STATUS.md");
   const roadmap = read("docs/SAAS_OPERATIONAL_ROADMAP.md");
 
-  it("keeps delivery and UI as pre-runtime contract only", () => {
-    expect(contract).toContain("status docdoc: atual como contrato pre-runtime");
-    expect(contract).toContain("ele nao implementa provider de email, fila, ui, schema, cron");
-    expect(contract).toContain("delivery e ui ainda sao pendentes");
-    expect(contract).toContain("provider de email, delivery runtime, ui de aceite");
+  it("tracks delivery adapter runtime while keeping UI pending", () => {
+    expect(contract).toContain("status docdoc: atual como contrato com delivery adapter parcial");
+    expect(contract).toContain("delivery adapter server-only versionado");
+    expect(contract).toContain("lib/admin-invitations/delivery.ts");
+    expect(contract).toContain("delivery adapter server-only existem; ui ainda e pendente");
+    expect(contract).toContain("ui de aceite, cron de expiracao, remocao de admin_email");
   });
 
   it("blocks raw token storage, logging, audits, and client returns", () => {
@@ -39,7 +40,8 @@ describe("admin invitation delivery and UI contract guards", () => {
     expect(contract).toContain("comportamento fail closed");
     expect(contract).toContain("compensacao para convite preparado mas nao entregue");
     expect(contract).toContain("rollback transacional/compensatorio que revoga o convite preparado");
-    expect(contract).toContain("estado de delivery explicito e reenviavel");
+    expect(contract).toContain("delivery adapter atual usa provider server-only");
+    expect(contract).toContain("delivery falha fechado se");
   });
 
   it("defines the invitation acceptance UI without browser token persistence", () => {
@@ -56,7 +58,8 @@ describe("admin invitation delivery and UI contract guards", () => {
     }
 
     expect(gapRegister).toContain("delivery/ui contract exists");
-    expect(gapRegister).toContain("email delivery runtime, ui, cron expiry");
+    expect(gapRegister).toContain("delivery adapter runtime is versioned");
+    expect(gapRegister).toContain("invitation ui, cron expiry");
     expect(bootstrapContract).toContain("contrato delivery/ui versionado");
   });
 });
