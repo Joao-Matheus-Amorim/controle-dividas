@@ -97,7 +97,7 @@ describe("legacy organization fallback removal readiness", () => {
     const source = readSource("lib/organizations/expenses.ts");
 
     expect(source).toContain("requireorganizationaccess");
-    expect(source).toContain('.eq("owner_id", profile.owner_id)');
+    expect(source).not.toContain('.eq("owner_id", profile.owner_id)');
     expect(source).toContain('.eq("organization_id", organization.id)');
     expect(source).not.toContain("organizationorlegacyfilter");
     expect(source).not.toContain("organization_id.is.null");
@@ -182,7 +182,8 @@ describe("legacy organization fallback removal readiness", () => {
     const source = readSource("app/protected/gastos/actions.ts");
 
     expect(source).toContain("requireorganizationaccess");
-    expect(source).toContain('.eq("owner_id", profile.owner_id)');
+    expect(source).not.toContain('.eq("owner_id", profile.owner_id)');
+    expect(source).toContain("owner_id: organization.owner_auth_user_id");
     expect(source).toContain('.eq("organization_id", organization.id)');
     expect(source).toContain('.eq("organization_id", organizationid)');
     expect(source).not.toContain("organizationorlegacyfilter");

@@ -174,7 +174,6 @@ describe("expense audit runtime actions", () => {
         table: "expenses",
         filters: {
           id: "expense-1",
-          owner_id: "owner-1",
           organization_id: "org-1",
         },
       },

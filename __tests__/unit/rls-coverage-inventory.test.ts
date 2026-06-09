@@ -81,13 +81,16 @@ const rlsCoverage: RlsTableExpectation[] = [
   },
   {
     table: "expenses",
-    rlsFiles: ["032_expenses_rls_remove_legacy_fallback.sql"],
+    rlsFiles: [
+      "032_expenses_rls_remove_legacy_fallback.sql",
+      "052_expenses_organization_write_rls.sql",
+    ],
     status: "covered",
     policies: [
       { file: "032_expenses_rls_remove_legacy_fallback.sql", name: "expenses_select_organization", operation: "select" },
-      { file: "032_expenses_rls_remove_legacy_fallback.sql", name: "expenses_insert_owner_organization", operation: "insert" },
-      { file: "032_expenses_rls_remove_legacy_fallback.sql", name: "expenses_update_owner_organization", operation: "update" },
-      { file: "032_expenses_rls_remove_legacy_fallback.sql", name: "expenses_delete_owner_organization", operation: "delete" },
+      { file: "052_expenses_organization_write_rls.sql", name: "expenses_insert_organization", operation: "insert" },
+      { file: "052_expenses_organization_write_rls.sql", name: "expenses_update_organization", operation: "update" },
+      { file: "052_expenses_organization_write_rls.sql", name: "expenses_delete_organization", operation: "delete" },
     ],
   },
   {

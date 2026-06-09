@@ -46,7 +46,7 @@ function extractFunctionBody(source: string, signature: string) {
 
 describe("expenses organization scope readiness", () => {
   const actions = read("app/protected/gastos/actions.ts");
-  const expenseReads = read("lib/finance/expenses-server.ts");
+  const expenseReads = read("lib/organizations/expenses.ts");
   const audit = read("docs/audits/EXPENSES_ORGANIZATION_SCOPE_READINESS.md");
 
   const createExpenseBody = extractFunctionBody(
@@ -65,9 +65,9 @@ describe("expenses organization scope readiness", () => {
     actions,
     "export async function deleteexpense",
   );
-  const getExpensesFromClientBody = extractFunctionBody(
+  const getOrganizationExpensesBody = extractFunctionBody(
     expenseReads,
-    "export async function getexpensesfromclient",
+    "export async function getorganizationexpenses",
   );
 
   it("keeps createExpense writing organization_id from the active organization", () => {
@@ -80,31 +80,31 @@ describe("expenses organization scope readiness", () => {
     expect(updateExpenseBody).toContain(".eq(\"organization_id\", organization.id)");
   });
 
-  it("keeps manage path scoped by owner and active organization filter", () => {
-    expect(assertCanManageExpenseBody).toContain(".eq(\"owner_id\", profile.owner_id)");
+  it("keeps manage path scoped by active organization and member permission", () => {
+    expect(assertCanManageExpenseBody).not.toContain(".eq(\"owner_id\", profile.owner_id)");
     expect(assertCanManageExpenseBody).toContain(".eq(\"organization_id\", organization.id)");
     expect(assertCanManageExpenseBody).toContain("assertmemberbelongstoorganization");
     expect(assertCanManageExpenseBody).toContain("assertcanaccessmember");
   });
 
-  it("keeps delete path scoped by owner and active organization filter", () => {
+  it("keeps delete path scoped by active organization filter", () => {
     expect(deleteExpenseBody).toContain("assertcanmanageexpense");
-    expect(deleteExpenseBody).toContain(".eq(\"owner_id\", profile.owner_id)");
+    expect(deleteExpenseBody).not.toContain(".eq(\"owner_id\", profile.owner_id)");
     expect(deleteExpenseBody).toContain(".eq(\"organization_id\", organization.id)");
   });
 
-  it("records that the read path remains transitional", () => {
-    expect(getExpensesFromClientBody).toContain(".eq(\"owner_id\", profile.owner_id)");
-    expect(getExpensesFromClientBody).toContain(".in(\"family_member_id\", accessiblememberids)");
-    expect(audit).toContain("read path relies on accessible members instead of explicit `expenses.organization_id` filtering");
+  it("records that the organization read path is scoped by active organization and accessible members", () => {
+    expect(getOrganizationExpensesBody).not.toContain(".eq(\"owner_id\", profile.owner_id)");
+    expect(getOrganizationExpensesBody).toContain(".eq(\"organization_id\", organization.id)");
+    expect(getOrganizationExpensesBody).toContain(".in(\"family_member_id\", scopedmemberids)");
+    expect(audit).toContain("organization read path filters `expenses.organization_id` and accessible member ids");
   });
 
-  it("keeps the audit as readiness-only, not a hardening migration", () => {
-    expect(audit).toContain("this document does not introduce a migration");
-    expect(audit).toContain("not be hardened in this pr");
-    expect(audit).toContain("fresh null-organization preflight evidence");
-    expect(audit).toContain("fresh deterministic dry-run evidence");
-    expect(audit).toContain("migration-local preflight guard");
+  it("keeps the audit scoped to the expense write boundary, not schema final", () => {
+    expect(audit).toContain("dedicated write-boundary migration for `expenses`");
+    expect(audit).toContain("does not introduce schema-final removal of legacy `owner_id`");
+    expect(audit).toContain("organization write/read boundary versioned");
+    expect(audit).toContain("focused rls guard evidence");
     expect(audit).toContain("no runtime, rls, ui, billing or e2e mixing");
   });
 });

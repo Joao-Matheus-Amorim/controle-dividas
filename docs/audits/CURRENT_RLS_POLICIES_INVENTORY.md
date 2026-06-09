@@ -47,6 +47,7 @@ Arquivos revisados:
 - `supabase/migrations/038_user_feature_permissions_rls_remove_legacy_fallback.sql`
 - `supabase/migrations/039_drop_legacy_owner_family_policies.sql`
 - `supabase/migrations/051_banks_organization_write_rls.sql`
+- `supabase/migrations/052_expenses_organization_write_rls.sql`
 
 Busca base:
 
@@ -76,7 +77,7 @@ Classificacao atual:
 | `organization_memberships` | covered | RLS por helpers nao recursivos na migration `006`. |
 | `profiles` | hardened/transitional-owner | `organization_id NOT NULL`; leitura permite proprio `auth_user_id` ou membership; writes ainda preservam `owner_id`. |
 | `family_members` | hardened | `organization_id NOT NULL`; select por membership; writes por owner/admin da organizacao e constraint de `owner_id` legado igual ao owner da organizacao alvo. |
-| `expenses` | hardened | `organization_id NOT NULL`; select por membership; writes por owner + membership. |
+| `expenses` | hardened | `organization_id NOT NULL`; select por membership; writes por permissao `GASTOS` por membro/acao com constraint de `owner_id` legado igual ao owner da organizacao alvo. |
 | `expense_categories` | hardened | `organization_id NOT NULL`; select por membership; writes por owner/admin da organizacao. |
 | `banks` | hardened | `organization_id NOT NULL`; select por membership; writes por permissao `BANCOS` por membro/acao com constraint de `owner_id` legado igual ao owner da organizacao alvo; nao depende de membro ativo por preservar historico. |
 | `payable_bills` | hardened | `organization_id NOT NULL`; select por membership; writes por owner + membership. |
@@ -118,7 +119,7 @@ Modelo atual:
 
 ```txt
 select: public.is_organization_member(organization_id)
-insert/update/delete: owner_id = auth.uid() AND public.is_organization_member(organization_id)
+insert/update/delete: `expenses` usa permissao `GASTOS`; `banks` usa permissao `BANCOS`; `expense_categories` e `family_members` usam owner/admin da organizacao; demais tabelas ainda transicionais usam owner + membership
 ```
 
 O fallback `organization_id IS NULL` foi removido pelas migrations `030` a `035`.

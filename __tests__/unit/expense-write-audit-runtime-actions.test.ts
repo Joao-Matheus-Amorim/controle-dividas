@@ -9,6 +9,7 @@ const mockState = vi.hoisted(() => ({
   currentOrganization: {
     id: "org-1",
     slug: "amorim",
+    owner_auth_user_id: "org-owner-1",
   },
   expenseLookup: {
     id: "expense-1",
@@ -213,7 +214,7 @@ describe("expense write audit runtime actions", () => {
       {
         table: "expenses",
         payload: {
-          owner_id: "owner-1",
+          owner_id: "org-owner-1",
           organization_id: "org-1",
           family_member_id: "member-1",
           category_id: "category-1",
@@ -303,7 +304,6 @@ describe("expense write audit runtime actions", () => {
         },
         filters: {
           id: "expense-1",
-          owner_id: "owner-1",
           organization_id: "org-1",
         },
       },

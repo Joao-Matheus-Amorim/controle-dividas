@@ -1,4 +1,4 @@
-import { getAccessibleMemberIds, getCurrentProfile } from "@/lib/finance/access-control";
+import { getAccessibleMemberIds } from "@/lib/finance/access-control";
 import type { DbExpense, DbExpenseCategory, DbFamilyMember } from "@/lib/finance/server";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { createClient } from "@/lib/supabase/server";
@@ -27,7 +27,6 @@ function normalizeExpense(
 
 async function getOrganizationAccessibleMembers(orgSlug?: string) {
   const supabase = await createClient();
-  const profile = await getCurrentProfile();
   const { organization } = await requireOrganizationAccess(orgSlug);
   const accessibleMemberIds = await getAccessibleMemberIds("GASTOS", "can_view", orgSlug);
 
@@ -38,7 +37,6 @@ async function getOrganizationAccessibleMembers(orgSlug?: string) {
   const { data, error } = await supabase
     .from("family_members")
     .select("id, owner_id, name, role, monthly_limit, currency, is_active, created_at")
-    .eq("owner_id", profile.owner_id)
     .eq("organization_id", organization.id)
     .in("id", accessibleMemberIds)
     .order("created_at", { ascending: true });
@@ -52,13 +50,11 @@ async function getOrganizationAccessibleMembers(orgSlug?: string) {
 
 export async function getOrganizationExpenseCategories(orgSlug?: string) {
   const supabase = await createClient();
-  const profile = await getCurrentProfile();
   const { organization } = await requireOrganizationAccess(orgSlug);
 
   const { data, error } = await supabase
     .from("expense_categories")
     .select("id, owner_id, name, description, is_default, created_at")
-    .eq("owner_id", profile.owner_id)
     .eq("organization_id", organization.id)
     .order("name", { ascending: true });
 
@@ -71,7 +67,6 @@ export async function getOrganizationExpenseCategories(orgSlug?: string) {
 
 export async function getOrganizationExpenses(orgSlug?: string) {
   const supabase = await createClient();
-  const profile = await getCurrentProfile();
   const { organization } = await requireOrganizationAccess(orgSlug);
   const [members, categories] = await Promise.all([
     getOrganizationAccessibleMembers(orgSlug),
@@ -88,7 +83,6 @@ export async function getOrganizationExpenses(orgSlug?: string) {
     .select(
       "id, owner_id, family_member_id, category_id, expense_date, description, purchase_location, amount, payment_method, bank_or_card, notes, created_at",
     )
-    .eq("owner_id", profile.owner_id)
     .eq("organization_id", organization.id)
     .in("family_member_id", scopedMemberIds)
     .order("expense_date", { ascending: false })

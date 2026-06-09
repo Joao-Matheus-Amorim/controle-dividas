@@ -58,8 +58,8 @@ Documentos cruzados:
 | --- | --- | --- | --- |
 | Migrations historicas | `001_family_finance_schema.sql`, `004_permission_scope_and_features.sql`, `005_payable_bill_types.sql` | `owner_id` e parte do historico versionado | nao reescrever migrations antigas |
 | RLS atual | migrations `030` a `039`, guards RLS | select ja privilegia organizacao; writes ainda podem manter ownership | alterar apenas com migration nova e gate RLS |
-| Actions financeiras | `app/protected/gastos/actions.ts`, `contas-a-pagar`, `contas-a-receber`, `bancos`, `pessoas`, `configuracoes` | category settings, people/family_members e banks write actions ja sao organization-scoped; `family_members` e `banks` write RLS tambem validam que o `owner_id` legado corresponde ao owner da organizacao alvo; gastos, contas a pagar e contas a receber ainda usam `owner_id` com contexto de organizacao ativa | migrar um dominio por PR apos preflight |
-| Helpers organization-aware | `lib/organizations/*` | `lib/organizations/people.ts`, `lib/organizations/categories.ts` e `lib/organizations/banks.ts` ja leem por organizacao; gastos, contas a pagar e contas a receber ainda filtram `owner_id`, mas combinam com organizacao | manter ate substituto organization-only ser provado |
+| Actions financeiras | `app/protected/gastos/actions.ts`, `contas-a-pagar`, `contas-a-receber`, `bancos`, `pessoas`, `configuracoes` | category settings, people/family_members, banks e expenses/gastos write actions ja sao organization-scoped; `family_members`, `banks` e `expenses` write RLS tambem validam que o `owner_id` legado corresponde ao owner da organizacao alvo | migrar um dominio por PR apos preflight |
+| Helpers organization-aware | `lib/organizations/*` | `lib/organizations/people.ts`, `lib/organizations/categories.ts`, `lib/organizations/banks.ts` e `lib/organizations/expenses.ts` ja leem por organizacao; contas a pagar e contas a receber ainda filtram `owner_id`, mas combinam com organizacao | manter ate substituto organization-only ser provado |
 | Helpers legados | `lib/finance/server.ts`, `members-server.ts`, `categories-server.ts`, `expenses-server.ts`, `payables-server.ts`, `receivables-server.ts`, `banks-server.ts` | compatibilidade e testes ainda dependem deles | inventariar consumidores antes de remover |
 | Admin/permissoes | `lib/finance/admin-server.ts`, `app/protected/admin/actions.ts`, `lib/finance/access-control.ts` | maior risco; read/write path admin e access-control ja estao organization-first, com `owner_id` ainda transicional no modelo | seguir contrato admin lifecycle por PR |
 | Seeds/bootstrap | `lib/finance/seed-*`, `bootstrap-admin-profile.ts` | criacao inicial ainda grava `owner_id` | trocar somente quando schema final existir |
@@ -106,7 +106,7 @@ G-005 so pode sair de "aberto controlado" quando houver:
 Estado atual:
 
 ```txt
-G-005 permanece aberto controlado; read/write path admin, access-control, categorias, pessoas/family_members e bancos organization-first estao versionados, mas seeds, gastos, contas a pagar, contas a receber e schema final seguem transicionais.
+G-005 permanece aberto controlado; read/write path admin, access-control, categorias, pessoas/family_members, bancos e gastos organization-first estao versionados, mas seeds, contas a pagar, contas a receber e schema final seguem transicionais.
 ```
 
 Proximo PR recomendado:
