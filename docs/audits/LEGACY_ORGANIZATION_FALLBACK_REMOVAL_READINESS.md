@@ -193,7 +193,7 @@ The removed surface includes:
 - family member update validation and writes;
 - family member status validation and writes.
 
-These paths now require active organization scope. People create/edit/status controls and actions require owner/admin rights in the active organization, `family_members` write RLS is organization-admin-scoped, and new family members preserve the organization's legacy owner id for compatibility while `owner_id` remains in the schema. New and updated writes continue to write the active organization id.
+These paths now require active organization scope. People create/edit/status controls and actions require owner/admin rights in the active organization, `family_members` write RLS is organization-admin-scoped, and the database also requires each written row's legacy `owner_id` to match the target organization's owner while `owner_id` remains in the schema. New and updated writes continue to write the active organization id.
 
 ### Settings action paths
 
@@ -206,7 +206,7 @@ The removed surface includes:
 - expense category delete writes;
 - family member monthly limit update writes.
 
-These paths now require active organization scope. Category writes and family member limit writes are restricted to owner/admin managers; new categories and family members preserve the organization's legacy owner id for compatibility while `owner_id` remains in the schema. New and updated writes continue to write the active organization id.
+These paths now require active organization scope. Category writes and family member limit writes are restricted to owner/admin managers; family member writes are also constrained by RLS so the row's legacy `owner_id` matches the target organization's owner while `owner_id` remains in the schema. New and updated writes continue to write the active organization id.
 
 ### Expense action paths
 
