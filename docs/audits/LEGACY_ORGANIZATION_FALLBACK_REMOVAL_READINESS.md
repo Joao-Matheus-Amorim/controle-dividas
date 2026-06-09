@@ -135,7 +135,7 @@ The removed surface includes:
 
 - expense category reads from `expense_categories`.
 
-These reads now require active organization scope and keep owner checks where still needed during the transition.
+These reads now require active organization scope and no longer use `owner_id` as read authority in this helper during the transition.
 
 ### Payable organization helper reads
 
@@ -191,7 +191,7 @@ The removed surface includes:
 - family member update validation and writes;
 - family member status validation and writes.
 
-These paths now require active organization scope and keep owner checks where still needed during the transition. New and updated writes continue to write the active organization id.
+These paths now require active organization scope and keep owner checks on writes while `family_members` RLS still requires `owner_id = auth.uid()`. New and updated writes continue to write the active organization id.
 
 ### Settings action paths
 

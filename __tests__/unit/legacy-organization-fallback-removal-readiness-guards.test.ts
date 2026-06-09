@@ -85,7 +85,7 @@ describe("legacy organization fallback removal readiness", () => {
     const source = readSource("lib/organizations/people.ts");
 
     expect(source).toContain("requireorganizationaccess");
-    expect(source).toContain('.eq("owner_id", profile.owner_id)');
+    expect(source).not.toContain('.eq("owner_id", profile.owner_id)');
     expect(source).toContain('.eq("organization_id", organization.id)');
     expect(source).not.toContain("organizationorlegacyfilter");
     expect(source).not.toContain("organization_id.is.null");
@@ -96,13 +96,14 @@ describe("legacy organization fallback removal readiness", () => {
     const actionSource = readSource("app/protected/pessoas/actions.ts");
 
     expect(pageSource).toContain("requireorganizationaccess");
-    expect(pageSource).toContain('.eq("owner_id", ownerid)');
+    expect(pageSource).not.toContain('.eq("owner_id", ownerid)');
     expect(pageSource).toContain('.eq("organization_id", organizationid)');
     expect(pageSource).not.toContain("organizationorlegacyfilter");
     expect(pageSource).not.toContain("organization_id.is.null");
 
     expect(actionSource).toContain("requireorganizationaccess");
     expect(actionSource).toContain('.eq("owner_id", profile.owner_id)');
+    expect(actionSource).toContain("owner_id: profile.owner_id");
     expect(actionSource).toContain('.eq("organization_id", organization.id)');
     expect(actionSource).not.toContain("organizationorlegacyfilter");
     expect(actionSource).not.toContain("organization_id.is.null");

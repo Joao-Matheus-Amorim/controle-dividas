@@ -35,6 +35,7 @@ rg -n 'get.*ByOwner|FromClient|get.*DashboardData|seedInitialFinanceDataForOwner
 | Bancos | `features/protected-pages/bancos-page.tsx` usa `lib/organizations/banks` | nao consome helper owner-only direto | manter fora do primeiro piloto |
 | Relatorios | `features/protected-pages/relatorios-page.tsx` usa `lib/organizations/reports` | nao consome helper owner-only direto | nao voltar para `lib/finance/reports-server.ts` |
 | Admin | `features/protected-pages/admin*.tsx` usa `lib/finance/admin-server.ts` | excecao admin parcial; read/write path e access-control ja estao organization-first, com `owner_id` ainda transicional no modelo | seguir contrato admin/access-control proprio |
+| Pessoas | `lib/organizations/people.ts`, `features/protected-pages/pessoas-page.tsx`, `app/protected/pessoas/actions.ts` | consumidor reduzido nos reads: helper e pagina usam `organization_id`; writes seguem owner-compatible com a RLS atual de `family_members` | criar migration/RLS organization-aware antes de retirar owner checks dos writes |
 | Seeds/bootstrap | `lib/finance/server.ts` chama `seedInitialFinanceDataForOwner` | ativo na criacao inicial | manter ate schema final |
 | Facade legado | `lib/finance/server.ts` exporta agregadores owner-based | sem consumidor direto nas protected pages migradas | nao remover sem inventario de imports externo |
 | Reports legado | `lib/finance/reports-server.ts` agrega helpers owner-based | sem consumidor direto nas protected pages migradas | manter bloqueado por guard |
