@@ -44,8 +44,9 @@ describe("admin invitation bootstrap contract guards", () => {
     expect(contract).toContain("runtime aceitar/linking versionado");
     expect(contract).toContain("contrato delivery/ui versionado");
     expect(contract).toContain("ui de aceite versionada");
-    expect(contract).toContain("cron de expiracao e remocao de `admin_email` ainda nao implementados");
-    expect(contract).toContain("admin_email e sem retirar owner_id");
+    expect(contract).toContain("cron de expiracao versionado");
+    expect(contract).toContain("remocao de `admin_email` ainda nao implementada");
+    expect(contract).toContain("seguindo este contrato e sem retirar owner_id");
     expect(ownerContract).toContain("admin_invitation_bootstrap_contract.md");
     expect(activeConsumers).toContain("admin_invitation_bootstrap_contract.md");
   });
@@ -58,6 +59,7 @@ describe("admin invitation bootstrap contract guards", () => {
     expect(gapRegister).toContain("create/revoke/resend runtime is versioned");
     expect(gapRegister).toContain("acceptance/linking runtime is versioned");
     expect(gapRegister).toContain("delivery/ui contract exists");
+    expect(gapRegister).toContain("cron expiry is versioned");
     expect(pmbokPlan).toContain("contrato pre-runtime criado");
   });
 });

@@ -14,16 +14,18 @@ convites admin e a futura entrega do link de aceite.
 
 Ele registra o delivery adapter server-only versionado em
 `lib/admin-invitations/delivery.ts` e a UI de aceite versionada em
-`app/auth/convite/page.tsx` e `components/admin-invitation-acceptance-form.tsx`.
-Ele nao implementa fila, schema novo, cron, remocao de `ADMIN_EMAIL`,
-retirement de `owner_id` ou mudanca de billing.
+`app/auth/convite/page.tsx` e `components/admin-invitation-acceptance-form.tsx`,
+alem do cron de expiracao versionado em
+`app/api/cron/admin-invitations/expire/route.ts`. Ele nao implementa fila,
+provider novo, remocao de `ADMIN_EMAIL`, retirement de `owner_id` ou mudanca de
+billing.
 
 ## 2. Estado atual
 
 O estado atual permitido e:
 
 ```txt
-schema/preflight de convite, create/revoke/resend runtime, accept/linking runtime, delivery adapter server-only e UI de aceite existem; cron ainda e pendente.
+schema/preflight de convite, create/revoke/resend runtime, accept/linking runtime, delivery adapter server-only, UI de aceite e cron de expiracao existem; remocao de ADMIN_EMAIL ainda e pendente.
 ```
 
 O estado proibido e:
@@ -132,7 +134,10 @@ O delivery deve manter:
 | 1 | contrato delivery/UI | este documento, mapas DocDoc e guard | provider/UI runtime |
 | 2 | delivery adapter | `lib/admin-invitations/delivery.ts`, env validation, fail closed e compensacao | UI ampla |
 | 3 | UI de aceite | `app/auth/convite/page.tsx`, `components/admin-invitation-acceptance-form.tsx`, estados e POST seguro | remover `ADMIN_EMAIL` |
-| 4 | cron de expiracao | cleanup/expiracao de convites pendentes | owner_id retirement |
+| 4 | cron de expiracao | `supabase/migrations/046_admin_invitation_expiry_cleanup.sql`, rota cron e agenda Vercel para expirar convites pendentes | owner_id retirement |
+
+A rota de cron deve exigir `CRON_SECRET` e falhar fechado quando o segredo
+estiver ausente ou o header `Authorization: Bearer ...` nao bater.
 
 ## 8. Guardrails
 
@@ -140,6 +145,7 @@ O delivery deve manter:
   exposed outside the invite link sent to the invited email.
 - Email delivery must fail closed when provider configuration is missing.
 - Invitation UI must not persist invitation tokens in browser storage.
+- Invitation expiry cron must not expose a public cleanup endpoint.
 - Admin email fallback and owner_id retirement stay out of delivery/UI PRs.
 - No provider dependency may be added without env validation and rollback.
 
@@ -148,11 +154,11 @@ O delivery deve manter:
 Estado atual:
 
 ```txt
-contrato delivery/UI criado; delivery adapter server-only versionado em `lib/admin-invitations/delivery.ts`; UI de aceite versionada em `app/auth/convite/page.tsx` e `components/admin-invitation-acceptance-form.tsx`; cron de expiracao, remocao de ADMIN_EMAIL e owner_id retirement seguem pendentes.
+contrato delivery/UI criado; delivery adapter server-only versionado em `lib/admin-invitations/delivery.ts`; UI de aceite versionada em `app/auth/convite/page.tsx` e `components/admin-invitation-acceptance-form.tsx`; cron de expiracao versionado em `supabase/migrations/046_admin_invitation_expiry_cleanup.sql`, `app/api/cron/admin-invitations/expire/route.ts` e `vercel.json`; remocao de ADMIN_EMAIL e owner_id retirement seguem pendentes.
 ```
 
 Proximo PR seguro:
 
 ```txt
-implementar cron de expiracao de convites pendentes em PR dedicado, mantendo `ADMIN_EMAIL` e owner_id retirement fora do escopo.
+planejar remocao de ADMIN_EMAIL em PR dedicado, mantendo owner_id retirement fora do escopo.
 ```

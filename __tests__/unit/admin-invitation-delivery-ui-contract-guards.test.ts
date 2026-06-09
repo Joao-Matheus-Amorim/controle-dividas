@@ -23,14 +23,15 @@ describe("admin invitation delivery and UI contract guards", () => {
   const loginPage = read("app/auth/login/page.tsx");
   const loginForm = read("components/login-form.tsx");
 
-  it("tracks delivery adapter and acceptance UI while keeping expiry pending", () => {
+  it("tracks delivery adapter, acceptance UI, and expiry cron while keeping ADMIN_EMAIL pending", () => {
     expect(contract).toContain("status docdoc: atual como contrato com delivery adapter e ui de aceite");
     expect(contract).toContain("delivery adapter server-only versionado");
     expect(contract).toContain("lib/admin-invitations/delivery.ts");
     expect(contract).toContain("app/auth/convite/page.tsx");
     expect(contract).toContain("components/admin-invitation-acceptance-form.tsx");
-    expect(contract).toContain("delivery adapter server-only e ui de aceite existem; cron ainda e pendente");
-    expect(contract).toContain("cron de expiracao, remocao de admin_email");
+    expect(contract).toContain("ui de aceite e cron de expiracao existem");
+    expect(contract).toContain("remocao de admin_email ainda e pendente");
+    expect(contract).toContain("app/api/cron/admin-invitations/expire/route.ts");
   });
 
   it("blocks raw token storage, logging, audits, and client returns", () => {
@@ -90,7 +91,8 @@ describe("admin invitation delivery and UI contract guards", () => {
     expect(gapRegister).toContain("delivery/ui contract exists");
     expect(gapRegister).toContain("delivery adapter runtime is versioned");
     expect(gapRegister).toContain("invitation ui is versioned");
-    expect(gapRegister).toContain("cron expiry and `admin_email` removal are not implemented");
+    expect(gapRegister).toContain("cron expiry is versioned");
+    expect(gapRegister).toContain("`admin_email` removal is not implemented");
     expect(bootstrapContract).toContain("contrato delivery/ui versionado");
   });
 });
