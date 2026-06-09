@@ -337,6 +337,7 @@ export async function createFamilyUser(
   const supabase = await createClient();
   const adminProfile = await ensureAdminProfile();
   const { organization } = await requireOrganizationAdmin();
+  const legacyOwnerId = organization.owner_auth_user_id;
 
   try {
     await ensureUniqueEmail({ organizationId: organization.id, email });
@@ -374,7 +375,7 @@ export async function createFamilyUser(
   const { data: profile, error } = await supabase
     .from("profiles")
     .insert({
-      owner_id: adminProfile.owner_id,
+      owner_id: legacyOwnerId,
       organization_id: organization.id,
       auth_user_id: null,
       linked_family_member_id: linkedFamilyMemberId,
@@ -393,7 +394,7 @@ export async function createFamilyUser(
       const defaults = getDefaultPermissionForAccessModel(accessModel, module.key as FinanceModuleKey);
 
       return {
-        owner_id: adminProfile.owner_id,
+        owner_id: legacyOwnerId,
         organization_id: organization.id,
         profile_id: profile.id,
         module: module.key,
@@ -768,6 +769,7 @@ export async function saveProfilePermissions(
   const supabase = await createClient();
   const adminProfile = await ensureAdminProfile();
   const { organization } = await requireOrganizationAdmin();
+  const legacyOwnerId = organization.owner_auth_user_id;
 
   try {
     await ensureProfileBelongsToOrganization(organization.id, profileId);
@@ -807,7 +809,7 @@ export async function saveProfilePermissions(
     const scope = normalizeScope(formData.get(`${key}.scope`));
 
     return {
-      owner_id: adminProfile.owner_id,
+      owner_id: legacyOwnerId,
       organization_id: organization.id,
       profile_id: profileId,
       module: key,
@@ -854,6 +856,7 @@ export async function saveProfileFeaturePermissions(
   const supabase = await createClient();
   const adminProfile = await ensureAdminProfile();
   const { organization } = await requireOrganizationAdmin();
+  const legacyOwnerId = organization.owner_auth_user_id;
 
   try {
     await ensureProfileBelongsToOrganization(organization.id, profileId);
@@ -889,7 +892,7 @@ export async function saveProfileFeaturePermissions(
   }
 
   const rows = FEATURE_PERMISSIONS.map((feature) => ({
-    owner_id: adminProfile.owner_id,
+    owner_id: legacyOwnerId,
     organization_id: organization.id,
     profile_id: profileId,
     feature_key: feature.key,

@@ -44,7 +44,8 @@ describe("user feature permissions write path audit", () => {
     expect(actions).toContain("saveProfileFeaturePermissions");
     expect(actions).toContain("ensureProfileBelongsToOrganization");
     expect(actions).toContain("organization_id: organization.id");
-    expect(actions).toContain("owner_id: adminProfile.owner_id");
+    expect(actions).toContain("const legacyOwnerId = organization.owner_auth_user_id");
+    expect(actions).toContain("owner_id: legacyOwnerId");
     expect(actions).toContain("granted_by: adminProfile.id");
     expect(page).toContain("featurePermissions");
     expect(section).toContain("FeaturePermissionsForm");

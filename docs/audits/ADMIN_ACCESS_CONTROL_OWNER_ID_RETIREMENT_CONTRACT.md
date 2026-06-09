@@ -30,7 +30,7 @@ Admin continua sendo a excecao owner-based ativa do G-005.
 Estado transicional permitido:
 
 ```txt
-organization admin gate + organization.id, preservando owner_id transicional em payloads
+organization admin gate + organization.id, preservando owner_id transicional em payloads a partir de `organization.owner_auth_user_id`
 ```
 
 Bootstrap permitido:
@@ -50,7 +50,7 @@ admin/access-control pronto para remover owner_id agora.
 | Superficie | Uso atual de `owner_id` | Risco |
 | --- | --- | --- |
 | `lib/finance/admin-server.ts` | leituras de dashboard admin exigem admin da organizacao ativa e filtram profiles, membros, module permissions e feature permissions por `organizationId` | preserva owner transicional apenas nos campos selecionados |
-| `app/protected/admin/actions.ts` | writes admin exigem admin da organizacao ativa, validam email, membro e perfil por `organization.id`, e preservam `owner_id` apenas em payloads transicionais | audit/rate-limit seguem obrigatorios antes de qualquer retirada final |
+| `app/protected/admin/actions.ts` | writes admin exigem admin da organizacao ativa, validam email, membro e perfil por `organization.id`, e preservam `owner_id` apenas em payloads transicionais usando `organization.owner_auth_user_id` da organizacao alvo | audit/rate-limit seguem obrigatorios antes de qualquer retirada final |
 | `lib/finance/access-control.ts` | calcula membros acessiveis usando `profile.owner_id` e `organizationId` | permissoes de usuario podem divergir se owner sair antes do modelo final |
 | `ADMIN_EMAIL` | bootstrap global enquanto onboarding/admin final nao esta fechado | nao escala como modelo SaaS final |
 
