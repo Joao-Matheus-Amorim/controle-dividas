@@ -17,13 +17,17 @@ describe("admin invitation delivery and UI contract guards", () => {
   const auditsReadme = read("docs/audits/README.md");
   const statusMap = read("docs/DOCUMENTATION_STATUS.md");
   const roadmap = read("docs/SAAS_OPERATIONAL_ROADMAP.md");
+  const acceptancePage = read("app/auth/convite/page.tsx");
+  const acceptanceForm = read("components/admin-invitation-acceptance-form.tsx");
 
-  it("tracks delivery adapter runtime while keeping UI pending", () => {
-    expect(contract).toContain("status docdoc: atual como contrato com delivery adapter parcial");
+  it("tracks delivery adapter and acceptance UI while keeping expiry pending", () => {
+    expect(contract).toContain("status docdoc: atual como contrato com delivery adapter e ui de aceite");
     expect(contract).toContain("delivery adapter server-only versionado");
     expect(contract).toContain("lib/admin-invitations/delivery.ts");
-    expect(contract).toContain("delivery adapter server-only existem; ui ainda e pendente");
-    expect(contract).toContain("ui de aceite, cron de expiracao, remocao de admin_email");
+    expect(contract).toContain("app/auth/convite/page.tsx");
+    expect(contract).toContain("components/admin-invitation-acceptance-form.tsx");
+    expect(contract).toContain("delivery adapter server-only e ui de aceite existem; cron ainda e pendente");
+    expect(contract).toContain("cron de expiracao, remocao de admin_email");
   });
 
   it("blocks raw token storage, logging, audits, and client returns", () => {
@@ -50,6 +54,13 @@ describe("admin invitation delivery and UI contract guards", () => {
     expect(contract).toContain("a pagina nao pode salvar token em localstorage, sessionstorage ou cookie");
     expect(contract).toContain("acceptadmininvitation");
     expect(contract).toContain("email mismatch");
+    expect(acceptancePage).toContain("admininvitationacceptanceform");
+    expect(acceptancePage).toContain("searchparams");
+    expect(acceptanceForm).toContain("acceptadmininvitation");
+    expect(acceptanceForm).toContain("type=\"hidden\"");
+    expect(acceptanceForm).not.toContain("localstorage");
+    expect(acceptanceForm).not.toContain("sessionstorage");
+    expect(acceptanceForm).not.toContain("document.cookie");
   });
 
   it("registers the contract in live planning surfaces", () => {
@@ -59,7 +70,8 @@ describe("admin invitation delivery and UI contract guards", () => {
 
     expect(gapRegister).toContain("delivery/ui contract exists");
     expect(gapRegister).toContain("delivery adapter runtime is versioned");
-    expect(gapRegister).toContain("invitation ui, cron expiry");
+    expect(gapRegister).toContain("invitation ui is versioned");
+    expect(gapRegister).toContain("cron expiry and `admin_email` removal are not implemented");
     expect(bootstrapContract).toContain("contrato delivery/ui versionado");
   });
 });

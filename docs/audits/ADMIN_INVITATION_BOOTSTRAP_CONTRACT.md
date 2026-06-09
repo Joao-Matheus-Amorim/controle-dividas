@@ -133,13 +133,13 @@ gates:
 Estado atual:
 
 ```txt
-contrato criado; schema/preflight versionado em `supabase/migrations/044_admin_invitations_schema.sql`; runtime criar/revogar/reenviar versionado em `app/protected/admin/invitation-actions.ts`; runtime aceitar/linking versionado em `supabase/migrations/045_accept_admin_invitation_rpc.sql` e `app/auth/convite/actions.ts`; contrato delivery/UI versionado em `docs/audits/ADMIN_INVITATION_DELIVERY_UI_CONTRACT.md`; delivery adapter server-only versionado em `lib/admin-invitations/delivery.ts`; UI, cron de expiracao e remocao de `ADMIN_EMAIL` ainda nao implementados.
+contrato criado; schema/preflight versionado em `supabase/migrations/044_admin_invitations_schema.sql`; runtime criar/revogar/reenviar versionado em `app/protected/admin/invitation-actions.ts`; runtime aceitar/linking versionado em `supabase/migrations/045_accept_admin_invitation_rpc.sql` e `app/auth/convite/actions.ts`; contrato delivery/UI versionado em `docs/audits/ADMIN_INVITATION_DELIVERY_UI_CONTRACT.md`; delivery adapter server-only versionado em `lib/admin-invitations/delivery.ts`; UI de aceite versionada em `app/auth/convite/page.tsx` e `components/admin-invitation-acceptance-form.tsx`; cron de expiracao e remocao de `ADMIN_EMAIL` ainda nao implementados.
 ```
 
 Proximo PR seguro:
 
 ```txt
-implementar UI de convite e depois cron de expiracao em PRs dedicados,
+implementar cron de expiracao em PR dedicado,
 seguindo `docs/audits/ADMIN_INVITATION_DELIVERY_UI_CONTRACT.md`, sem remover
 ADMIN_EMAIL e sem retirar owner_id.
 ```
