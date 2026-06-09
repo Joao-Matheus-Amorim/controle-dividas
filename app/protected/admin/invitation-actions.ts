@@ -122,7 +122,7 @@ async function compensateUndeliveredInvitation({
 }) {
   const supabase = await createClient();
 
-  await supabase
+  const { data, error } = await supabase
     .from("organization_invitations")
     .update({
       status: "revoked",
@@ -131,7 +131,28 @@ async function compensateUndeliveredInvitation({
     })
     .eq("id", id)
     .eq("organization_id", organizationId)
-    .eq("status", "pending");
+    .eq("status", "pending")
+    .select("id, status")
+    .maybeSingle();
+
+  if (error) {
+    return {
+      compensated: false as const,
+      reason: "update_error",
+      message: error.message,
+    };
+  }
+
+  if (!data?.id || data.status !== "revoked") {
+    return {
+      compensated: false as const,
+      reason: "row_not_revoked",
+    };
+  }
+
+  return {
+    compensated: true as const,
+  };
 }
 
 export async function createAdminInvitation(
@@ -211,10 +232,27 @@ export async function createAdminInvitation(
   });
 
   if (!delivery.delivered && delivery.reason !== "delivery_disabled") {
-    await compensateUndeliveredInvitation({
+    const compensation = await compensateUndeliveredInvitation({
       id: invitationId,
       organizationId: organization.id,
     });
+
+    if (!compensation.compensated) {
+      await recordAdminInvitationAuditEvent({
+        organizationId: organization.id,
+        action: "admin.invitation.create",
+        invitationId,
+        outcome: "failure",
+        metadata: {
+          status: "delivery_compensation_failed",
+          delivery_reason: delivery.reason,
+          compensation_reason: compensation.reason,
+          email_domain: emailDomain(invitedEmail),
+        },
+      });
+
+      return { error: "Nao foi possivel entregar ou cancelar o convite admin. Acione o suporte." };
+    }
 
     await recordAdminInvitationAuditEvent({
       organizationId: organization.id,
@@ -405,10 +443,27 @@ export async function resendAdminInvitation(formData: FormData): Promise<AdminIn
   });
 
   if (!delivery.delivered && delivery.reason !== "delivery_disabled") {
-    await compensateUndeliveredInvitation({
+    const compensation = await compensateUndeliveredInvitation({
       id,
       organizationId: organization.id,
     });
+
+    if (!compensation.compensated) {
+      await recordAdminInvitationAuditEvent({
+        organizationId: organization.id,
+        action: "admin.invitation.resend",
+        invitationId: id,
+        outcome: "failure",
+        metadata: {
+          status: "delivery_compensation_failed",
+          delivery_reason: delivery.reason,
+          compensation_reason: compensation.reason,
+          email_domain: emailDomain(invitation.invited_email_normalized),
+        },
+      });
+
+      return { error: "Nao foi possivel entregar ou cancelar o convite admin. Acione o suporte." };
+    }
 
     await recordAdminInvitationAuditEvent({
       organizationId: organization.id,

@@ -70,7 +70,7 @@ function makeInvitationQuery() {
     maybeSingle() {
       if (updatePayload) {
         return Promise.resolve({
-          data: mockState.updateReturnsRow ? { id: filters.id } : null,
+          data: mockState.updateReturnsRow ? { id: filters.id, status: updatePayload.status } : null,
           error: mockState.updateError,
         });
       }
@@ -333,6 +333,44 @@ describe("admin invitation runtime actions", () => {
       }),
     ]);
     expect(JSON.stringify(result)).not.toContain("token");
+    expect(JSON.stringify(mockState.auditEvents)).not.toContain("ada@example.com");
+
+    delete process.env.ENABLE_ADMIN_INVITATION_EMAIL_DELIVERY;
+  });
+
+  it("reports compensation failure when delivery failure cannot revoke the pending invitation", async () => {
+    process.env.ENABLE_ADMIN_INVITATION_EMAIL_DELIVERY = "true";
+    delete process.env.ADMIN_INVITATION_EMAIL_WEBHOOK_URL;
+    delete process.env.NEXT_PUBLIC_APP_URL;
+    mockState.updateReturnsRow = false;
+
+    const { createAdminInvitation } = await import("@/app/protected/admin/invitation-actions");
+
+    const result = await createAdminInvitation({}, createFormData({
+      email: "ada@example.com",
+    }));
+
+    expect(result).toEqual({
+      error: "Nao foi possivel entregar ou cancelar o convite admin. Acione o suporte.",
+    });
+    expect(mockState.updatePayloads).toEqual([
+      expect.objectContaining({
+        status: "revoked",
+      }),
+    ]);
+    expect(mockState.auditEvents).toEqual([
+      expect.objectContaining({
+        action: "admin.invitation.create",
+        targetId: "invitation-1",
+        outcome: "failure",
+        metadata: {
+          status: "delivery_compensation_failed",
+          delivery_reason: "missing_configuration",
+          compensation_reason: "row_not_revoked",
+          email_domain: "example.com",
+        },
+      }),
+    ]);
     expect(JSON.stringify(mockState.auditEvents)).not.toContain("ada@example.com");
 
     delete process.env.ENABLE_ADMIN_INVITATION_EMAIL_DELIVERY;
