@@ -154,10 +154,10 @@ describe("receivable dashboard aggregation", () => {
       organizationOwnerId,
       organizationId,
     );
-    expect(mocks.requireOrganizationAccess).toHaveBeenCalledTimes(2);
-    expect(mocks.getCurrentProfile).toHaveBeenCalledTimes(1);
+    expect(mocks.requireOrganizationAccess).toHaveBeenCalledTimes(3);
+    expect(mocks.getCurrentProfile).not.toHaveBeenCalled();
     expect(mocks.getAccessibleMemberIds).toHaveBeenCalledWith("CONTAS_A_RECEBER", "can_view");
-    expect(mocks.getFamilyMembersByOwner).toHaveBeenCalledWith(ownerId);
+    expect(mocks.getFamilyMembersByOwner).toHaveBeenCalledWith(organizationOwnerId, organizationId);
 
     expect(result.members.map((member) => member.id)).toEqual(["member-visible"]);
     expect(result.incomes).toEqual([

@@ -4,19 +4,21 @@ import { getFamilyMembersByOwnerFromClient } from "@/lib/finance/members-server"
 
 function createFamilyMembersClient(data: unknown[] | null, error: { message: string } | null = null) {
   const order = vi.fn(async () => ({ data, error }));
-  const eq = vi.fn(() => ({ order }));
+  const organizationEq = vi.fn(() => ({ order }));
+  const eq = vi.fn(() => ({ eq: organizationEq }));
   const select = vi.fn(() => ({ eq }));
   const from = vi.fn(() => ({ select }));
 
   return {
     client: { from },
-    calls: { from, select, eq, order },
+    calls: { from, select, eq, organizationEq, order },
   };
 }
 
 describe("finance members server", () => {
   it("reads family members scoped by owner and ordered by creation time", async () => {
     const ownerId = "owner-123";
+    const organizationId = "org-123";
     const memberRows = [
       {
         id: "member-1",
@@ -31,7 +33,7 @@ describe("finance members server", () => {
     ];
     const { client, calls } = createFamilyMembersClient(memberRows);
 
-    const result = await getFamilyMembersByOwnerFromClient(client, ownerId);
+    const result = await getFamilyMembersByOwnerFromClient(client, ownerId, organizationId);
 
     expect(result).toEqual(memberRows);
     expect(calls.from).toHaveBeenCalledWith("family_members");
@@ -39,19 +41,20 @@ describe("finance members server", () => {
       "id, owner_id, name, role, monthly_limit, currency, is_active, created_at",
     );
     expect(calls.eq).toHaveBeenCalledWith("owner_id", ownerId);
+    expect(calls.organizationEq).toHaveBeenCalledWith("organization_id", organizationId);
     expect(calls.order).toHaveBeenCalledWith("created_at", { ascending: true });
   });
 
   it("returns an empty list when Supabase returns null data", async () => {
     const { client } = createFamilyMembersClient(null);
 
-    await expect(getFamilyMembersByOwnerFromClient(client, "owner-123")).resolves.toEqual([]);
+    await expect(getFamilyMembersByOwnerFromClient(client, "owner-123", "org-123")).resolves.toEqual([]);
   });
 
   it("throws Supabase read errors", async () => {
     const { client } = createFamilyMembersClient(null, { message: "read failed" });
 
-    await expect(getFamilyMembersByOwnerFromClient(client, "owner-123")).rejects.toThrow(
+    await expect(getFamilyMembersByOwnerFromClient(client, "owner-123", "org-123")).rejects.toThrow(
       "read failed",
     );
   });

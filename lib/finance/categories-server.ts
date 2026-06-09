@@ -7,10 +7,12 @@ const expenseCategorySelectFields =
 type ExpenseCategoryQueryBuilder = {
   select(fields: typeof expenseCategorySelectFields): {
     eq(column: "owner_id", value: string): {
-      order(column: "name", options: { ascending: true }): PromiseLike<{
-        data: unknown[] | null;
-        error: { message: string } | null;
-      }>;
+      eq(column: "organization_id", value: string): {
+        order(column: "name", options: { ascending: true }): PromiseLike<{
+          data: unknown[] | null;
+          error: { message: string } | null;
+        }>;
+      };
     };
   };
 };
@@ -27,11 +29,13 @@ async function createExpenseCategoryClient(): Promise<ExpenseCategorySupabaseCli
 export async function getExpenseCategoriesByOwnerFromClient(
   supabase: ExpenseCategorySupabaseClient,
   ownerId: string,
+  organizationId: string,
 ) {
   const { data, error } = await supabase
     .from("expense_categories")
     .select(expenseCategorySelectFields)
     .eq("owner_id", ownerId)
+    .eq("organization_id", organizationId)
     .order("name", { ascending: true });
 
   if (error) {
@@ -41,7 +45,7 @@ export async function getExpenseCategoriesByOwnerFromClient(
   return (data ?? []) as DbExpenseCategory[];
 }
 
-export async function getExpenseCategoriesByOwner(ownerId: string) {
+export async function getExpenseCategoriesByOwner(ownerId: string, organizationId: string) {
   const supabase = await createExpenseCategoryClient();
-  return getExpenseCategoriesByOwnerFromClient(supabase, ownerId);
+  return getExpenseCategoriesByOwnerFromClient(supabase, ownerId, organizationId);
 }
