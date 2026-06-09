@@ -97,6 +97,7 @@ As migrations relevantes para SaaS/RLS/hardening ja mergeadas sao:
 043_restore_finance_relationships_and_rls_cleanup.sql
 048_expense_categories_organization_write_rls.sql
 049_family_members_organization_write_rls.sql
+050_family_members_legacy_owner_write_constraint.sql
 ```
 
 Observacoes operacionais:
@@ -109,6 +110,7 @@ A migration 039 remove policies historicas owner/family que podiam existir em am
 A migration 043 restaura FKs financeiras e consolida a limpeza RLS relacionada.
 A migration 048 troca writes de `expense_categories` de owner-scoped para organization-admin-scoped.
 A migration 049 troca writes de `family_members` de owner-scoped para organization-admin-scoped.
+A migration 050 preserva o write boundary de `family_members` por owner/admin da organizacao, mas tambem exige que `owner_id` da linha corresponda ao `owner_auth_user_id` da organizacao alvo.
 ```
 
 ## 4. RLS atual
@@ -143,7 +145,7 @@ Observacoes importantes:
 - `organization_id NOT NULL` ja foi aplicado nas tabelas tenant-scoped listadas acima;
 - nenhuma dessas migrations remove `owner_id`;
 - `expense_categories` usa write RLS por owner/admin da organizacao desde a migration `048`, mas novos registros ainda preservam o owner legado da organizacao no payload enquanto `owner_id` existir;
-- `family_members` usa write RLS por owner/admin da organizacao desde a migration `049`, mas novos registros ainda preservam o owner legado da organizacao no payload enquanto `owner_id` existir;
+- `family_members` usa write RLS por owner/admin da organizacao desde a migration `049`; desde a migration `050`, inserts/updates tambem exigem que o `owner_id` legado da linha corresponda ao owner da organizacao alvo;
 - `banks` preserva comportamento historico e nao depende de `family_members.is_active` na RLS;
 - a migration `019` adiciona RPC transacional de onboarding, mas nao relaxa RLS;
 - a migration `039_drop_legacy_owner_family_policies.sql` versiona a limpeza idempotente das policies antigas `*_own`/`*_family` ja aplicada no Supabase vivo validado.

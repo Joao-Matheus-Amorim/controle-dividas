@@ -69,13 +69,14 @@ const rlsCoverage: RlsTableExpectation[] = [
     rlsFiles: [
       "031_family_members_rls_remove_legacy_fallback.sql",
       "049_family_members_organization_write_rls.sql",
+      "050_family_members_legacy_owner_write_constraint.sql",
     ],
     status: "covered",
     policies: [
       { file: "031_family_members_rls_remove_legacy_fallback.sql", name: "family_members_select_organization", operation: "select" },
-      { file: "049_family_members_organization_write_rls.sql", name: "family_members_insert_organization", operation: "insert" },
-      { file: "049_family_members_organization_write_rls.sql", name: "family_members_update_organization", operation: "update" },
-      { file: "049_family_members_organization_write_rls.sql", name: "family_members_delete_organization", operation: "delete" },
+      { file: "050_family_members_legacy_owner_write_constraint.sql", name: "family_members_insert_organization", operation: "insert" },
+      { file: "050_family_members_legacy_owner_write_constraint.sql", name: "family_members_update_organization", operation: "update" },
+      { file: "050_family_members_legacy_owner_write_constraint.sql", name: "family_members_delete_organization", operation: "delete" },
     ],
   },
   {

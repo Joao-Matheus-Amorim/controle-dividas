@@ -74,9 +74,9 @@ Classificacao atual:
 | `organizations` | covered | RLS por membership/admin/owner na migration `006`. |
 | `organization_memberships` | covered | RLS por helpers nao recursivos na migration `006`. |
 | `profiles` | hardened/transitional-owner | `organization_id NOT NULL`; leitura permite proprio `auth_user_id` ou membership; writes ainda preservam `owner_id`. |
-| `family_members` | hardened | `organization_id NOT NULL`; select por membership; writes por owner + membership. |
+| `family_members` | hardened | `organization_id NOT NULL`; select por membership; writes por owner/admin da organizacao e constraint de `owner_id` legado igual ao owner da organizacao alvo. |
 | `expenses` | hardened | `organization_id NOT NULL`; select por membership; writes por owner + membership. |
-| `expense_categories` | hardened | `organization_id NOT NULL`; select por membership; writes por owner + membership. |
+| `expense_categories` | hardened | `organization_id NOT NULL`; select por membership; writes por owner/admin da organizacao. |
 | `banks` | hardened | `organization_id NOT NULL`; select por membership; nao depende de membro ativo por preservar historico. |
 | `payable_bills` | hardened | `organization_id NOT NULL`; select por membership; writes por owner + membership. |
 | `receivable_incomes` | hardened | `organization_id NOT NULL`; select por membership; writes por owner + membership. |
