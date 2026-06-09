@@ -161,7 +161,7 @@ describe("admin invitation acceptance action", () => {
     expect(mockState.auditEvents).toHaveLength(0);
   });
 
-  it("maps expired invitation responses without recording a success audit", async () => {
+  it("maps expired invitation responses to a generic token error without recording a success audit", async () => {
     const { acceptAdminInvitation } = await import("@/app/auth/convite/actions");
     mockState.rpcResult = {
       status: "expired",
@@ -174,7 +174,7 @@ describe("admin invitation acceptance action", () => {
       token: "raw-invite-token",
     }));
 
-    expect(result).toEqual({ error: "Este convite expirou." });
+    expect(result).toEqual({ error: "Convite invalido ou ja utilizado." });
     expect(mockState.auditEvents).toHaveLength(0);
     expect(mockState.revalidated).toHaveLength(0);
   });
