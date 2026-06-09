@@ -62,7 +62,7 @@ Documentos cruzados:
 | Helpers organization-aware | `lib/organizations/*` | `lib/organizations/people.ts`, `lib/organizations/categories.ts`, `lib/organizations/banks.ts`, `lib/organizations/expenses.ts`, `lib/organizations/payables.ts` e `lib/organizations/receivables.ts` ja leem por organizacao | manter ate schema-final organization-only ser provado |
 | Helpers legados | `lib/finance/server.ts`, `members-server.ts`, `categories-server.ts`, `expenses-server.ts`, `payables-server.ts`, `receivables-server.ts`, `banks-server.ts` | compatibilidade e testes ainda dependem deles | inventariar consumidores antes de remover |
 | Admin/permissoes | `lib/finance/admin-server.ts`, `app/protected/admin/actions.ts`, `lib/finance/access-control.ts` | maior risco; read/write path admin e access-control ja estao organization-first, com `owner_id` ainda transicional no modelo | seguir contrato admin lifecycle por PR |
-| Seeds/bootstrap | `lib/finance/seed-*`, `bootstrap-admin-profile.ts` | seed inicial ainda grava `owner_id`, mas `lib/finance/server.ts` passa o owner legado da organizacao ativa para os seeds financeiros | trocar somente quando schema final existir |
+| Seeds/bootstrap | `lib/finance/seed-*`, `bootstrap-admin-profile.ts` | seed inicial ainda grava `owner_id`, mas `lib/finance/server.ts` passa o owner legado da organizacao ativa para os seeds financeiros e escopa as leituras legadas de membros/categorias por esse owner legado mais `organization_id` | trocar somente quando schema final existir |
 | Testes RLS | `__tests__/integration/rls/*` | usam mesmo owner em duas organizacoes para provar isolamento por organization | manter ate novo fixture organization-only provar o mesmo caso |
 | Unit guards | `legacy-organization-fallback-removal-*`, `*-rls-policy-guards` | protegem estado transicional | atualizar junto com cada remocao |
 | Docs/ADRs | ADR 0006, ADR 0007, gap register, roadmap | dizem que `owner_id` e transicional | atualizar so depois de PRs verdes |
@@ -106,7 +106,7 @@ G-005 so pode sair de "aberto controlado" quando houver:
 Estado atual:
 
 ```txt
-G-005 permanece aberto controlado; read/write path admin, access-control, categorias, pessoas/family_members, bancos, gastos, contas-a-pagar e contas-a-receber organization-first estao versionados, e seed financeiro inicial usa o owner legado da organizacao ativa, mas seeds remanescentes e schema final seguem transicionais.
+G-005 permanece aberto controlado; read/write path admin, access-control, categorias, pessoas/family_members, bancos, gastos, contas-a-pagar e contas-a-receber organization-first estao versionados, e seed financeiro inicial mais leituras legadas de membros/categorias do facade usam o owner legado e o `organization_id` da organizacao ativa, mas seeds remanescentes e schema final seguem transicionais.
 ```
 
 Proximo PR recomendado:

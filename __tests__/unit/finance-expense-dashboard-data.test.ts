@@ -40,7 +40,11 @@ vi.mock("@/lib/finance/expenses-server", () => ({
   getExpensesForCurrentProfile: mocks.getExpensesForCurrentProfile,
 }));
 
-import { getExpenseDashboardData } from "@/lib/finance/server";
+import {
+  getExpenseCategories,
+  getExpenseDashboardData,
+  getFamilyMembers,
+} from "@/lib/finance/server";
 
 const ownerId = "owner-123";
 const organizationOwnerId = "org-owner-123";
@@ -120,11 +124,11 @@ describe("expense dashboard aggregation", () => {
       organizationOwnerId,
       organizationId,
     );
-    expect(mocks.requireOrganizationAccess).toHaveBeenCalledTimes(2);
-    expect(mocks.getCurrentProfile).toHaveBeenCalledTimes(1);
+    expect(mocks.requireOrganizationAccess).toHaveBeenCalledTimes(3);
+    expect(mocks.getCurrentProfile).not.toHaveBeenCalled();
     expect(mocks.getAccessibleMemberIds).toHaveBeenCalledWith("GASTOS", "can_view");
-    expect(mocks.getFamilyMembersByOwner).toHaveBeenCalledWith(ownerId);
-    expect(mocks.getExpenseCategoriesByOwner).toHaveBeenCalledWith(ownerId);
+    expect(mocks.getFamilyMembersByOwner).toHaveBeenCalledWith(organizationOwnerId, organizationId);
+    expect(mocks.getExpenseCategoriesByOwner).toHaveBeenCalledWith(organizationOwnerId, organizationId);
 
     expect(result.members.map((member) => member.id)).toEqual([
       "member-visible",
@@ -149,5 +153,26 @@ describe("expense dashboard aggregation", () => {
         exceeded: true,
       },
     ]);
+  });
+
+  it("reads legacy members and categories with the same organization owner used by seeding", async () => {
+    const members = [{ id: "member-visible", owner_id: organizationOwnerId, is_active: true }];
+    const categories = [{ id: "category-1", owner_id: organizationOwnerId, name: "Mercado" }];
+
+    mocks.getFamilyMembersByOwner.mockResolvedValue(members);
+    mocks.getExpenseCategoriesByOwner.mockResolvedValue(categories);
+
+    await expect(getFamilyMembers()).resolves.toBe(members);
+    await expect(getExpenseCategories()).resolves.toBe(categories);
+
+    expect(mocks.seedInitialFinanceDataForOwner).toHaveBeenCalledWith(
+      expect.anything(),
+      organizationOwnerId,
+      organizationId,
+    );
+    expect(mocks.getFamilyMembersByOwner).toHaveBeenCalledWith(organizationOwnerId, organizationId);
+    expect(mocks.getExpenseCategoriesByOwner).toHaveBeenCalledWith(organizationOwnerId, organizationId);
+    expect(mocks.getFamilyMembersByOwner).not.toHaveBeenCalledWith(ownerId);
+    expect(mocks.getExpenseCategoriesByOwner).not.toHaveBeenCalledWith(ownerId);
   });
 });
