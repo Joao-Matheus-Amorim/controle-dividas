@@ -21,8 +21,8 @@ Este contrato define o que precisa estar provado antes de mexer em:
 Ele registra os primeiros runtimes admin organization-first em
 `lib/finance/admin-server.ts`, `app/protected/admin/actions.ts` e
 `lib/finance/access-control.ts`. Reads/writes admin sao gated por
-`requireOrganizationAdmin`; access-control resolve permissoes e membros por
-organizacao ativa. Ele nao altera schema, RLS, UI, seeds, billing, remocao de
+`requireOrganizationAdmin`; access-control resolve perfil, permissoes e membros
+por organizacao ativa. Ele nao altera schema, RLS, UI, seeds, billing, remocao de
 `ADMIN_EMAIL` ou drop de `owner_id`.
 
 ## 2. Estado atual permitido
@@ -53,7 +53,7 @@ admin/access-control pronto para remover owner_id agora.
 | --- | --- | --- |
 | `lib/finance/admin-server.ts` | leituras de dashboard admin exigem admin da organizacao ativa e filtram profiles, membros, module permissions e feature permissions por `organizationId` | preserva owner transicional apenas nos campos selecionados |
 | `app/protected/admin/actions.ts` | writes admin exigem admin da organizacao ativa, validam email, membro e perfil por `organization.id`, e preservam `owner_id` apenas em payloads transicionais usando `organization.owner_auth_user_id` da organizacao alvo | audit/rate-limit seguem obrigatorios antes de qualquer retirada final |
-| `lib/finance/access-control.ts` | calcula permissoes e membros acessiveis por `organizationId`, sem filtro `profile.owner_id` para membros ativos | `owner_id` segue no tipo transicional ate schema final |
+| `lib/finance/access-control.ts` | calcula perfil, permissoes e membros acessiveis por `organizationId`, sem depender do primeiro perfil global do auth user e sem filtro `profile.owner_id` para membros ativos | `owner_id` segue no tipo transicional ate schema final |
 | `ADMIN_EMAIL` | bootstrap global enquanto onboarding/admin final nao esta fechado | nao escala como modelo SaaS final |
 
 ## 4. Criterios antes de runtime
@@ -65,7 +65,7 @@ sem:
 2. fixture RLS cobrindo admin em duas organizacoes;
 3. contrato de convite/admin final aprovado em `docs/audits/ADMIN_INVITATION_BOOTSTRAP_CONTRACT.md`;
 4. definicao de substituto para `ADMIN_EMAIL`;
-5. prova de que `profile_id`, `linked_family_member_id`, module permissions e feature permissions sao resolvidos por `organization_id`;
+5. prova de que `profile_id`, `linked_family_member_id`, module permissions e feature permissions sao resolvidos por `organization_id` da organizacao ativa;
 6. manutencao dos audit events admin;
 7. manutencao dos rate limits admin;
 8. rollback documentado.
@@ -79,7 +79,7 @@ sem:
 | 3 | modelo de convite/admin | definir bootstrap final e papel de `ADMIN_EMAIL` em `ADMIN_INVITATION_BOOTSTRAP_CONTRACT.md` | remover coluna |
 | 4 | read path admin | `lib/finance/admin-server.ts` com `requireOrganizationAdmin(orgSlug)` e sem `adminProfile.owner_id` como filtro primario de leitura | writes admin |
 | 5 | write path admin | `app/protected/admin/actions.ts` com `requireOrganizationAdmin` e validates/writes por organization-first | access-control |
-| 6 | access-control | `lib/finance/access-control.ts` calcula membros/permissoes por `organizationId`, sem filtro `profile.owner_id` para membros ativos | schema drop |
+| 6 | access-control | `lib/finance/access-control.ts` calcula perfil/membros/permissoes por `organizationId`, sem filtro `profile.owner_id` para membros ativos | schema drop |
 | 7 | schema final | retirar dependencias residuais de `owner_id` | qualquer runtime pendente |
 
 ## 6. Guardrails
@@ -95,7 +95,7 @@ sem:
 Estado atual:
 
 ```txt
-read/write path admin em `lib/finance/admin-server.ts` e `app/protected/admin/actions.ts` exige admin da organizacao ativa e esta organization-first; access-control tambem calcula permissoes e membros por organizacao. O gate runtime de ADMIN_EMAIL foi removido dos helpers server-side; owner_id permanece transicional.
+read/write path admin em `lib/finance/admin-server.ts` e `app/protected/admin/actions.ts` exige admin da organizacao ativa e esta organization-first; access-control tambem calcula perfil, permissoes e membros por organizacao ativa. O gate runtime de ADMIN_EMAIL foi removido dos helpers server-side; owner_id permanece transicional.
 ```
 
 Contrato de convite/admin criado:

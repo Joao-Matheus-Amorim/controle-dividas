@@ -3,7 +3,7 @@ import { ReceivableHeroSummary } from "@/components/receivables/receivable-hero-
 import { ReceivableList } from "@/components/receivables/receivable-list";
 import { ReceivablePageHeader } from "@/components/receivables/receivable-page-header";
 import { ReceivableSummaryCards } from "@/components/receivables/receivable-summary-cards";
-import { getCurrentProfile, getModulePermission } from "@/lib/finance/access-control";
+import { getCurrentOrganizationProfile, getModulePermission } from "@/lib/finance/access-control";
 import { getCurrentMonthLabel } from "@/lib/finance/period-context";
 import { getOrganizationReceivableIncomesDashboardData } from "@/lib/organizations/receivables";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
@@ -14,14 +14,17 @@ type ContasAReceberPageProps = {
 
 export async function ContasAReceberPage({ orgSlug }: ContasAReceberPageProps = {}) {
   const [profile, receivableData, organizationContext] = await Promise.all([
-    getCurrentProfile(),
+    getCurrentOrganizationProfile(orgSlug),
     getOrganizationReceivableIncomesDashboardData(orgSlug),
     requireOrganizationAccess(orgSlug),
   ]);
-  const permission = profile.role === "admin" ? null : await getModulePermission(profile.id, "CONTAS_A_RECEBER", organizationContext.organization.id);
-  const canCreate = profile.role === "admin" || Boolean(permission?.can_create);
-  const canEdit = profile.role === "admin" || Boolean(permission?.can_edit);
-  const canDelete = profile.role === "admin" || Boolean(permission?.can_delete);
+  const isOrganizationManager = ["owner", "admin"].includes(organizationContext.membership.role);
+  const permission = isOrganizationManager || !profile?.is_active
+    ? null
+    : await getModulePermission(profile.id, "CONTAS_A_RECEBER", organizationContext.organization.id);
+  const canCreate = isOrganizationManager || Boolean(permission?.can_create);
+  const canEdit = isOrganizationManager || Boolean(permission?.can_edit);
+  const canDelete = isOrganizationManager || Boolean(permission?.can_delete);
   const periodLabel = getCurrentMonthLabel();
 
   const {

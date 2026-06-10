@@ -8,7 +8,7 @@ import {
   normalizeStatusFilter,
   normalizeTypeFilter,
 } from "@/components/payables/payable-utils";
-import { getCurrentProfile, getModulePermission } from "@/lib/finance/access-control";
+import { getCurrentOrganizationProfile, getModulePermission } from "@/lib/finance/access-control";
 import { getCurrentMonthLabel } from "@/lib/finance/period-context";
 import { getOrganizationPayableBillsDashboardData } from "@/lib/organizations/payables";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
@@ -26,14 +26,17 @@ export async function ContasAPagarPage({ searchParams, orgSlug }: ContasAPagarPa
   const typeFilter = normalizeTypeFilter(getSearchValue(params, "tipo"));
 
   const [profile, payableData, organizationContext] = await Promise.all([
-    getCurrentProfile(),
+    getCurrentOrganizationProfile(orgSlug),
     getOrganizationPayableBillsDashboardData(orgSlug),
     requireOrganizationAccess(orgSlug),
   ]);
-  const permission = profile.role === "admin" ? null : await getModulePermission(profile.id, "CONTAS_A_PAGAR", organizationContext.organization.id);
-  const canCreate = profile.role === "admin" || Boolean(permission?.can_create);
-  const canEdit = profile.role === "admin" || Boolean(permission?.can_edit);
-  const canDelete = profile.role === "admin" || Boolean(permission?.can_delete);
+  const isOrganizationManager = ["owner", "admin"].includes(organizationContext.membership.role);
+  const permission = isOrganizationManager || !profile?.is_active
+    ? null
+    : await getModulePermission(profile.id, "CONTAS_A_PAGAR", organizationContext.organization.id);
+  const canCreate = isOrganizationManager || Boolean(permission?.can_create);
+  const canEdit = isOrganizationManager || Boolean(permission?.can_edit);
+  const canDelete = isOrganizationManager || Boolean(permission?.can_delete);
   const periodLabel = getCurrentMonthLabel();
 
   const {

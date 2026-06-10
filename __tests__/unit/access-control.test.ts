@@ -6,6 +6,8 @@ const mockState = vi.hoisted(() => ({
   userId: "auth-user-1",
   email: "member@example.com",
   organizationId: "org-1",
+  membershipRole: "member" as "owner" | "admin" | "adult" | "child" | "custom" | "member",
+  membershipIsActive: true,
   familyMembers: [
     { id: "member-1", owner_id: "owner-1", organization_id: "org-1", is_active: true },
     { id: "member-2", owner_id: "owner-1", organization_id: "org-1", is_active: true },
@@ -75,7 +77,7 @@ function makeQuery(table: string) {
 
   function resolveSingle() {
     if (table === "profiles") {
-      if (filters.auth_user_id === mockState.profile.auth_user_id) {
+      if (matchesFilters(mockState.profile, filters)) {
         return { data: mockState.profile, error: null };
       }
 
@@ -148,8 +150,8 @@ vi.mock("@/lib/organizations/server", () => ({
       id: "membership-1",
       organization_id: mockState.organizationId,
       auth_user_id: mockState.userId,
-      role: "member",
-      is_active: true,
+      role: mockState.membershipRole,
+      is_active: mockState.membershipIsActive,
       created_at: "2026-01-01T00:00:00.000Z",
       updated_at: "2026-01-01T00:00:00.000Z",
     },
@@ -218,6 +220,8 @@ describe("access-control RBAC", () => {
     mockState.userId = "auth-user-1";
     mockState.email = "member@example.com";
     mockState.organizationId = "org-1";
+    mockState.membershipRole = "member";
+    mockState.membershipIsActive = true;
     mockState.familyMembers = [
       { id: "member-1", owner_id: "owner-1", organization_id: "org-1", is_active: true },
       { id: "member-2", owner_id: "owner-1", organization_id: "org-1", is_active: true },
@@ -346,10 +350,27 @@ describe("access-control RBAC", () => {
     expectNoLegacyRuntimePermissionFallback();
   });
 
+  it("ignores a linked profile from a different organization when checking active organization permissions", async () => {
+    const { canViewModule, getAccessibleMemberIds } = await import("@/lib/finance/access-control");
+
+    mockState.profile.organization_id = "org-2";
+    setPermission({ action: "can_view", scope: "family" });
+
+    await expect(canViewModule("GASTOS")).resolves.toBe(false);
+    await expect(getAccessibleMemberIds("GASTOS", "can_view")).resolves.toEqual([]);
+    expect(mockState.queryLog).toContainEqual({
+      table: "profiles",
+      op: "eq",
+      key: "organization_id",
+      value: "org-1",
+    });
+    expectNoLegacyRuntimePermissionFallback();
+  });
+
   it("admin bypasses module permissions and sees active members only in the active organization", async () => {
     const { getAccessibleMemberIds, getVisibleModuleKeys } = await import("@/lib/finance/access-control");
 
-    mockState.profile.role = "admin";
+    mockState.membershipRole = "admin";
     mockState.modulePermissions = [];
     mockState.familyMembers = [
       { id: "member-1", owner_id: "owner-1", organization_id: "org-1", is_active: true },
@@ -430,7 +451,7 @@ describe("access-control RBAC", () => {
   it("admin can use every feature permission", async () => {
     const { canUseFeature } = await import("@/lib/finance/access-control");
 
-    mockState.profile.role = "admin";
+    mockState.membershipRole = "admin";
 
     for (const feature of FEATURE_PERMISSIONS) {
       await expect(canUseFeature(feature.key)).resolves.toBe(true);
