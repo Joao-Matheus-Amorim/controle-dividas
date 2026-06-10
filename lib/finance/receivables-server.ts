@@ -1,6 +1,7 @@
-import { getAccessibleMemberIds, getCurrentProfile } from "@/lib/finance/access-control";
+import { getAccessibleMemberIds } from "@/lib/finance/access-control";
 import { firstRelation, type MaybeArray } from "@/lib/finance/relations";
 import type { DbFamilyMember, DbReceivableIncome } from "@/lib/finance/types";
+import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { createClient } from "@/lib/supabase/server";
 
 const receivableIncomeSelectFields =
@@ -10,25 +11,28 @@ type RawReceivableIncome = Omit<DbReceivableIncome, "family_members"> & {
   family_members: MaybeArray<Pick<DbFamilyMember, "id" | "name">>;
 };
 
-type ReceivableProfile = {
+type LegacyOrganizationScope = {
   owner_id: string;
+  organization_id: string;
 };
 
 type ReceivableIncomeQueryBuilder = {
   select(fields: typeof receivableIncomeSelectFields): {
     eq(column: "owner_id", value: string): {
-      in(column: "receiver_member_id", values: string[]): {
-        order(
-          column: "expected_date",
-          options: { ascending: true },
-        ): {
+      eq(column: "organization_id", value: string): {
+        in(column: "receiver_member_id", values: string[]): {
           order(
-            column: "created_at",
-            options: { ascending: false },
-          ): PromiseLike<{
-            data: unknown[] | null;
-            error: { message: string } | null;
-          }>;
+            column: "expected_date",
+            options: { ascending: true },
+          ): {
+            order(
+              column: "created_at",
+              options: { ascending: false },
+            ): PromiseLike<{
+              data: unknown[] | null;
+              error: { message: string } | null;
+            }>;
+          };
         };
       };
     };
@@ -53,7 +57,7 @@ function normalizeReceivableIncome(income: RawReceivableIncome): DbReceivableInc
 
 export async function getReceivableIncomesFromClient(
   supabase: ReceivableIncomeSupabaseClient,
-  profile: ReceivableProfile,
+  scope: LegacyOrganizationScope,
   accessibleMemberIds: string[],
 ) {
   if (accessibleMemberIds.length === 0) {
@@ -63,7 +67,8 @@ export async function getReceivableIncomesFromClient(
   const { data, error } = await supabase
     .from("receivable_incomes")
     .select(receivableIncomeSelectFields)
-    .eq("owner_id", profile.owner_id)
+    .eq("owner_id", scope.owner_id)
+    .eq("organization_id", scope.organization_id)
     .in("receiver_member_id", accessibleMemberIds)
     .order("expected_date", { ascending: true })
     .order("created_at", { ascending: false });
@@ -77,8 +82,12 @@ export async function getReceivableIncomesFromClient(
 
 export async function getReceivableIncomesForCurrentProfile() {
   const supabase = await createReceivableIncomeClient();
-  const profile = await getCurrentProfile();
+  const { organization } = await requireOrganizationAccess();
   const accessibleMemberIds = await getAccessibleMemberIds("CONTAS_A_RECEBER", "can_view");
 
-  return getReceivableIncomesFromClient(supabase, profile, accessibleMemberIds);
+  return getReceivableIncomesFromClient(
+    supabase,
+    { owner_id: organization.owner_auth_user_id, organization_id: organization.id },
+    accessibleMemberIds,
+  );
 }

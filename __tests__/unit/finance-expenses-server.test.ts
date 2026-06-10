@@ -6,13 +6,14 @@ function createExpensesClient(data: unknown[] | null, error: { message: string }
   const orderCreatedAt = vi.fn(async () => ({ data, error }));
   const orderExpenseDate = vi.fn(() => ({ order: orderCreatedAt }));
   const inFilter = vi.fn(() => ({ order: orderExpenseDate }));
-  const eq = vi.fn(() => ({ in: inFilter }));
+  const organizationEq = vi.fn(() => ({ in: inFilter }));
+  const eq = vi.fn(() => ({ eq: organizationEq }));
   const select = vi.fn(() => ({ eq }));
   const from = vi.fn(() => ({ select }));
 
   return {
     client: { from },
-    calls: { from, select, eq, inFilter, orderExpenseDate, orderCreatedAt },
+    calls: { from, select, eq, organizationEq, inFilter, orderExpenseDate, orderCreatedAt },
   };
 }
 
@@ -21,7 +22,7 @@ describe("finance expenses server", () => {
     const { client, calls } = createExpensesClient([]);
 
     await expect(
-      getExpensesFromClient(client, { owner_id: "owner-123" }, []),
+      getExpensesFromClient(client, { owner_id: "owner-123", organization_id: "org-123" }, []),
     ).resolves.toEqual([]);
 
     expect(calls.from).not.toHaveBeenCalled();
@@ -29,6 +30,7 @@ describe("finance expenses server", () => {
 
   it("reads expenses scoped by owner and accessible member ids", async () => {
     const ownerId = "owner-123";
+    const organizationId = "org-123";
     const accessibleMemberIds = ["member-1", "member-2"];
     const expenseRows = [
       {
@@ -52,7 +54,7 @@ describe("finance expenses server", () => {
 
     const result = await getExpensesFromClient(
       client,
-      { owner_id: ownerId },
+      { owner_id: ownerId, organization_id: organizationId },
       accessibleMemberIds,
     );
 
@@ -68,6 +70,7 @@ describe("finance expenses server", () => {
       "id, owner_id, family_member_id, category_id, expense_date, description, purchase_location, amount, payment_method, bank_or_card, notes, created_at, family_members(id, name, monthly_limit), expense_categories(id, name)",
     );
     expect(calls.eq).toHaveBeenCalledWith("owner_id", ownerId);
+    expect(calls.organizationEq).toHaveBeenCalledWith("organization_id", organizationId);
     expect(calls.inFilter).toHaveBeenCalledWith("family_member_id", accessibleMemberIds);
     expect(calls.orderExpenseDate).toHaveBeenCalledWith("expense_date", { ascending: false });
     expect(calls.orderCreatedAt).toHaveBeenCalledWith("created_at", { ascending: false });
@@ -95,7 +98,11 @@ describe("finance expenses server", () => {
     const { client } = createExpensesClient(expenseRows);
 
     await expect(
-      getExpensesFromClient(client, { owner_id: "owner-123" }, ["member-1"]),
+      getExpensesFromClient(
+        client,
+        { owner_id: "owner-123", organization_id: "org-123" },
+        ["member-1"],
+      ),
     ).resolves.toEqual(expenseRows);
   });
 
@@ -103,7 +110,11 @@ describe("finance expenses server", () => {
     const { client } = createExpensesClient(null);
 
     await expect(
-      getExpensesFromClient(client, { owner_id: "owner-123" }, ["member-1"]),
+      getExpensesFromClient(
+        client,
+        { owner_id: "owner-123", organization_id: "org-123" },
+        ["member-1"],
+      ),
     ).resolves.toEqual([]);
   });
 
@@ -111,7 +122,11 @@ describe("finance expenses server", () => {
     const { client } = createExpensesClient(null, { message: "read failed" });
 
     await expect(
-      getExpensesFromClient(client, { owner_id: "owner-123" }, ["member-1"]),
+      getExpensesFromClient(
+        client,
+        { owner_id: "owner-123", organization_id: "org-123" },
+        ["member-1"],
+      ),
     ).rejects.toThrow("read failed");
   });
 });

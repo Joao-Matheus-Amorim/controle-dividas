@@ -9,13 +9,14 @@ function createReceivableIncomesClient(
   const orderCreatedAt = vi.fn(async () => ({ data, error }));
   const orderExpectedDate = vi.fn(() => ({ order: orderCreatedAt }));
   const inFilter = vi.fn(() => ({ order: orderExpectedDate }));
-  const eq = vi.fn(() => ({ in: inFilter }));
+  const organizationEq = vi.fn(() => ({ in: inFilter }));
+  const eq = vi.fn(() => ({ eq: organizationEq }));
   const select = vi.fn(() => ({ eq }));
   const from = vi.fn(() => ({ select }));
 
   return {
     client: { from },
-    calls: { from, select, eq, inFilter, orderExpectedDate, orderCreatedAt },
+    calls: { from, select, eq, organizationEq, inFilter, orderExpectedDate, orderCreatedAt },
   };
 }
 
@@ -24,7 +25,11 @@ describe("finance receivables server", () => {
     const { client, calls } = createReceivableIncomesClient([]);
 
     await expect(
-      getReceivableIncomesFromClient(client, { owner_id: "owner-123" }, []),
+      getReceivableIncomesFromClient(
+        client,
+        { owner_id: "owner-123", organization_id: "org-123" },
+        [],
+      ),
     ).resolves.toEqual([]);
 
     expect(calls.from).not.toHaveBeenCalled();
@@ -32,6 +37,7 @@ describe("finance receivables server", () => {
 
   it("reads receivable incomes scoped by owner and accessible member ids", async () => {
     const ownerId = "owner-123";
+    const organizationId = "org-123";
     const accessibleMemberIds = ["member-1", "member-2"];
     const incomeRows = [
       {
@@ -53,7 +59,7 @@ describe("finance receivables server", () => {
 
     const result = await getReceivableIncomesFromClient(
       client,
-      { owner_id: ownerId },
+      { owner_id: ownerId, organization_id: organizationId },
       accessibleMemberIds,
     );
 
@@ -68,6 +74,7 @@ describe("finance receivables server", () => {
       "id, owner_id, receiver_member_id, source, income_type, amount, expected_date, status, receiving_bank, notes, created_at, family_members(id, name)",
     );
     expect(calls.eq).toHaveBeenCalledWith("owner_id", ownerId);
+    expect(calls.organizationEq).toHaveBeenCalledWith("organization_id", organizationId);
     expect(calls.inFilter).toHaveBeenCalledWith("receiver_member_id", accessibleMemberIds);
     expect(calls.orderExpectedDate).toHaveBeenCalledWith("expected_date", { ascending: true });
     expect(calls.orderCreatedAt).toHaveBeenCalledWith("created_at", { ascending: false });
@@ -93,7 +100,11 @@ describe("finance receivables server", () => {
     const { client } = createReceivableIncomesClient(incomeRows);
 
     await expect(
-      getReceivableIncomesFromClient(client, { owner_id: "owner-123" }, ["member-1"]),
+      getReceivableIncomesFromClient(
+        client,
+        { owner_id: "owner-123", organization_id: "org-123" },
+        ["member-1"],
+      ),
     ).resolves.toEqual(incomeRows);
   });
 
@@ -101,7 +112,11 @@ describe("finance receivables server", () => {
     const { client } = createReceivableIncomesClient(null);
 
     await expect(
-      getReceivableIncomesFromClient(client, { owner_id: "owner-123" }, ["member-1"]),
+      getReceivableIncomesFromClient(
+        client,
+        { owner_id: "owner-123", organization_id: "org-123" },
+        ["member-1"],
+      ),
     ).resolves.toEqual([]);
   });
 
@@ -109,7 +124,11 @@ describe("finance receivables server", () => {
     const { client } = createReceivableIncomesClient(null, { message: "read failed" });
 
     await expect(
-      getReceivableIncomesFromClient(client, { owner_id: "owner-123" }, ["member-1"]),
+      getReceivableIncomesFromClient(
+        client,
+        { owner_id: "owner-123", organization_id: "org-123" },
+        ["member-1"],
+      ),
     ).rejects.toThrow("read failed");
   });
 });

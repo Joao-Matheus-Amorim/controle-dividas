@@ -1,6 +1,7 @@
-import { getAccessibleMemberIds, getCurrentProfile } from "@/lib/finance/access-control";
+import { getAccessibleMemberIds } from "@/lib/finance/access-control";
 import { firstRelation, type MaybeArray } from "@/lib/finance/relations";
 import type { DbExpense, DbExpenseCategory, DbFamilyMember } from "@/lib/finance/types";
+import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { createClient } from "@/lib/supabase/server";
 
 const expenseSelectFields =
@@ -11,25 +12,28 @@ type RawExpense = Omit<DbExpense, "family_members" | "expense_categories"> & {
   expense_categories: MaybeArray<Pick<DbExpenseCategory, "id" | "name">>;
 };
 
-type ExpenseProfile = {
+type LegacyOrganizationScope = {
   owner_id: string;
+  organization_id: string;
 };
 
 type ExpenseQueryBuilder = {
   select(fields: typeof expenseSelectFields): {
     eq(column: "owner_id", value: string): {
-      in(column: "family_member_id", values: string[]): {
-        order(
-          column: "expense_date",
-          options: { ascending: false },
-        ): {
+      eq(column: "organization_id", value: string): {
+        in(column: "family_member_id", values: string[]): {
           order(
-            column: "created_at",
+            column: "expense_date",
             options: { ascending: false },
-          ): PromiseLike<{
-            data: unknown[] | null;
-            error: { message: string } | null;
-          }>;
+          ): {
+            order(
+              column: "created_at",
+              options: { ascending: false },
+            ): PromiseLike<{
+              data: unknown[] | null;
+              error: { message: string } | null;
+            }>;
+          };
         };
       };
     };
@@ -55,7 +59,7 @@ function normalizeExpense(expense: RawExpense): DbExpense {
 
 export async function getExpensesFromClient(
   supabase: ExpenseSupabaseClient,
-  profile: ExpenseProfile,
+  scope: LegacyOrganizationScope,
   accessibleMemberIds: string[],
 ) {
   if (accessibleMemberIds.length === 0) {
@@ -65,7 +69,8 @@ export async function getExpensesFromClient(
   const { data, error } = await supabase
     .from("expenses")
     .select(expenseSelectFields)
-    .eq("owner_id", profile.owner_id)
+    .eq("owner_id", scope.owner_id)
+    .eq("organization_id", scope.organization_id)
     .in("family_member_id", accessibleMemberIds)
     .order("expense_date", { ascending: false })
     .order("created_at", { ascending: false });
@@ -79,8 +84,12 @@ export async function getExpensesFromClient(
 
 export async function getExpensesForCurrentProfile() {
   const supabase = await createExpenseClient();
-  const profile = await getCurrentProfile();
+  const { organization } = await requireOrganizationAccess();
   const accessibleMemberIds = await getAccessibleMemberIds("GASTOS", "can_view");
 
-  return getExpensesFromClient(supabase, profile, accessibleMemberIds);
+  return getExpensesFromClient(
+    supabase,
+    { owner_id: organization.owner_auth_user_id, organization_id: organization.id },
+    accessibleMemberIds,
+  );
 }
