@@ -149,6 +149,25 @@ export async function getCurrentProfile() {
   redirect("/onboarding/organizacao");
 }
 
+export async function getCurrentOrganizationProfile(orgSlug?: string) {
+  const user = await getCurrentUser();
+  const { organization } = await requireOrganizationAccess(orgSlug);
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, owner_id, organization_id, auth_user_id, linked_family_member_id, name, email, role, is_active")
+    .eq("auth_user_id", user.id)
+    .eq("organization_id", organization.id)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data as CurrentProfile | null;
+}
+
 async function getAllActiveMemberIds(organizationId: string) {
   const adminSupabase = createAdminClient();
 
@@ -212,55 +231,70 @@ export async function getFeaturePermission(
 }
 
 export async function canUseFeature(featureKey: FeaturePermissionKey, orgSlug?: string) {
-  const profile = await getCurrentProfile();
+  const { organization, membership } = await requireOrganizationAccess(orgSlug);
 
-  if (!profile.is_active) {
+  if (!membership.is_active) {
     return false;
   }
 
-  if (profile.role === "admin") {
+  if (["owner", "admin"].includes(membership.role)) {
     return true;
   }
 
-  const organizationId = await getActiveOrganizationId(orgSlug);
-  const permission = await getFeaturePermission(profile.id, featureKey, organizationId);
+  const profile = await getCurrentOrganizationProfile(orgSlug);
+
+  if (!profile?.is_active) {
+    return false;
+  }
+
+  const permission = await getFeaturePermission(profile.id, featureKey, organization.id);
   return Boolean(permission?.is_enabled);
 }
 
 export async function canViewModule(module: FinanceModuleKey, orgSlug?: string) {
-  const profile = await getCurrentProfile();
+  const { organization, membership } = await requireOrganizationAccess(orgSlug);
 
-  if (!profile.is_active) {
+  if (!membership.is_active) {
     return false;
   }
 
-  if (profile.role === "admin") {
+  if (["owner", "admin"].includes(membership.role)) {
     return true;
   }
 
-  const organizationId = await getActiveOrganizationId(orgSlug);
-  const permission = await getModulePermission(profile.id, module, organizationId);
+  const profile = await getCurrentOrganizationProfile(orgSlug);
+
+  if (!profile?.is_active) {
+    return false;
+  }
+
+  const permission = await getModulePermission(profile.id, module, organization.id);
   return Boolean(permission?.can_view);
 }
 
 export async function getVisibleModuleKeys(modules: FinanceModuleKey[], orgSlug?: string) {
-  const profile = await getCurrentProfile();
+  const { organization, membership } = await requireOrganizationAccess(orgSlug);
 
-  if (!profile.is_active) {
+  if (!membership.is_active) {
     return [];
   }
 
-  if (profile.role === "admin") {
+  if (["owner", "admin"].includes(membership.role)) {
     return modules;
   }
 
+  const profile = await getCurrentOrganizationProfile(orgSlug);
+
+  if (!profile?.is_active) {
+    return [];
+  }
+
   const adminSupabase = createAdminClient();
-  const organizationId = await getActiveOrganizationId(orgSlug);
   const { data, error } = await adminSupabase
     .from("user_module_permissions")
     .select("module, can_view, organization_id")
     .eq("profile_id", profile.id)
-    .eq("organization_id", organizationId);
+    .eq("organization_id", organization.id);
 
   if (error) {
     throw new Error(error.message);
@@ -278,30 +312,34 @@ export async function getAccessibleMemberIds(
   action: PermissionAction = "can_view",
   orgSlug?: string,
 ) {
-  const profile = await getCurrentProfile();
+  const { organization, membership } = await requireOrganizationAccess(orgSlug);
 
-  if (!profile.is_active) {
+  if (!membership.is_active) {
     return [];
   }
 
-  const organizationId = await getActiveOrganizationId(orgSlug);
-
-  if (profile.role === "admin") {
-    return getAllActiveMemberIds(organizationId);
+  if (["owner", "admin"].includes(membership.role)) {
+    return getAllActiveMemberIds(organization.id);
   }
 
-  const permission = await getModulePermission(profile.id, module, organizationId);
+  const profile = await getCurrentOrganizationProfile(orgSlug);
+
+  if (!profile?.is_active) {
+    return [];
+  }
+
+  const permission = await getModulePermission(profile.id, module, organization.id);
 
   if (!permission || !permission[action]) {
     return [];
   }
 
   if (permission.scope === "family") {
-    return getAllActiveMemberIds(organizationId);
+    return getAllActiveMemberIds(organization.id);
   }
 
   if (permission.scope === "selected") {
-    const activeMemberIds = await getAllActiveMemberIds(organizationId);
+    const activeMemberIds = await getAllActiveMemberIds(organization.id);
     return (permission.allowed_member_ids ?? []).filter((memberId) => activeMemberIds.includes(memberId));
   }
 

@@ -4,7 +4,7 @@ import { BankList } from "@/components/banks/bank-list";
 import { BankMemberBalances } from "@/components/banks/bank-member-balances";
 import { BankPageHeader } from "@/components/banks/bank-page-header";
 import { BankSummaryCards } from "@/components/banks/bank-summary-cards";
-import { getCurrentProfile, getModulePermission } from "@/lib/finance/access-control";
+import { getCurrentOrganizationProfile, getModulePermission } from "@/lib/finance/access-control";
 import { getOrganizationBanksDashboardData } from "@/lib/organizations/banks";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
 
@@ -14,14 +14,17 @@ type BancosPageProps = {
 
 export async function BancosPage({ orgSlug }: BancosPageProps = {}) {
   const [profile, bankData, organizationContext] = await Promise.all([
-    getCurrentProfile(),
+    getCurrentOrganizationProfile(orgSlug),
     getOrganizationBanksDashboardData(orgSlug),
     requireOrganizationAccess(orgSlug),
   ]);
-  const permission = profile.role === "admin" ? null : await getModulePermission(profile.id, "BANCOS", organizationContext.organization.id);
-  const canCreate = profile.role === "admin" || Boolean(permission?.can_create);
-  const canEdit = profile.role === "admin" || Boolean(permission?.can_edit);
-  const canDelete = profile.role === "admin" || Boolean(permission?.can_delete);
+  const isOrganizationManager = ["owner", "admin"].includes(organizationContext.membership.role);
+  const permission = isOrganizationManager || !profile?.is_active
+    ? null
+    : await getModulePermission(profile.id, "BANCOS", organizationContext.organization.id);
+  const canCreate = isOrganizationManager || Boolean(permission?.can_create);
+  const canEdit = isOrganizationManager || Boolean(permission?.can_edit);
+  const canDelete = isOrganizationManager || Boolean(permission?.can_delete);
   const { members, accounts, accountsByMember, totalBalance, totalAccounts } = bankData;
 
   return (

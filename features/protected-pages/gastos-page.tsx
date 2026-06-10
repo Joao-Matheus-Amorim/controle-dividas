@@ -6,7 +6,7 @@ import { ExpenseListSection } from "@/components/expenses/expense-list-section";
 import { ExpenseMemberImpact } from "@/components/expenses/expense-member-impact";
 import { ExpensePageHeader } from "@/components/expenses/expense-page-header";
 import { ExpenseSummaryCards } from "@/components/expenses/expense-summary-cards";
-import { getCurrentProfile, getModulePermission } from "@/lib/finance/access-control";
+import { getCurrentOrganizationProfile, getModulePermission } from "@/lib/finance/access-control";
 import { getCurrentMonthLabel } from "@/lib/finance/period-context";
 import { getOrganizationExpenseDashboardData } from "@/lib/organizations/expenses";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
@@ -37,14 +37,17 @@ export async function GastosPage({ searchParams, orgSlug }: GastosPageProps) {
   };
 
   const [profile, expenseData, organizationContext] = await Promise.all([
-    getCurrentProfile(),
+    getCurrentOrganizationProfile(orgSlug),
     getOrganizationExpenseDashboardData(orgSlug),
     requireOrganizationAccess(orgSlug),
   ]);
-  const permission = profile.role === "admin" ? null : await getModulePermission(profile.id, "GASTOS", organizationContext.organization.id);
-  const canCreate = profile.role === "admin" || Boolean(permission?.can_create);
-  const canEdit = profile.role === "admin" || Boolean(permission?.can_edit);
-  const canDelete = profile.role === "admin" || Boolean(permission?.can_delete);
+  const isOrganizationManager = ["owner", "admin"].includes(organizationContext.membership.role);
+  const permission = isOrganizationManager || !profile?.is_active
+    ? null
+    : await getModulePermission(profile.id, "GASTOS", organizationContext.organization.id);
+  const canCreate = isOrganizationManager || Boolean(permission?.can_create);
+  const canEdit = isOrganizationManager || Boolean(permission?.can_edit);
+  const canDelete = isOrganizationManager || Boolean(permission?.can_delete);
   const periodLabel = getCurrentMonthLabel();
 
   const { members, categories, expenses, memberSummaries } = expenseData;
