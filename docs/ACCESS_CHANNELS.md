@@ -103,7 +103,7 @@ Nao deve ser usado o nome da pessoa para decidir se mostra Admin. A regra deve s
 O app deve abrir:
 
 ```txt
-https://controle-dividas-seven.vercel.app/protected/admin
+<NEXT_PUBLIC_APP_URL>/protected/admin
 ```
 
 A abertura pode ser feita de duas formas:
