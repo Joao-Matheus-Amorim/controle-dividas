@@ -6,7 +6,7 @@ import {
   getCurrentProfile,
 } from "@/lib/finance/access-control";
 import type { PermissionAction } from "@/lib/finance/permissions";
-import type { ExpenseFormState } from "@/lib/finance/server";
+import type { ExpenseFormState } from "@/lib/finance/types";
 import { revalidateOrganizationPaths } from "@/lib/organizations/revalidation";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { checkSensitiveOperationRateLimit } from "@/lib/security/sensitive-rate-limit";

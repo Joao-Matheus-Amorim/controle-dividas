@@ -23,6 +23,7 @@ da branch e das secrets.
 
 | Documento | Status DocDoc | Uso seguro |
 | --- | --- | --- |
+| `BETA_CLIENT_VALIDATION_RUNBOOK.md` | Atual | Validar uso beta com login, organizacao ativa e rotas financeiras criticas sem misturar schema final de `owner_id`, RLS, billing ou redesign amplo. |
 | `BILLING_STRIPE_TEST_ACCOUNT_RUNBOOK.md` | Atual | Criar/configurar conta Stripe em modo teste e capturar evidencia real de checkout e portal antes de qualquer webhook runtime. |
 
 ## Runbooks parcialmente superados

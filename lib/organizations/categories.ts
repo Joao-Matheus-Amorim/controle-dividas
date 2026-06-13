@@ -1,4 +1,4 @@
-import type { DbExpenseCategory } from "@/lib/finance/server";
+import type { DbExpenseCategory } from "@/lib/finance/types";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { createClient } from "@/lib/supabase/server";
 

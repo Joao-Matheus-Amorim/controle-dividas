@@ -15,7 +15,7 @@ describe("runtime env policy guards", () => {
     const normalizedSource = source.replace(/\r\n/g, "\n");
 
     expect(normalizedSource).toContain(
-      "process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||\n  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+      "process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||\n  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY",
     );
     expect(source).toContain("export function shouldFailFastForMissingRuntimeEnv()");
     expect(source).toContain('process.env.NODE_ENV === "production"');
