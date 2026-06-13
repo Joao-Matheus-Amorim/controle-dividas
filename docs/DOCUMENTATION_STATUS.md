@@ -3,7 +3,7 @@
 > Status DocDoc: Atual
 > Uso atual: mapa vivo para reconciliar documentacao atrasada sem apagar
 > historico util.
-> Atualizado em: 2026-06-01.
+> Atualizado em: 2026-06-13.
 
 ## Objetivo
 
@@ -29,6 +29,7 @@ trabalho novo.
 | `docs/README.md` | Atual | Entrada da documentacao. | Criado pela Operacao DocDoc. |
 | `docs/VALIDACAO_TECNICA.md` | Atual | Contrato operacional atual. | Deve refletir stack, CI, deploy, envs, migrations e gates atuais. |
 | `docs/SAAS_GAP_REGISTER.md` | Atual | Registro vivo de gaps. | Atualizar apos cada PR que fecha ou reduz gap. |
+| `docs/VISAO_ATUAL_PRODUTO.md` | Atual como visao de produto operacional | Fonte de foco de produto para fechar uso real antes de ampliar arquitetura. | Nao substitui `VALIDACAO_TECNICA.md`, `SAAS_GAP_REGISTER.md`, ADRs ou contratos tecnicos. |
 | `docs/audits/CODEBASE_SCAN_GAP_CHECKLIST_2026-06-01.md` | Atual | Checklist de execucao tecnica. | Usar para ticagem de gaps/dividas. |
 | `docs/SAAS_OPERATIONAL_ROADMAP.md` | Parcialmente superado | Contexto consolidado de transicao SaaS. | Cruzar com `VALIDACAO_TECNICA.md` e `SAAS_GAP_REGISTER.md` antes de usar. |
 | `docs/SAAS_IMPLEMENTATION_STATUS.md` | Parcialmente superado | Historico da transicao multi-tenant inicial. | Nao usar como estado atual de migrations; usar `VALIDACAO_TECNICA.md`. |
@@ -82,6 +83,7 @@ arquivo raiz isolado.
 | `docs/TESTING_STRATEGY.md` | Parcialmente superado/estrategia | Contexto de estrategia de testes. | CI atual e guards vivos prevalecem. |
 | `docs/UI_STATES.md` | Atual como convencao UX | Padrao de loading/vazio/erro/sucesso. | Conferir componentes atuais antes de refatorar. |
 | `docs/VALIDACAO_TECNICA.md` | Atual | Contrato operacional vigente. | Fonte principal para stack, CI, deploy, Supabase e gates. |
+| `docs/VISAO_ATUAL_PRODUTO.md` | Atual como visao de produto operacional | Norte pratico para os proximos ciclos de produto. | Usar como foco de produto; nao como evidencia tecnica/runtime. |
 
 ## Diretorios
 
@@ -116,6 +118,7 @@ arquivo raiz isolado.
 - [x] Reconciliar indice DocDoc de `docs/adr/*`.
 - [x] Mapear todos os Markdown raiz em `docs/`.
 - [x] Criar ADR nova para a decisao mobile/web/admin como contrato arquitetural.
+- [x] Registrar `docs/VISAO_ATUAL_PRODUTO.md` no mapa DocDoc.
 
 ## Audits DocDoc
 
@@ -124,23 +127,23 @@ arquivo raiz isolado.
 | `docs/audits/README.md` | Atual | Indice vivo de auditorias, contratos e readiness. | Ler antes de usar auditorias antigas. |
 | `docs/audits/CODEBASE_SCAN_GAP_CHECKLIST_2026-06-01.md` | Atual | Checklist de gaps/dividas para ticagem. | Nao substitui codigo, migrations ou CI. |
 | `docs/audits/PMBOK_GAP_DEBT_CONTROL_PLAN_2026-06-01.md` | Atual | Plano PMBOK vivo para controlar gaps, dividas tecnicas, evidencias, aceite e sequenciamento de PRs. | Fonte operacional derivada da auditoria cruzada atual; nao pertence ao historico PM. |
-| `docs/audits/OWNER_ID_RETIREMENT_INVENTORY_2026-06-01.md` | Atual | Inventario atual do G-005 para planejar retirada futura de `owner_id`. | Mantem `owner_id` como aberto controlado; Admin/access-control, categorias, Pessoas/family_members, Bancos, Gastos, Contas a pagar e Contas a receber ja tem paths organization-first com owner legado transicional; write RLS dos dominios financeiros reduzidos valida owner legado da organizacao alvo; seed financeiro inicial e leituras legadas do facade financeiro usam `organization.owner_auth_user_id` mais `organization_id`; schema final segue transicional. |
-| `docs/audits/OWNER_ID_ACTIVE_CONSUMERS_2026-06-01.md` | Atual | Inventario dos consumidores ativos dos helpers owner-only. | Identifica Admin como excecao ativa, registra Categorias, Pessoas/family_members, Bancos, Gastos, Contas a pagar e Contas a receber como consumidores reduzidos para organization-first read/write, registra seed financeiro inicial e leituras legadas do facade financeiro com owner legado e `organization_id` da organizacao ativa, e bloqueia retorno das telas financeiras para helpers legados. |
-| `docs/audits/ADMIN_ACCESS_CONTROL_OWNER_ID_RETIREMENT_CONTRACT.md` | Atual como contrato com read/write/access-control admin organization-first | Contrato para retirar `owner_id` de Admin/access-control; read path em `lib/finance/admin-server.ts`, write path em `app/protected/admin/actions.ts` e access-control em `lib/finance/access-control.ts` ja usam organization-first, incluindo perfil/permissoes por organizacao ativa; payloads transicionais usam `organization.owner_auth_user_id`; `ADMIN_EMAIL` nao e mais gate runtime nesses helpers. | Consumidores restantes de `owner_id` e owner_id retirement seguem pendentes. |
-| `docs/audits/ADMIN_INVITATION_BOOTSTRAP_CONTRACT.md` | Atual como contrato com schema/preflight e runtime de bootstrap final | Contrato para substituir `ADMIN_EMAIL` por convite/admin por organizacao; `supabase/migrations/044_admin_invitations_schema.sql` cria armazenamento/RLS iniciais, `app/protected/admin/invitation-actions.ts` cobre criar, revogar, preparar reenvio e delivery compensatorio, `lib/admin-invitations/delivery.ts` cobre adapter server-only, `supabase/migrations/045_accept_admin_invitation_rpc.sql` + `supabase/migrations/047_accept_admin_invitation_profile_creation.sql` + `app/auth/convite/actions.ts` cobrem aceite/linking com profile antes de membership, `app/auth/convite/page.tsx` + `components/admin-invitation-acceptance-form.tsx` cobrem a UI de aceite, `supabase/migrations/046_admin_invitation_expiry_cleanup.sql` + `app/api/cron/admin-invitations/expire/route.ts` + `vercel.json` cobrem cron de expiracao, admin read/write/access-control ja esta organization-first, e `ADMIN_EMAIL` nao e mais gate runtime em `lib/finance/access-control.ts` ou `lib/finance/admin-server.ts`. | Owner_id retirement segue pendente. |
-| `docs/audits/ADMIN_INVITATION_DELIVERY_UI_CONTRACT.md` | Atual como contrato com delivery adapter, UI de aceite e cron de expiracao | Contrato para delivery server-only, UI de convite admin sem armazenar/logar/expor token bruto e cron service-role protegido por `CRON_SECRET`; aceite cria/linka profile antes de membership; gate runtime de `ADMIN_EMAIL` removido dos helpers server-side. | Owner_id retirement segue pendente; usar antes de qualquer troca de provider ou mudanca de tela `/auth/convite`. |
+| `docs/audits/OWNER_ID_RETIREMENT_INVENTORY_2026-06-01.md` | Atual | Inventario atual do G-005 para planejar retirada futura de `owner_id`. | Mantem `owner_id` como aberto controlado. |
+| `docs/audits/OWNER_ID_ACTIVE_CONSUMERS_2026-06-01.md` | Atual | Inventario dos consumidores ativos dos helpers owner-only. | Usar antes de reduzir consumidores restantes. |
+| `docs/audits/ADMIN_ACCESS_CONTROL_OWNER_ID_RETIREMENT_CONTRACT.md` | Atual como contrato com read/write/access-control admin organization-first | Contrato para retirar `owner_id` de Admin/access-control. | Consumidores restantes de `owner_id` seguem pendentes. |
+| `docs/audits/ADMIN_INVITATION_BOOTSTRAP_CONTRACT.md` | Atual como contrato com schema/preflight e runtime de bootstrap final | Contrato para substituir `ADMIN_EMAIL` por convite/admin por organizacao. | Owner_id retirement segue pendente. |
+| `docs/audits/ADMIN_INVITATION_DELIVERY_UI_CONTRACT.md` | Atual como contrato com delivery adapter, UI de aceite e cron de expiracao | Contrato para delivery server-only, UI de convite admin e cron protegido. | Usar antes de trocar provider ou tela `/auth/convite`. |
 | `docs/audits/SENSITIVE_OPERATION_CONTROLS_CONTRACT.md` | Atual | Contrato vigente do GAP-015. | Cruzar com `SAAS_GAP_REGISTER.md`. |
 | `docs/audits/SENSITIVE_OPERATION_RATE_LIMIT_PLAN.md` | Atual como plano/registro | Plano do runtime de rate limit. | O contrato central define a leitura consolidada. |
 | `docs/audits/SENSITIVE_ACTION_AUDIT_EVENT_SCHEMA_PLAN.md` | Atual como plano/registro | Plano de audit events e write boundary. | Confirmar migrations atuais antes de operar. |
 | `docs/audits/SENSITIVE_DATA_RETENTION_PLAN.md` | Atual como plano | Plano de retention. | Nao prova cleanup automatizado amplo. |
 | `docs/audits/BILLING_WEBHOOK_RUNTIME_CONTRACT.md` | Atual como contrato pre-runtime | Requisitos do futuro webhook Stripe. | Webhook segue bloqueado ate evidencia real de checkout e portal. |
-| `docs/audits/CLIENT_STATE_STRATEGY_CONTRACT.md` | Atual | Contrato vigente do GAP-019 para estado local, URL state, Server Actions, TanStack table e stores futuras. | Nao implementa runtime nem adiciona dependencia. |
-| `docs/audits/DASHBOARD_VISUALIZATION_CONTRACT.md` | Atual | Contrato vigente do GAP-018 para graficos, series temporais e insights do dashboard. | Nao implementa runtime nem adiciona dependencia. |
+| `docs/audits/CLIENT_STATE_STRATEGY_CONTRACT.md` | Atual | Contrato vigente do GAP-019. | Nao implementa runtime nem adiciona dependencia. |
+| `docs/audits/DASHBOARD_VISUALIZATION_CONTRACT.md` | Atual | Contrato vigente do GAP-018. | Nao implementa runtime nem adiciona dependencia. |
 | `docs/audits/DASHBOARD_UI_CONTRACT.md` | Atual | Contrato textual do dashboard. | Complementa guards, nao substitui teste visual. |
 | `docs/audits/FINANCE_LIST_UI_CONTRACT.md` | Atual | Contrato textual das listas financeiras. | Complementa guards e permissao. |
 | `docs/audits/FINANCE_FORM_UI_CONTRACT.md` | Atual | Contrato textual dos formularios financeiros. | Complementa server actions e RLS. |
 | `docs/audits/SELECTIVE_VISUAL_SNAPSHOT_STRATEGY.md` | Atual | Estrategia de snapshot seletivo. | Evita snapshot amplo sem contrato. |
-| `docs/audits/DASHBOARD_SUMMARY_VISUAL_FIXTURE.md` | Atual | Contrato e evidencia do primeiro snapshot visual seletivo. | Baseline restrito ao dashboard summary acima da dobra. |
+| `docs/audits/DASHBOARD_SUMMARY_VISUAL_FIXTURE.md` | Atual | Contrato e evidencia do primeiro snapshot visual seletivo. | Baseline restrito ao dashboard summary. |
 | `docs/audits/ORGANIZATION_SCOPE_HARDENING_PLAN.md` | Parcialmente superado | Historico/controle do hardening `organization_id`. | Estado atual fica em migrations e `VALIDACAO_TECNICA.md`. |
 | `docs/audits/LEGACY_ORGANIZATION_FALLBACK_REMOVAL_READINESS.md` | Parcialmente superado | Historico/controle da remocao de fallback legado. | Revalidar codigo antes de abrir novo PR baseado nele. |
 | `docs/audits/*_ORGANIZATION_SCOPE_READINESS.md` | Parcialmente superado | Readiness por tabela. | Usar como contexto, nao como estado atual isolado. |
@@ -152,9 +155,9 @@ arquivo raiz isolado.
 | --- | --- | --- | --- |
 | `docs/runbooks/README.md` | Atual | Indice vivo dos runbooks. | Ler antes de executar qualquer runbook antigo. |
 | `docs/runbooks/BILLING_STRIPE_TEST_ACCOUNT_RUNBOOK.md` | Atual | Runbook operacional para evidencia real de checkout e portal Stripe em teste. | Continua bloqueando webhook runtime ate evidencia real existir. |
-| `docs/runbooks/LEGACY_ORGANIZATION_BACKFILL_RUNBOOK.md` | Parcialmente superado | Historico do processo seguro de backfill legado. | Nao usar as fases antigas como estado atual sem conferir migrations `020` a `043`. |
-| `docs/runbooks/*_ORG_SCOPE_HARDENING.md` | Parcialmente superado/historico | Contexto e rollback das migrations de hardening. | Todos possuem nota DocDoc; confirmar estado atual em `VALIDACAO_TECNICA.md` e no banco alvo. |
-| `docs/runbooks/*_RLS_FALLBACK_REMOVAL.md` | Parcialmente superado/historico | Contexto e rollback das migrations de fallback removal. | Todos possuem nota DocDoc; confirmar migrations e politicas atuais antes de executar SQL. |
+| `docs/runbooks/LEGACY_ORGANIZATION_BACKFILL_RUNBOOK.md` | Parcialmente superado | Historico do processo seguro de backfill legado. | Nao usar as fases antigas como estado atual sem conferir migrations. |
+| `docs/runbooks/*_ORG_SCOPE_HARDENING.md` | Parcialmente superado/historico | Contexto e rollback das migrations de hardening. | Todos possuem nota DocDoc. |
+| `docs/runbooks/*_RLS_FALLBACK_REMOVAL.md` | Parcialmente superado/historico | Contexto e rollback das migrations de fallback removal. | Todos possuem nota DocDoc. |
 
 ## Audits DocDoc - contratos de produto
 
