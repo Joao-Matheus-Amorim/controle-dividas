@@ -67,10 +67,15 @@ deploy para evitar `Unregistered API key`.
 Variaveis do smoke pos-deploy:
 
 ```env
-PRODUCTION_APP_URL=URL_PUBLICA_DO_DEPLOY
+PLAYWRIGHT_BASE_URL=URL_PUBLICA_DO_DEPLOY
 E2E_POST_DEPLOY_EMAIL=EMAIL_DE_USUARIO_COM_ORGANIZACAO_ATIVA
 E2E_POST_DEPLOY_PASSWORD=SENHA_DO_USUARIO_DE_SMOKE
 ```
+
+Observacao: no workflow `.github/workflows/post-deploy-smoke.yml`,
+`PRODUCTION_APP_URL`/`NEXT_PUBLIC_APP_URL` e mapeado para
+`PLAYWRIGHT_BASE_URL`. Fora do workflow, exportar `PLAYWRIGHT_BASE_URL`
+diretamente; `playwright.config.ts` nao le `PRODUCTION_APP_URL`.
 
 ## Validacao tecnica minima
 
@@ -83,18 +88,28 @@ npx vitest run __tests__/unit/owner-id-active-consumers-guards.test.ts __tests__
 Smoke pos-deploy com usuario real de teste:
 
 ```bash
-PLAYWRIGHT_SKIP_WEB_SERVER=true RUN_POST_DEPLOY_SMOKE_E2E=true npm run test:e2e -- tests/e2e/post-deploy-protected-smoke-gated.spec.ts
+PLAYWRIGHT_BASE_URL="$PLAYWRIGHT_BASE_URL" PLAYWRIGHT_SKIP_WEB_SERVER=true RUN_POST_DEPLOY_SMOKE_E2E=true npm run test:e2e -- tests/e2e/post-deploy-protected-smoke-gated.spec.ts
 ```
 
 Se o ambiente permitir validar criacao de dados, usar apenas specs
 data-changing gated com cleanup:
 
+```env
+PLAYWRIGHT_BASE_URL=URL_PUBLICA_DO_DEPLOY
+PLAYWRIGHT_SKIP_WEB_SERVER=true
+RUN_DATA_CHANGING_E2E=true
+E2E_DATA_CHANGING_EMAIL=EMAIL_DE_USUARIO_ISOLADO_COM_ORGANIZACAO_ATIVA
+E2E_DATA_CHANGING_PASSWORD=SENHA_DO_USUARIO_ISOLADO
+NEXT_PUBLIC_SUPABASE_URL=URL_DO_SUPABASE_DO_AMBIENTE
+SUPABASE_SERVICE_ROLE_KEY=SERVICE_ROLE_KEY_DO_MESMO_AMBIENTE
+```
+
 ```bash
-npm run test:e2e -- tests/e2e/create-family-member-data-changing-gated.spec.ts
-npm run test:e2e -- tests/e2e/create-expense-data-changing-gated.spec.ts
-npm run test:e2e -- tests/e2e/create-payable-data-changing-gated.spec.ts
-npm run test:e2e -- tests/e2e/create-receivable-data-changing-gated.spec.ts
-npm run test:e2e -- tests/e2e/create-bk-account-data-changing-gated.spec.ts
+PLAYWRIGHT_BASE_URL="$PLAYWRIGHT_BASE_URL" PLAYWRIGHT_SKIP_WEB_SERVER=true RUN_DATA_CHANGING_E2E=true npm run test:e2e -- tests/e2e/create-family-member-data-changing-gated.spec.ts
+PLAYWRIGHT_BASE_URL="$PLAYWRIGHT_BASE_URL" PLAYWRIGHT_SKIP_WEB_SERVER=true RUN_DATA_CHANGING_E2E=true npm run test:e2e -- tests/e2e/create-expense-data-changing-gated.spec.ts
+PLAYWRIGHT_BASE_URL="$PLAYWRIGHT_BASE_URL" PLAYWRIGHT_SKIP_WEB_SERVER=true RUN_DATA_CHANGING_E2E=true npm run test:e2e -- tests/e2e/create-payable-data-changing-gated.spec.ts
+PLAYWRIGHT_BASE_URL="$PLAYWRIGHT_BASE_URL" PLAYWRIGHT_SKIP_WEB_SERVER=true RUN_DATA_CHANGING_E2E=true npm run test:e2e -- tests/e2e/create-receivable-data-changing-gated.spec.ts
+PLAYWRIGHT_BASE_URL="$PLAYWRIGHT_BASE_URL" PLAYWRIGHT_SKIP_WEB_SERVER=true RUN_DATA_CHANGING_E2E=true npm run test:e2e -- tests/e2e/create-bk-account-data-changing-gated.spec.ts
 ```
 
 Nao rodar specs data-changing contra producao real sem cleanup, usuario de

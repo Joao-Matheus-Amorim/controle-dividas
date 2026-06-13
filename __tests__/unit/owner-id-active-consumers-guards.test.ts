@@ -97,6 +97,12 @@ describe("owner_id active consumers inventory guards", () => {
     expect(betaRunbook).toContain("nao fazer neste ciclo");
     expect(betaRunbook).toContain("remover coluna `owner_id`");
     expect(betaRunbook).toContain("run_post_deploy_smoke_e2e=true");
+    expect(betaRunbook).toContain("playwright_base_url=url_publica_do_deploy");
+    expect(betaRunbook).toContain("playwright.config.ts");
+    expect(betaRunbook).toContain("production_app_url");
+    expect(betaRunbook).toContain("run_data_changing_e2e=true");
+    expect(betaRunbook).toContain("e2e_data_changing_email");
+    expect(betaRunbook).toContain("supabase_service_role_key");
     expect(runbooksReadme).toContain("beta_client_validation_runbook.md");
     expect(statusMap).toContain("docs/runbooks/beta_client_validation_runbook.md");
   });

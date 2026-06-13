@@ -34,4 +34,14 @@ describe("runtime env policy guards", () => {
     expect(source).toContain("assertRuntimeEnvForProxy();");
     expect(source).toContain("Local development may run before Supabase env vars are configured.");
   });
+
+  it("keeps metadata base configurable without a hardcoded production URL", () => {
+    const source = readSource("app/layout.tsx");
+
+    expect(source).toContain("process.env.NEXT_PUBLIC_APP_URL?.trim()");
+    expect(source).toContain("process.env.VERCEL_URL");
+    expect(source).toContain('"http://localhost:3000"');
+    expect(source).not.toContain("controle-dividas-seven.vercel.app");
+    expect(source).not.toContain("controle-dividas-7dcg.vercel.app");
+  });
 });
