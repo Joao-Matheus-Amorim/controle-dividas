@@ -1,7 +1,7 @@
 import "server-only";
 
 import { getAccessibleMemberIds } from "@/lib/finance/access-control";
-import type { DbFamilyMember, DbPayableBill } from "@/lib/finance/server";
+import type { DbFamilyMember, DbPayableBill } from "@/lib/finance/types";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { createClient } from "@/lib/supabase/server";
 

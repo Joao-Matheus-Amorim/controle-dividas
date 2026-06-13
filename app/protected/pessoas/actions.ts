@@ -14,7 +14,7 @@ import {
   familyMemberUpdateRateLimit,
   recordFamilyMemberWriteAuditEvent,
 } from "@/lib/finance/member-write-controls";
-import type { FamilyMemberFormState } from "@/lib/finance/server";
+import type { FamilyMemberFormState } from "@/lib/finance/types";
 import { revalidateOrganizationPaths } from "@/lib/organizations/revalidation";
 import { requireOrganizationAdmin } from "@/lib/organizations/server";
 import { checkSensitiveOperationRateLimit } from "@/lib/security/sensitive-rate-limit";

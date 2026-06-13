@@ -154,6 +154,7 @@ arquivo raiz isolado.
 | Documento | Status DocDoc | Uso seguro | Observacao |
 | --- | --- | --- | --- |
 | `docs/runbooks/README.md` | Atual | Indice vivo dos runbooks. | Ler antes de executar qualquer runbook antigo. |
+| `docs/runbooks/BETA_CLIENT_VALIDATION_RUNBOOK.md` | Atual | Runbook operacional para liberar teste beta com usuario real de smoke. | Mantem `owner_id` como legado transicional e separa validacao funcional de schema final, RLS, billing e redesign amplo. |
 | `docs/runbooks/BILLING_STRIPE_TEST_ACCOUNT_RUNBOOK.md` | Atual | Runbook operacional para evidencia real de checkout e portal Stripe em teste. | Continua bloqueando webhook runtime ate evidencia real existir. |
 | `docs/runbooks/LEGACY_ORGANIZATION_BACKFILL_RUNBOOK.md` | Parcialmente superado | Historico do processo seguro de backfill legado. | Nao usar as fases antigas como estado atual sem conferir migrations. |
 | `docs/runbooks/*_ORG_SCOPE_HARDENING.md` | Parcialmente superado/historico | Contexto e rollback das migrations de hardening. | Todos possuem nota DocDoc. |

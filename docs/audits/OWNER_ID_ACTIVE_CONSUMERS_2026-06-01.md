@@ -40,6 +40,7 @@ rg -n 'get.*ByOwner|FromClient|get.*DashboardData|seedInitialFinanceDataForOwner
 | Seeds/bootstrap | `lib/finance/server.ts` chama `seedInitialFinanceDataForOwner` | ativo na criacao inicial, mas grava o `owner_id` legado a partir de `organization.owner_auth_user_id` da organizacao ativa; as leituras legadas do mesmo facade filtram pelo mesmo owner legado e pelo `organization_id` da organizacao ativa | manter ate schema final |
 | Facade legado | `lib/finance/server.ts` exporta agregadores owner-based | sem consumidor direto nas protected pages migradas; os helpers legados de membros, categorias, bancos, gastos, contas-a-pagar e contas-a-receber filtram por owner legado da organizacao ativa mais `organization_id` | nao remover sem inventario de imports externo |
 | Reports legado | `lib/finance/reports-server.ts` agrega helpers owner-based | sem consumidor direto nas protected pages migradas | manter bloqueado por guard |
+| Tipos compartilhados | `app/protected/*/actions.ts` e `lib/organizations/*` | acoplamento nominal aos helpers owner-only removido; tipos compartilhados importam de `lib/finance/types.ts` | manter guard para nao voltar a importar `lib/finance/server.ts`, `lib/finance/banks-server.ts` ou `lib/finance/reports-server.ts` |
 
 ## 4. Decisao
 
@@ -63,6 +64,10 @@ Essa excecao nao libera outras importacoes legadas nas paginas admin. As paginas
 `features/protected-pages/admin*.tsx` tambem devem continuar bloqueadas contra
 `lib/finance/server.ts`, `lib/finance/banks-server.ts` e
 `lib/finance/reports-server.ts`.
+
+Helpers `lib/organizations/*` e actions financeiras em `app/protected/*/actions.ts`
+tambem devem importar tipos compartilhados de `lib/finance/types.ts`, nao dos
+helpers owner-only legados.
 
 ## 5. Estado do contrato admin/access-control
 

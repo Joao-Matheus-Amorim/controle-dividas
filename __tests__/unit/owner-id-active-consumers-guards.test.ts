@@ -13,8 +13,26 @@ function read(path: string) {
 describe("owner_id active consumers inventory guards", () => {
   const inventory = read("docs/audits/OWNER_ID_ACTIVE_CONSUMERS_2026-06-01.md");
   const retirement = read("docs/audits/OWNER_ID_RETIREMENT_INVENTORY_2026-06-01.md");
+  const betaRunbook = read("docs/runbooks/BETA_CLIENT_VALIDATION_RUNBOOK.md");
+  const runbooksReadme = read("docs/runbooks/README.md");
   const auditsReadme = read("docs/audits/README.md");
   const statusMap = read("docs/DOCUMENTATION_STATUS.md");
+  const organizationHelpers = [
+    "lib/organizations/banks.ts",
+    "lib/organizations/categories.ts",
+    "lib/organizations/expenses.ts",
+    "lib/organizations/payables.ts",
+    "lib/organizations/people.ts",
+    "lib/organizations/receivables.ts",
+  ];
+  const financeActions = [
+    "app/protected/bancos/actions.ts",
+    "app/protected/configuracoes/actions.ts",
+    "app/protected/contas-a-pagar/actions.ts",
+    "app/protected/contas-a-receber/actions.ts",
+    "app/protected/gastos/actions.ts",
+    "app/protected/pessoas/actions.ts",
+  ];
 
   it("records Admin as the active owner-based runtime exception", () => {
     expect(inventory).toContain("admin usa `lib/finance/admin-server.ts`");
@@ -55,10 +73,31 @@ describe("owner_id active consumers inventory guards", () => {
     }
   });
 
+  it("keeps organization helpers and finance actions away from legacy owner-only type imports", () => {
+    for (const path of [...organizationHelpers, ...financeActions]) {
+      const source = read(path);
+
+      expect(source).not.toContain("@/lib/finance/server");
+      expect(source).not.toContain("@/lib/finance/banks-server");
+      expect(source).not.toContain("@/lib/finance/reports-server");
+    }
+  });
+
   it("registers the active-consumer inventory in live DocDoc indexes", () => {
     expect(inventory).toContain("status docdoc: atual");
     expect(retirement).toContain("owner_id_active_consumers_2026-06-01.md");
     expect(auditsReadme).toContain("owner_id_active_consumers_2026-06-01.md");
     expect(statusMap).toContain("owner_id_active_consumers_2026-06-01.md");
+  });
+
+  it("keeps beta validation separate from owner_id schema retirement", () => {
+    expect(betaRunbook).toContain("status docdoc: atual");
+    expect(betaRunbook).toContain("runtime por organization_id + memberships + permissoes");
+    expect(betaRunbook).toContain("owner_id apenas como compatibilidade");
+    expect(betaRunbook).toContain("nao fazer neste ciclo");
+    expect(betaRunbook).toContain("remover coluna `owner_id`");
+    expect(betaRunbook).toContain("run_post_deploy_smoke_e2e=true");
+    expect(runbooksReadme).toContain("beta_client_validation_runbook.md");
+    expect(statusMap).toContain("docs/runbooks/beta_client_validation_runbook.md");
   });
 });
