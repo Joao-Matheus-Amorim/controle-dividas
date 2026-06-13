@@ -156,16 +156,23 @@ Regras de deploy:
 Gate manual de smoke pos-deploy:
 
 ```env
-PRODUCTION_APP_URL=URL_PUBLICA_DO_DEPLOY
+PLAYWRIGHT_BASE_URL=URL_PUBLICA_DO_DEPLOY
 E2E_POST_DEPLOY_EMAIL=EMAIL_DE_USUARIO_COM_ORGANIZACAO_ATIVA
 E2E_POST_DEPLOY_PASSWORD=SENHA_DO_USUARIO_DE_SMOKE
 ```
+
+No workflow `.github/workflows/post-deploy-smoke.yml`,
+`PRODUCTION_APP_URL`/`NEXT_PUBLIC_APP_URL` e mapeado para
+`PLAYWRIGHT_BASE_URL`. Em execucao manual fora do workflow, exportar
+`PLAYWRIGHT_BASE_URL` diretamente; `playwright.config.ts` nao le
+`PRODUCTION_APP_URL`.
 
 Regras do smoke pos-deploy:
 
 - workflow: `.github/workflows/post-deploy-smoke.yml`;
 - spec: `tests/e2e/post-deploy-protected-smoke-gated.spec.ts`;
 - usa `PLAYWRIGHT_SKIP_WEB_SERVER=true` para testar a URL real em vez de subir servidor local;
+- exige `PLAYWRIGHT_BASE_URL` quando executado manualmente fora do workflow;
 - valida `/protected`, `/protected/gastos`, `/protected/contas-a-pagar`, `/protected/contas-a-receber`, `/protected/bancos` e `/protected/configuracoes`;
 - evidencia so existe apos execucao manual verde e artifact do Playwright.
 

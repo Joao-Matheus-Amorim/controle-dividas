@@ -143,6 +143,7 @@ Required workflow inputs/secrets:
 
 ```txt
 workflow input deployment_url or repository variable PRODUCTION_APP_URL/NEXT_PUBLIC_APP_URL
+manual run PLAYWRIGHT_BASE_URL
 E2E_POST_DEPLOY_EMAIL
 E2E_POST_DEPLOY_PASSWORD
 ```
