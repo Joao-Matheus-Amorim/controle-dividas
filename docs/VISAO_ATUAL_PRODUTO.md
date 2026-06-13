@@ -1,10 +1,8 @@
 # Visao Atual do Produto - FamilyFinance / Controle de Dividas
 
-> Status: visao de produto e decisao operacional atual.
->
-> Objetivo: servir como norte pratico para fechar o projeto como produto usavel antes de expandir novas frentes tecnicas.
->
-> Regra principal: a fundacao SaaS ja existe; agora a prioridade e transformar o sistema em uma experiencia que uma familia ou organizacao consiga usar todos os dias sem explicacao externa.
+> Status DocDoc: Atual como visao de produto operacional
+> Uso atual: norte pratico para fechar o projeto como produto usavel antes de expandir novas frentes tecnicas.
+> Observacao: este documento orienta foco de produto; nao substitui `docs/VALIDACAO_TECNICA.md`, `docs/SAAS_GAP_REGISTER.md`, ADRs ou contratos tecnicos.
 
 ---
 
