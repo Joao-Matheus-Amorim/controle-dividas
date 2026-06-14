@@ -59,7 +59,7 @@ export async function ContasAReceberPage({ orgSlug }: ContasAReceberPageProps = 
         totalVariable={totalVariable}
       />
 
-      <ReceivableCreateSection canCreate={canCreate} members={members} />
+      <ReceivableCreateSection canCreate={canCreate} members={members} orgSlug={orgSlug} />
 
       <ReceivableList
         incomes={incomes}

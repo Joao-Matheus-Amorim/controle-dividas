@@ -82,7 +82,7 @@ export async function ContasAPagarPage({ searchParams, orgSlug }: ContasAPagarPa
         fixedCount={fixedCount}
       />
 
-      <PayableCreateSection canCreate={canCreate} members={members} />
+      <PayableCreateSection canCreate={canCreate} members={members} orgSlug={orgSlug} />
 
       <PayableList
         bills={bills}

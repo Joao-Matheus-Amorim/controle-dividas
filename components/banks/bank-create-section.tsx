@@ -1,23 +1,30 @@
 import { BankAccountFormDialog } from "@/components/finance/bank-account-form-dialog";
+import { FinanceCreateCard } from "@/components/finance/finance-create-card";
 import type { DbFamilyMember } from "@/lib/finance/types";
+import { getOrgPathFromProtectedPath } from "@/lib/organizations/paths";
 
 interface BankCreateSectionProps {
   canCreate: boolean;
   members: DbFamilyMember[];
+  orgSlug?: string;
 }
 
-export function BankCreateSection({ canCreate, members }: BankCreateSectionProps) {
+export function BankCreateSection({
+  canCreate,
+  members,
+  orgSlug,
+}: BankCreateSectionProps) {
   if (!canCreate) return null;
 
   return (
-    <section className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/25">Novo banco</p>
-          <p className="mt-1 text-sm text-white/40">Cadastre contas e saldos sem poluir a tela principal.</p>
-        </div>
-        <BankAccountFormDialog members={members} />
-      </div>
-    </section>
+    <FinanceCreateCard
+      eyebrow="Novo banco"
+      title="Pessoa obrigatoria para bancos"
+      description="Cadastre contas, cartoes e saldos vinculados ao escopo da familia."
+      memberCount={members.length}
+      peopleHref={getOrgPathFromProtectedPath("/protected/pessoas", orgSlug)}
+    >
+      <BankAccountFormDialog members={members} />
+    </FinanceCreateCard>
   );
 }

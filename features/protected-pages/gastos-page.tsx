@@ -125,6 +125,7 @@ export async function GastosPage({ searchParams, orgSlug }: GastosPageProps) {
         canCreate={canCreate}
         members={members}
         categories={categories}
+        orgSlug={orgSlug}
       />
 
       <ExpenseFilterBar

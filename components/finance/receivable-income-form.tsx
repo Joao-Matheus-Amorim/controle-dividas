@@ -4,6 +4,15 @@ import { useActionState } from "react";
 
 import { createReceivableIncome, updateReceivableIncome } from "@/app/protected/contas-a-receber/actions";
 import { AppActionFeedback } from "@/components/app/app-action-feedback";
+import {
+  financeFieldClass,
+  financeFormClass,
+  financeGridFourClass,
+  financeGridThreeClass,
+  financeNativeSelectClass,
+  financeSubmitBarClass,
+  financeSubmitButtonClass,
+} from "@/components/finance/finance-form-ui";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -41,17 +50,17 @@ export function ReceivableIncomeForm({ members, income, mode = "create" }: Recei
   const isEditing = mode === "edit" && Boolean(income);
 
   return (
-    <form action={formAction} className="space-y-5">
+    <form action={formAction} className={financeFormClass}>
       {income ? <input type="hidden" name="id" value={income.id} /> : null}
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <div className="space-y-2">
+      <div className={financeGridFourClass}>
+        <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `receiver_member_id-${income?.id}` : "receiver_member_id"}>Pessoa que vai receber</Label>
           <select
             id={isEditing ? `receiver_member_id-${income?.id}` : "receiver_member_id"}
             name="receiver_member_id"
             defaultValue={income?.receiver_member_id ?? ""}
-            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            className={financeNativeSelectClass}
           >
             <option value="">Sem pessoa vinculada</option>
             {members.map((member) => (
@@ -62,14 +71,14 @@ export function ReceivableIncomeForm({ members, income, mode = "create" }: Recei
           </select>
         </div>
 
-        <div className="space-y-2">
+        <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `source-${income?.id}` : "source"}>Origem do dinheiro</Label>
           <select
             id={isEditing ? `source-${income?.id}` : "source"}
             name="source"
             defaultValue={income?.source ?? ""}
             required
-            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            className={financeNativeSelectClass}
           >
             <option value="">Selecione</option>
             {incomeSources.map((source) => (
@@ -80,7 +89,7 @@ export function ReceivableIncomeForm({ members, income, mode = "create" }: Recei
           </select>
         </div>
 
-        <div className="space-y-2">
+        <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `income_type-${income?.id}` : "income_type"}>Tipo de renda</Label>
           <Select name="income_type" defaultValue={income?.income_type ?? "fixa"}>
             <SelectTrigger id={isEditing ? `income_type-${income?.id}` : "income_type"}>
@@ -93,7 +102,7 @@ export function ReceivableIncomeForm({ members, income, mode = "create" }: Recei
           </Select>
         </div>
 
-        <div className="space-y-2">
+        <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `amount-${income?.id}` : "amount"}>Valor em euro</Label>
           <Input
             id={isEditing ? `amount-${income?.id}` : "amount"}
@@ -108,8 +117,8 @@ export function ReceivableIncomeForm({ members, income, mode = "create" }: Recei
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <div className="space-y-2">
+      <div className={financeGridThreeClass}>
+        <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `expected_date-${income?.id}` : "expected_date"}>Data prevista</Label>
           <Input
             id={isEditing ? `expected_date-${income?.id}` : "expected_date"}
@@ -120,7 +129,7 @@ export function ReceivableIncomeForm({ members, income, mode = "create" }: Recei
           />
         </div>
 
-        <div className="space-y-2">
+        <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `status-${income?.id}` : "status"}>Status</Label>
           <Select name="status" defaultValue={income?.status ?? "previsto"}>
             <SelectTrigger id={isEditing ? `status-${income?.id}` : "status"}>
@@ -134,7 +143,7 @@ export function ReceivableIncomeForm({ members, income, mode = "create" }: Recei
           </Select>
         </div>
 
-        <div className="space-y-2">
+        <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `receiving_bank-${income?.id}` : "receiving_bank"}>Banco de recebimento</Label>
           <Input
             id={isEditing ? `receiving_bank-${income?.id}` : "receiving_bank"}
@@ -145,7 +154,7 @@ export function ReceivableIncomeForm({ members, income, mode = "create" }: Recei
         </div>
       </div>
 
-      <div className="space-y-2">
+      <div className={financeFieldClass}>
         <Label htmlFor={isEditing ? `notes-${income?.id}` : "notes"}>Observacao</Label>
         <Input
           id={isEditing ? `notes-${income?.id}` : "notes"}
@@ -157,9 +166,11 @@ export function ReceivableIncomeForm({ members, income, mode = "create" }: Recei
 
       <AppActionFeedback error={state.error} success={state.success} />
 
-      <Button type="submit" disabled={isPending}>
-        {isPending ? "Salvando..." : isEditing ? "Salvar alteracoes" : "Cadastrar recebimento"}
-      </Button>
+      <div className={financeSubmitBarClass}>
+        <Button type="submit" disabled={isPending} className={financeSubmitButtonClass}>
+          {isPending ? "Salvando..." : isEditing ? "Salvar alteracoes" : "Cadastrar recebimento"}
+        </Button>
+      </div>
     </form>
   );
 }

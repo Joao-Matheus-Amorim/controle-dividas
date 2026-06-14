@@ -1,9 +1,18 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 
 import { createBankAccount, updateBankAccount } from "@/app/protected/bancos/actions";
 import { AppActionFeedback } from "@/components/app/app-action-feedback";
+import {
+  financeFieldClass,
+  financeFormClass,
+  financeGridFourClass,
+  financeGridTwoClass,
+  financeNativeSelectClass,
+  financeSubmitBarClass,
+  financeSubmitButtonClass,
+} from "@/components/finance/finance-form-ui";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,20 +48,20 @@ export function BankAccountForm({ members, account, mode = "create" }: BankAccou
   const action = mode === "edit" ? updateBankAccount : createBankAccount;
   const [state, formAction, isPending] = useActionState(action, initialState);
   const isEditing = mode === "edit" && Boolean(account);
-  const accountTypeValue = account?.account_type ?? emptyAccountTypeValue;
+  const [accountTypeValue, setAccountTypeValue] = useState(account?.account_type ?? emptyAccountTypeValue);
 
   return (
-    <form action={formAction} className="space-y-5">
+    <form action={formAction} className={financeFormClass}>
       {account ? <input type="hidden" name="id" value={account.id} /> : null}
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <div className="space-y-2">
+      <div className={financeGridFourClass}>
+        <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `family_member_id-${account?.id}` : "family_member_id"}>Pessoa vinculada</Label>
           <select
             id={isEditing ? `family_member_id-${account?.id}` : "family_member_id"}
             name="family_member_id"
             defaultValue={account?.family_member_id ?? ""}
-            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            className={financeNativeSelectClass}
           >
             <option value="">Sem pessoa vinculada</option>
             {members.map((member) => (
@@ -63,7 +72,7 @@ export function BankAccountForm({ members, account, mode = "create" }: BankAccou
           </select>
         </div>
 
-        <div className="space-y-2">
+        <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `bank_name-${account?.id}` : "bank_name"}>Nome do banco</Label>
           <Input
             id={isEditing ? `bank_name-${account?.id}` : "bank_name"}
@@ -74,9 +83,9 @@ export function BankAccountForm({ members, account, mode = "create" }: BankAccou
           />
         </div>
 
-        <div className="space-y-2">
+        <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `account_type-${account?.id}` : "account_type"}>Tipo de conta</Label>
-          <Select name="account_type_select" defaultValue={accountTypeValue}>
+          <Select value={accountTypeValue} onValueChange={setAccountTypeValue}>
             <SelectTrigger id={isEditing ? `account_type-${account?.id}` : "account_type"}>
               <SelectValue placeholder="Tipo de conta" />
             </SelectTrigger>
@@ -92,7 +101,7 @@ export function BankAccountForm({ members, account, mode = "create" }: BankAccou
           <input type="hidden" name="account_type" value={accountTypeValue === emptyAccountTypeValue ? "" : accountTypeValue} />
         </div>
 
-        <div className="space-y-2">
+        <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `current_balance-${account?.id}` : "current_balance"}>Saldo atual</Label>
           <Input
             id={isEditing ? `current_balance-${account?.id}` : "current_balance"}
@@ -106,8 +115,8 @@ export function BankAccountForm({ members, account, mode = "create" }: BankAccou
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-2">
+      <div className={financeGridTwoClass}>
+        <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `currency-${account?.id}` : "currency"}>Moeda</Label>
           <Input
             id={isEditing ? `currency-${account?.id}` : "currency"}
@@ -116,7 +125,7 @@ export function BankAccountForm({ members, account, mode = "create" }: BankAccou
           />
         </div>
 
-        <div className="space-y-2">
+        <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `notes-${account?.id}` : "notes"}>Observacao</Label>
           <Input
             id={isEditing ? `notes-${account?.id}` : "notes"}
@@ -129,9 +138,11 @@ export function BankAccountForm({ members, account, mode = "create" }: BankAccou
 
       <AppActionFeedback error={state.error} success={state.success} />
 
-      <Button type="submit" disabled={isPending}>
-        {isPending ? "Salvando..." : isEditing ? "Salvar alteracoes" : "Cadastrar banco"}
-      </Button>
+      <div className={financeSubmitBarClass}>
+        <Button type="submit" disabled={isPending} className={financeSubmitButtonClass}>
+          {isPending ? "Salvando..." : isEditing ? "Salvar alteracoes" : "Cadastrar banco"}
+        </Button>
+      </div>
     </form>
   );
 }

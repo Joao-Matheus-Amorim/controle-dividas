@@ -4,6 +4,14 @@ import { useActionState, useState } from "react";
 
 import { createPayableBill, updatePayableBill } from "@/app/protected/contas-a-pagar/actions";
 import { AppActionFeedback } from "@/components/app/app-action-feedback";
+import {
+  financeFieldClass,
+  financeFormClass,
+  financeGridFourClass,
+  financeNativeSelectClass,
+  financeSubmitBarClass,
+  financeSubmitButtonClass,
+} from "@/components/finance/finance-form-ui";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,7 +46,7 @@ export function PayableBillForm({ members, bill, mode = "create" }: PayableBillF
   const isEditing = mode === "edit" && Boolean(bill);
 
   return (
-    <form action={formAction} className="space-y-5">
+    <form action={formAction} className={financeFormClass}>
       {bill ? <input type="hidden" name="id" value={bill.id} /> : null}
 
       <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-3">
@@ -72,8 +80,8 @@ export function PayableBillForm({ members, bill, mode = "create" }: PayableBillF
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <div className="space-y-2">
+      <div className={financeGridFourClass}>
+        <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `name-${bill?.id}` : "name"}>Nome da conta/divida</Label>
           <Input
             id={isEditing ? `name-${bill?.id}` : "name"}
@@ -84,13 +92,13 @@ export function PayableBillForm({ members, bill, mode = "create" }: PayableBillF
           />
         </div>
 
-        <div className="space-y-2">
+        <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `category-${bill?.id}` : "category"}>Categoria</Label>
           <select
             id={isEditing ? `category-${bill?.id}` : "category"}
             name="category"
             defaultValue={bill?.category ?? ""}
-            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            className={financeNativeSelectClass}
           >
             <option value="">Selecione</option>
             {categories.map((category) => (
@@ -101,7 +109,7 @@ export function PayableBillForm({ members, bill, mode = "create" }: PayableBillF
           </select>
         </div>
 
-        <div className="space-y-2">
+        <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `amount-${bill?.id}` : "amount"}>Valor em euro</Label>
           <Input
             id={isEditing ? `amount-${bill?.id}` : "amount"}
@@ -115,7 +123,7 @@ export function PayableBillForm({ members, bill, mode = "create" }: PayableBillF
           />
         </div>
 
-        <div className="space-y-2">
+        <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `due_date-${bill?.id}` : "due_date"}>Vencimento</Label>
           <Input
             id={isEditing ? `due_date-${bill?.id}` : "due_date"}
@@ -127,14 +135,14 @@ export function PayableBillForm({ members, bill, mode = "create" }: PayableBillF
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <div className="space-y-2">
+      <div className={financeGridFourClass}>
+        <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `responsible_member_id-${bill?.id}` : "responsible_member_id"}>Responsavel</Label>
           <select
             id={isEditing ? `responsible_member_id-${bill?.id}` : "responsible_member_id"}
             name="responsible_member_id"
             defaultValue={bill?.responsible_member_id ?? ""}
-            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            className={financeNativeSelectClass}
           >
             <option value="">Sem responsavel</option>
             {members.map((member) => (
@@ -145,13 +153,13 @@ export function PayableBillForm({ members, bill, mode = "create" }: PayableBillF
           </select>
         </div>
 
-        <div className="space-y-2">
+        <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `status-${bill?.id}` : "status"}>Status</Label>
           <select
             id={isEditing ? `status-${bill?.id}` : "status"}
             name="status"
             defaultValue={bill?.status ?? "pendente"}
-            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            className={financeNativeSelectClass}
           >
             <option value="pendente">Pendente</option>
             <option value="pago">Pago</option>
@@ -159,7 +167,7 @@ export function PayableBillForm({ members, bill, mode = "create" }: PayableBillF
           </select>
         </div>
 
-        <div className="space-y-2">
+        <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `bank_used-${bill?.id}` : "bank_used"}>Banco utilizado</Label>
           <Input
             id={isEditing ? `bank_used-${bill?.id}` : "bank_used"}
@@ -169,7 +177,7 @@ export function PayableBillForm({ members, bill, mode = "create" }: PayableBillF
           />
         </div>
 
-        <div className="space-y-2">
+        <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `recurrence-${bill?.id}` : "recurrence"}>Recorrencia</Label>
           <Input
             id={isEditing ? `recurrence-${bill?.id}` : "recurrence"}
@@ -184,7 +192,7 @@ export function PayableBillForm({ members, bill, mode = "create" }: PayableBillF
         </div>
       </div>
 
-      <div className="space-y-2">
+      <div className={financeFieldClass}>
         <Label htmlFor={isEditing ? `notes-${bill?.id}` : "notes"}>Observacao</Label>
         <Input
           id={isEditing ? `notes-${bill?.id}` : "notes"}
@@ -196,15 +204,17 @@ export function PayableBillForm({ members, bill, mode = "create" }: PayableBillF
 
       <AppActionFeedback error={state.error} success={state.success} />
 
-      <Button type="submit" disabled={isPending}>
-        {isPending
-          ? "Salvando..."
-          : isEditing
-            ? "Salvar alteracoes"
-            : billType === "fixa"
-              ? "Cadastrar conta fixa"
-              : "Cadastrar conta avulsa"}
-      </Button>
+      <div className={financeSubmitBarClass}>
+        <Button type="submit" disabled={isPending} className={financeSubmitButtonClass}>
+          {isPending
+            ? "Salvando..."
+            : isEditing
+              ? "Salvar alteracoes"
+              : billType === "fixa"
+                ? "Cadastrar conta fixa"
+                : "Cadastrar conta avulsa"}
+        </Button>
+      </div>
     </form>
   );
 }

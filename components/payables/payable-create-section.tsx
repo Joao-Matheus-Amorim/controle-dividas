@@ -1,23 +1,30 @@
+import { FinanceCreateCard } from "@/components/finance/finance-create-card";
 import { PayableBillFormDialog } from "@/components/finance/payable-bill-form-dialog";
 import type { DbFamilyMember } from "@/lib/finance/types";
+import { getOrgPathFromProtectedPath } from "@/lib/organizations/paths";
 
 interface PayableCreateSectionProps {
   canCreate: boolean;
   members: DbFamilyMember[];
+  orgSlug?: string;
 }
 
-export function PayableCreateSection({ canCreate, members }: PayableCreateSectionProps) {
+export function PayableCreateSection({
+  canCreate,
+  members,
+  orgSlug,
+}: PayableCreateSectionProps) {
   if (!canCreate) return null;
 
   return (
-    <section className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/25">Nova conta/divida</p>
-          <p className="mt-1 text-sm text-white/40">Cadastre uma conta avulsa ou uma conta fixa mensal.</p>
-        </div>
-        <PayableBillFormDialog members={members} />
-      </div>
-    </section>
+    <FinanceCreateCard
+      eyebrow="Nova conta"
+      title="Pessoa obrigatoria para contas"
+      description="Cadastre uma conta avulsa ou fixa e acompanhe vencimentos."
+      memberCount={members.length}
+      peopleHref={getOrgPathFromProtectedPath("/protected/pessoas", orgSlug)}
+    >
+      <PayableBillFormDialog members={members} />
+    </FinanceCreateCard>
   );
 }
