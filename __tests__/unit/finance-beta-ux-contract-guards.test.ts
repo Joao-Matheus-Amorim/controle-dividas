@@ -87,7 +87,7 @@ describe("finance beta UX contract guards", () => {
     expect(bankForm).toContain("useState(account?.account_type ?? emptyAccountTypeValue)");
     expect(bankForm).toContain("value={accountTypeValue}");
     expect(bankForm).toContain("onValueChange={setAccountTypeValue}");
+    expect(bankForm).toContain('name="account_type_select"');
     expect(bankForm).toContain('name="account_type"');
-    expect(bankForm).not.toContain('name="account_type_select"');
   });
 });

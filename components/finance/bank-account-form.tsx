@@ -85,7 +85,7 @@ export function BankAccountForm({ members, account, mode = "create" }: BankAccou
 
         <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `account_type-${account?.id}` : "account_type"}>Tipo de conta</Label>
-          <Select value={accountTypeValue} onValueChange={setAccountTypeValue}>
+          <Select name="account_type_select" value={accountTypeValue} onValueChange={setAccountTypeValue}>
             <SelectTrigger id={isEditing ? `account_type-${account?.id}` : "account_type"}>
               <SelectValue placeholder="Tipo de conta" />
             </SelectTrigger>
