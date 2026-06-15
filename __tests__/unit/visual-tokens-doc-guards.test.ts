@@ -12,6 +12,8 @@ function read(path: string) {
 
 describe("visual tokens and component conventions documentation", () => {
   const doc = read("docs/design/VISUAL_TOKENS_AND_COMPONENT_CONVENTIONS.md");
+  const globals = read("app/globals.css");
+  const redesign = read("docs/design/redesign-2026-ink-copper-ivory.md");
 
   it("records the document scope and references the design ADR and redesign issue", () => {
     expect(doc).toContain("issues: #293, #80");
@@ -24,6 +26,17 @@ describe("visual tokens and component conventions documentation", () => {
     expect(doc).toContain("app/globals.css");
     expect(doc).toContain("components/ui");
     expect(doc).toContain("shadcn");
+  });
+
+  it("keeps light mode grounded enough for card and dashboard contrast", () => {
+    expect(globals).toContain("--ff-bg: 232 225 213");
+    expect(globals).toContain("--ff-bg-soft: 220 210 195");
+    expect(globals).toContain("--ff-card: 252 250 246");
+    expect(globals).toContain("--ff-border: 191 175 150");
+    expect(globals).not.toContain("--ff-bg: 250 244 230");
+    expect(globals).not.toContain("--ff-border: 229 220 199");
+    expect(redesign).toContain("grounded paper");
+    expect(redesign).toContain("#e8e1d5");
   });
 
   it("documents app visual conventions without changing UI", () => {

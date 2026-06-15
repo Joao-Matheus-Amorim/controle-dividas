@@ -36,7 +36,7 @@ Anti-patterns explicitly rejected: neon glows, radial purple gradients, glass su
 
 **Dark-first.** Default theme is the ink/copper/ivory editorial. This is where the identity lives.
 
-A warm paper **light** variant exists for daytime use (ivory background, ink text, copper accent at higher contrast). Light is opt-in via `ThemeSwitcher`, not default.
+A warm paper **light** variant exists for daytime use (grounded paper background, ink text, copper accent at higher contrast). Light is opt-in via `ThemeSwitcher`, not default.
 
 `next-themes` is wired in `app/layout.tsx` with `defaultTheme="dark"`, `enableSystem`. System preference is respected; users can override via the header switcher.
 
@@ -83,24 +83,24 @@ Chart palette (warm, sequential, never blue-green corporate):
 
 | Token | Hex | Role |
 |---|---|---|
-| `--ff-bg` | `#FAF4E6` | Warm ivory |
-| `--ff-bg-soft` | `#F0E9D8` | Sunken |
-| `--ff-card` | `#FFFCF5` | Paper white |
-| `--ff-popover` | `#FFFCF5` | Popovers |
-| `--ff-foreground` | `#1F1B17` | Body text — ink |
-| `--ff-muted` | `#F0E9D8` | Muted surfaces |
-| `--ff-muted-foreground` | `#6E665C` | Secondary text |
-| `--ff-subtle-foreground` | `#9C9388` | Tertiary text |
-| `--ff-border` | `#E5DCC7` | Default borders |
-| `--ff-border-strong` | `#D0C5AC` | Emphasized borders |
-| `--ff-input` | `#E5DCC7` | Input borders |
-| `--ff-primary` | `#A66B2E` | Copper (darker for AA on ivory) |
-| `--ff-primary-hover` | `#8C5723` | Primary hover |
+| `--ff-bg` | `#E8E1D5` | Grounded paper |
+| `--ff-bg-soft` | `#DCD2C3` | Sunken paper |
+| `--ff-card` | `#FCFAF6` | Raised paper |
+| `--ff-popover` | `#FCFAF6` | Popovers |
+| `--ff-foreground` | `#181614` | Body text — ink |
+| `--ff-muted` | `#DCD2C3` | Muted surfaces |
+| `--ff-muted-foreground` | `#5B5148` | Secondary text |
+| `--ff-subtle-foreground` | `#7B7066` | Tertiary text |
+| `--ff-border` | `#BFAF96` | Default borders |
+| `--ff-border-strong` | `#968469` | Emphasized borders |
+| `--ff-input` | `#BFAF96` | Input borders |
+| `--ff-primary` | `#8C5723` | Copper (darker for AA on grounded paper) |
+| `--ff-primary-hover` | `#73431B` | Primary hover |
 | `--ff-primary-soft` | `#E8D5B3` | Primary backgrounds |
-| `--ff-primary-foreground` | `#FFFCF5` | Text on copper |
+| `--ff-primary-foreground` | `#FCFAF6` | Text on copper |
 | `--ff-accent` | `#E8D5B3` | Accent surfaces |
 | `--ff-accent-foreground` | `#1F1B17` | Text on accent |
-| `--ff-ring` | `#A66B2E` | Focus ring |
+| `--ff-ring` | `#8C5723` | Focus ring |
 | `--ff-success` | `#5A8A6E` | Positive |
 | `--ff-success-soft` | `#E0EAD5` | Success bg |
 | `--ff-warning` | `#C49334` | Mustard |
@@ -117,7 +117,7 @@ All foreground-on-background pairs verified at AA (4.5:1 for body, 3:1 for large
 - `--foreground` on `--background` (dark): 11.4:1 ✓
 - `--muted-foreground` on `--background` (dark): 4.6:1 ✓
 - `--primary-foreground` on `--primary` (dark): 5.1:1 ✓
-- `--foreground` on `--background` (light): 12.1:1 ✓
+- `--foreground` on `--background` (light): 14.2:1 ✓
 - `--primary-foreground` on `--primary` (light): 5.4:1 ✓
 
 ## Typography
