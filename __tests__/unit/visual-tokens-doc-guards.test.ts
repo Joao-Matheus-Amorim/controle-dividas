@@ -33,10 +33,14 @@ describe("visual tokens and component conventions documentation", () => {
     expect(globals).toContain("--ff-bg-soft: 220 210 195");
     expect(globals).toContain("--ff-card: 252 250 246");
     expect(globals).toContain("--ff-border: 191 175 150");
+    expect(globals).toContain("--ff-primary: 99 59 24");
+    expect(globals).toContain("--ff-primary-foreground: 255 255 255");
     expect(globals).not.toContain("--ff-bg: 250 244 230");
     expect(globals).not.toContain("--ff-border: 229 220 199");
+    expect(globals).not.toContain("--ff-primary: 140 87 35");
     expect(redesign).toContain("grounded paper");
     expect(redesign).toContain("#e8e1d5");
+    expect(redesign).toContain("#633b18");
   });
 
   it("documents app visual conventions without changing UI", () => {

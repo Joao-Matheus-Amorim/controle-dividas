@@ -1,14 +1,14 @@
-import type { LucideIcon } from "lucide-react";
 import { ReceiptText, Users, WalletCards, CalendarClock, AlertTriangle, Repeat2 } from "lucide-react";
 
 import { AppCard, AppSectionTitle } from "@/components/app/app-card";
+import { DashboardSummaryCarousel } from "./dashboard-summary-carousel";
 import { compactCurrency } from "./dashboard-utils";
 
 export type DashboardSummaryRow = {
   label: string;
   detail: string;
   value: string;
-  icon: LucideIcon;
+  iconKey: "expenses" | "payables" | "banks" | "receivables";
   color: string;
   bg: string;
 };
@@ -57,25 +57,7 @@ export function DashboardSummarySection({
           <ReceiptText className="h-4 w-4 text-ff-subtle-foreground" />
         </div>
 
-        <div className="grid gap-2 sm:grid-cols-2">
-          {rows.map((row) => {
-            const Icon = row.icon;
-            return (
-              <div key={row.label} className="min-w-0 rounded-2xl border border-border bg-ff-bg-soft p-3">
-                <div className="flex items-center gap-2">
-                  <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${row.bg}`} style={{ color: row.color }}>
-                    <Icon className="h-4 w-4" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-foreground">{row.label}</p>
-                    <p className="truncate text-xs text-muted-foreground">{row.detail}</p>
-                  </div>
-                </div>
-                <p className="mt-3 truncate text-lg font-black text-foreground">{row.value}</p>
-              </div>
-            );
-          })}
-        </div>
+        <DashboardSummaryCarousel rows={rows} />
       </AppCard>
 
       {canPayables ? (

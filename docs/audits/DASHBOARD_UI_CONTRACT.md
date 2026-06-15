@@ -29,8 +29,8 @@ O dashboard deve manter:
 - resumo hero com leitura de limite, gastos, dividas e valores a receber conforme permissao;
 - hero compacto com `Saldo do mês`, status curto e indicadores numericos;
 - acoes rapidas usando `getOrgPathFromProtectedPath` para preservar `orgSlug`;
-- primeira acao rapida em destaque como chamada primaria;
-- resumo financeiro;
+- acoes rapidas com o mesmo tratamento primario de app para todos os atalhos;
+- resumo financeiro em carrossel compacto, com setas e cards laterais menores/opacos;
 - contas e dividas;
 - proximos vencimentos;
 - categorias;

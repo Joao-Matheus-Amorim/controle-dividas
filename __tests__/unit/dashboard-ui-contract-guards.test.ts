@@ -24,13 +24,15 @@ describe("dashboard UI contract guards", () => {
   const summary = readSource("components/dashboard/dashboard-summary-section.tsx");
   const details = readSource("components/dashboard/dashboard-detail-sections.tsx");
   const quickActions = readSource("components/dashboard/dashboard-quick-actions.tsx");
+  const summaryCarousel = readSource("components/dashboard/dashboard-summary-carousel.tsx");
   const familySummary = readSource("components/dashboard/dashboard-family-summary.tsx");
 
   it("documents dashboard scope without introducing broad visual redesign or snapshots", () => {
     expect(contract).toContain("gap-011");
     expect(contract).toContain("dashboard principal");
     expect(contract).toContain("baseline mais compacta e acionavel");
-    expect(contract).toContain("primeira acao rapida em destaque");
+    expect(contract).toContain("mesmo tratamento primario");
+    expect(contract).toContain("carrossel compacto");
     expect(contract).toContain("nao");
     expect(contract).toContain("snapshot visual amplo");
     expect(contract).toContain("redesenha telas");
@@ -70,8 +72,10 @@ describe("dashboard UI contract guards", () => {
     expect(quickActionType).not.toContain("bg:");
     expect(quickActionsBlock).not.toContain("color:");
     expect(quickActionsBlock).not.toContain("bg:");
-    expect(summary).toContain("row.bg");
-    expect(summary).toContain("row.color");
+    expect(summaryCarousel).toContain("row.bg");
+    expect(summaryCarousel).toContain("row.color");
+    expect(dashboardPage).toContain("iconKey:");
+    expect(dashboardPage).not.toContain("icon: ReceiptText");
   });
 
   it("preserves the real dashboard heading and avoids mojibake selectors", () => {
@@ -106,14 +110,22 @@ describe("dashboard UI contract guards", () => {
     expect(hero).toContain("totalOpenDebts");
     expect(hero).toContain("totalReceivableIncomes");
 
-    expect(quickActions).toContain("isPrimary");
-    expect(quickActions).toContain("col-span-2");
+    expect(quickActions).toContain("bg-primary");
+    expect(quickActions).not.toContain("isPrimary");
+    expect(quickActions).not.toContain("col-span-2");
     expect(quickActions).toContain("disponíveis");
 
     expect(summary).toContain("DashboardSummarySection");
+    expect(summary).toContain("DashboardSummaryCarousel");
     expect(summary).toContain("Resumo financeiro");
     expect(summary).toContain("Contas e dividas");
     expect(summary).toContain("Uso do limite");
+    expect(summaryCarousel).toContain("\"use client\"");
+    expect(summaryCarousel).toContain("activeIndex");
+    expect(summaryCarousel).toContain("Resumo anterior");
+    expect(summaryCarousel).toContain("Proximo resumo");
+    expect(summaryCarousel).toContain("opacity-45");
+    expect(summaryCarousel).toContain("scale-90");
   });
 
   it("keeps the dashboard detail sections named and bounded", () => {
