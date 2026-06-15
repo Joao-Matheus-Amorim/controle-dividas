@@ -94,10 +94,10 @@ Chart palette (warm, sequential, never blue-green corporate):
 | `--ff-border` | `#BFAF96` | Default borders |
 | `--ff-border-strong` | `#968469` | Emphasized borders |
 | `--ff-input` | `#BFAF96` | Input borders |
-| `--ff-primary` | `#8C5723` | Copper (darker for AA on grounded paper) |
-| `--ff-primary-hover` | `#73431B` | Primary hover |
+| `--ff-primary` | `#633B18` | Deep copper (higher contrast for light-mode app actions) |
+| `--ff-primary-hover` | `#4E2E13` | Primary hover |
 | `--ff-primary-soft` | `#E8D5B3` | Primary backgrounds |
-| `--ff-primary-foreground` | `#FCFAF6` | Text on copper |
+| `--ff-primary-foreground` | `#FFFFFF` | Text on copper |
 | `--ff-accent` | `#E8D5B3` | Accent surfaces |
 | `--ff-accent-foreground` | `#1F1B17` | Text on accent |
 | `--ff-ring` | `#8C5723` | Focus ring |
@@ -118,7 +118,7 @@ All foreground-on-background pairs verified at AA (4.5:1 for body, 3:1 for large
 - `--muted-foreground` on `--background` (dark): 4.6:1 ✓
 - `--primary-foreground` on `--primary` (dark): 5.1:1 ✓
 - `--foreground` on `--background` (light): 14.2:1 ✓
-- `--primary-foreground` on `--primary` (light): 5.4:1 ✓
+- `--primary-foreground` on `--primary` (light): 11.1:1 ✓
 
 ## Typography
 

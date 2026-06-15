@@ -88,6 +88,12 @@ describe("dashboard summary visual snapshot fixture", () => {
     expect(visualPage).toContain("compactcurrency");
     expect(visualPage).toContain("data-visual-snapshot");
     expect(visualPage).toContain("390px");
+    expect(visualPage).toContain("summary-carousel");
+    expect(visualPage).toContain("summary-card--active");
+    expect(visualPage).toContain("summary-card--side");
+    expect(visualPage).toContain("resumo anterior");
+    expect(visualPage).toContain("proximo resumo");
+    expect(visualPage).not.toContain("class=\"rows\"");
     expect(visualPage).not.toContain("intl.numberformat(\"pt-br\"");
     expect(visualPage).not.toContain("brl");
     expect(visualPage).not.toContain("process.env");

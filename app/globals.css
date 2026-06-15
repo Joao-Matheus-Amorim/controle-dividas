@@ -21,10 +21,10 @@
     --ff-border: 191 175 150;         /* #BFAF96 visible warm border */
     --ff-border-strong: 150 132 105;  /* #968469 */
     --ff-input: 191 175 150;          /* #BFAF96 */
-    --ff-primary: 140 87 35;          /* #8C5723 copper (AA on grounded paper) */
-    --ff-primary-hover: 115 67 27;    /* #73431B */
+    --ff-primary: 99 59 24;           /* #633B18 deep copper for clear light-mode contrast */
+    --ff-primary-hover: 78 46 19;     /* #4E2E13 */
     --ff-primary-soft: 232 213 179;   /* #E8D5B3 */
-    --ff-primary-foreground: 252 250 246;
+    --ff-primary-foreground: 255 255 255;
     --ff-accent: 232 213 179;         /* #E8D5B3 */
     --ff-accent-foreground: 31 27 23; /* #1F1B17 */
     --ff-ring: 140 87 35;             /* #8C5723 */

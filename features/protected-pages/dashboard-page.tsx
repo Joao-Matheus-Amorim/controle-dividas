@@ -1,9 +1,7 @@
 import {
   Banknote,
   Plus,
-  ReceiptText,
   ShieldCheck,
-  TrendingUp,
   WalletCards,
 } from "lucide-react";
 import { unstable_rethrow } from "next/navigation";
@@ -227,7 +225,7 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
           label: "Gastos do mês",
           detail: "Saídas lançadas",
           value: compactCurrency(expenseData.totalExpenses),
-          icon: ReceiptText,
+          iconKey: "expenses",
           color: "rgb(var(--ff-destructive))",
           bg: "bg-ff-destructive-soft",
         }
@@ -237,7 +235,7 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
           label: "Contas e dividas em aberto",
           detail: "Pendentes e atrasadas",
           value: compactCurrency(totalOpenDebts),
-          icon: WalletCards,
+          iconKey: "payables",
           color: "rgb(var(--ff-warning))",
           bg: "bg-ff-warning-soft",
         }
@@ -247,7 +245,7 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
           label: "Saldo em bancos",
           detail: "Contas cadastradas",
           value: compactCurrency(bankData.totalBalance),
-          icon: Banknote,
+          iconKey: "banks",
           color: "rgb(var(--ff-success))",
           bg: "bg-ff-success-soft",
         }
@@ -257,7 +255,7 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
           label: "Valores a receber",
           detail: "Entradas previstas",
           value: compactCurrency(totalReceivableIncomes),
-          icon: TrendingUp,
+          iconKey: "receivables",
           color: "rgb(var(--ff-success))",
           bg: "bg-ff-success-soft",
         }
