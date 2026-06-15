@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  bankAccounts,
+  expenseCategories,
+  expenses,
+  familyMembers,
+  payableBills,
+  receivableIncomes,
+} from "@/__tests__/fixtures/mock-data";
+import {
   calculateRemainingLimit,
   calculateUsedPercent,
   compactCurrency,
@@ -61,22 +69,22 @@ describe("finance calculations", () => {
   });
 
   it("returns fixture lookups with safe fallbacks", () => {
-    expect(getMemberName("danyel")).toBe("Danyel");
-    expect(getMemberName("missing-member")).toBe("Não informado");
-    expect(getCategoryName("alimentacao")).toBe("Alimentação");
+    expect(getMemberName("danyel", familyMembers)).toBe("Danyel");
+    expect(getMemberName("missing-member", familyMembers)).toBe("Nao informado");
+    expect(getCategoryName("alimentacao", expenseCategories)).toBe("Alimentação");
     expect(getCategoryName("missing-category")).toBe("Outros");
   });
 
   it("calculates total metrics from fixtures", () => {
-    expect(getTotalMonthlyLimit()).toBeGreaterThan(0);
-    expect(getTotalExpenses()).toBeGreaterThan(0);
-    expect(getTotalPayableBills()).toBeGreaterThan(0);
-    expect(getTotalReceivableIncomes()).toBeGreaterThan(0);
-    expect(getTotalBankBalance()).toBeGreaterThan(0);
+    expect(getTotalMonthlyLimit(familyMembers)).toBeGreaterThan(0);
+    expect(getTotalExpenses(expenses)).toBeGreaterThan(0);
+    expect(getTotalPayableBills(payableBills)).toBeGreaterThan(0);
+    expect(getTotalReceivableIncomes(receivableIncomes)).toBeGreaterThan(0);
+    expect(getTotalBankBalance(bankAccounts)).toBeGreaterThan(0);
   });
 
   it("calculates member summaries safely", () => {
-    const summaries = getMemberSummaries();
+    const summaries = getMemberSummaries(familyMembers, expenses);
 
     expect(summaries.length).toBeGreaterThan(0);
     expect(summaries.every((summary) => Number.isFinite(summary.spent))).toBe(true);
@@ -85,7 +93,7 @@ describe("finance calculations", () => {
   });
 
   it("sorts category summaries and filters empty categories", () => {
-    const categories = getCategorySummaries();
+    const categories = getCategorySummaries(expenseCategories, expenses);
 
     expect(categories.length).toBeGreaterThan(0);
     expect(categories.every((category) => category.total > 0)).toBe(true);
@@ -96,7 +104,7 @@ describe("finance calculations", () => {
   });
 
   it("sorts upcoming bills by due date and excludes paid bills", () => {
-    const bills = getUpcomingBills();
+    const bills = getUpcomingBills(payableBills);
 
     expect(bills.every((bill) => bill.status !== "pago")).toBe(true);
 
@@ -108,10 +116,17 @@ describe("finance calculations", () => {
   });
 
   it("builds a complete dashboard summary", () => {
-    const summary = getDashboardSummary();
+    const summary = getDashboardSummary({
+      members: familyMembers,
+      categories: expenseCategories,
+      expenses,
+      payableBills,
+      receivableIncomes,
+      bankAccounts,
+    });
 
-    expect(summary.totalMonthlyLimit).toBe(getTotalMonthlyLimit());
-    expect(summary.totalExpenses).toBe(getTotalExpenses());
+    expect(summary.totalMonthlyLimit).toBe(getTotalMonthlyLimit(familyMembers));
+    expect(summary.totalExpenses).toBe(getTotalExpenses(expenses));
     expect(summary.remainingMonthlyLimit).toBe(summary.totalMonthlyLimit - summary.totalExpenses);
     expect(summary.memberSummaries.length).toBeGreaterThan(0);
     expect(summary.categorySummaries.length).toBeGreaterThan(0);

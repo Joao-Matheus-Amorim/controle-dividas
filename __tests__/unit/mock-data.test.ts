@@ -6,7 +6,7 @@ import {
 } from "@/__tests__/fixtures/mock-data";
 
 describe("finance fixtures", () => {
-  it("keeps the required default family members", () => {
+  it("keeps the legacy fixture family members isolated to tests", () => {
     expect(familyMembers.map((member) => member.name)).toEqual([
       "Danyel",
       "Pai",

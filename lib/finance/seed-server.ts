@@ -29,14 +29,14 @@ export async function seedInitialFinanceDataForOwner(
   ownerId: string,
   organizationId: string,
 ) {
-  await assertSeedUpsertSucceeded(
-    supabase
-      .from("family_members")
-      .upsert(
-        buildDefaultFamilyMemberSeedRows(ownerId, organizationId),
-        duplicateSafeSeedOptions,
-      ),
-  );
+  const memberRows = buildDefaultFamilyMemberSeedRows(ownerId, organizationId);
+  if (memberRows.length > 0) {
+    await assertSeedUpsertSucceeded(
+      supabase
+        .from("family_members")
+        .upsert(memberRows, duplicateSafeSeedOptions),
+    );
+  }
 
   await assertSeedUpsertSucceeded(
     supabase

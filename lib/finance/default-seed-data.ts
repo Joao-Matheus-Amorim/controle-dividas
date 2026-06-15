@@ -10,11 +10,8 @@ export type DefaultExpenseCategory = {
 };
 
 export const defaultFamilyMembers: DefaultFamilyMember[] = [
-  { name: "Danyel", role: "Responsável", monthlyLimit: 150, currency: "EUR" },
-  { name: "Pai", role: "Membro", monthlyLimit: 150, currency: "EUR" },
-  { name: "Mãe", role: "Membro", monthlyLimit: 150, currency: "EUR" },
-  { name: "Gabryel", role: "Filho", monthlyLimit: 50, currency: "EUR" },
-  { name: "Caleb", role: "Filho", monthlyLimit: 20, currency: "EUR" },
+  // People are intentionally not seeded with sample names. They must be created
+  // from the real organization's data to avoid leaking demo/persona content.
 ];
 
 export const defaultExpenseCategories: DefaultExpenseCategory[] = [

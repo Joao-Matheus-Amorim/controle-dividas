@@ -25,7 +25,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { formatCurrency } from "@/lib/finance/calculations";
+import { formatCurrency } from "@/lib/finance/formatting";
 import type {
   DbExpense,
   DbExpenseCategory,

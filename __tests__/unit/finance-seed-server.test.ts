@@ -23,21 +23,17 @@ function createSeedClient(
 }
 
 describe("finance seed server", () => {
-  it("upserts organization-scoped default members and categories with duplicate-safe options", async () => {
+  it("upserts organization-scoped default categories without seeding demo members", async () => {
     const ownerId = "owner-123";
     const organizationId = "org-123";
     const { client, from, upsertCalls } = createSeedClient();
 
     await seedInitialFinanceDataForOwner(client, ownerId, organizationId);
 
-    expect(from).toHaveBeenNthCalledWith(1, "family_members");
-    expect(from).toHaveBeenNthCalledWith(2, "expense_categories");
+    expect(buildDefaultFamilyMemberSeedRows(ownerId, organizationId)).toEqual([]);
+    expect(from).toHaveBeenCalledTimes(1);
+    expect(from).toHaveBeenNthCalledWith(1, "expense_categories");
     expect(upsertCalls).toEqual([
-      {
-        table: "family_members",
-        rows: buildDefaultFamilyMemberSeedRows(ownerId, organizationId),
-        options: { onConflict: "owner_id,name", ignoreDuplicates: true },
-      },
       {
         table: "expense_categories",
         rows: buildDefaultExpenseCategorySeedRows(ownerId, organizationId),
@@ -46,17 +42,15 @@ describe("finance seed server", () => {
     ]);
   });
 
-  it("throws when default member seed upsert fails", async () => {
+  it("does not call family member seed when no default members exist", async () => {
     const { client, from } = createSeedClient({
       family_members: { error: { message: "family seed failed" } },
     });
 
-    await expect(seedInitialFinanceDataForOwner(client, "owner-123", "org-123")).rejects.toThrow(
-      "family seed failed",
-    );
+    await expect(seedInitialFinanceDataForOwner(client, "owner-123", "org-123")).resolves.toBeUndefined();
 
     expect(from).toHaveBeenCalledTimes(1);
-    expect(from).toHaveBeenCalledWith("family_members");
+    expect(from).toHaveBeenCalledWith("expense_categories");
   });
 
   it("throws when default category seed upsert fails", async () => {
@@ -68,7 +62,7 @@ describe("finance seed server", () => {
       "category seed failed",
     );
 
-    expect(from).toHaveBeenNthCalledWith(1, "family_members");
-    expect(from).toHaveBeenNthCalledWith(2, "expense_categories");
+    expect(from).toHaveBeenCalledTimes(1);
+    expect(from).toHaveBeenNthCalledWith(1, "expense_categories");
   });
 });

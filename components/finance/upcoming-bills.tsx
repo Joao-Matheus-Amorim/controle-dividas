@@ -2,10 +2,20 @@ import { AlertTriangle, CalendarDays } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatCurrency, getMemberName } from "@/lib/finance/calculations";
-import type { PayableBill } from "@/__tests__/fixtures/mock-data";
+import { formatCurrency } from "@/lib/finance/formatting";
 
-export function UpcomingBills({ bills }: { bills: PayableBill[] }) {
+type UpcomingBill = {
+  id: string;
+  name: string;
+  category: string;
+  responsibleMemberName?: string | null;
+  dueDate: string;
+  amount: number;
+  status: string;
+  bank: string;
+};
+
+export function UpcomingBills({ bills }: { bills: UpcomingBill[] }) {
   return (
     <Card>
       <CardHeader>
@@ -28,7 +38,7 @@ export function UpcomingBills({ bills }: { bills: PayableBill[] }) {
               <div>
                 <p className="font-medium">{bill.name}</p>
                 <p className="text-xs text-muted-foreground">
-                  {bill.category} · {getMemberName(bill.responsibleMemberId)} · {bill.bank}
+                  {bill.category} · {bill.responsibleMemberName ?? "Nao informado"} · {bill.bank}
                 </p>
                 <p className="text-xs text-muted-foreground">
                   Vencimento: {new Date(`${bill.dueDate}T00:00:00`).toLocaleDateString("pt-BR")}
