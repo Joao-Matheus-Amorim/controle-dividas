@@ -6,7 +6,13 @@ import { AppFormSheet } from "@/components/app/app-form-sheet";
 import { PayableBillForm } from "@/components/finance/payable-bill-form";
 import type { DbFamilyMember } from "@/lib/finance/types";
 
-export function PayableBillFormDialog({ members }: { members: DbFamilyMember[] }) {
+export function PayableBillFormDialog({
+  members,
+  defaultMemberId,
+}: {
+  members: DbFamilyMember[];
+  defaultMemberId?: string;
+}) {
   return (
     <AppFormSheet
       title="Nova conta ou divida"
@@ -14,7 +20,7 @@ export function PayableBillFormDialog({ members }: { members: DbFamilyMember[] }
       triggerLabel="Nova conta/divida"
       icon={WalletCards}
     >
-      <PayableBillForm members={members} />
+      <PayableBillForm members={members} defaultMemberId={defaultMemberId} />
     </AppFormSheet>
   );
 }

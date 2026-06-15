@@ -5,6 +5,7 @@ import { BankMemberBalances } from "@/components/banks/bank-member-balances";
 import { BankPageHeader } from "@/components/banks/bank-page-header";
 import { BankSummaryCards } from "@/components/banks/bank-summary-cards";
 import { getCurrentOrganizationProfile, getModulePermission } from "@/lib/finance/access-control";
+import { getAccessibleMemberOptions } from "@/lib/finance/member-options";
 import { getOrganizationBanksDashboardData } from "@/lib/organizations/banks";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
 
@@ -25,6 +26,9 @@ export async function BancosPage({ orgSlug }: BancosPageProps = {}) {
   const canCreate = isOrganizationManager || Boolean(permission?.can_create);
   const canEdit = isOrganizationManager || Boolean(permission?.can_edit);
   const canDelete = isOrganizationManager || Boolean(permission?.can_delete);
+  const createMembers = canCreate
+    ? await getAccessibleMemberOptions("BANCOS", "can_create", orgSlug)
+    : [];
   const { members, accounts, accountsByMember, totalBalance, totalAccounts } = bankData;
 
   return (
@@ -43,7 +47,7 @@ export async function BancosPage({ orgSlug }: BancosPageProps = {}) {
         memberCount={members.length}
       />
 
-      <BankCreateSection canCreate={canCreate} members={members} orgSlug={orgSlug} />
+      <BankCreateSection canCreate={canCreate} members={createMembers} orgSlug={orgSlug} />
 
       <BankMemberBalances members={accountsByMember} />
 
