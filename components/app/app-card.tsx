@@ -14,9 +14,9 @@ const variantClasses: Record<AppCardVariant, string> = {
 
 const paddingClasses: Record<AppCardPadding, string> = {
   none: "p-0",
-  sm: "p-3",
-  md: "p-4",
-  lg: "p-5",
+  sm: "p-3.5 sm:p-4",
+  md: "p-4 sm:p-5",
+  lg: "p-5 sm:p-6",
 };
 
 export interface AppCardProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -36,6 +36,7 @@ export function AppCard({
     <div
       className={cn(
         "rounded-ff-2xl",
+        "overflow-hidden",
         variantClasses[variant],
         paddingClasses[padding],
         interactive &&

@@ -17,17 +17,17 @@ interface ReportExpensesByPersonProps {
 
 export function ReportExpensesByPerson({ people }: ReportExpensesByPersonProps) {
   return (
-    <div className="space-y-3 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
-      <div className="flex items-center justify-between">
+    <div className="space-y-3 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4 sm:p-5">
+      <div className="flex items-center justify-between gap-3">
         <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/25">Gastos por pessoa</p>
         <Users className="h-4 w-4 text-white/30" />
       </div>
       {people.length === 0 ? (
         <p className="text-sm text-white/35">Nenhuma pessoa cadastrada.</p>
       ) : (
-        <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {people.map((person) => (
-            <div key={person.id} className="min-w-[116px] rounded-2xl border border-white/10 bg-[#080810]/50 p-3">
+            <div key={person.id} className="min-w-0 rounded-2xl border border-white/10 bg-[#080810]/50 p-3.5">
               <div className="flex items-center gap-2">
                 <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#8b72f8]/15 text-xs font-bold text-[#b09cff]">
                   {initials(person.name)}

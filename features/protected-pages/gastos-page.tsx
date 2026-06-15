@@ -110,7 +110,7 @@ export async function GastosPage({ searchParams, orgSlug }: GastosPageProps) {
   const hasActiveFilters = Object.values(filters).some(Boolean);
 
   return (
-    <div className="mx-auto flex w-full max-w-md flex-col gap-5 md:max-w-7xl">
+    <div className="app-container">
       <ExpensePageHeader periodLabel={periodLabel} canCreate={canCreate} />
 
       <ExpenseHeroSummary

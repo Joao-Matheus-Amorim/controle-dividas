@@ -1,7 +1,7 @@
-export const financeFormClass = "space-y-4 pb-24 md:pb-0";
+export const financeFormClass = "space-y-5 pb-24 md:pb-0";
 
 export const financeFieldClass =
-  "space-y-2 rounded-2xl border border-white/10 bg-white/[0.035] p-3 shadow-sm shadow-black/10";
+  "space-y-2 rounded-2xl border border-white/10 bg-white/[0.035] p-3.5 shadow-sm shadow-black/10 sm:p-4";
 
 export const financeGridTwoClass = "grid gap-4 md:grid-cols-2";
 
@@ -23,7 +23,7 @@ export const financeAutomaticMemberClass =
 
 export const financeHelperTextClass = "text-xs leading-5 text-white/40";
 
-export const financeChoiceGroupClass = "rounded-3xl border border-white/10 bg-white/[0.035] p-3 shadow-sm shadow-black/10";
+export const financeChoiceGroupClass = "rounded-3xl border border-white/10 bg-white/[0.035] p-3.5 shadow-sm shadow-black/10 sm:p-4";
 
 export const financeChoiceOptionClass =
   "cursor-pointer rounded-2xl border border-white/10 bg-[#080810]/70 p-3 transition has-[:checked]:border-[#8b72f8]/70 has-[:checked]:bg-[#8b72f8]/15";

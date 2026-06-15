@@ -15,17 +15,17 @@ interface ExpenseMemberImpactProps {
 export function ExpenseMemberImpact({ members }: ExpenseMemberImpactProps) {
   return (
     <section className="space-y-3">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/25">Impacto por pessoa</p>
         <p className="text-xs font-semibold text-[#8b72f8]">limites</p>
       </div>
-      <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {members.map((member) => {
           const usedPercent = Math.min(Math.max(member.usedPercent, 0), 100);
           const exceeded = member.remaining < 0;
 
           return (
-            <div key={member.id} className="min-w-[92px] rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-center">
+            <div key={member.id} className="min-w-0 rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-center">
               <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-full bg-[#8b72f8]/15 text-xs font-bold text-[#b09cff]">{initials(member.name)}</div>
               <p className="mt-2 truncate text-[11px] font-semibold text-white/70">{member.name}</p>
               <p className="mt-1 text-[11px] font-bold text-white">{compactCurrency(member.spent)}</p>
