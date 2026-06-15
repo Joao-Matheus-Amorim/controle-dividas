@@ -4,30 +4,30 @@
 
 @layer base {
   :root {
-    /* Redesign 2026 — Ink + Copper + Ivory (LIGHT = warm paper variant).
+    /* Redesign 2026 — Ink + Copper + Ivory (LIGHT = warm paper variant with contrast).
      * Spec: docs/design/redesign-2026-ink-copper-ivory.md
      * Values stored as space-separated RGB triplets to enable
      * Tailwind's `<alpha-value>` modifier (e.g. `bg-primary/50`).
      * --ff-* tokens are the single source of truth; shadcn semantic
      * tokens below are aliases. */
-    --ff-bg: 250 244 230;             /* #FAF4E6 warm ivory */
-    --ff-bg-soft: 240 233 216;        /* #F0E9D8 */
-    --ff-card: 255 252 245;           /* #FFFCF5 paper white */
-    --ff-popover: 255 252 245;        /* #FFFCF5 */
-    --ff-foreground: 31 27 23;        /* #1F1B17 ink */
-    --ff-muted: 240 233 216;          /* #F0E9D8 */
-    --ff-muted-foreground: 110 102 92; /* #6E665C warm gray */
-    --ff-subtle-foreground: 156 147 136; /* #9C9388 */
-    --ff-border: 229 220 199;         /* #E5DCC7 warm beige */
-    --ff-border-strong: 208 197 172;  /* #D0C5AC */
-    --ff-input: 229 220 199;          /* #E5DCC7 */
-    --ff-primary: 166 107 46;         /* #A66B2E copper (AA on ivory) */
-    --ff-primary-hover: 140 87 35;    /* #8C5723 */
+    --ff-bg: 232 225 213;             /* #E8E1D5 grounded paper */
+    --ff-bg-soft: 220 210 195;        /* #DCD2C3 sunken paper */
+    --ff-card: 252 250 246;           /* #FCFAF6 raised paper */
+    --ff-popover: 252 250 246;        /* #FCFAF6 */
+    --ff-foreground: 24 22 20;        /* #181614 ink */
+    --ff-muted: 220 210 195;          /* #DCD2C3 */
+    --ff-muted-foreground: 91 81 72;  /* #5B5148 warm gray */
+    --ff-subtle-foreground: 123 112 102; /* #7B7066 */
+    --ff-border: 191 175 150;         /* #BFAF96 visible warm border */
+    --ff-border-strong: 150 132 105;  /* #968469 */
+    --ff-input: 191 175 150;          /* #BFAF96 */
+    --ff-primary: 140 87 35;          /* #8C5723 copper (AA on grounded paper) */
+    --ff-primary-hover: 115 67 27;    /* #73431B */
     --ff-primary-soft: 232 213 179;   /* #E8D5B3 */
-    --ff-primary-foreground: 255 252 245;
+    --ff-primary-foreground: 252 250 246;
     --ff-accent: 232 213 179;         /* #E8D5B3 */
     --ff-accent-foreground: 31 27 23; /* #1F1B17 */
-    --ff-ring: 166 107 46;            /* #A66B2E */
+    --ff-ring: 140 87 35;             /* #8C5723 */
     --ff-success: 90 138 110;         /* #5A8A6E warm sage */
     --ff-success-soft: 224 234 213;   /* #E0EAD5 */
     --ff-warning: 196 147 52;         /* #C49334 mustard */
