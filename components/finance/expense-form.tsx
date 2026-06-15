@@ -7,6 +7,16 @@ import { AppActionFeedback } from "@/components/app/app-action-feedback";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  financeFieldClass,
+  financeFormClass,
+  financeGridFourClass,
+  financeGridThreeClass,
+  financeGridTwoClass,
+  financeNativeSelectClass,
+  financeSubmitBarClass,
+  financeSubmitButtonClass,
+} from "@/components/finance/finance-form-ui";
 import type {
   DbExpense,
   DbExpenseCategory,
@@ -35,18 +45,18 @@ export function ExpenseForm({
   const isEditing = mode === "edit" && Boolean(expense);
 
   return (
-    <form action={formAction} className="space-y-5">
+    <form action={formAction} className={financeFormClass}>
       {expense ? <input type="hidden" name="id" value={expense.id} /> : null}
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <div className="space-y-2">
+      <div className={financeGridFourClass}>
+        <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `family_member_id-${expense?.id}` : "family_member_id"}>Pessoa responsavel</Label>
           <select
             id={isEditing ? `family_member_id-${expense?.id}` : "family_member_id"}
             name="family_member_id"
             defaultValue={expense?.family_member_id ?? ""}
             required
-            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            className={financeNativeSelectClass}
           >
             <option value="">Selecione</option>
             {members.map((member) => (
@@ -57,13 +67,13 @@ export function ExpenseForm({
           </select>
         </div>
 
-        <div className="space-y-2">
+        <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `category_id-${expense?.id}` : "category_id"}>Categoria</Label>
           <select
             id={isEditing ? `category_id-${expense?.id}` : "category_id"}
             name="category_id"
             defaultValue={expense?.category_id ?? ""}
-            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            className={financeNativeSelectClass}
           >
             <option value="">Sem categoria</option>
             {categories.map((category) => (
@@ -74,7 +84,7 @@ export function ExpenseForm({
           </select>
         </div>
 
-        <div className="space-y-2">
+        <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `expense_date-${expense?.id}` : "expense_date"}>Data</Label>
           <Input
             id={isEditing ? `expense_date-${expense?.id}` : "expense_date"}
@@ -85,7 +95,7 @@ export function ExpenseForm({
           />
         </div>
 
-        <div className="space-y-2">
+        <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `amount-${expense?.id}` : "amount"}>Valor em euro</Label>
           <Input
             id={isEditing ? `amount-${expense?.id}` : "amount"}
@@ -100,8 +110,8 @@ export function ExpenseForm({
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-2">
+      <div className={financeGridTwoClass}>
+        <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `description-${expense?.id}` : "description"}>Descricao</Label>
           <Input
             id={isEditing ? `description-${expense?.id}` : "description"}
@@ -112,7 +122,7 @@ export function ExpenseForm({
           />
         </div>
 
-        <div className="space-y-2">
+        <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `purchase_location-${expense?.id}` : "purchase_location"}>Local da compra</Label>
           <Input
             id={isEditing ? `purchase_location-${expense?.id}` : "purchase_location"}
@@ -123,8 +133,8 @@ export function ExpenseForm({
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <div className="space-y-2">
+      <div className={financeGridThreeClass}>
+        <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `payment_method-${expense?.id}` : "payment_method"}>Forma de pagamento</Label>
           <Input
             id={isEditing ? `payment_method-${expense?.id}` : "payment_method"}
@@ -134,7 +144,7 @@ export function ExpenseForm({
           />
         </div>
 
-        <div className="space-y-2">
+        <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `bank_or_card-${expense?.id}` : "bank_or_card"}>Banco ou cartao</Label>
           <Input
             id={isEditing ? `bank_or_card-${expense?.id}` : "bank_or_card"}
@@ -144,7 +154,7 @@ export function ExpenseForm({
           />
         </div>
 
-        <div className="space-y-2">
+        <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `notes-${expense?.id}` : "notes"}>Observacao</Label>
           <Input
             id={isEditing ? `notes-${expense?.id}` : "notes"}
@@ -157,9 +167,11 @@ export function ExpenseForm({
 
       <AppActionFeedback error={state.error} success={state.success} />
 
-      <Button type="submit" disabled={isPending}>
-        {isPending ? "Salvando..." : isEditing ? "Salvar alteracoes" : "Cadastrar gasto"}
-      </Button>
+      <div className={financeSubmitBarClass}>
+        <Button type="submit" disabled={isPending} className={financeSubmitButtonClass}>
+          {isPending ? "Salvando..." : isEditing ? "Salvar alteracoes" : "Cadastrar gasto"}
+        </Button>
+      </div>
     </form>
   );
 }

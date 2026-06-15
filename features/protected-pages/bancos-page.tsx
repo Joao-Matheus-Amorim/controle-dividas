@@ -43,7 +43,7 @@ export async function BancosPage({ orgSlug }: BancosPageProps = {}) {
         memberCount={members.length}
       />
 
-      <BankCreateSection canCreate={canCreate} members={members} />
+      <BankCreateSection canCreate={canCreate} members={members} orgSlug={orgSlug} />
 
       <BankMemberBalances members={accountsByMember} />
 
