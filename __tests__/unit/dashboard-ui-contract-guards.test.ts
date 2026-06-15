@@ -122,6 +122,8 @@ describe("dashboard UI contract guards", () => {
     expect(summary).toContain("Uso do limite");
     expect(summaryCarousel).toContain("\"use client\"");
     expect(summaryCarousel).toContain("activeIndex");
+    expect(summaryCarousel).toContain("safeActiveIndex");
+    expect(summaryCarousel).toContain("Math.min(activeIndex, rows.length - 1)");
     expect(summaryCarousel).toContain("Resumo anterior");
     expect(summaryCarousel).toContain("Proximo resumo");
     expect(summaryCarousel).toContain("opacity-45");

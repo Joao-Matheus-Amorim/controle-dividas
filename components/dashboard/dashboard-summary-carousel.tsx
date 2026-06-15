@@ -34,18 +34,20 @@ interface DashboardSummaryCarouselProps {
 export function DashboardSummaryCarousel({ rows }: DashboardSummaryCarouselProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const canNavigate = rows.length > 1;
+  const safeActiveIndex = rows.length > 0 ? Math.min(activeIndex, rows.length - 1) : 0;
 
   const visibleCards = useMemo<VisibleSummaryCard[]>(() => {
     if (rows.length <= 1) {
       return rows.map((row) => ({ row, position: "active" }));
     }
 
-    const previousIndex = (activeIndex - 1 + rows.length) % rows.length;
-    const nextIndex = (activeIndex + 1) % rows.length;
+    const currentIndex = Math.min(activeIndex, rows.length - 1);
+    const previousIndex = (currentIndex - 1 + rows.length) % rows.length;
+    const nextIndex = (currentIndex + 1) % rows.length;
 
     return [
       { row: rows[previousIndex], position: "previous" },
-      { row: rows[activeIndex], position: "active" },
+      { row: rows[currentIndex], position: "active" },
       { row: rows[nextIndex], position: "next" },
     ];
   }, [activeIndex, rows]);
@@ -120,7 +122,7 @@ export function DashboardSummaryCarousel({ rows }: DashboardSummaryCarouselProps
           <ChevronLeft className="h-4 w-4" />
         </Button>
         <p className="text-xs font-semibold text-muted-foreground">
-          {activeIndex + 1} / {rows.length}
+          {safeActiveIndex + 1} / {rows.length}
         </p>
         <Button
           type="button"
