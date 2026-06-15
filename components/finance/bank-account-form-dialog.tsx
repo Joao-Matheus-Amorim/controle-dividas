@@ -6,7 +6,13 @@ import { AppFormSheet } from "@/components/app/app-form-sheet";
 import { BankAccountForm } from "@/components/finance/bank-account-form";
 import type { DbFamilyMember } from "@/lib/finance/types";
 
-export function BankAccountFormDialog({ members }: { members: DbFamilyMember[] }) {
+export function BankAccountFormDialog({
+  members,
+  defaultMemberId,
+}: {
+  members: DbFamilyMember[];
+  defaultMemberId?: string;
+}) {
   return (
     <AppFormSheet
       title="Novo banco"
@@ -14,7 +20,7 @@ export function BankAccountFormDialog({ members }: { members: DbFamilyMember[] }
       triggerLabel="Novo banco"
       icon={Banknote}
     >
-      <BankAccountForm members={members} />
+      <BankAccountForm members={members} defaultMemberId={defaultMemberId} />
     </AppFormSheet>
   );
 }

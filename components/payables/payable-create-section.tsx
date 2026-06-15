@@ -16,6 +16,8 @@ export function PayableCreateSection({
 }: PayableCreateSectionProps) {
   if (!canCreate) return null;
 
+  const defaultMemberId = members.length === 1 ? members[0]?.id : undefined;
+
   return (
     <FinanceCreateCard
       eyebrow="Nova conta"
@@ -24,7 +26,7 @@ export function PayableCreateSection({
       memberCount={members.length}
       peopleHref={getOrgPathFromProtectedPath("/protected/pessoas", orgSlug)}
     >
-      <PayableBillFormDialog members={members} />
+      <PayableBillFormDialog members={members} defaultMemberId={defaultMemberId} />
     </FinanceCreateCard>
   );
 }

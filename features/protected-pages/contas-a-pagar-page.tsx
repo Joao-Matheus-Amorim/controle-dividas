@@ -9,6 +9,7 @@ import {
   normalizeTypeFilter,
 } from "@/components/payables/payable-utils";
 import { getCurrentOrganizationProfile, getModulePermission } from "@/lib/finance/access-control";
+import { getAccessibleMemberOptions } from "@/lib/finance/member-options";
 import { getCurrentMonthLabel } from "@/lib/finance/period-context";
 import { getOrganizationPayableBillsDashboardData } from "@/lib/organizations/payables";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
@@ -37,6 +38,9 @@ export async function ContasAPagarPage({ searchParams, orgSlug }: ContasAPagarPa
   const canCreate = isOrganizationManager || Boolean(permission?.can_create);
   const canEdit = isOrganizationManager || Boolean(permission?.can_edit);
   const canDelete = isOrganizationManager || Boolean(permission?.can_delete);
+  const createMembers = canCreate
+    ? await getAccessibleMemberOptions("CONTAS_A_PAGAR", "can_create", orgSlug)
+    : [];
   const periodLabel = getCurrentMonthLabel();
 
   const {
@@ -82,7 +86,7 @@ export async function ContasAPagarPage({ searchParams, orgSlug }: ContasAPagarPa
         fixedCount={fixedCount}
       />
 
-      <PayableCreateSection canCreate={canCreate} members={members} orgSlug={orgSlug} />
+      <PayableCreateSection canCreate={canCreate} members={createMembers} orgSlug={orgSlug} />
 
       <PayableList
         bills={bills}

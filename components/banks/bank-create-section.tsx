@@ -16,6 +16,8 @@ export function BankCreateSection({
 }: BankCreateSectionProps) {
   if (!canCreate) return null;
 
+  const defaultMemberId = members.length === 1 ? members[0]?.id : undefined;
+
   return (
     <FinanceCreateCard
       eyebrow="Novo banco"
@@ -24,7 +26,7 @@ export function BankCreateSection({
       memberCount={members.length}
       peopleHref={getOrgPathFromProtectedPath("/protected/pessoas", orgSlug)}
     >
-      <BankAccountFormDialog members={members} />
+      <BankAccountFormDialog members={members} defaultMemberId={defaultMemberId} />
     </FinanceCreateCard>
   );
 }

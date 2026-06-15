@@ -31,6 +31,7 @@ type ExpenseFormProps = {
   categories: DbExpenseCategory[];
   expense?: DbExpense;
   mode?: "create" | "edit";
+  defaultMemberId?: string;
 };
 
 export function ExpenseForm({
@@ -38,11 +39,15 @@ export function ExpenseForm({
   categories,
   expense,
   mode = "create",
+  defaultMemberId,
 }: ExpenseFormProps) {
   const action = mode === "edit" ? updateExpense : createExpense;
   const [state, formAction, isPending] = useActionState(action, initialState);
   const today = new Date().toISOString().slice(0, 10);
   const isEditing = mode === "edit" && Boolean(expense);
+  const automaticMember = !isEditing && defaultMemberId
+    ? members.find((member) => member.id === defaultMemberId) ?? null
+    : null;
 
   return (
     <form action={formAction} className={financeFormClass}>
@@ -51,20 +56,30 @@ export function ExpenseForm({
       <div className={financeGridFourClass}>
         <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `family_member_id-${expense?.id}` : "family_member_id"}>Pessoa responsavel</Label>
-          <select
-            id={isEditing ? `family_member_id-${expense?.id}` : "family_member_id"}
-            name="family_member_id"
-            defaultValue={expense?.family_member_id ?? ""}
-            required
-            className={financeNativeSelectClass}
-          >
-            <option value="">Selecione</option>
-            {members.map((member) => (
-              <option key={member.id} value={member.id}>
-                {member.name}
-              </option>
-            ))}
-          </select>
+          {automaticMember ? (
+            <>
+              <input type="hidden" name="family_member_id" value={automaticMember.id} />
+              <div className="min-h-11 rounded-2xl border border-white/10 bg-[#080810]/70 px-4 py-3 text-sm text-white">
+                <p className="font-semibold">{automaticMember.name}</p>
+                <p className="mt-1 text-xs text-white/45">Responsavel definido automaticamente pelo seu acesso.</p>
+              </div>
+            </>
+          ) : (
+            <select
+              id={isEditing ? `family_member_id-${expense?.id}` : "family_member_id"}
+              name="family_member_id"
+              defaultValue={expense?.family_member_id ?? defaultMemberId ?? ""}
+              required
+              className={financeNativeSelectClass}
+            >
+              <option value="">Selecione uma pessoa</option>
+              {members.map((member) => (
+                <option key={member.id} value={member.id}>
+                  {member.name}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
 
         <div className={financeFieldClass}>
