@@ -6,7 +6,13 @@ import { AppFormSheet } from "@/components/app/app-form-sheet";
 import { ReceivableIncomeForm } from "@/components/finance/receivable-income-form";
 import type { DbFamilyMember } from "@/lib/finance/types";
 
-export function ReceivableIncomeFormDialog({ members }: { members: DbFamilyMember[] }) {
+export function ReceivableIncomeFormDialog({
+  members,
+  defaultMemberId,
+}: {
+  members: DbFamilyMember[];
+  defaultMemberId?: string;
+}) {
   return (
     <AppFormSheet
       title="Novo recebimento"
@@ -14,7 +20,7 @@ export function ReceivableIncomeFormDialog({ members }: { members: DbFamilyMembe
       triggerLabel="Novo recebimento"
       icon={TrendingUp}
     >
-      <ReceivableIncomeForm members={members} />
+      <ReceivableIncomeForm members={members} defaultMemberId={defaultMemberId} />
     </AppFormSheet>
   );
 }

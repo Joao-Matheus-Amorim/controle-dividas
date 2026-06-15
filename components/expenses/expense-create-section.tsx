@@ -18,6 +18,8 @@ export function ExpenseCreateSection({
 }: ExpenseCreateSectionProps) {
   if (!canCreate) return null;
 
+  const defaultMemberId = members.length === 1 ? members[0]?.id : undefined;
+
   return (
     <FinanceCreateCard
       eyebrow="Novo gasto"
@@ -26,7 +28,11 @@ export function ExpenseCreateSection({
       memberCount={members.length}
       peopleHref={getOrgPathFromProtectedPath("/protected/pessoas", orgSlug)}
     >
-      <ExpenseFormDialog members={members} categories={categories} />
+      <ExpenseFormDialog
+        members={members}
+        categories={categories}
+        defaultMemberId={defaultMemberId}
+      />
     </FinanceCreateCard>
   );
 }

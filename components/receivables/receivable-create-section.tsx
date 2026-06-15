@@ -16,6 +16,8 @@ export function ReceivableCreateSection({
 }: ReceivableCreateSectionProps) {
   if (!canCreate) return null;
 
+  const defaultMemberId = members.length === 1 ? members[0]?.id : undefined;
+
   return (
     <FinanceCreateCard
       eyebrow="Novo recebimento"
@@ -24,7 +26,7 @@ export function ReceivableCreateSection({
       memberCount={members.length}
       peopleHref={getOrgPathFromProtectedPath("/protected/pessoas", orgSlug)}
     >
-      <ReceivableIncomeFormDialog members={members} />
+      <ReceivableIncomeFormDialog members={members} defaultMemberId={defaultMemberId} />
     </FinanceCreateCard>
   );
 }

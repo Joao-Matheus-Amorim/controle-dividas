@@ -7,6 +7,7 @@ import { ExpenseMemberImpact } from "@/components/expenses/expense-member-impact
 import { ExpensePageHeader } from "@/components/expenses/expense-page-header";
 import { ExpenseSummaryCards } from "@/components/expenses/expense-summary-cards";
 import { getCurrentOrganizationProfile, getModulePermission } from "@/lib/finance/access-control";
+import { getAccessibleMemberOptions } from "@/lib/finance/member-options";
 import { getCurrentMonthLabel } from "@/lib/finance/period-context";
 import { getOrganizationExpenseDashboardData } from "@/lib/organizations/expenses";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
@@ -48,6 +49,9 @@ export async function GastosPage({ searchParams, orgSlug }: GastosPageProps) {
   const canCreate = isOrganizationManager || Boolean(permission?.can_create);
   const canEdit = isOrganizationManager || Boolean(permission?.can_edit);
   const canDelete = isOrganizationManager || Boolean(permission?.can_delete);
+  const createMembers = canCreate
+    ? await getAccessibleMemberOptions("GASTOS", "can_create", orgSlug)
+    : [];
   const periodLabel = getCurrentMonthLabel();
 
   const { members, categories, expenses, memberSummaries } = expenseData;
@@ -123,7 +127,7 @@ export async function GastosPage({ searchParams, orgSlug }: GastosPageProps) {
 
       <ExpenseCreateSection
         canCreate={canCreate}
-        members={members}
+        members={createMembers}
         categories={categories}
         orgSlug={orgSlug}
       />

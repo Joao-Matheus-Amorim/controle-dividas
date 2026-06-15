@@ -73,6 +73,38 @@ describe("finance beta UX contract guards", () => {
     }
   });
 
+  it("uses can_create member options and auto-selects a single allowed member on create", () => {
+    const moduleContracts = [
+      ["features/protected-pages/gastos-page.tsx", '"GASTOS"', '"can_create"'],
+      ["features/protected-pages/contas-a-pagar-page.tsx", '"CONTAS_A_PAGAR"', '"can_create"'],
+      ["features/protected-pages/contas-a-receber-page.tsx", '"CONTAS_A_RECEBER"', '"can_create"'],
+      ["features/protected-pages/bancos-page.tsx", '"BANCOS"', '"can_create"'],
+    ];
+
+    for (const [pagePath, moduleName, actionName] of moduleContracts) {
+      const source = readSource(pagePath);
+      expect(source).toContain("getAccessibleMemberOptions");
+      expect(source).toContain(moduleName);
+      expect(source).toContain(actionName);
+      expect(source).toContain("members={createMembers}");
+    }
+
+    for (const sectionPath of createSections) {
+      const source = readSource(sectionPath);
+      expect(source).toContain("defaultMemberId");
+      expect(source).toContain("members.length === 1");
+    }
+
+    for (const formPath of financeForms) {
+      const source = readSource(formPath);
+      expect(source).toContain("defaultMemberId?: string");
+      expect(source).toContain("automaticMember");
+      expect(source).toContain('type="hidden"');
+      expect(source).toContain("automaticamente pelo seu acesso");
+      expect(source).toContain("Selecione uma pessoa");
+    }
+  });
+
   it("keeps the shared form sheet structured as a mobile bottom sheet", () => {
     expect(appFormSheet).toContain("h-12 w-full rounded-2xl");
     expect(appFormSheet).toContain("max-h-[92vh]");

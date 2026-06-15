@@ -42,13 +42,22 @@ type BankAccountFormProps = {
   members: DbFamilyMember[];
   account?: DbBankAccount;
   mode?: "create" | "edit";
+  defaultMemberId?: string;
 };
 
-export function BankAccountForm({ members, account, mode = "create" }: BankAccountFormProps) {
+export function BankAccountForm({
+  members,
+  account,
+  mode = "create",
+  defaultMemberId,
+}: BankAccountFormProps) {
   const action = mode === "edit" ? updateBankAccount : createBankAccount;
   const [state, formAction, isPending] = useActionState(action, initialState);
   const isEditing = mode === "edit" && Boolean(account);
   const [accountTypeValue, setAccountTypeValue] = useState(account?.account_type ?? emptyAccountTypeValue);
+  const automaticMember = !isEditing && defaultMemberId
+    ? members.find((member) => member.id === defaultMemberId) ?? null
+    : null;
 
   return (
     <form action={formAction} className={financeFormClass}>
@@ -57,19 +66,30 @@ export function BankAccountForm({ members, account, mode = "create" }: BankAccou
       <div className={financeGridFourClass}>
         <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `family_member_id-${account?.id}` : "family_member_id"}>Pessoa vinculada</Label>
-          <select
-            id={isEditing ? `family_member_id-${account?.id}` : "family_member_id"}
-            name="family_member_id"
-            defaultValue={account?.family_member_id ?? ""}
-            className={financeNativeSelectClass}
-          >
-            <option value="">Sem pessoa vinculada</option>
-            {members.map((member) => (
-              <option key={member.id} value={member.id}>
-                {member.name}
-              </option>
-            ))}
-          </select>
+          {automaticMember ? (
+            <>
+              <input type="hidden" name="family_member_id" value={automaticMember.id} />
+              <div className="min-h-11 rounded-2xl border border-white/10 bg-[#080810]/70 px-4 py-3 text-sm text-white">
+                <p className="font-semibold">{automaticMember.name}</p>
+                <p className="mt-1 text-xs text-white/45">Pessoa definida automaticamente pelo seu acesso.</p>
+              </div>
+            </>
+          ) : (
+            <select
+              id={isEditing ? `family_member_id-${account?.id}` : "family_member_id"}
+              name="family_member_id"
+              defaultValue={account?.family_member_id ?? defaultMemberId ?? ""}
+              required
+              className={financeNativeSelectClass}
+            >
+              <option value="">Selecione uma pessoa</option>
+              {members.map((member) => (
+                <option key={member.id} value={member.id}>
+                  {member.name}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
 
         <div className={financeFieldClass}>

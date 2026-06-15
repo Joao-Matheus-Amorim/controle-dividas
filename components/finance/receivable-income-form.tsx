@@ -41,13 +41,22 @@ type ReceivableIncomeFormProps = {
   members: DbFamilyMember[];
   income?: DbReceivableIncome;
   mode?: "create" | "edit";
+  defaultMemberId?: string;
 };
 
-export function ReceivableIncomeForm({ members, income, mode = "create" }: ReceivableIncomeFormProps) {
+export function ReceivableIncomeForm({
+  members,
+  income,
+  mode = "create",
+  defaultMemberId,
+}: ReceivableIncomeFormProps) {
   const action = mode === "edit" ? updateReceivableIncome : createReceivableIncome;
   const [state, formAction, isPending] = useActionState(action, initialState);
   const today = new Date().toISOString().slice(0, 10);
   const isEditing = mode === "edit" && Boolean(income);
+  const automaticMember = !isEditing && defaultMemberId
+    ? members.find((member) => member.id === defaultMemberId) ?? null
+    : null;
 
   return (
     <form action={formAction} className={financeFormClass}>
@@ -56,19 +65,30 @@ export function ReceivableIncomeForm({ members, income, mode = "create" }: Recei
       <div className={financeGridFourClass}>
         <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `receiver_member_id-${income?.id}` : "receiver_member_id"}>Pessoa que vai receber</Label>
-          <select
-            id={isEditing ? `receiver_member_id-${income?.id}` : "receiver_member_id"}
-            name="receiver_member_id"
-            defaultValue={income?.receiver_member_id ?? ""}
-            className={financeNativeSelectClass}
-          >
-            <option value="">Sem pessoa vinculada</option>
-            {members.map((member) => (
-              <option key={member.id} value={member.id}>
-                {member.name}
-              </option>
-            ))}
-          </select>
+          {automaticMember ? (
+            <>
+              <input type="hidden" name="receiver_member_id" value={automaticMember.id} />
+              <div className="min-h-11 rounded-2xl border border-white/10 bg-[#080810]/70 px-4 py-3 text-sm text-white">
+                <p className="font-semibold">{automaticMember.name}</p>
+                <p className="mt-1 text-xs text-white/45">Pessoa definida automaticamente pelo seu acesso.</p>
+              </div>
+            </>
+          ) : (
+            <select
+              id={isEditing ? `receiver_member_id-${income?.id}` : "receiver_member_id"}
+              name="receiver_member_id"
+              defaultValue={income?.receiver_member_id ?? defaultMemberId ?? ""}
+              required
+              className={financeNativeSelectClass}
+            >
+              <option value="">Selecione uma pessoa</option>
+              {members.map((member) => (
+                <option key={member.id} value={member.id}>
+                  {member.name}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
 
         <div className={financeFieldClass}>

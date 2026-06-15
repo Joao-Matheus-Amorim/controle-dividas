@@ -9,9 +9,11 @@ import type { DbExpenseCategory, DbFamilyMember } from "@/lib/finance/types";
 export function ExpenseFormDialog({
   members,
   categories,
+  defaultMemberId,
 }: {
   members: DbFamilyMember[];
   categories: DbExpenseCategory[];
+  defaultMemberId?: string;
 }) {
   return (
     <AppFormSheet
@@ -20,7 +22,11 @@ export function ExpenseFormDialog({
       triggerLabel="Novo gasto"
       icon={Plus}
     >
-      <ExpenseForm members={members} categories={categories} />
+      <ExpenseForm
+        members={members}
+        categories={categories}
+        defaultMemberId={defaultMemberId}
+      />
     </AppFormSheet>
   );
 }

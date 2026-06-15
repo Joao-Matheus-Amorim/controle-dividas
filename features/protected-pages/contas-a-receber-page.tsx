@@ -4,6 +4,7 @@ import { ReceivableList } from "@/components/receivables/receivable-list";
 import { ReceivablePageHeader } from "@/components/receivables/receivable-page-header";
 import { ReceivableSummaryCards } from "@/components/receivables/receivable-summary-cards";
 import { getCurrentOrganizationProfile, getModulePermission } from "@/lib/finance/access-control";
+import { getAccessibleMemberOptions } from "@/lib/finance/member-options";
 import { getCurrentMonthLabel } from "@/lib/finance/period-context";
 import { getOrganizationReceivableIncomesDashboardData } from "@/lib/organizations/receivables";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
@@ -25,6 +26,9 @@ export async function ContasAReceberPage({ orgSlug }: ContasAReceberPageProps = 
   const canCreate = isOrganizationManager || Boolean(permission?.can_create);
   const canEdit = isOrganizationManager || Boolean(permission?.can_edit);
   const canDelete = isOrganizationManager || Boolean(permission?.can_delete);
+  const createMembers = canCreate
+    ? await getAccessibleMemberOptions("CONTAS_A_RECEBER", "can_create", orgSlug)
+    : [];
   const periodLabel = getCurrentMonthLabel();
 
   const {
@@ -59,7 +63,7 @@ export async function ContasAReceberPage({ orgSlug }: ContasAReceberPageProps = 
         totalVariable={totalVariable}
       />
 
-      <ReceivableCreateSection canCreate={canCreate} members={members} orgSlug={orgSlug} />
+      <ReceivableCreateSection canCreate={canCreate} members={createMembers} orgSlug={orgSlug} />
 
       <ReceivableList
         incomes={incomes}
