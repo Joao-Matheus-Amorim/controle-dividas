@@ -5,11 +5,14 @@ import { useActionState, useState } from "react";
 import { createBankAccount, updateBankAccount } from "@/app/protected/bancos/actions";
 import { AppActionFeedback } from "@/components/app/app-action-feedback";
 import {
+  financeAutomaticMemberClass,
   financeFieldClass,
   financeFormClass,
   financeGridFourClass,
   financeGridTwoClass,
+  financeInputClass,
   financeNativeSelectClass,
+  financeSelectTriggerClass,
   financeSubmitBarClass,
   financeSubmitButtonClass,
 } from "@/components/finance/finance-form-ui";
@@ -69,7 +72,7 @@ export function BankAccountForm({
           {automaticMember ? (
             <>
               <input type="hidden" name="family_member_id" value={automaticMember.id} />
-              <div className="min-h-11 rounded-2xl border border-white/10 bg-[#080810]/70 px-4 py-3 text-sm text-white">
+              <div className={financeAutomaticMemberClass}>
                 <p className="font-semibold">{automaticMember.name}</p>
                 <p className="mt-1 text-xs text-white/45">Pessoa definida automaticamente pelo seu acesso.</p>
               </div>
@@ -100,13 +103,14 @@ export function BankAccountForm({
             placeholder="Ex: Revolut, Wise"
             defaultValue={account?.bank_name ?? ""}
             required
+            className={financeInputClass}
           />
         </div>
 
         <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `account_type-${account?.id}` : "account_type"}>Tipo de conta</Label>
           <Select name="account_type_select" value={accountTypeValue} onValueChange={setAccountTypeValue}>
-            <SelectTrigger id={isEditing ? `account_type-${account?.id}` : "account_type"}>
+            <SelectTrigger id={isEditing ? `account_type-${account?.id}` : "account_type"} className={financeSelectTriggerClass}>
               <SelectValue placeholder="Tipo de conta" />
             </SelectTrigger>
             <SelectContent>
@@ -131,6 +135,7 @@ export function BankAccountForm({
             placeholder="500.00"
             defaultValue={account ? String(account.current_balance) : ""}
             required
+            className={financeInputClass}
           />
         </div>
       </div>
@@ -142,6 +147,7 @@ export function BankAccountForm({
             id={isEditing ? `currency-${account?.id}` : "currency"}
             name="currency"
             defaultValue={account?.currency ?? "EUR"}
+            className={financeInputClass}
           />
         </div>
 
@@ -152,6 +158,7 @@ export function BankAccountForm({
             name="notes"
             placeholder="Opcional"
             defaultValue={account?.notes ?? ""}
+            className={financeInputClass}
           />
         </div>
       </div>

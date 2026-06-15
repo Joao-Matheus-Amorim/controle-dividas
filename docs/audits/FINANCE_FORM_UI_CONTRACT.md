@@ -28,6 +28,8 @@ Os formularios financeiros primarios devem manter:
 - `Button` de submit desabilitado enquanto `isPending`;
 - labels vinculados por `htmlFor`/`id`;
 - campos obrigatorios onde o dominio exige dado minimo;
+- campos de data por botao com icone de calendario e modal leve, mantendo
+  input hidden com o mesmo `name` esperado pela server action;
 - grid responsivo mobile-first;
 - modo de edicao quando o mesmo form cobre create/edit;
 - input hidden `id` nos modos de edicao;
