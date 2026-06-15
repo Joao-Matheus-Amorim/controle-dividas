@@ -151,4 +151,17 @@ describe("finance form UI contract guards", () => {
     expect(source).toContain('type="number"');
     expect(source).toContain('min="0"');
   });
+
+  it("keeps expense category create submit inline and edit sheet submit fixed", () => {
+    const form = readSource("components/finance/expense-category-form.tsx");
+    const settings = readSource("components/settings/settings-categories.tsx");
+    const editDialog = readSource("components/finance/expense-category-edit-dialog.tsx");
+
+    expect(form).toContain('submitLayout?: "inline" | "sheet"');
+    expect(form).toContain('submitLayout = "inline"');
+    expect(form).toContain("financeInlineSubmitBarClass");
+    expect(form).toContain("submitLayout === \"sheet\" ? financeSubmitBarClass : financeInlineSubmitBarClass");
+    expect(settings).toContain("<ExpenseCategoryForm />");
+    expect(editDialog).toContain('submitLayout="sheet"');
+  });
 });
