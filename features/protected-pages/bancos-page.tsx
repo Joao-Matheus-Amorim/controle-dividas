@@ -32,7 +32,7 @@ export async function BancosPage({ orgSlug }: BancosPageProps = {}) {
   const { members, accounts, accountsByMember, totalBalance, totalAccounts } = bankData;
 
   return (
-    <div className="mx-auto flex w-full max-w-md flex-col gap-5 md:max-w-7xl">
+    <div className="app-container">
       <BankPageHeader />
 
       <BankHeroSummary

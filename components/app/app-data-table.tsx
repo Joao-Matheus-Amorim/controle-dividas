@@ -63,13 +63,13 @@ export function AppDataTable<TData, TValue>({
       </div>
 
       <div className="overflow-hidden rounded-[1.5rem] border border-white/10 bg-[#080810]/50">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+        <div className="max-w-full overflow-hidden">
+          <table className="w-full table-fixed text-sm">
             <thead className="bg-white/[0.04] text-left text-[11px] uppercase tracking-[0.18em] text-white/35">
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id}>
                   {headerGroup.headers.map((header) => (
-                    <th key={header.id} className="whitespace-nowrap px-4 py-3 font-bold">
+                    <th key={header.id} className="truncate px-3 py-3 font-bold">
                       {header.isPlaceholder
                         ? null
                         : flexRender(header.column.columnDef.header, header.getContext())}
@@ -83,7 +83,7 @@ export function AppDataTable<TData, TValue>({
                 table.getRowModel().rows.map((row) => (
                   <tr key={row.id} className="transition hover:bg-white/[0.035]">
                     {row.getVisibleCells().map((cell) => (
-                      <td key={cell.id} className="whitespace-nowrap px-4 py-3 text-white/70">
+                      <td key={cell.id} className="truncate px-3 py-3 text-white/70">
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </td>
                     ))}

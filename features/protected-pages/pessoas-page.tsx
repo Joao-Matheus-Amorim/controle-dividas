@@ -45,7 +45,7 @@ export async function PessoasPage({ orgSlug }: PessoasPageProps = {}) {
   );
 
   return (
-    <div className="mx-auto flex w-full max-w-md flex-col gap-5 md:max-w-7xl">
+    <div className="app-container">
       <PeoplePageHeader />
 
       <PeopleHeroSummary

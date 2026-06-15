@@ -180,8 +180,8 @@
 
 @layer components {
   .app-container {
-    @apply mx-auto flex w-full max-w-md flex-col gap-5 md:max-w-7xl;
-    max-width: min(100%, 28rem);
+    @apply mx-auto flex w-full max-w-[27rem] flex-col gap-4 sm:gap-5 md:max-w-7xl lg:gap-6;
+    max-width: min(100%, 27rem);
     overflow-x: clip;
     animation: app-fade-up 420ms ease-out both;
   }

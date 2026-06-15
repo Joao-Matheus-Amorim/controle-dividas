@@ -118,13 +118,13 @@ export async function AppShell({ children, orgSlug }: AppShellProps) {
           {visibleNavigation.length > 0 ? (
             <>
               <Separator className="hidden bg-border md:block" />
-              <div className="hidden overflow-x-auto pb-1 md:block">
-                <div className="flex w-max gap-1 rounded-full border border-border bg-muted p-1 text-sm">
+              <div className="hidden md:block">
+                <div className="flex max-w-full flex-wrap gap-1 rounded-full border border-border bg-muted p-1 text-sm">
                   {visibleNavigation.map((item) => (
                     <Link
                       key={item.href}
                       href={scopedHref(item.href, orgSlug)}
-                      className="whitespace-nowrap rounded-full px-3 py-1.5 font-medium text-muted-foreground transition hover:bg-card hover:text-foreground"
+                      className="rounded-full px-3 py-1.5 font-medium text-muted-foreground transition hover:bg-card hover:text-foreground"
                     >
                       {item.label}
                     </Link>

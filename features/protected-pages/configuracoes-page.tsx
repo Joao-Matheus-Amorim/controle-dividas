@@ -37,7 +37,7 @@ export async function ConfiguracoesPage({
   );
 
   return (
-    <div className="mx-auto flex w-full max-w-md flex-col gap-5 md:max-w-7xl">
+    <div className="app-container">
       <SettingsPageHeader />
 
       <SettingsHeroSummary
