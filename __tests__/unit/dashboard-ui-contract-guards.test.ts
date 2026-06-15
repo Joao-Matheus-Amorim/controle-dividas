@@ -29,7 +29,8 @@ describe("dashboard UI contract guards", () => {
   it("documents dashboard scope without introducing broad visual redesign or snapshots", () => {
     expect(contract).toContain("gap-011");
     expect(contract).toContain("dashboard principal");
-    expect(contract).toContain("nao muda a ui");
+    expect(contract).toContain("baseline mais compacta e acionavel");
+    expect(contract).toContain("primeira acao rapida em destaque");
     expect(contract).toContain("nao");
     expect(contract).toContain("snapshot visual amplo");
     expect(contract).toContain("redesenha telas");
@@ -47,6 +48,9 @@ describe("dashboard UI contract guards", () => {
     expect(dashboardPage).toContain('"/protected/bancos"');
     expect(dashboardPage).toContain('"/protected/admin"');
     expect(dashboardPage).toContain("orgSlug={orgSlug}");
+    expect(header).toContain("getOrgPathFromProtectedPath");
+    expect(header).toContain('"/protected/admin"');
+    expect(header).not.toContain('href="/protected/admin"');
     expect(familySummary).toContain("getOrgPathFromProtectedPath");
     expect(familySummary).toContain('"/protected/pessoas"');
     expect(familySummary).not.toContain('href="/protected/pessoas"');
@@ -97,9 +101,14 @@ describe("dashboard UI contract guards", () => {
 
   it("keeps the critical dashboard summary blocks stable", () => {
     expect(hero).toContain("DashboardHeroSummary");
+    expect(hero).toContain("Saldo do mês");
     expect(hero).toContain("compactCurrency(remainingMonthlyLimit)");
     expect(hero).toContain("totalOpenDebts");
     expect(hero).toContain("totalReceivableIncomes");
+
+    expect(quickActions).toContain("isPrimary");
+    expect(quickActions).toContain("col-span-2");
+    expect(quickActions).toContain("disponíveis");
 
     expect(summary).toContain("DashboardSummarySection");
     expect(summary).toContain("Resumo financeiro");
