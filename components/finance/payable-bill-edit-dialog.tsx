@@ -2,16 +2,9 @@
 
 import { Pencil } from "lucide-react";
 
+import { AppFormSheet } from "@/components/app/app-form-sheet";
 import { PayableBillForm } from "@/components/finance/payable-bill-form";
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
 import type { DbFamilyMember, DbPayableBill } from "@/lib/finance/types";
 
 export function PayableBillEditDialog({
@@ -22,8 +15,11 @@ export function PayableBillEditDialog({
   members: DbFamilyMember[];
 }) {
   return (
-    <Sheet>
-      <SheetTrigger asChild>
+    <AppFormSheet
+      title="Editar conta ou divida"
+      description="Atualize dados, tipo, responsavel, vencimento, status e observacoes."
+      triggerLabel="Editar conta"
+      trigger={
         <Button
           type="button"
           variant="outline"
@@ -33,18 +29,9 @@ export function PayableBillEditDialog({
         >
           <Pencil className="h-4 w-4" />
         </Button>
-      </SheetTrigger>
-      <SheetContent side="bottom" className="max-h-[88vh] overflow-y-auto rounded-t-[1.75rem] md:inset-y-0 md:left-auto md:right-0 md:h-full md:w-3/4 md:max-w-md md:rounded-none md:border-l md:border-t-0 md:data-[state=closed]:slide-out-to-right md:data-[state=open]:slide-in-from-right">
-        <SheetHeader>
-          <SheetTitle>Editar conta ou divida</SheetTitle>
-          <SheetDescription>
-            Atualize dados, tipo, responsavel, vencimento, status e observacoes.
-          </SheetDescription>
-        </SheetHeader>
-        <div className="pt-2">
-          <PayableBillForm members={members} bill={bill} mode="edit" />
-        </div>
-      </SheetContent>
-    </Sheet>
+      }
+    >
+      <PayableBillForm members={members} bill={bill} mode="edit" />
+    </AppFormSheet>
   );
 }

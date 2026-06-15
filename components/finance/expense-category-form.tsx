@@ -4,6 +4,14 @@ import { useActionState } from "react";
 
 import { createExpenseCategory, updateExpenseCategory } from "@/app/protected/configuracoes/actions";
 import { AppActionFeedback } from "@/components/app/app-action-feedback";
+import {
+  financeFieldClass,
+  financeFormClass,
+  financeGridTwoClass,
+  financeInputClass,
+  financeSubmitBarClass,
+  financeSubmitButtonClass,
+} from "@/components/finance/finance-form-ui";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,11 +30,11 @@ export function ExpenseCategoryForm({ category, mode = "create" }: ExpenseCatego
   const isEditing = mode === "edit" && Boolean(category);
 
   return (
-    <form action={formAction} className="space-y-4">
+    <form action={formAction} className={financeFormClass}>
       {category ? <input type="hidden" name="id" value={category.id} /> : null}
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-2">
+      <div className={financeGridTwoClass}>
+        <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `name-${category?.id}` : "name"}>Nome da categoria</Label>
           <Input
             id={isEditing ? `name-${category?.id}` : "name"}
@@ -34,24 +42,28 @@ export function ExpenseCategoryForm({ category, mode = "create" }: ExpenseCatego
             placeholder="Ex: Esporte, Viagem"
             defaultValue={category?.name ?? ""}
             required
+            className={financeInputClass}
           />
         </div>
-        <div className="space-y-2">
+        <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `description-${category?.id}` : "description"}>Descricao</Label>
           <Input
             id={isEditing ? `description-${category?.id}` : "description"}
             name="description"
             placeholder="Opcional"
             defaultValue={category?.description ?? ""}
+            className={financeInputClass}
           />
         </div>
       </div>
 
       <AppActionFeedback error={state.error} success={state.success} />
 
-      <Button type="submit" disabled={isPending}>
-        {isPending ? "Salvando..." : isEditing ? "Salvar alteracoes" : "Cadastrar categoria"}
-      </Button>
+      <div className={financeSubmitBarClass}>
+        <Button type="submit" disabled={isPending} className={financeSubmitButtonClass}>
+          {isPending ? "Salvando..." : isEditing ? "Salvar alteracoes" : "Cadastrar categoria"}
+        </Button>
+      </div>
     </form>
   );
 }

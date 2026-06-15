@@ -17,15 +17,16 @@ const editFormWrappers = [
 ];
 
 describe("edit form sheet guards", () => {
-  it.each(editFormWrappers)("keeps %s on Sheet", (path) => {
+  it.each(editFormWrappers)("keeps %s on the shared AppFormSheet edit surface", (path) => {
     const source = readSource(path);
 
-    expect(source).toContain('} from "@/components/ui/sheet"');
-    expect(source).toContain("<Sheet>");
-    expect(source).toContain("<SheetTrigger asChild>");
-    expect(source).toContain('<SheetContent side="bottom"');
-    expect(source).toContain("<SheetHeader>");
-    expect(source).toContain("</Sheet>");
+    expect(source).toContain('import { AppFormSheet } from "@/components/app/app-form-sheet"');
+    expect(source).toContain("<AppFormSheet");
+    expect(source).toContain("triggerLabel=");
+    expect(source).toContain("description=");
+    expect(source).toContain("trigger={");
+    expect(source).toContain("</AppFormSheet>");
+    expect(source).not.toContain('} from "@/components/ui/sheet"');
     expect(source).not.toContain('} from "@/components/ui/dialog"');
     expect(source).not.toContain("<Dialog>");
     expect(source).not.toContain("<DialogContent");
