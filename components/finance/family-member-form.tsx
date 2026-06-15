@@ -22,7 +22,7 @@ export function FamilyMemberForm() {
       <div className="grid gap-4 md:grid-cols-3">
         <div className="space-y-2">
           <Label htmlFor="name">Nome</Label>
-          <Input id="name" name="name" placeholder="Ex: Danyel" required />
+          <Input id="name" name="name" placeholder="Ex: Responsavel financeiro" required />
         </div>
         <div className="space-y-2">
           <Label htmlFor="role">Perfil</Label>

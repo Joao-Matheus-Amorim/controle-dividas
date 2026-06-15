@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatCurrency } from "@/lib/finance/calculations";
+import { formatCurrency } from "@/lib/finance/formatting";
 
 export function PersonBalanceCard({
   name,

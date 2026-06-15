@@ -20,7 +20,7 @@ export function FamilyUserForm({ members }: { members: DbFamilyMember[] }) {
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <div className="space-y-2">
           <Label htmlFor="name">Nome do acesso</Label>
-          <Input id="name" name="name" placeholder="Ex: Pai" required />
+          <Input id="name" name="name" placeholder="Ex: Responsavel financeiro" required />
         </div>
 
         <div className="space-y-2">

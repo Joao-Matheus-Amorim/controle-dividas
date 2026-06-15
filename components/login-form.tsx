@@ -67,7 +67,7 @@ export function LoginForm({
           Entrar
         </h1>
         <p className="mt-2 text-sm leading-6 text-white/40">
-          Acesse o painel privado da família Souza para acompanhar gastos, contas e permissões.
+          Acesse seu painel privado para acompanhar gastos, contas e permissões.
         </p>
       </div>
 
@@ -136,7 +136,7 @@ export function LoginForm({
               <ShieldCheck className="h-4 w-4" />
             </div>
             <p className="text-xs leading-5 text-white/35">
-              Ambiente privado. Os dados financeiros ficam protegidos pelo acesso da família Souza.
+              Ambiente privado. Os dados financeiros ficam protegidos pelo acesso da sua organizacao.
             </p>
           </div>
         </div>
