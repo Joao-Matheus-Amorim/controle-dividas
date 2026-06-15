@@ -271,6 +271,7 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
         orgName={currentOrganization?.name}
         isLimitedDashboard={isLimitedDashboard}
         canAdmin={canAdmin}
+        orgSlug={orgSlug}
       />
 
       {isLimitedDashboard ? <DashboardLimitedNotice /> : null}

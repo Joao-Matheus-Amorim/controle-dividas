@@ -5,11 +5,13 @@
 > Observacao: protege estrutura e permissao de UI; nao substitui RLS nem
 > validacao visual seletiva.
 
-Atualizado em: 2026-05-28
+Atualizado em: 2026-06-15
 
 ## Objetivo
 
-Este contrato fecha o primeiro passo do GAP-011: proteger uma superficie critica de UI financeira sem criar snapshot amplo ou redesenho visual.
+Este contrato protege a superficie critica de UI financeira do GAP-011 sem criar snapshot amplo.
+O dashboard agora registra uma baseline mais compacta e acionavel, com menos
+texto, metricas mais fortes e acoes rapidas com hierarquia visual clara.
 
 Escopo coberto neste PR:
 
@@ -25,7 +27,9 @@ O dashboard deve manter:
 - heading principal `Visão do mês`;
 - aviso limitado quando o usuario nao possui todos os modulos;
 - resumo hero com leitura de limite, gastos, dividas e valores a receber conforme permissao;
+- hero compacto com `Saldo do mês`, status curto e indicadores numericos;
 - acoes rapidas usando `getOrgPathFromProtectedPath` para preservar `orgSlug`;
+- primeira acao rapida em destaque como chamada primaria;
 - resumo financeiro;
 - contas e dividas;
 - proximos vencimentos;
@@ -58,13 +62,14 @@ Links internos do dashboard devem preservar slug quando a pagina estiver em `/or
 
 ## Contrato visual
 
-Este contrato nao muda a UI. Ele registra a baseline atual:
+Baseline atual:
 
 - layout mobile-first dentro de `app-container`;
 - secoes do dashboard em `components/dashboard`;
 - componentes app-level como `AppCard` e `AppSectionTitle`;
 - icones `lucide-react`;
 - superficies escuras, bordas sutis e cards compactos.
+- texto curto, metricas fortes e acoes visiveis acima da dobra.
 
 ## Fora de escopo
 
