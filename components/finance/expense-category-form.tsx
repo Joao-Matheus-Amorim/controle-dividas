@@ -8,6 +8,7 @@ import {
   financeFieldClass,
   financeFormClass,
   financeGridTwoClass,
+  financeInlineSubmitBarClass,
   financeInputClass,
   financeSubmitBarClass,
   financeSubmitButtonClass,
@@ -22,12 +23,19 @@ const initialState: { error?: string; success?: string } = {};
 type ExpenseCategoryFormProps = {
   category?: DbExpenseCategory;
   mode?: "create" | "edit";
+  submitLayout?: "inline" | "sheet";
 };
 
-export function ExpenseCategoryForm({ category, mode = "create" }: ExpenseCategoryFormProps) {
+export function ExpenseCategoryForm({
+  category,
+  mode = "create",
+  submitLayout = "inline",
+}: ExpenseCategoryFormProps) {
   const action = mode === "edit" ? updateExpenseCategory : createExpenseCategory;
   const [state, formAction, isPending] = useActionState(action, initialState);
   const isEditing = mode === "edit" && Boolean(category);
+  const submitBarClass =
+    submitLayout === "sheet" ? financeSubmitBarClass : financeInlineSubmitBarClass;
 
   return (
     <form action={formAction} className={financeFormClass}>
@@ -59,7 +67,7 @@ export function ExpenseCategoryForm({ category, mode = "create" }: ExpenseCatego
 
       <AppActionFeedback error={state.error} success={state.success} />
 
-      <div className={financeSubmitBarClass}>
+      <div className={submitBarClass}>
         <Button type="submit" disabled={isPending} className={financeSubmitButtonClass}>
           {isPending ? "Salvando..." : isEditing ? "Salvar alteracoes" : "Cadastrar categoria"}
         </Button>

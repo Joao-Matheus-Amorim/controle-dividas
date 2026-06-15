@@ -25,7 +25,7 @@ export function ExpenseCategoryEditDialog({ category }: { category: DbExpenseCat
         </Button>
       }
     >
-      <ExpenseCategoryForm category={category} mode="edit" />
+      <ExpenseCategoryForm category={category} mode="edit" submitLayout="sheet" />
     </AppFormSheet>
   );
 }

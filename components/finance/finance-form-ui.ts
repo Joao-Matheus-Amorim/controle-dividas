@@ -31,5 +31,7 @@ export const financeChoiceOptionClass =
 export const financeSubmitBarClass =
   "fixed inset-x-0 bottom-0 z-20 border-t border-white/10 bg-[#080810]/95 p-4 shadow-2xl shadow-black/40 backdrop-blur md:static md:border-0 md:bg-transparent md:p-0 md:shadow-none md:backdrop-blur-0";
 
+export const financeInlineSubmitBarClass = "flex justify-start";
+
 export const financeSubmitButtonClass =
   "h-12 w-full rounded-2xl bg-[#8b72f8] text-base font-bold text-white shadow-lg shadow-[#8b72f8]/20 hover:bg-[#7d66e4] md:w-auto md:min-w-[13rem]";
