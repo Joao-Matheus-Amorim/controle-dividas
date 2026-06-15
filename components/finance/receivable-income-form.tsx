@@ -4,12 +4,16 @@ import { useActionState } from "react";
 
 import { createReceivableIncome, updateReceivableIncome } from "@/app/protected/contas-a-receber/actions";
 import { AppActionFeedback } from "@/components/app/app-action-feedback";
+import { FinanceDateField } from "@/components/finance/finance-date-field";
 import {
+  financeAutomaticMemberClass,
   financeFieldClass,
   financeFormClass,
   financeGridFourClass,
   financeGridThreeClass,
+  financeInputClass,
   financeNativeSelectClass,
+  financeSelectTriggerClass,
   financeSubmitBarClass,
   financeSubmitButtonClass,
 } from "@/components/finance/finance-form-ui";
@@ -68,7 +72,7 @@ export function ReceivableIncomeForm({
           {automaticMember ? (
             <>
               <input type="hidden" name="receiver_member_id" value={automaticMember.id} />
-              <div className="min-h-11 rounded-2xl border border-white/10 bg-[#080810]/70 px-4 py-3 text-sm text-white">
+              <div className={financeAutomaticMemberClass}>
                 <p className="font-semibold">{automaticMember.name}</p>
                 <p className="mt-1 text-xs text-white/45">Pessoa definida automaticamente pelo seu acesso.</p>
               </div>
@@ -112,7 +116,7 @@ export function ReceivableIncomeForm({
         <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `income_type-${income?.id}` : "income_type"}>Tipo de renda</Label>
           <Select name="income_type" defaultValue={income?.income_type ?? "fixa"}>
-            <SelectTrigger id={isEditing ? `income_type-${income?.id}` : "income_type"}>
+            <SelectTrigger id={isEditing ? `income_type-${income?.id}` : "income_type"} className={financeSelectTriggerClass}>
               <SelectValue placeholder="Tipo de renda" />
             </SelectTrigger>
             <SelectContent>
@@ -133,18 +137,18 @@ export function ReceivableIncomeForm({
             placeholder="1450.00"
             defaultValue={income ? String(income.amount) : ""}
             required
+            className={financeInputClass}
           />
         </div>
       </div>
 
       <div className={financeGridThreeClass}>
         <div className={financeFieldClass}>
-          <Label htmlFor={isEditing ? `expected_date-${income?.id}` : "expected_date"}>Data prevista</Label>
-          <Input
+          <FinanceDateField
             id={isEditing ? `expected_date-${income?.id}` : "expected_date"}
             name="expected_date"
-            type="date"
             defaultValue={income?.expected_date ?? today}
+            label="Data prevista"
             required
           />
         </div>
@@ -152,7 +156,7 @@ export function ReceivableIncomeForm({
         <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `status-${income?.id}` : "status"}>Status</Label>
           <Select name="status" defaultValue={income?.status ?? "previsto"}>
-            <SelectTrigger id={isEditing ? `status-${income?.id}` : "status"}>
+            <SelectTrigger id={isEditing ? `status-${income?.id}` : "status"} className={financeSelectTriggerClass}>
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -170,6 +174,7 @@ export function ReceivableIncomeForm({
             name="receiving_bank"
             placeholder="Ex: Revolut, Wise"
             defaultValue={income?.receiving_bank ?? ""}
+            className={financeInputClass}
           />
         </div>
       </div>
@@ -181,6 +186,7 @@ export function ReceivableIncomeForm({
           name="notes"
           placeholder="Opcional"
           defaultValue={income?.notes ?? ""}
+          className={financeInputClass}
         />
       </div>
 

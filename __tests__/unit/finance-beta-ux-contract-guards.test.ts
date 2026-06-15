@@ -12,6 +12,7 @@ function readSource(path: string) {
 describe("finance beta UX contract guards", () => {
   const createCard = readSource("components/finance/finance-create-card.tsx");
   const formUi = readSource("components/finance/finance-form-ui.ts");
+  const dateField = readSource("components/finance/finance-date-field.tsx");
   const appFormSheet = readSource("components/app/app-form-sheet.tsx");
 
   const financePages = [
@@ -60,7 +61,9 @@ describe("finance beta UX contract guards", () => {
 
   it("keeps finance forms using the shared mobile form surface", () => {
     expect(formUi).toContain("financeNativeSelectClass");
-    expect(formUi).toContain("h-11 w-full rounded-2xl");
+    expect(formUi).toContain("h-12 w-full rounded-2xl");
+    expect(formUi).toContain("financeInputClass");
+    expect(formUi).toContain("financeSelectTriggerClass");
     expect(formUi).toContain("financeSubmitBarClass");
     expect(formUi).toContain("fixed inset-x-0 bottom-0");
     expect(formUi).toContain("financeSubmitButtonClass");
@@ -70,6 +73,27 @@ describe("finance beta UX contract guards", () => {
       expect(source).toContain("financeFormClass");
       expect(source).toContain("financeSubmitBarClass");
       expect(source).toContain("financeSubmitButtonClass");
+    }
+  });
+
+  it("keeps finance dates behind an app-like calendar dialog while preserving submitted names", () => {
+    expect(dateField).toContain("CalendarDays");
+    expect(dateField).toContain("Dialog");
+    expect(dateField).toContain('type="hidden"');
+    expect(dateField).toContain("formatDateLabel");
+    expect(dateField).toContain("Concluir");
+
+    const dateContracts = [
+      ["components/finance/expense-form.tsx", "FinanceDateField", 'name="expense_date"'],
+      ["components/finance/payable-bill-form.tsx", "FinanceDateField", 'name="due_date"'],
+      ["components/finance/receivable-income-form.tsx", "FinanceDateField", 'name="expected_date"'],
+    ];
+
+    for (const [formPath, componentName, fieldName] of dateContracts) {
+      const source = readSource(formPath);
+      expect(source).toContain(componentName);
+      expect(source).toContain(fieldName);
+      expect(source).not.toContain('type="date"');
     }
   });
 

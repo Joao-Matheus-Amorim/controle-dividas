@@ -4,10 +4,16 @@ import { useActionState, useState } from "react";
 
 import { createPayableBill, updatePayableBill } from "@/app/protected/contas-a-pagar/actions";
 import { AppActionFeedback } from "@/components/app/app-action-feedback";
+import { FinanceDateField } from "@/components/finance/finance-date-field";
 import {
+  financeAutomaticMemberClass,
+  financeChoiceGroupClass,
+  financeChoiceOptionClass,
   financeFieldClass,
   financeFormClass,
   financeGridFourClass,
+  financeHelperTextClass,
+  financeInputClass,
   financeNativeSelectClass,
   financeSubmitBarClass,
   financeSubmitButtonClass,
@@ -58,10 +64,10 @@ export function PayableBillForm({
     <form action={formAction} className={financeFormClass}>
       {bill ? <input type="hidden" name="id" value={bill.id} /> : null}
 
-      <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-3">
+      <div className={financeChoiceGroupClass}>
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/35">Tipo de conta</p>
         <div className="mt-3 grid gap-2 md:grid-cols-2">
-          <label className="cursor-pointer rounded-2xl border border-white/10 bg-[#080810]/60 p-3 transition has-[:checked]:border-[#8b72f8]/60 has-[:checked]:bg-[#8b72f8]/10">
+          <label className={financeChoiceOptionClass}>
             <input
               type="radio"
               name="bill_type"
@@ -74,7 +80,7 @@ export function PayableBillForm({
             <span className="mt-1 block text-xs leading-5 text-white/35">Pagamento pontual, boleto eventual ou divida sem repeticao.</span>
           </label>
 
-          <label className="cursor-pointer rounded-2xl border border-white/10 bg-[#080810]/60 p-3 transition has-[:checked]:border-[#8b72f8]/60 has-[:checked]:bg-[#8b72f8]/10">
+          <label className={financeChoiceOptionClass}>
             <input
               type="radio"
               name="bill_type"
@@ -98,6 +104,7 @@ export function PayableBillForm({
             placeholder={billType === "fixa" ? "Ex: Aluguel" : "Ex: Boleto eventual"}
             defaultValue={bill?.name ?? ""}
             required
+            className={financeInputClass}
           />
         </div>
 
@@ -129,16 +136,16 @@ export function PayableBillForm({
             placeholder="120.00"
             defaultValue={bill ? String(bill.amount) : ""}
             required
+            className={financeInputClass}
           />
         </div>
 
         <div className={financeFieldClass}>
-          <Label htmlFor={isEditing ? `due_date-${bill?.id}` : "due_date"}>Vencimento</Label>
-          <Input
+          <FinanceDateField
             id={isEditing ? `due_date-${bill?.id}` : "due_date"}
             name="due_date"
-            type="date"
             defaultValue={bill?.due_date ?? today}
+            label="Vencimento"
             required
           />
         </div>
@@ -150,7 +157,7 @@ export function PayableBillForm({
           {automaticMember ? (
             <>
               <input type="hidden" name="responsible_member_id" value={automaticMember.id} />
-              <div className="min-h-11 rounded-2xl border border-white/10 bg-[#080810]/70 px-4 py-3 text-sm text-white">
+              <div className={financeAutomaticMemberClass}>
                 <p className="font-semibold">{automaticMember.name}</p>
                 <p className="mt-1 text-xs text-white/45">Responsavel definido automaticamente pelo seu acesso.</p>
               </div>
@@ -194,6 +201,7 @@ export function PayableBillForm({
             name="bank_used"
             placeholder="Ex: Revolut, Wise"
             defaultValue={bill?.bank_used ?? ""}
+            className={financeInputClass}
           />
         </div>
 
@@ -205,9 +213,10 @@ export function PayableBillForm({
             defaultValue={billType === "fixa" ? bill?.recurrence ?? "mensal" : ""}
             placeholder={billType === "fixa" ? "mensal" : "Sem recorrencia"}
             disabled={billType === "avulsa"}
+            className={financeInputClass}
           />
           {billType === "fixa" ? (
-            <p className="text-xs text-white/35">Nesta fase, conta fixa nasce como mensal. Depois evoluiremos para recorrencia personalizada.</p>
+            <p className={financeHelperTextClass}>Nesta fase, conta fixa nasce como mensal. Depois evoluiremos para recorrencia personalizada.</p>
           ) : null}
         </div>
       </div>
@@ -219,6 +228,7 @@ export function PayableBillForm({
           name="notes"
           placeholder="Opcional"
           defaultValue={bill?.notes ?? ""}
+          className={financeInputClass}
         />
       </div>
 

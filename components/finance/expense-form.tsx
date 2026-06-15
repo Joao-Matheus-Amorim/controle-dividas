@@ -7,12 +7,15 @@ import { AppActionFeedback } from "@/components/app/app-action-feedback";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { FinanceDateField } from "@/components/finance/finance-date-field";
 import {
+  financeAutomaticMemberClass,
   financeFieldClass,
   financeFormClass,
   financeGridFourClass,
   financeGridThreeClass,
   financeGridTwoClass,
+  financeInputClass,
   financeNativeSelectClass,
   financeSubmitBarClass,
   financeSubmitButtonClass,
@@ -59,7 +62,7 @@ export function ExpenseForm({
           {automaticMember ? (
             <>
               <input type="hidden" name="family_member_id" value={automaticMember.id} />
-              <div className="min-h-11 rounded-2xl border border-white/10 bg-[#080810]/70 px-4 py-3 text-sm text-white">
+              <div className={financeAutomaticMemberClass}>
                 <p className="font-semibold">{automaticMember.name}</p>
                 <p className="mt-1 text-xs text-white/45">Responsavel definido automaticamente pelo seu acesso.</p>
               </div>
@@ -100,12 +103,11 @@ export function ExpenseForm({
         </div>
 
         <div className={financeFieldClass}>
-          <Label htmlFor={isEditing ? `expense_date-${expense?.id}` : "expense_date"}>Data</Label>
-          <Input
+          <FinanceDateField
             id={isEditing ? `expense_date-${expense?.id}` : "expense_date"}
             name="expense_date"
-            type="date"
             defaultValue={expense?.expense_date ?? today}
+            label="Data"
             required
           />
         </div>
@@ -121,6 +123,7 @@ export function ExpenseForm({
             placeholder="3.50"
             defaultValue={expense ? String(expense.amount) : ""}
             required
+            className={financeInputClass}
           />
         </div>
       </div>
@@ -134,6 +137,7 @@ export function ExpenseForm({
             placeholder="Ex: Cafe, mercado, passagem"
             defaultValue={expense?.description ?? ""}
             required
+            className={financeInputClass}
           />
         </div>
 
@@ -144,6 +148,7 @@ export function ExpenseForm({
             name="purchase_location"
             placeholder="Ex: Cafeteria X"
             defaultValue={expense?.purchase_location ?? ""}
+            className={financeInputClass}
           />
         </div>
       </div>
@@ -156,6 +161,7 @@ export function ExpenseForm({
             name="payment_method"
             placeholder="Cartao, dinheiro, transferencia"
             defaultValue={expense?.payment_method ?? ""}
+            className={financeInputClass}
           />
         </div>
 
@@ -166,6 +172,7 @@ export function ExpenseForm({
             name="bank_or_card"
             placeholder="Ex: Revolut, Wise"
             defaultValue={expense?.bank_or_card ?? ""}
+            className={financeInputClass}
           />
         </div>
 
@@ -176,6 +183,7 @@ export function ExpenseForm({
             name="notes"
             placeholder="Opcional"
             defaultValue={expense?.notes ?? ""}
+            className={financeInputClass}
           />
         </div>
       </div>
