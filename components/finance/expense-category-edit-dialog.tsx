@@ -2,22 +2,18 @@
 
 import { Pencil } from "lucide-react";
 
+import { AppFormSheet } from "@/components/app/app-form-sheet";
 import { ExpenseCategoryForm } from "@/components/finance/expense-category-form";
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
 import type { DbExpenseCategory } from "@/lib/finance/types";
 
 export function ExpenseCategoryEditDialog({ category }: { category: DbExpenseCategory }) {
   return (
-    <Sheet>
-      <SheetTrigger asChild>
+    <AppFormSheet
+      title="Editar categoria"
+      description="Atualize nome e descricao da categoria personalizada."
+      triggerLabel="Editar categoria"
+      trigger={
         <Button
           type="button"
           variant="outline"
@@ -27,18 +23,9 @@ export function ExpenseCategoryEditDialog({ category }: { category: DbExpenseCat
         >
           <Pencil className="h-4 w-4" />
         </Button>
-      </SheetTrigger>
-      <SheetContent side="bottom" className="max-h-[88vh] overflow-y-auto rounded-t-[1.75rem] md:inset-y-0 md:left-auto md:right-0 md:h-full md:w-3/4 md:max-w-md md:rounded-none md:border-l md:border-t-0 md:data-[state=closed]:slide-out-to-right md:data-[state=open]:slide-in-from-right">
-        <SheetHeader>
-          <SheetTitle>Editar categoria</SheetTitle>
-          <SheetDescription>
-            Atualize nome e descricao da categoria personalizada.
-          </SheetDescription>
-        </SheetHeader>
-        <div className="pt-2">
-          <ExpenseCategoryForm category={category} mode="edit" />
-        </div>
-      </SheetContent>
-    </Sheet>
+      }
+    >
+      <ExpenseCategoryForm category={category} mode="edit" />
+    </AppFormSheet>
   );
 }

@@ -2,16 +2,9 @@
 
 import { Pencil } from "lucide-react";
 
+import { AppFormSheet } from "@/components/app/app-form-sheet";
 import { ReceivableIncomeForm } from "@/components/finance/receivable-income-form";
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
 import type { DbFamilyMember, DbReceivableIncome } from "@/lib/finance/types";
 
 export function ReceivableIncomeEditDialog({
@@ -22,8 +15,11 @@ export function ReceivableIncomeEditDialog({
   members: DbFamilyMember[];
 }) {
   return (
-    <Sheet>
-      <SheetTrigger asChild>
+    <AppFormSheet
+      title="Editar recebimento"
+      description="Atualize pessoa, origem, valor, data, status, banco e observacoes."
+      triggerLabel="Editar recebimento"
+      trigger={
         <Button
           type="button"
           variant="outline"
@@ -33,18 +29,9 @@ export function ReceivableIncomeEditDialog({
         >
           <Pencil className="h-4 w-4" />
         </Button>
-      </SheetTrigger>
-      <SheetContent side="bottom" className="max-h-[88vh] overflow-y-auto rounded-t-[1.75rem] md:inset-y-0 md:left-auto md:right-0 md:h-full md:w-3/4 md:max-w-md md:rounded-none md:border-l md:border-t-0 md:data-[state=closed]:slide-out-to-right md:data-[state=open]:slide-in-from-right">
-        <SheetHeader>
-          <SheetTitle>Editar recebimento</SheetTitle>
-          <SheetDescription>
-            Atualize pessoa, origem, valor, data, status, banco e observacoes.
-          </SheetDescription>
-        </SheetHeader>
-        <div className="pt-2">
-          <ReceivableIncomeForm members={members} income={income} mode="edit" />
-        </div>
-      </SheetContent>
-    </Sheet>
+      }
+    >
+      <ReceivableIncomeForm members={members} income={income} mode="edit" />
+    </AppFormSheet>
   );
 }
