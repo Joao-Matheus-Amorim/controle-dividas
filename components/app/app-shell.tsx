@@ -1,4 +1,9 @@
 import { ActiveOrganizationIndicator } from "@/components/app/active-organization-indicator";
+import {
+  MobileBottomNavigation,
+  type MobileNavigationIconKey,
+  type MobileNavigationItem,
+} from "@/components/app/mobile-bottom-navigation";
 import { AuthButton } from "@/components/auth-button";
 import { EnvVarWarning } from "@/components/env-var-warning";
 import { ThemeSwitcher } from "@/components/theme-switcher";
@@ -8,13 +13,6 @@ import type { FinanceModuleKey } from "@/lib/finance/permissions";
 import { getOrgPathFromProtectedPath } from "@/lib/organizations/paths";
 import { getCurrentOrganization, getUserOrganizations } from "@/lib/organizations/server";
 import { hasEnvVars } from "@/lib/utils";
-import {
-  Banknote,
-  Home,
-  ReceiptText,
-  ShieldCheck,
-  WalletCards,
-} from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
 
@@ -22,28 +20,22 @@ type NavItem = {
   href: string;
   label: string;
   module: FinanceModuleKey;
-  icon?: typeof Home;
+  iconKey: MobileNavigationIconKey;
 };
 
 const navigation: NavItem[] = [
-  { href: "/protected", label: "Dashboard", module: "DASHBOARD" },
-  { href: "/protected/pessoas", label: "Pessoas", module: "PESSOAS" },
-  { href: "/protected/gastos", label: "Gastos", module: "GASTOS" },
-  { href: "/protected/contas-a-pagar", label: "Contas a pagar", module: "CONTAS_A_PAGAR" },
-  { href: "/protected/contas-a-receber", label: "Contas a receber", module: "CONTAS_A_RECEBER" },
-  { href: "/protected/bancos", label: "Bancos", module: "BANCOS" },
-  { href: "/protected/relatorios", label: "Relatórios", module: "RELATORIOS" },
-  { href: "/protected/configuracoes", label: "Configurações", module: "CONFIGURACOES" },
-  { href: "/protected/admin", label: "Admin", module: "ADMIN" },
+  { href: "/protected", label: "Dashboard", module: "DASHBOARD", iconKey: "dashboard" },
+  { href: "/protected/pessoas", label: "Pessoas", module: "PESSOAS", iconKey: "people" },
+  { href: "/protected/gastos", label: "Gastos", module: "GASTOS", iconKey: "expenses" },
+  { href: "/protected/contas-a-pagar", label: "Contas a pagar", module: "CONTAS_A_PAGAR", iconKey: "payables" },
+  { href: "/protected/contas-a-receber", label: "Contas a receber", module: "CONTAS_A_RECEBER", iconKey: "receivables" },
+  { href: "/protected/bancos", label: "Bancos", module: "BANCOS", iconKey: "banks" },
+  { href: "/protected/relatorios", label: "Relatórios", module: "RELATORIOS", iconKey: "reports" },
+  { href: "/protected/configuracoes", label: "Configurações", module: "CONFIGURACOES", iconKey: "settings" },
+  { href: "/protected/admin", label: "Admin", module: "ADMIN", iconKey: "admin" },
 ];
 
-const mobileNavigation: NavItem[] = [
-  { href: "/protected", label: "Início", module: "DASHBOARD", icon: Home },
-  { href: "/protected/gastos", label: "Gastos", module: "GASTOS", icon: ReceiptText },
-  { href: "/protected/contas-a-pagar", label: "Contas", module: "CONTAS_A_PAGAR", icon: WalletCards },
-  { href: "/protected/bancos", label: "Bancos", module: "BANCOS", icon: Banknote },
-  { href: "/protected/admin", label: "Admin", module: "ADMIN", icon: ShieldCheck },
-];
+const mobilePrimaryModules: FinanceModuleKey[] = ["DASHBOARD", "GASTOS", "CONTAS_A_PAGAR", "BANCOS"];
 
 type AppShellProps = {
   children: React.ReactNode;
@@ -55,9 +47,7 @@ function scopedHref(href: string, orgSlug?: string) {
 }
 
 export async function AppShell({ children, orgSlug }: AppShellProps) {
-  const modulesToCheck = Array.from(
-    new Set([...navigation, ...mobileNavigation].map((item) => item.module)),
-  );
+  const modulesToCheck = navigation.map((item) => item.module);
   const [visibleModuleKeys, currentOrganization, organizationContexts] = await Promise.all([
     getVisibleModuleKeys(modulesToCheck, orgSlug),
     getCurrentOrganization(orgSlug),
@@ -66,8 +56,17 @@ export async function AppShell({ children, orgSlug }: AppShellProps) {
   const organizationOptions = organizationContexts.map((context) => context.organization);
   const visibleModules = new Set(visibleModuleKeys);
   const visibleNavigation = navigation.filter((item) => visibleModules.has(item.module));
-  const visibleMobileNavigation = mobileNavigation.filter((item) => visibleModules.has(item.module));
+  const visibleMobilePrimaryNavigation = visibleNavigation.filter((item) =>
+    mobilePrimaryModules.includes(item.module),
+  );
   const homeHref = scopedHref("/protected", orgSlug);
+  const toMobileNavigationItem = (item: NavItem): MobileNavigationItem => ({
+    href: scopedHref(item.href, orgSlug),
+    label: item.module === "DASHBOARD" ? "Início" : item.label,
+    iconKey: item.iconKey,
+  });
+  const mobilePrimaryItems = visibleMobilePrimaryNavigation.map(toMobileNavigationItem);
+  const mobileAllItems = visibleNavigation.map(toMobileNavigationItem);
 
   return (
     <main className="app-no-x-scroll min-h-screen bg-background text-foreground">
@@ -140,28 +139,7 @@ export async function AppShell({ children, orgSlug }: AppShellProps) {
         {children}
       </div>
 
-      {visibleMobileNavigation.length > 0 ? (
-        <nav
-          className="fixed inset-x-0 bottom-0 z-50 max-w-full overflow-hidden border-t border-border bg-card pb-[env(safe-area-inset-bottom)] md:hidden"
-        >
-          <div className="mx-auto flex w-full items-stretch">
-            {visibleMobileNavigation.map((item) => {
-              const Icon = item.icon ?? Home;
-
-              return (
-                <Link
-                  key={item.href}
-                  href={scopedHref(item.href, orgSlug)}
-                  className="group relative flex min-w-0 flex-1 flex-col items-center justify-center gap-1 px-1 py-2.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground transition hover:text-primary"
-                >
-                  <Icon className="h-5 w-5 shrink-0" />
-                  <span className="max-w-full truncate">{item.label}</span>
-                </Link>
-              );
-            })}
-          </div>
-        </nav>
-      ) : null}
+      <MobileBottomNavigation primaryItems={mobilePrimaryItems} allItems={mobileAllItems} />
     </main>
   );
 }

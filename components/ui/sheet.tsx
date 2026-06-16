@@ -58,7 +58,7 @@ const SheetContent = React.forwardRef<
       {...props}
     >
       {children}
-      <SheetPrimitive.Close className="absolute right-4 top-4 rounded-full p-2 text-white/40 transition hover:bg-white/10 hover:text-white focus:outline-none focus:ring-1 focus:ring-[#8b72f8]">
+      <SheetPrimitive.Close className="absolute right-4 top-4 rounded-full p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground focus:outline-none focus:ring-1 focus:ring-ring">
         <X className="h-4 w-4" />
         <span className="sr-only">Fechar</span>
       </SheetPrimitive.Close>
