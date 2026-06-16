@@ -11,6 +11,7 @@ import {
   financeFormClass,
   financeGridFourClass,
   financeGridThreeClass,
+  financeHelperTextClass,
   financeInputClass,
   financeNativeSelectClass,
   financeSelectTriggerClass,
@@ -32,14 +33,23 @@ import type { DbFamilyMember, DbReceivableIncome, ReceivableIncomeFormState } fr
 const initialState: ReceivableIncomeFormState = {};
 
 const incomeSources = [
-  "Salario",
-  "Empresa / servicos",
-  "Comissao",
+  "Renda fixa",
+  "Salário",
+  "Comissão",
+  "Freelance / serviços",
   "Vendas",
-  "Trabalhos extras",
+  "Bônus",
+  "Aluguel recebido",
+  "Reembolso",
   "Mesada / apoio financeiro",
   "Outros",
 ];
+
+const legacyIncomeSourceLabels: Record<string, string> = {
+  Salario: "Salário",
+  Comissao: "Comissão",
+  "Empresa / servicos": "Freelance / serviços",
+};
 
 type ReceivableIncomeFormProps = {
   members: DbFamilyMember[];
@@ -61,6 +71,10 @@ export function ReceivableIncomeForm({
   const automaticMember = !isEditing && defaultMemberId
     ? members.find((member) => member.id === defaultMemberId) ?? null
     : null;
+  const selectedSource = income?.source ?? "";
+  const sourceOptions = selectedSource && !incomeSources.includes(selectedSource)
+    ? [selectedSource, ...incomeSources]
+    : incomeSources;
 
   return (
     <form action={formAction} className={financeFormClass}>
@@ -96,21 +110,24 @@ export function ReceivableIncomeForm({
         </div>
 
         <div className={financeFieldClass}>
-          <Label htmlFor={isEditing ? `source-${income?.id}` : "source"}>Origem do dinheiro</Label>
+          <Label htmlFor={isEditing ? `source-${income?.id}` : "source"}>Entrada de dinheiro</Label>
           <select
             id={isEditing ? `source-${income?.id}` : "source"}
             name="source"
-            defaultValue={income?.source ?? ""}
+            defaultValue={selectedSource}
             required
             className={financeNativeSelectClass}
           >
-            <option value="">Selecione</option>
-            {incomeSources.map((source) => (
+            <option value="">Selecione a origem</option>
+            {sourceOptions.map((source) => (
               <option key={source} value={source}>
-                {source}
+                {legacyIncomeSourceLabels[source] ?? source}
               </option>
             ))}
           </select>
+          <p className={financeHelperTextClass}>
+            Ex: salário, comissão, venda, aluguel recebido ou reembolso.
+          </p>
         </div>
 
         <div className={financeFieldClass}>
@@ -120,10 +137,13 @@ export function ReceivableIncomeForm({
               <SelectValue placeholder="Tipo de renda" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="fixa">Fixa</SelectItem>
-              <SelectItem value="variavel">Variavel</SelectItem>
+              <SelectItem value="fixa">Fixa / recorrente</SelectItem>
+              <SelectItem value="variavel">Variável / pontual</SelectItem>
             </SelectContent>
           </Select>
+          <p className={financeHelperTextClass}>
+            Use fixa para entradas recorrentes e variável para comissões, vendas e extras.
+          </p>
         </div>
 
         <div className={financeFieldClass}>
@@ -180,7 +200,7 @@ export function ReceivableIncomeForm({
       </div>
 
       <div className={financeFieldClass}>
-        <Label htmlFor={isEditing ? `notes-${income?.id}` : "notes"}>Observacao</Label>
+        <Label htmlFor={isEditing ? `notes-${income?.id}` : "notes"}>Observação</Label>
         <Input
           id={isEditing ? `notes-${income?.id}` : "notes"}
           name="notes"
@@ -194,7 +214,7 @@ export function ReceivableIncomeForm({
 
       <div className={financeSubmitBarClass}>
         <Button type="submit" disabled={isPending} className={financeSubmitButtonClass}>
-          {isPending ? "Salvando..." : isEditing ? "Salvar alteracoes" : "Cadastrar recebimento"}
+          {isPending ? "Salvando..." : isEditing ? "Salvar alterações" : "Cadastrar entrada"}
         </Button>
       </div>
     </form>

@@ -15,9 +15,9 @@ export function ReceivableIncomeFormDialog({
 }) {
   return (
     <AppFormSheet
-      title="Novo recebimento"
-      description="Cadastre uma renda, entrada prevista ou recebimento da família."
-      triggerLabel="Novo recebimento"
+      title="Nova entrada de dinheiro"
+      description="Cadastre salário, comissão, renda fixa ou recebimento pontual."
+      triggerLabel="Nova entrada"
       icon={TrendingUp}
     >
       <ReceivableIncomeForm members={members} defaultMemberId={defaultMemberId} />

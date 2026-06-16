@@ -20,9 +20,9 @@ export function ReceivableCreateSection({
 
   return (
     <FinanceCreateCard
-      eyebrow="Novo recebimento"
-      title="Pessoa obrigatoria para recebimentos"
-      description="Cadastre entradas previstas, rendas fixas ou recebimentos pontuais."
+      eyebrow="Entrada de dinheiro"
+      title="Pessoa obrigatória para recebimentos"
+      description="Cadastre salário, comissão, renda fixa, venda ou recebimento pontual."
       memberCount={members.length}
       peopleHref={getOrgPathFromProtectedPath("/protected/pessoas", orgSlug)}
     >
