@@ -108,6 +108,7 @@ describe("finance form UI contract guards", () => {
 
   it("keeps receivable form create/edit fields and status controls", () => {
     const source = readSource("components/finance/receivable-income-form.tsx");
+    const normalized = readNormalized("components/finance/receivable-income-form.tsx");
 
     expect(source).toContain("createReceivableIncome");
     expect(source).toContain("updateReceivableIncome");
@@ -122,6 +123,13 @@ describe("finance form UI contract guards", () => {
     expect(source).toContain('name="notes"');
     expect(source).toContain('<SelectItem value="previsto">');
     expect(source).toContain('<SelectItem value="recebido">');
+    expect(normalized).toContain("renda fixa");
+    expect(normalized).toContain("salario");
+    expect(normalized).toContain("comissao");
+    expect(normalized).toContain("freelance / servicos");
+    expect(normalized).toContain("aluguel recebido");
+    expect(normalized).toContain("variavel / pontual");
+    expect(source).toContain("legacyIncomeSourceLabels");
   });
 
   it("keeps bank account form create/edit fields and account type bridge", () => {

@@ -54,7 +54,7 @@ test.describe("data-changing create receivable E2E contract", () => {
     await expect(page).toHaveURL(/\/protected(?:\?|$)/, { timeout: 15_000 });
     await page.goto("/protected/contas-a-receber");
 
-    await page.getByRole("button", { name: "Novo recebimento" }).click();
+    await page.getByRole("button", { name: "Nova entrada" }).click();
 
     const receiverSelect = page.locator("select[name='receiver_member_id']");
     await expect
@@ -62,11 +62,11 @@ test.describe("data-changing create receivable E2E contract", () => {
       .toBeGreaterThan(1);
     await receiverSelect.selectOption({ index: 1 });
 
-    await page.getByLabel("Origem do dinheiro").selectOption("Outros");
+    await page.getByLabel("Entrada de dinheiro").selectOption("Outros");
     await page.getByLabel("Valor em euro").fill("1.00");
     await page.getByLabel("Banco de recebimento").fill(receivingBank);
-    await page.getByLabel("Observacao").fill(marker);
-    await page.getByRole("button", { name: "Cadastrar recebimento" }).click();
+    await page.getByLabel("Observação").fill(marker);
+    await page.getByRole("button", { name: "Cadastrar entrada" }).click();
 
     await expect(page.getByText("Conta a receber cadastrada com sucesso.")).toBeVisible({ timeout: 15_000 });
     await expect(page.getByText(receivingBank)).toBeVisible({ timeout: 15_000 });
