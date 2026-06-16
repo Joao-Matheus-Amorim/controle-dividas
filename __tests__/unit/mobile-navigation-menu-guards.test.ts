@@ -30,6 +30,7 @@ describe("mobile navigation menu guards", () => {
     expect(mobileNavigation).toContain("Abrir menu completo");
     expect(mobileNavigation).toContain("Todas as áreas liberadas");
     expect(mobileNavigation).toContain("allItems.map");
+    expect(mobileNavigation).toContain("SheetClose asChild");
     expect(mobileNavigation).toContain("primaryItems.map");
     expect(mobileNavigation).toContain("SheetContent");
     expect(mobileNavigation).toContain("receivables: TrendingUp");

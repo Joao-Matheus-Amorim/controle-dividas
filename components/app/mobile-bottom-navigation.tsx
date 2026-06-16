@@ -18,6 +18,7 @@ import { usePathname } from "next/navigation";
 
 import {
   Sheet,
+  SheetClose,
   SheetContent,
   SheetDescription,
   SheetHeader,
@@ -141,11 +142,12 @@ export function MobileBottomNavigation({
               </SheetHeader>
               <div className="grid max-h-[60vh] gap-2 overflow-y-auto px-4 py-4">
                 {allItems.map((item) => (
-                  <MobileNavigationLink
-                    key={item.href}
-                    item={item}
-                    className="justify-start rounded-2xl border border-border bg-ff-bg-soft px-4 py-3 text-sm font-semibold"
-                  />
+                  <SheetClose asChild key={item.href}>
+                    <MobileNavigationLink
+                      item={item}
+                      className="justify-start rounded-2xl border border-border bg-ff-bg-soft px-4 py-3 text-sm font-semibold"
+                    />
+                  </SheetClose>
                 ))}
               </div>
             </SheetContent>
