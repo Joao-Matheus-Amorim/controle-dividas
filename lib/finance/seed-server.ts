@@ -38,12 +38,12 @@ export async function seedInitialFinanceDataForOwner(
     );
   }
 
-  await assertSeedUpsertSucceeded(
-    supabase
-      .from("expense_categories")
-      .upsert(
-        buildDefaultExpenseCategorySeedRows(ownerId, organizationId),
-        duplicateSafeSeedOptions,
-      ),
-  );
+  const categoryRows = buildDefaultExpenseCategorySeedRows(ownerId, organizationId);
+  if (categoryRows.length > 0) {
+    await assertSeedUpsertSucceeded(
+      supabase
+        .from("expense_categories")
+        .upsert(categoryRows, duplicateSafeSeedOptions),
+    );
+  }
 }

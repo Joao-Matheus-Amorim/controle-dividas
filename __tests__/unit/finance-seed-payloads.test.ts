@@ -30,18 +30,11 @@ describe("finance seed payload builders", () => {
     );
   });
 
-  it("builds organization-scoped duplicate-safe default expense category seed rows", () => {
+  it("does not build default expense category seed rows before owner validation", () => {
     const rows = buildDefaultExpenseCategorySeedRows(ownerId, organizationId);
 
-    expect(rows).toHaveLength(defaultExpenseCategories.length);
-    expect(rows).toEqual(
-      defaultExpenseCategories.map((category) => ({
-        owner_id: ownerId,
-        organization_id: organizationId,
-        name: category.name,
-        is_default: true,
-      })),
-    );
+    expect(defaultExpenseCategories).toEqual([]);
+    expect(rows).toEqual([]);
   });
 
   it("uses the provided owner id for every seed row", () => {
