@@ -3,6 +3,7 @@ import type {
   DbBankAccount,
   DbFamilyMember,
   DbFinancialMovement,
+  DbExpense,
   DbPayableBill,
   DbReceivableIncome,
 } from "@/lib/finance/types";
@@ -11,18 +12,20 @@ import { createClient } from "@/lib/supabase/server";
 
 type RawFinancialMovement = Omit<
   DbFinancialMovement,
-  "banks" | "family_members" | "payable_bills" | "receivable_incomes"
+  "banks" | "family_members" | "payable_bills" | "receivable_incomes" | "expenses"
 > & {
   banks?: never;
   family_members?: never;
   payable_bills?: never;
   receivable_incomes?: never;
+  expenses?: never;
 };
 
 type MovementBankRelation = Pick<DbBankAccount, "id" | "bank_name" | "account_type" | "currency">;
 type MovementMemberRelation = Pick<DbFamilyMember, "id" | "name">;
 type MovementPayableRelation = Pick<DbPayableBill, "id" | "name" | "bill_type" | "status">;
 type MovementReceivableRelation = Pick<DbReceivableIncome, "id" | "source" | "income_type" | "status">;
+type MovementExpenseRelation = Pick<DbExpense, "id" | "description" | "payment_method">;
 
 const financialMovementSelect = [
   "id",
@@ -38,6 +41,7 @@ const financialMovementSelect = [
   "recorded_timezone",
   "payable_bill_id",
   "receivable_income_id",
+  "expense_id",
   "created_by_profile_id",
   "notes",
   "created_at",
@@ -50,12 +54,14 @@ function normalizeFinancialMovement({
   membersById,
   payablesById,
   receivablesById,
+  expensesById,
 }: {
   movement: RawFinancialMovement;
   banksById: Map<string, MovementBankRelation>;
   membersById: Map<string, MovementMemberRelation>;
   payablesById: Map<string, MovementPayableRelation>;
   receivablesById: Map<string, MovementReceivableRelation>;
+  expensesById: Map<string, MovementExpenseRelation>;
 }): DbFinancialMovement {
   return {
     ...movement,
@@ -67,17 +73,21 @@ function normalizeFinancialMovement({
     receivable_incomes: movement.receivable_income_id
       ? receivablesById.get(movement.receivable_income_id) ?? null
       : null,
+    expenses: movement.expense_id ? expensesById.get(movement.expense_id) ?? null : null,
   };
 }
 
 export async function getOrganizationFinancialMovements(orgSlug?: string) {
   const supabase = await createClient();
   const { organization } = await requireOrganizationAccess(orgSlug);
-  const [payableMemberIds, receivableMemberIds] = await Promise.all([
+  const [payableMemberIds, receivableMemberIds, expenseMemberIds] = await Promise.all([
     getAccessibleMemberIds("CONTAS_A_PAGAR", "can_view", orgSlug),
     getAccessibleMemberIds("CONTAS_A_RECEBER", "can_view", orgSlug),
+    getAccessibleMemberIds("GASTOS", "can_view", orgSlug),
   ]);
-  const accessibleMemberIds = Array.from(new Set([...payableMemberIds, ...receivableMemberIds]));
+  const accessibleMemberIds = Array.from(
+    new Set([...payableMemberIds, ...receivableMemberIds, ...expenseMemberIds]),
+  );
 
   if (accessibleMemberIds.length === 0) {
     return [];
@@ -86,6 +96,7 @@ export async function getOrganizationFinancialMovements(orgSlug?: string) {
   const [
     { data: payableMovementsData, error: payableMovementsError },
     { data: receivableMovementsData, error: receivableMovementsError },
+    { data: expenseMovementsData, error: expenseMovementsError },
   ] = await Promise.all([
     payableMemberIds.length > 0
       ? supabase
@@ -107,8 +118,18 @@ export async function getOrganizationFinancialMovements(orgSlug?: string) {
           .order("occurred_at", { ascending: false })
           .order("created_at", { ascending: false })
       : Promise.resolve({ data: [], error: null }),
+    expenseMemberIds.length > 0
+      ? supabase
+          .from("financial_movements")
+          .select(financialMovementSelect)
+          .eq("organization_id", organization.id)
+          .eq("movement_type", "expense_payment")
+          .in("family_member_id", expenseMemberIds)
+          .order("occurred_at", { ascending: false })
+          .order("created_at", { ascending: false })
+      : Promise.resolve({ data: [], error: null }),
   ]);
-  const movementsError = payableMovementsError ?? receivableMovementsError;
+  const movementsError = payableMovementsError ?? receivableMovementsError ?? expenseMovementsError;
 
   if (movementsError) {
     throw new Error(movementsError.message);
@@ -117,6 +138,7 @@ export async function getOrganizationFinancialMovements(orgSlug?: string) {
   const movements = [
     ...((payableMovementsData ?? []) as unknown as RawFinancialMovement[]),
     ...((receivableMovementsData ?? []) as unknown as RawFinancialMovement[]),
+    ...((expenseMovementsData ?? []) as unknown as RawFinancialMovement[]),
   ].sort((first, second) => {
     const occurredAtComparison = second.occurred_at.localeCompare(first.occurred_at);
 
@@ -146,12 +168,20 @@ export async function getOrganizationFinancialMovements(orgSlug?: string) {
         .filter((id): id is string => Boolean(id)),
     ),
   );
+  const expenseIds = Array.from(
+    new Set(
+      movements
+        .map((movement) => movement.expense_id)
+        .filter((id): id is string => Boolean(id)),
+    ),
+  );
 
   const [
     { data: banksData, error: banksError },
     { data: membersData, error: membersError },
     { data: payablesData, error: payablesError },
     { data: receivablesData, error: receivablesError },
+    { data: expensesData, error: expensesError },
   ] = await Promise.all([
     supabase
       .from("banks")
@@ -177,9 +207,16 @@ export async function getOrganizationFinancialMovements(orgSlug?: string) {
           .eq("organization_id", organization.id)
           .in("id", receivableIds)
       : Promise.resolve({ data: [], error: null }),
+    expenseIds.length > 0
+      ? supabase
+          .from("expenses")
+          .select("id, description, payment_method")
+          .eq("organization_id", organization.id)
+          .in("id", expenseIds)
+      : Promise.resolve({ data: [], error: null }),
   ]);
 
-  const firstError = banksError ?? membersError ?? payablesError ?? receivablesError;
+  const firstError = banksError ?? membersError ?? payablesError ?? receivablesError ?? expensesError;
 
   if (firstError) {
     throw new Error(firstError.message);
@@ -200,6 +237,9 @@ export async function getOrganizationFinancialMovements(orgSlug?: string) {
       receivable,
     ]),
   );
+  const expensesById = new Map(
+    ((expensesData ?? []) as MovementExpenseRelation[]).map((expense) => [expense.id, expense]),
+  );
 
   return movements.map((movement) =>
     normalizeFinancialMovement({
@@ -208,6 +248,7 @@ export async function getOrganizationFinancialMovements(orgSlug?: string) {
       membersById,
       payablesById,
       receivablesById,
+      expensesById,
     }),
   );
 }

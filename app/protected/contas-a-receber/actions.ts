@@ -607,7 +607,12 @@ export async function updateReceivableIncomeStatus(
       });
     }
 
-    revalidateOrganizationPaths(["/protected/contas-a-receber", "/protected/bancos", "/protected"], organization.slug);
+    revalidateOrganizationPaths([
+      "/protected/contas-a-receber",
+      "/protected/movimentacoes",
+      "/protected/bancos",
+      "/protected",
+    ], organization.slug);
 
     return { success: "Status atualizado com sucesso." };
   } catch (error) {

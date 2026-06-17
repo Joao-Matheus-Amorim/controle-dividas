@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 
 import { createExpense, updateExpense } from "@/app/protected/gastos/actions";
 import { AppActionFeedback } from "@/components/app/app-action-feedback";
@@ -21,6 +21,7 @@ import {
   financeSubmitButtonClass,
 } from "@/components/finance/finance-form-ui";
 import type {
+  DbBankAccount,
   DbExpense,
   DbExpenseCategory,
   DbFamilyMember,
@@ -32,6 +33,7 @@ const initialState: ExpenseFormState = {};
 type ExpenseFormProps = {
   members: DbFamilyMember[];
   categories: DbExpenseCategory[];
+  bankAccounts?: DbBankAccount[];
   expense?: DbExpense;
   mode?: "create" | "edit";
   defaultMemberId?: string;
@@ -40,6 +42,7 @@ type ExpenseFormProps = {
 export function ExpenseForm({
   members,
   categories,
+  bankAccounts = [],
   expense,
   mode = "create",
   defaultMemberId,
@@ -48,9 +51,14 @@ export function ExpenseForm({
   const [state, formAction, isPending] = useActionState(action, initialState);
   const today = new Date().toISOString().slice(0, 10);
   const isEditing = mode === "edit" && Boolean(expense);
+  const initialMemberId = expense?.family_member_id ?? defaultMemberId ?? "";
+  const [selectedMemberId, setSelectedMemberId] = useState(initialMemberId);
   const automaticMember = !isEditing && defaultMemberId
     ? members.find((member) => member.id === defaultMemberId) ?? null
     : null;
+  const memberBankAccounts = bankAccounts.filter(
+    (account) => account.family_member_id === selectedMemberId,
+  );
 
   return (
     <form action={formAction} className={financeFormClass}>
@@ -71,7 +79,8 @@ export function ExpenseForm({
             <select
               id={isEditing ? `family_member_id-${expense?.id}` : "family_member_id"}
               name="family_member_id"
-              defaultValue={expense?.family_member_id ?? defaultMemberId ?? ""}
+              defaultValue={initialMemberId}
+              onChange={(event) => setSelectedMemberId(event.target.value)}
               required
               className={financeNativeSelectClass}
             >
@@ -165,16 +174,35 @@ export function ExpenseForm({
           />
         </div>
 
-        <div className={financeFieldClass}>
-          <Label htmlFor={isEditing ? `bank_or_card-${expense?.id}` : "bank_or_card"}>Banco ou cartao</Label>
-          <Input
-            id={isEditing ? `bank_or_card-${expense?.id}` : "bank_or_card"}
-            name="bank_or_card"
-            placeholder="Ex: Revolut, Wise"
-            defaultValue={expense?.bank_or_card ?? ""}
-            className={financeInputClass}
-          />
-        </div>
+        {isEditing ? (
+          <div className={financeFieldClass}>
+            <Label htmlFor={`bank_or_card-${expense?.id}`}>Banco ou cartao</Label>
+            <Input
+              id={`bank_or_card-${expense?.id}`}
+              name="bank_or_card"
+              placeholder="Ex: Revolut, Wise"
+              defaultValue={expense?.bank_or_card ?? ""}
+              className={financeInputClass}
+            />
+          </div>
+        ) : (
+          <div className={financeFieldClass}>
+            <Label htmlFor="bank_id">Banco usado</Label>
+            <select
+              id="bank_id"
+              name="bank_id"
+              required
+              className={financeNativeSelectClass}
+            >
+              <option value="">Selecione o banco</option>
+              {memberBankAccounts.map((account) => (
+                <option key={account.id} value={account.id}>
+                  {account.bank_name} - {account.account_type ?? "Conta"}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `notes-${expense?.id}` : "notes"}>Observacao</Label>

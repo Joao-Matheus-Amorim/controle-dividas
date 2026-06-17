@@ -1,12 +1,13 @@
 import { FinanceCreateCard } from "@/components/finance/finance-create-card";
 import { ExpenseFormDialog } from "@/components/finance/expense-form-dialog";
-import type { DbExpenseCategory, DbFamilyMember } from "@/lib/finance/types";
+import type { DbBankAccount, DbExpenseCategory, DbFamilyMember } from "@/lib/finance/types";
 import { getOrgPathFromProtectedPath } from "@/lib/organizations/paths";
 
 interface ExpenseCreateSectionProps {
   canCreate: boolean;
   members: DbFamilyMember[];
   categories: DbExpenseCategory[];
+  bankAccounts: DbBankAccount[];
   orgSlug?: string;
 }
 
@@ -14,6 +15,7 @@ export function ExpenseCreateSection({
   canCreate,
   members,
   categories,
+  bankAccounts,
   orgSlug,
 }: ExpenseCreateSectionProps) {
   if (!canCreate) return null;
@@ -31,6 +33,7 @@ export function ExpenseCreateSection({
       <ExpenseFormDialog
         members={members}
         categories={categories}
+        bankAccounts={bankAccounts}
         defaultMemberId={defaultMemberId}
       />
     </FinanceCreateCard>
