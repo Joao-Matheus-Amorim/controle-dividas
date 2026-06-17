@@ -102,6 +102,7 @@ export async function ContasAPagarPage({ searchParams, orgSlug }: ContasAPagarPa
         hasActiveFilters={hasActiveFilters}
         canEdit={canEdit}
         canDelete={canDelete}
+        canCreate={canCreate}
       />
     </div>
   );

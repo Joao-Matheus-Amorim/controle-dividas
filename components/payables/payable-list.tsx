@@ -1,5 +1,8 @@
 import Link from "next/link";
+import { FileText, PlusCircle, SearchX } from "lucide-react";
 
+import { AppEmptyState } from "@/components/app/app-empty-state";
+import { Button } from "@/components/ui/button";
 import type { DbBankAccount, DbFamilyMember, DbPayableBill } from "@/lib/finance/types";
 import { PayableFilterBar } from "./payable-filter-bar";
 import { PayableListItem } from "./payable-list-item";
@@ -17,6 +20,7 @@ interface PayableListProps {
   hasActiveFilters: boolean;
   canEdit: boolean;
   canDelete: boolean;
+  canCreate: boolean;
 }
 
 export function PayableList({
@@ -29,6 +33,7 @@ export function PayableList({
   hasActiveFilters,
   canEdit,
   canDelete,
+  canCreate,
 }: PayableListProps) {
   return (
     <section className="space-y-4 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
@@ -49,13 +54,34 @@ export function PayableList({
       <PayableFilterBar statusFilter={statusFilter} typeFilter={typeFilter} />
 
       {bills.length === 0 ? (
-        <div className="rounded-2xl border border-white/10 bg-[#080810]/45 p-4 text-sm text-white/35">
-          Nenhuma conta ou divida cadastrada ainda. Crie uma conta avulsa ou fixa para acompanhar vencimentos.
-        </div>
+        <AppEmptyState
+          icon={FileText}
+          title="Nenhuma conta cadastrada"
+          description="Crie uma conta avulsa ou fixa para acompanhar vencimentos, atrasos e pagamentos."
+          action={
+            canCreate ? (
+              <Button asChild size="sm" className="h-10 w-full rounded-2xl bg-[#8b72f8] px-4 font-bold text-white hover:bg-[#7d66e4] sm:w-auto">
+                <Link href="#nova-conta">
+                  <PlusCircle className="h-4 w-4" />
+                  Nova conta
+                </Link>
+              </Button>
+            ) : null
+          }
+          className="items-start text-left"
+        />
       ) : filteredBills.length === 0 ? (
-        <div className="rounded-2xl border border-white/10 bg-[#080810]/45 p-4 text-sm text-white/35">
-          Nenhuma conta encontrada com os filtros selecionados.
-        </div>
+        <AppEmptyState
+          icon={SearchX}
+          title="Nenhuma conta neste filtro"
+          description="Volte para todos os status ou ajuste o tipo de conta para ver outros itens."
+          action={
+            <Button asChild size="sm" variant="outline" className="h-10 w-full rounded-2xl border-white/10 bg-transparent text-white hover:bg-white/10 sm:w-auto">
+              <Link href="/protected/contas-a-pagar">Limpar filtros</Link>
+            </Button>
+          }
+          className="items-start text-left"
+        />
       ) : (
         filteredBills.map((bill) => (
           <PayableListItem
