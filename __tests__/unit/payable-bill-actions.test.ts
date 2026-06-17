@@ -888,6 +888,7 @@ describe("payable bill actions", () => {
     const result = await updatePayableBillStatus({}, createFormData({
       id: "bill-1",
       status: "pago",
+      bank_id: "bank-1",
     }));
 
     expect(result).toEqual({

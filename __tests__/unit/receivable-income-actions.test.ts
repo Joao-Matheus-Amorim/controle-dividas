@@ -471,6 +471,7 @@ describe("receivable income actions", () => {
     const result = await updateReceivableIncomeStatus(createFormData({
       id: "income-1",
       status: "recebido",
+      bank_id: "bank-1",
     }));
 
     expect(result).toEqual({
