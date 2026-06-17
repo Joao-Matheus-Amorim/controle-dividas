@@ -20,6 +20,11 @@ describe("expense category subcategory guards", () => {
     expect(migration).toContain("parent_category.organization_id = new.organization_id");
     expect(migration).toContain("parent_category.parent_category_id is null");
     expect(migration).toContain("child_category.parent_category_id = new.id");
+    expect(migration).toContain("drop index if exists public.expense_categories_owner_name_unique_idx");
+    expect(migration).toContain("expense_categories_organization_root_name_unique_idx");
+    expect(migration).toContain("where parent_category_id is null");
+    expect(migration).toContain("expense_categories_organization_parent_name_unique_idx");
+    expect(migration).toContain("where parent_category_id is not null");
   });
 
   it("keeps category writes validating parent_category_id before mutation", () => {

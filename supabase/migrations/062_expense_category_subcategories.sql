@@ -47,6 +47,16 @@ create index if not exists expense_categories_parent_category_id_idx
 create index if not exists expense_categories_organization_parent_name_idx
   on public.expense_categories(organization_id, parent_category_id, lower(trim(name)));
 
+drop index if exists public.expense_categories_owner_name_unique_idx;
+
+create unique index if not exists expense_categories_organization_root_name_unique_idx
+  on public.expense_categories(organization_id, lower(trim(name)))
+  where parent_category_id is null;
+
+create unique index if not exists expense_categories_organization_parent_name_unique_idx
+  on public.expense_categories(organization_id, parent_category_id, lower(trim(name)))
+  where parent_category_id is not null;
+
 create or replace function public.expense_category_parent_matches_organization()
 returns trigger
 language plpgsql
