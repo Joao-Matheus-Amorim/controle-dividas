@@ -148,7 +148,10 @@ function parseBankAccountForm(formData: FormData) {
   };
 }
 
-function validateBankAccountInput(input: ReturnType<typeof parseBankAccountForm>): BankAccountFormState | null {
+function validateBankAccountInput(
+  input: ReturnType<typeof parseBankAccountForm>,
+  existingBankName?: string | null,
+): BankAccountFormState | null {
   if (!input.familyMemberId) {
     return { error: "Selecione a pessoa vinculada ao banco." };
   }
@@ -157,7 +160,10 @@ function validateBankAccountInput(input: ReturnType<typeof parseBankAccountForm>
     return { error: "Selecione o banco." };
   }
 
-  if (!isSystemBankOption(input.bankName)) {
+  const preservesExistingLegacyBankName =
+    existingBankName && input.bankName === existingBankName;
+
+  if (!isSystemBankOption(input.bankName) && !preservesExistingLegacyBankName) {
     return { error: "Selecione um banco da lista do sistema." };
   }
 
@@ -269,18 +275,19 @@ export async function updateBankAccount(
 ): Promise<BankAccountFormState> {
   const id = String(formData.get("id") ?? "");
   const input = parseBankAccountForm(formData);
-  const validationError = validateBankAccountInput(input);
 
   if (!id) {
     return { error: "Banco nao encontrado." };
   }
 
-  if (validationError) {
-    return validationError;
-  }
-
   try {
     const { profile, organization, account } = await assertCanManageBankAccount(id, "can_edit");
+    const validationError = validateBankAccountInput(input, String(account.bank_name ?? ""));
+
+    if (validationError) {
+      return validationError;
+    }
+
     const balanceChanged = Number(account.current_balance) !== input.currentBalance;
     const bankChanged = hasBankAccountWriteChanges(account, input);
 

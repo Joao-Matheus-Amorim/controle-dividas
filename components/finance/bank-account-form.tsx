@@ -59,9 +59,10 @@ export function BankAccountForm({
   const [state, formAction, isPending] = useActionState(action, initialState);
   const isEditing = mode === "edit" && Boolean(account);
   const [accountTypeValue, setAccountTypeValue] = useState(account?.account_type ?? emptyAccountTypeValue);
-  const selectedBankName = account?.bank_name && isSystemBankOption(account.bank_name)
-    ? account.bank_name
-    : "";
+  const selectedBankName = account?.bank_name ?? "";
+  const legacyBankName = selectedBankName && !isSystemBankOption(selectedBankName)
+    ? selectedBankName
+    : null;
   const automaticMember = !isEditing && defaultMemberId
     ? members.find((member) => member.id === defaultMemberId) ?? null
     : null;
@@ -109,6 +110,9 @@ export function BankAccountForm({
             className={financeNativeSelectClass}
           >
             <option value="">Selecione um banco</option>
+            {legacyBankName ? (
+              <option value={legacyBankName}>{legacyBankName} (cadastrado)</option>
+            ) : null}
             {systemBankOptions.map((bankName) => (
               <option key={bankName} value={bankName}>
                 {bankName}

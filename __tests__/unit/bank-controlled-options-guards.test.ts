@@ -23,6 +23,8 @@ describe("bank controlled options contract", () => {
     expect(options).toContain("export function isSystemBankOption");
 
     expect(form).toContain("systemBankOptions.map");
+    expect(form).toContain("legacyBankName");
+    expect(form).toContain("(cadastrado)");
     expect(form).toContain("<select");
     expect(form).toContain('name="bank_name"');
     expect(form).toContain("Selecione um banco");
@@ -32,6 +34,8 @@ describe("bank controlled options contract", () => {
   it("validates controlled bank names on the server action boundary", () => {
     expect(actions).toContain("@/lib/finance/bank-options");
     expect(actions).toContain("isSystemBankOption(input.bankName)");
+    expect(actions).toContain("existingBankName && input.bankName === existingBankName");
+    expect(actions).toContain("validateBankAccountInput(input, String(account.bank_name");
     expect(actions).toContain("Selecione um banco da lista do sistema.");
     expect(actions).toContain("bank_name: input.bankName");
   });
