@@ -489,7 +489,7 @@ export async function updateReceivableIncome(
       });
     }
 
-    revalidateOrganizationPaths(["/protected/contas-a-receber", "/protected"], organization.slug);
+    revalidateOrganizationPaths(["/protected/contas-a-receber", "/protected/bancos", "/protected"], organization.slug);
 
     return { success: "Recebimento atualizado com sucesso." };
   } catch (error) {
