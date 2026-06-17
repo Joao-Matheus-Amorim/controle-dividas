@@ -11,6 +11,16 @@ export function compactCurrency(value: number) {
   return formatCurrency(value).replace(/\s+/g, " ").trim();
 }
 
+export function compactCurrencyForCode(value: number, currency: string) {
+  return new Intl.NumberFormat("pt-PT", {
+    style: "currency",
+    currency,
+  })
+    .format(value)
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 export function initials(name: string) {
   return name
     .split(" ")
