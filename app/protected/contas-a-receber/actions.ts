@@ -520,6 +520,10 @@ export async function updateReceivableIncomeStatus(
 
   try {
     const { profile, organization, income } = await assertCanManageReceivableIncome(id, "can_edit");
+    if (String(income.status) === "recebido" && status !== "recebido") {
+      return { error: "Recebimento ja possui movimentacao. Estorno sera tratado pelo fluxo de movimentacoes." };
+    }
+
     const transitionToReceived = String(income.status) !== "recebido" && status === "recebido";
     if (transitionToReceived) {
       await assertMovementBankBelongsToMember(
@@ -598,7 +602,7 @@ export async function updateReceivableIncomeStatus(
       });
     }
 
-    revalidateOrganizationPaths(["/protected/contas-a-receber", "/protected"], organization.slug);
+    revalidateOrganizationPaths(["/protected/contas-a-receber", "/protected/bancos", "/protected"], organization.slug);
 
     return { success: "Status atualizado com sucesso." };
   } catch (error) {

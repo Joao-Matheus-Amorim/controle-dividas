@@ -9,6 +9,7 @@ function read(path: string) {
 
 describe("bank balance movement rpc guards", () => {
   const migration = read("supabase/migrations/059_bank_balance_from_financial_movements.sql");
+  const recoveryMigration = read("supabase/migrations/060_idempotent_status_movement_recovery.sql");
   const payableActions = read("app/protected/contas-a-pagar/actions.ts");
   const receivableActions = read("app/protected/contas-a-receber/actions.ts");
 
@@ -27,7 +28,26 @@ describe("bank balance movement rpc guards", () => {
   });
 
   it("revalidates bank pages after movement-backed status changes", () => {
-    expect(payableActions).toContain('"/protected/bancos"');
-    expect(receivableActions).toContain('"/protected/bancos"');
+    const payableStatusAction = payableActions.slice(
+      payableActions.indexOf("export async function updatePayableBillStatus"),
+    );
+    const receivableStatusAction = receivableActions.slice(
+      receivableActions.indexOf("export async function updateReceivableIncomeStatus"),
+    );
+
+    expect(payableStatusAction).toContain('"/protected/bancos"');
+    expect(receivableStatusAction).toContain('"/protected/bancos"');
+  });
+
+  it("keeps paid and received RPCs idempotent when a movement already exists", () => {
+    expect(recoveryMigration).toContain("existing_movement_id uuid");
+    expect(recoveryMigration).toContain("payable_bill_id = target_bill.id");
+    expect(recoveryMigration).toContain("receivable_income_id = target_income.id");
+    expect(recoveryMigration).toContain("if existing_movement_id is not null then");
+  });
+
+  it("blocks quick status reversals until movement reversal exists", () => {
+    expect(payableActions).toContain('String(bill.status) === "pago" && status !== "pago"');
+    expect(receivableActions).toContain('String(income.status) === "recebido" && status !== "recebido"');
   });
 });

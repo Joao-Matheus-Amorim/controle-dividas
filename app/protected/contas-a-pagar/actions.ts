@@ -531,6 +531,10 @@ export async function updatePayableBillStatus(
 
   try {
     const { profile, organization, bill } = await assertCanManagePayableBill(id, "can_edit");
+    if (String(bill.status) === "pago" && status !== "pago") {
+      return { error: "Conta paga ja possui movimentacao. Estorno sera tratado pelo fluxo de movimentacoes." };
+    }
+
     const transitionToPaid = String(bill.status) !== "pago" && status === "pago";
     if (transitionToPaid) {
       await assertMovementBankBelongsToMember(
@@ -609,7 +613,7 @@ export async function updatePayableBillStatus(
       });
     }
 
-    revalidateOrganizationPaths(["/protected/contas-a-pagar", "/protected"], organization.slug);
+    revalidateOrganizationPaths(["/protected/contas-a-pagar", "/protected/bancos", "/protected"], organization.slug);
 
     return { success: "Status atualizado com sucesso." };
   } catch (error) {
