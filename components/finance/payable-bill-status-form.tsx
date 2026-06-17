@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useRef, useState } from "react";
 
 import { updatePayableBillStatus, type PayableBillActionState } from "@/app/protected/contas-a-pagar/actions";
 import { AppActionFeedback } from "@/components/app/app-action-feedback";
@@ -21,21 +21,23 @@ export function PayableBillStatusForm({
   const [state, formAction, isPending] = useActionState(updatePayableBillStatus, initialState);
   const effectiveStatus = bill.computed_status ?? bill.status;
   const [selectedStatus, setSelectedStatus] = useState(effectiveStatus);
-  const [recordedTimezone, setRecordedTimezone] = useState("");
+  const recordedTimezoneRef = useRef<HTMLInputElement>(null);
   const memberBankAccounts = bankAccounts.filter(
     (account) => account.family_member_id === bill.responsible_member_id,
   );
   const requiresBank = selectedStatus === "pago";
 
-  useEffect(() => {
-    setRecordedTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
-  }, []);
+  function captureRecordedTimezone() {
+    if (recordedTimezoneRef.current) {
+      recordedTimezoneRef.current.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    }
+  }
 
   return (
-    <form action={formAction} className="flex flex-col gap-2">
+    <form action={formAction} onSubmit={captureRecordedTimezone} className="flex flex-col gap-2">
       <div className="flex flex-wrap gap-2">
         <input type="hidden" name="id" value={bill.id} />
-        <input type="hidden" name="recorded_timezone" value={recordedTimezone} />
+        <input ref={recordedTimezoneRef} type="hidden" name="recorded_timezone" defaultValue="" />
         <select
           name="status"
           value={selectedStatus}
