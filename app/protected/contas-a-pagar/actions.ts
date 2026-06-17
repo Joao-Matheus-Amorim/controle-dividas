@@ -156,6 +156,35 @@ async function assertMovementBankBelongsToMember(
   return bank;
 }
 
+async function assertBankNameBelongsToResponsibleMember(
+  organizationId: string,
+  bankName: string,
+  responsibleMemberId: string,
+) {
+  if (!bankName) {
+    return null;
+  }
+
+  const supabase = await createClient();
+  const { data: bank, error } = await supabase
+    .from("banks")
+    .select("id, organization_id, family_member_id, bank_name")
+    .eq("bank_name", bankName)
+    .eq("family_member_id", responsibleMemberId)
+    .eq("organization_id", organizationId)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (!bank) {
+    throw new Error("Selecione um banco cadastrado para o responsavel desta conta.");
+  }
+
+  return bank;
+}
+
 function parsePayableBillForm(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   const category = String(formData.get("category") ?? "").trim();
@@ -247,6 +276,11 @@ export async function createPayableBill(
       input.responsibleMemberId,
     );
     await assertCanAccessMember("CONTAS_A_PAGAR", "can_create", input.responsibleMemberId);
+    await assertBankNameBelongsToResponsibleMember(
+      organization.id,
+      input.bankUsed,
+      input.responsibleMemberId,
+    );
   } catch (error) {
     return {
       error:
@@ -336,13 +370,23 @@ export async function updatePayableBill(
   try {
     const { profile, organization, bill } = await assertCanManagePayableBill(id, "can_edit");
     const billChanged = hasPayableBillWriteChanges(bill, input);
+    const responsibleMemberChanged = String(bill.responsible_member_id) !== input.responsibleMemberId;
 
-    if (String(bill.responsible_member_id) !== input.responsibleMemberId) {
+    if (responsibleMemberChanged) {
       await assertResponsibleMemberBelongsToOrganization(
         organization.id,
         input.responsibleMemberId,
       );
       await assertCanAccessMember("CONTAS_A_PAGAR", "can_edit", input.responsibleMemberId);
+    }
+
+    const existingBankUsed = String(bill.bank_used ?? "").trim();
+    if (input.bankUsed && (input.bankUsed !== existingBankUsed || responsibleMemberChanged)) {
+      await assertBankNameBelongsToResponsibleMember(
+        organization.id,
+        input.bankUsed,
+        input.responsibleMemberId,
+      );
     }
 
     const statusChanged = String(bill.status) !== input.status;

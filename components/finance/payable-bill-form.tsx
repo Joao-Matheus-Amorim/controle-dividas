@@ -21,7 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { DbFamilyMember, DbPayableBill, PayableBillFormState, PayableBillType } from "@/lib/finance/types";
+import type { DbBankAccount, DbFamilyMember, DbPayableBill, PayableBillFormState, PayableBillType } from "@/lib/finance/types";
 
 const initialState: PayableBillFormState = {};
 
@@ -44,6 +44,7 @@ type FixedBillAudience = "family" | "person";
 
 type PayableBillFormProps = {
   members: DbFamilyMember[];
+  bankAccounts?: DbBankAccount[];
   bill?: DbPayableBill;
   mode?: "create" | "edit";
   defaultMemberId?: string;
@@ -51,6 +52,7 @@ type PayableBillFormProps = {
 
 export function PayableBillForm({
   members,
+  bankAccounts = [],
   bill,
   mode = "create",
   defaultMemberId,
@@ -61,6 +63,8 @@ export function PayableBillForm({
   const [fixedBillAudience, setFixedBillAudience] = useState<FixedBillAudience>("family");
   const today = new Date().toISOString().slice(0, 10);
   const isEditing = mode === "edit" && Boolean(bill);
+  const initialMemberId = bill?.responsible_member_id ?? defaultMemberId ?? "";
+  const [selectedMemberId, setSelectedMemberId] = useState(initialMemberId);
   const selectedCategory = bill?.category ?? "";
   const [categoryValue, setCategoryValue] = useState(
     selectedCategory && !categories.includes(selectedCategory) ? customCategoryValue : selectedCategory,
@@ -70,6 +74,14 @@ export function PayableBillForm({
   const automaticMember = !isEditing && defaultMemberId
     ? members.find((member) => member.id === defaultMemberId) ?? null
     : null;
+  const memberBankAccounts = bankAccounts.filter(
+    (account) => account.family_member_id === selectedMemberId,
+  );
+  const selectedBankUsed = bill?.bank_used ?? "";
+  const keepsLegacyBankUsed =
+    isEditing &&
+    selectedBankUsed &&
+    !memberBankAccounts.some((account) => account.bank_name === selectedBankUsed);
 
   return (
     <form action={formAction} className={financeFormClass}>
@@ -233,7 +245,8 @@ export function PayableBillForm({
             <select
               id={isEditing ? `responsible_member_id-${bill?.id}` : "responsible_member_id"}
               name="responsible_member_id"
-              defaultValue={bill?.responsible_member_id ?? defaultMemberId ?? ""}
+              defaultValue={initialMemberId}
+              onChange={(event) => setSelectedMemberId(event.target.value)}
               required
               className={financeNativeSelectClass}
             >
@@ -270,13 +283,25 @@ export function PayableBillForm({
 
         <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `bank_used-${bill?.id}` : "bank_used"}>Banco utilizado</Label>
-          <Input
+          <select
             id={isEditing ? `bank_used-${bill?.id}` : "bank_used"}
             name="bank_used"
-            placeholder="Ex: Revolut, Wise"
             defaultValue={bill?.bank_used ?? ""}
-            className={financeInputClass}
-          />
+            className={financeNativeSelectClass}
+          >
+            <option value="">Selecione um banco cadastrado</option>
+            {keepsLegacyBankUsed ? (
+              <option value={selectedBankUsed}>{selectedBankUsed}</option>
+            ) : null}
+            {memberBankAccounts.map((account) => (
+              <option key={account.id} value={account.bank_name}>
+                {account.bank_name} - {account.account_type ?? "Conta"}
+              </option>
+            ))}
+          </select>
+          <p className={financeHelperTextClass}>
+            Use somente bancos cadastrados na aba Bancos para a pessoa responsavel.
+          </p>
         </div>
 
         <div className={financeFieldClass}>

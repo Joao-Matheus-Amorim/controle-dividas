@@ -30,6 +30,9 @@ export async function ContasAReceberPage({ orgSlug }: ContasAReceberPageProps = 
   const createMembers = canCreate
     ? await getAccessibleMemberOptions("CONTAS_A_RECEBER", "can_create", orgSlug)
     : [];
+  const createBankAccounts = canCreate
+    ? await getOrganizationBankAccountsForMembers(createMembers, orgSlug)
+    : [];
   const bankAccounts = canEdit
     ? await getOrganizationBankAccountsForMembers(receivableData.members, orgSlug)
     : [];
@@ -67,7 +70,12 @@ export async function ContasAReceberPage({ orgSlug }: ContasAReceberPageProps = 
         totalVariable={totalVariable}
       />
 
-      <ReceivableCreateSection canCreate={canCreate} members={createMembers} orgSlug={orgSlug} />
+      <ReceivableCreateSection
+        canCreate={canCreate}
+        members={createMembers}
+        bankAccounts={createBankAccounts}
+        orgSlug={orgSlug}
+      />
 
       <ReceivableList
         incomes={incomes}

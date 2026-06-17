@@ -57,6 +57,9 @@ export async function GastosPage({ searchParams, orgSlug }: GastosPageProps) {
   const createBankAccounts = canCreate
     ? await getOrganizationBankAccountsForMembers(createMembers, orgSlug)
     : [];
+  const editBankAccounts = canEdit
+    ? await getOrganizationBankAccountsForMembers(expenseData.members, orgSlug)
+    : [];
   const periodLabel = getCurrentMonthLabel();
 
   const { members, categories, expenses, memberSummaries } = expenseData;
@@ -155,6 +158,7 @@ export async function GastosPage({ searchParams, orgSlug }: GastosPageProps) {
         expenses={filteredExpenses}
         members={members}
         categories={categories}
+        bankAccounts={editBankAccounts}
         canEdit={canEdit}
         canDelete={canDelete}
         canCreate={canCreate}

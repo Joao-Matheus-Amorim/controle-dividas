@@ -153,6 +153,42 @@ describe("finance form UI contract guards", () => {
     expect(source).not.toContain('placeholder="Ex: Revolut, Wise"');
   });
 
+  it("keeps finance bank usage fields tied to registered bank options", () => {
+    const payableForm = readSource("components/finance/payable-bill-form.tsx");
+    const receivableForm = readSource("components/finance/receivable-income-form.tsx");
+    const expenseForm = readSource("components/finance/expense-form.tsx");
+    const payableActions = readSource("app/protected/contas-a-pagar/actions.ts");
+    const receivableActions = readSource("app/protected/contas-a-receber/actions.ts");
+    const expenseActions = readSource("app/protected/gastos/actions.ts");
+
+    expect(payableForm).toContain("bankAccounts?: DbBankAccount[]");
+    expect(payableForm).toContain("memberBankAccounts.map");
+    expect(payableForm).toContain("keepsLegacyBankUsed");
+    expect(payableForm).toContain('name="bank_used"');
+    expect(payableForm).toContain("Selecione um banco cadastrado");
+    expect(payableForm).not.toContain('placeholder="Ex: Revolut, Wise"');
+
+    expect(receivableForm).toContain("bankAccounts?: DbBankAccount[]");
+    expect(receivableForm).toContain("memberBankAccounts.map");
+    expect(receivableForm).toContain("keepsLegacyReceivingBank");
+    expect(receivableForm).toContain('name="receiving_bank"');
+    expect(receivableForm).toContain("Selecione um banco cadastrado");
+    expect(receivableForm).not.toContain('placeholder="Ex: Revolut, Wise"');
+
+    expect(expenseForm).toContain("bankAccounts?: DbBankAccount[]");
+    expect(expenseForm).toContain("memberBankAccounts.map");
+    expect(expenseForm).toContain("keepsLegacyBankOrCard");
+    expect(expenseForm).toContain('name="bank_or_card"');
+    expect(expenseForm).toContain("Selecione um banco cadastrado");
+
+    expect(payableActions).toContain("assertBankNameBelongsToResponsibleMember");
+    expect(payableActions).toContain("Selecione um banco cadastrado para o responsavel desta conta.");
+    expect(receivableActions).toContain("assertBankNameBelongsToReceiverMember");
+    expect(receivableActions).toContain("Selecione um banco cadastrado para a pessoa recebedora.");
+    expect(expenseActions).toContain("assertBankNameBelongsToExpenseMember");
+    expect(expenseActions).toContain("Selecione um banco cadastrado para a pessoa responsavel pelo gasto.");
+  });
+
   it("keeps family member form minimal create contract", () => {
     const source = readSource("components/finance/family-member-form.tsx");
 

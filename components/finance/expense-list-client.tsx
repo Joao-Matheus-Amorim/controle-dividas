@@ -32,6 +32,7 @@ import type {
   DbExpense,
   DbExpenseCategory,
   DbFamilyMember,
+  DbBankAccount,
 } from "@/lib/finance/types";
 
 const initialDeleteState: ExpenseActionState = {};
@@ -44,12 +45,14 @@ export function ExpenseListClient({
   expenses,
   members,
   categories,
+  bankAccounts,
   canEdit,
   canDelete,
 }: {
   expenses: DbExpense[];
   members: DbFamilyMember[];
   categories: DbExpenseCategory[];
+  bankAccounts: DbBankAccount[];
   canEdit: boolean;
   canDelete: boolean;
 }) {
@@ -197,6 +200,7 @@ export function ExpenseListClient({
               <ExpenseForm
                 members={members}
                 categories={categories}
+                bankAccounts={bankAccounts}
                 expense={editingExpense}
                 mode="edit"
               />

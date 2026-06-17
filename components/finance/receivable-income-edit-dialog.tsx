@@ -5,14 +5,16 @@ import { Pencil } from "lucide-react";
 import { AppFormSheet } from "@/components/app/app-form-sheet";
 import { ReceivableIncomeForm } from "@/components/finance/receivable-income-form";
 import { Button } from "@/components/ui/button";
-import type { DbFamilyMember, DbReceivableIncome } from "@/lib/finance/types";
+import type { DbBankAccount, DbFamilyMember, DbReceivableIncome } from "@/lib/finance/types";
 
 export function ReceivableIncomeEditDialog({
   income,
   members,
+  bankAccounts,
 }: {
   income: DbReceivableIncome;
   members: DbFamilyMember[];
+  bankAccounts: DbBankAccount[];
 }) {
   return (
     <AppFormSheet
@@ -31,7 +33,7 @@ export function ReceivableIncomeEditDialog({
         </Button>
       }
     >
-      <ReceivableIncomeForm members={members} income={income} mode="edit" />
+      <ReceivableIncomeForm members={members} bankAccounts={bankAccounts} income={income} mode="edit" />
     </AppFormSheet>
   );
 }

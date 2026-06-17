@@ -4,13 +4,15 @@ import { WalletCards } from "lucide-react";
 
 import { AppFormSheet } from "@/components/app/app-form-sheet";
 import { PayableBillForm } from "@/components/finance/payable-bill-form";
-import type { DbFamilyMember } from "@/lib/finance/types";
+import type { DbBankAccount, DbFamilyMember } from "@/lib/finance/types";
 
 export function PayableBillFormDialog({
   members,
+  bankAccounts,
   defaultMemberId,
 }: {
   members: DbFamilyMember[];
+  bankAccounts: DbBankAccount[];
   defaultMemberId?: string;
 }) {
   return (
@@ -20,7 +22,7 @@ export function PayableBillFormDialog({
       triggerLabel="Nova conta/divida"
       icon={WalletCards}
     >
-      <PayableBillForm members={members} defaultMemberId={defaultMemberId} />
+      <PayableBillForm members={members} bankAccounts={bankAccounts} defaultMemberId={defaultMemberId} />
     </AppFormSheet>
   );
 }

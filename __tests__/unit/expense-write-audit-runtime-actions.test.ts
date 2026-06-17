@@ -24,6 +24,12 @@ const mockState = vi.hoisted(() => ({
     id: "category-1",
     organization_id: "org-1",
   } as Record<string, unknown> | null,
+  bankLookup: {
+    id: "bank-1",
+    organization_id: "org-1",
+    family_member_id: "member-1",
+    bank_name: "Conta principal",
+  } as Record<string, unknown> | null,
   insertedExpense: {
     id: "expense-new",
   } as Record<string, unknown> | null,
@@ -95,6 +101,10 @@ function makeQuery(table: string) {
         return Promise.resolve({ data: mockState.categoryLookup, error: null });
       }
 
+      if (table === "banks") {
+        return Promise.resolve({ data: mockState.bankLookup, error: null });
+      }
+
       return Promise.resolve({ data: null, error: null });
     },
     single() {
@@ -133,7 +143,7 @@ function makeSupabaseClient() {
       return Promise.resolve({ error: null });
     },
     from(table: string) {
-      if (!["expenses", "family_members", "expense_categories"].includes(table)) {
+      if (!["expenses", "family_members", "expense_categories", "banks"].includes(table)) {
         throw new Error(`Unexpected table: ${table}`);
       }
 
@@ -189,6 +199,12 @@ describe("expense write audit runtime actions", () => {
     mockState.categoryLookup = {
       id: "category-1",
       organization_id: "org-1",
+    };
+    mockState.bankLookup = {
+      id: "bank-1",
+      organization_id: "org-1",
+      family_member_id: "member-1",
+      bank_name: "Conta principal",
     };
     mockState.insertedExpense = {
       id: "expense-new",
