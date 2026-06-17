@@ -48,7 +48,8 @@ describe("finance list UI contract guards", () => {
     expect(client).toContain("canDelete ? (");
     expect(client).toContain('aria-label="Editar gasto"');
     expect(client).toContain('aria-label="Excluir gasto"');
-    expect(client).toContain("SheetTitle>Editar gasto");
+    expect(client).toContain("<SheetTitle");
+    expect(client).toContain("Editar gasto</SheetTitle>");
     expect(client).toContain("DialogTitle>Excluir gasto");
   });
 
