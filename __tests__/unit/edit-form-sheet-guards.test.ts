@@ -31,4 +31,19 @@ describe("edit form sheet guards", () => {
     expect(source).not.toContain("<Dialog>");
     expect(source).not.toContain("<DialogContent");
   });
+
+  it("keeps inline expense edits on the fullscreen responsive sheet surface", () => {
+    const source = readSource("components/finance/expense-list-client.tsx");
+
+    expect(source).toContain("SheetClose");
+    expect(source).toContain("Voltar");
+    expect(source).toContain("h-[100dvh]");
+    expect(source).toContain("md:w-[calc(100vw-2rem)]");
+    expect(source).toContain("md:max-w-none");
+    expect(source).toContain("sticky top-0");
+    expect(source).toContain("flex-1 overflow-y-auto");
+    expect(source).not.toContain("max-h-[88vh]");
+    expect(source).not.toContain("md:max-w-md");
+    expect(source).not.toContain("md:w-3/4");
+  });
 });
