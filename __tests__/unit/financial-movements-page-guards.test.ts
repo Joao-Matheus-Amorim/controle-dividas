@@ -13,6 +13,7 @@ describe("financial movements page guards", () => {
   const appShell = read("components/app/app-shell.tsx");
   const mobileNavigation = read("components/app/mobile-bottom-navigation.tsx");
   const movementsPage = read("features/protected-pages/movimentacoes-page.tsx");
+  const movementFilterBar = read("components/movements/movement-filter-bar.tsx");
   const payableActions = read("app/protected/contas-a-pagar/actions.ts");
   const receivableActions = read("app/protected/contas-a-receber/actions.ts");
 
@@ -28,7 +29,20 @@ describe("financial movements page guards", () => {
     expect(movementsPage).toContain("getOrganizationFinancialMovements");
     expect(movementsPage).toContain("totalInflow");
     expect(movementsPage).toContain("totalOutflow");
-    expect(movementsPage).toContain("<MovementList movements={movements}");
+    expect(movementsPage).toContain("<MovementList movements={filteredMovements}");
+    expect(movementsPage).toContain("<MovementFilterBar");
+    expect(movementsPage).toContain("movement.movement_type === filters.movementType");
+    expect(movementsPage).toContain("movement.family_member_id === filters.memberId");
+    expect(movementsPage).toContain("movement.bank_id === filters.bankId");
+  });
+
+  it("keeps movement filters constrained to generated app movement types", () => {
+    expect(movementFilterBar).toContain("movementTypeLabelFromType");
+    expect(movementFilterBar).toContain('name="tipo"');
+    expect(movementFilterBar).toContain('name="pessoa"');
+    expect(movementFilterBar).toContain('name="banco"');
+    expect(movementFilterBar).toContain('name="de"');
+    expect(movementFilterBar).toContain('name="ate"');
   });
 
   it("revalidates movements after status actions create ledger entries", () => {
