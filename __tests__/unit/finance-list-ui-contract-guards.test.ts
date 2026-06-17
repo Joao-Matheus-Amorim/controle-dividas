@@ -60,8 +60,10 @@ describe("finance list UI contract guards", () => {
     expect(list).toContain("itens visiveis no seu escopo");
     expect(list).toContain("payablefilterbar");
     expect(list).toContain("limpar filtros");
-    expect(list).toContain("nenhuma conta ou divida cadastrada ainda");
-    expect(list).toContain("nenhuma conta encontrada com os filtros selecionados");
+    expect(list).toContain("nenhuma conta cadastrada");
+    expect(list).toContain("nova conta");
+    expect(list).toContain("nenhuma conta neste filtro");
+    expect(list).toContain("cancreate");
     expect(list).toContain("hasactivefilters");
 
     expect(item).toContain("canEdit ? (");

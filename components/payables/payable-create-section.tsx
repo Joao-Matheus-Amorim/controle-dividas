@@ -20,6 +20,7 @@ export function PayableCreateSection({
 
   return (
     <FinanceCreateCard
+      id="nova-conta"
       eyebrow="Nova conta"
       title="Pessoa obrigatoria para contas"
       description="Cadastre uma conta avulsa ou fixa e acompanhe vencimentos."
