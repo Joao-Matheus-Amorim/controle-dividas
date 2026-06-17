@@ -24,6 +24,26 @@ type MovementMemberRelation = Pick<DbFamilyMember, "id" | "name">;
 type MovementPayableRelation = Pick<DbPayableBill, "id" | "name" | "bill_type" | "status">;
 type MovementReceivableRelation = Pick<DbReceivableIncome, "id" | "source" | "income_type" | "status">;
 
+const financialMovementSelect = [
+  "id",
+  "owner_id",
+  "organization_id",
+  "family_member_id",
+  "bank_id",
+  "movement_type",
+  "direction",
+  "amount",
+  "currency",
+  "occurred_at",
+  "recorded_timezone",
+  "payable_bill_id",
+  "receivable_income_id",
+  "created_by_profile_id",
+  "notes",
+  "created_at",
+  "updated_at",
+].join(", ");
+
 function normalizeFinancialMovement({
   movement,
   banksById,
@@ -53,49 +73,59 @@ function normalizeFinancialMovement({
 export async function getOrganizationFinancialMovements(orgSlug?: string) {
   const supabase = await createClient();
   const { organization } = await requireOrganizationAccess(orgSlug);
-  const moduleMemberIds = await Promise.all([
+  const [payableMemberIds, receivableMemberIds] = await Promise.all([
     getAccessibleMemberIds("CONTAS_A_PAGAR", "can_view", orgSlug),
     getAccessibleMemberIds("CONTAS_A_RECEBER", "can_view", orgSlug),
   ]);
-  const accessibleMemberIds = Array.from(new Set(moduleMemberIds.flat()));
+  const accessibleMemberIds = Array.from(new Set([...payableMemberIds, ...receivableMemberIds]));
 
   if (accessibleMemberIds.length === 0) {
     return [];
   }
 
-  const { data: movementsData, error: movementsError } = await supabase
-    .from("financial_movements")
-    .select(
-      [
-        "id",
-        "owner_id",
-        "organization_id",
-        "family_member_id",
-        "bank_id",
-        "movement_type",
-        "direction",
-        "amount",
-        "currency",
-        "occurred_at",
-        "recorded_timezone",
-        "payable_bill_id",
-        "receivable_income_id",
-        "created_by_profile_id",
-        "notes",
-        "created_at",
-        "updated_at",
-      ].join(", "),
-    )
-    .eq("organization_id", organization.id)
-    .in("family_member_id", accessibleMemberIds)
-    .order("occurred_at", { ascending: false })
-    .order("created_at", { ascending: false });
+  const [
+    { data: payableMovementsData, error: payableMovementsError },
+    { data: receivableMovementsData, error: receivableMovementsError },
+  ] = await Promise.all([
+    payableMemberIds.length > 0
+      ? supabase
+          .from("financial_movements")
+          .select(financialMovementSelect)
+          .eq("organization_id", organization.id)
+          .eq("movement_type", "payable_bill_payment")
+          .in("family_member_id", payableMemberIds)
+          .order("occurred_at", { ascending: false })
+          .order("created_at", { ascending: false })
+      : Promise.resolve({ data: [], error: null }),
+    receivableMemberIds.length > 0
+      ? supabase
+          .from("financial_movements")
+          .select(financialMovementSelect)
+          .eq("organization_id", organization.id)
+          .eq("movement_type", "receivable_income_receipt")
+          .in("family_member_id", receivableMemberIds)
+          .order("occurred_at", { ascending: false })
+          .order("created_at", { ascending: false })
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+  const movementsError = payableMovementsError ?? receivableMovementsError;
 
   if (movementsError) {
     throw new Error(movementsError.message);
   }
 
-  const movements = (movementsData ?? []) as unknown as RawFinancialMovement[];
+  const movements = [
+    ...((payableMovementsData ?? []) as unknown as RawFinancialMovement[]),
+    ...((receivableMovementsData ?? []) as unknown as RawFinancialMovement[]),
+  ].sort((first, second) => {
+    const occurredAtComparison = second.occurred_at.localeCompare(first.occurred_at);
+
+    if (occurredAtComparison !== 0) {
+      return occurredAtComparison;
+    }
+
+    return second.created_at.localeCompare(first.created_at);
+  });
 
   if (movements.length === 0) {
     return [];
