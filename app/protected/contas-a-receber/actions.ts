@@ -101,7 +101,7 @@ async function assertCanManageReceivableIncome(
 
   const { data: income, error } = await supabase
     .from("receivable_incomes")
-    .select("id, owner_id, receiver_member_id, source, income_type, amount, expected_date, status, receiving_bank, notes")
+    .select("id, owner_id, receiver_member_id, source, payment_origin, income_type, amount, expected_date, status, receiving_bank, notes")
     .eq("id", incomeId)
     .eq("organization_id", organization.id)
     .maybeSingle();
@@ -131,6 +131,7 @@ async function assertCanManageReceivableIncome(
 function parseReceivableIncomeForm(formData: FormData) {
   const receiverMemberId = String(formData.get("receiver_member_id") ?? "");
   const source = String(formData.get("source") ?? "").trim();
+  const paymentOrigin = String(formData.get("payment_origin") ?? "").trim();
   const incomeType = String(formData.get("income_type") ?? "fixa");
   const amount = Number(formData.get("amount") ?? 0);
   const expectedDate = String(formData.get("expected_date") ?? "");
@@ -141,6 +142,7 @@ function parseReceivableIncomeForm(formData: FormData) {
   return {
     receiverMemberId,
     source,
+    paymentOrigin,
     incomeType,
     amount,
     expectedDate,
@@ -187,6 +189,7 @@ function hasReceivableIncomeWriteChanges(
   return (
     String(income.receiver_member_id ?? "") !== input.receiverMemberId ||
     String(income.source ?? "").trim() !== input.source ||
+    String(income.payment_origin ?? "").trim() !== input.paymentOrigin ||
     String(income.income_type ?? "fixa") !== input.incomeType ||
     Number(income.amount ?? 0) !== input.amount ||
     String(income.expected_date ?? "") !== input.expectedDate ||
@@ -252,6 +255,7 @@ export async function createReceivableIncome(
     organization_id: organization.id,
     receiver_member_id: input.receiverMemberId,
     source: input.source,
+    payment_origin: input.paymentOrigin || null,
     income_type: input.incomeType,
     amount: input.amount,
     expected_date: input.expectedDate,
@@ -412,6 +416,7 @@ export async function updateReceivableIncome(
       .update({
         receiver_member_id: input.receiverMemberId,
         source: input.source,
+        payment_origin: input.paymentOrigin || null,
         income_type: input.incomeType,
         amount: input.amount,
         expected_date: input.expectedDate,

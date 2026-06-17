@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { CalendarDays, CircleDollarSign, FileText, Landmark, UserRound, WalletCards } from "lucide-react";
 
 import { createReceivableIncome, updateReceivableIncome } from "@/app/protected/contas-a-receber/actions";
@@ -46,6 +46,8 @@ const incomeSources = [
   "Mesada / apoio financeiro",
   "Outros",
 ];
+
+const customIncomeSourceValue = "__custom_income_source__";
 
 const legacyIncomeSourceLabels: Record<string, string> = {
   Salario: "Salário",
@@ -98,9 +100,10 @@ export function ReceivableIncomeForm({
     ? members.find((member) => member.id === defaultMemberId) ?? null
     : null;
   const selectedSource = income?.source ?? "";
-  const sourceOptions = selectedSource && !incomeSources.includes(selectedSource)
-    ? [selectedSource, ...incomeSources]
-    : incomeSources;
+  const [sourceValue, setSourceValue] = useState(
+    selectedSource && !incomeSources.includes(selectedSource) ? customIncomeSourceValue : selectedSource,
+  );
+  const isCustomSource = sourceValue === customIncomeSourceValue;
 
   return (
     <form action={formAction} className={financeFormClass}>
@@ -152,18 +155,35 @@ export function ReceivableIncomeForm({
             <Label htmlFor={isEditing ? `source-${income?.id}` : "source"}>Entrada de dinheiro</Label>
             <select
               id={isEditing ? `source-${income?.id}` : "source"}
-              name="source"
-              defaultValue={selectedSource}
-              required
+              name={isCustomSource ? "source_preset" : "source"}
+              value={sourceValue}
+              onChange={(event) => setSourceValue(event.target.value)}
+              required={!isCustomSource}
               className={financeNativeSelectClass}
             >
               <option value="">Selecione a origem</option>
-              {sourceOptions.map((source) => (
+              {incomeSources.map((source) => (
                 <option key={source} value={source}>
                   {legacyIncomeSourceLabels[source] ?? source}
                 </option>
               ))}
+              <option value={customIncomeSourceValue}>Cadastrar nova origem</option>
             </select>
+            {isCustomSource ? (
+              <>
+                <Label className="sr-only" htmlFor={isEditing ? `source-custom-${income?.id}` : "source-custom"}>
+                  Nova origem
+                </Label>
+                <Input
+                  id={isEditing ? `source-custom-${income?.id}` : "source-custom"}
+                  name="source"
+                  placeholder="Digite a origem"
+                  defaultValue={selectedSource && !incomeSources.includes(selectedSource) ? selectedSource : ""}
+                  required
+                  className={financeInputClass}
+                />
+              </>
+            ) : null}
             <p className={financeHelperTextClass}>
               Ex: salário, comissão, venda, aluguel recebido ou reembolso.
             </p>
@@ -182,6 +202,22 @@ export function ReceivableIncomeForm({
             </Select>
             <p className={financeHelperTextClass}>
               Use fixa para entradas recorrentes e variável para comissões, vendas e extras.
+            </p>
+          </div>
+
+          <div className={financeFieldClass}>
+            <Label htmlFor={isEditing ? `payment_origin-${income?.id}` : "payment_origin"}>
+              De onde/de quem vem o pagamento
+            </Label>
+            <Input
+              id={isEditing ? `payment_origin-${income?.id}` : "payment_origin"}
+              name="payment_origin"
+              placeholder="Ex: Empresa, cliente, pessoa ou plataforma"
+              defaultValue={income?.payment_origin ?? ""}
+              className={financeInputClass}
+            />
+            <p className={financeHelperTextClass}>
+              Identifique o pagador ou a origem concreta do dinheiro.
             </p>
           </div>
 

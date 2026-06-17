@@ -62,6 +62,7 @@ create table if not exists public.receivable_incomes (
   owner_id uuid not null references auth.users(id) on delete cascade,
   receiver_member_id uuid references public.family_members(id) on delete set null,
   source text not null,
+  payment_origin text,
   income_type text not null check (income_type in ('fixa', 'variavel')),
   amount numeric(10,2) not null check (amount >= 0),
   expected_date date not null,

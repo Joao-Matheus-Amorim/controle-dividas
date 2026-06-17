@@ -151,6 +151,41 @@ describe("finance beta UX contract guards", () => {
     expect(payableForm).toContain("Responsável financeiro");
   });
 
+  it("allows payable and receivable forms to submit custom category labels without schema changes", () => {
+    const payableForm = readSource("components/finance/payable-bill-form.tsx");
+    const receivableForm = readSource("components/finance/receivable-income-form.tsx");
+
+    expect(payableForm).toContain("customCategoryValue");
+    expect(payableForm).toContain("Cadastrar nova categoria");
+    expect(payableForm).toContain('name={isCustomCategory ? "category_preset" : "category"}');
+    expect(payableForm).toContain('name="category"');
+    expect(payableForm).toContain("Digite a categoria");
+    expect(payableForm).not.toContain("required={!isCustomCategory}");
+
+    expect(receivableForm).toContain("customIncomeSourceValue");
+    expect(receivableForm).toContain("Cadastrar nova origem");
+    expect(receivableForm).toContain('name={isCustomSource ? "source_preset" : "source"}');
+    expect(receivableForm).toContain('name="source"');
+    expect(receivableForm).toContain("Digite a origem");
+  });
+
+  it("keeps receivable incomes tracking who or where the payment comes from", () => {
+    const receivableForm = readSource("components/finance/receivable-income-form.tsx");
+    const receivableActions = readSource("app/protected/contas-a-receber/actions.ts");
+    const receivableReadModel = readSource("lib/organizations/receivables.ts");
+    const receivableListItem = readSource("components/receivables/receivable-list-item.tsx");
+    const migration = readSource("supabase/migrations/056_receivable_incomes_payment_origin.sql");
+
+    expect(receivableForm).toContain('name="payment_origin"');
+    expect(receivableForm).toContain("De onde/de quem vem o pagamento");
+    expect(receivableForm).toContain("Identifique o pagador ou a origem concreta do dinheiro.");
+    expect(receivableActions).toContain('formData.get("payment_origin")');
+    expect(receivableActions).toContain("payment_origin: input.paymentOrigin || null");
+    expect(receivableReadModel).toContain("payment_origin");
+    expect(receivableListItem).toContain("Origem do pagamento:");
+    expect(migration).toContain("add column if not exists payment_origin text");
+  });
+
   it("keeps bank account type selection synchronized with submitted data", () => {
     const bankForm = readSource("components/finance/bank-account-form.tsx");
 
