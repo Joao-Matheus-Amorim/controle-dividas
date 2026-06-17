@@ -27,6 +27,7 @@ const mockState = vi.hoisted(() => ({
   insertedExpense: {
     id: "expense-new",
   } as Record<string, unknown> | null,
+  expenseMovementCalls: [] as Array<Record<string, unknown>>,
   insertedRows: [] as Array<{ table: string; payload: Record<string, unknown> }>,
   updatedRows: [] as Array<{ table: string; payload: Record<string, unknown>; filters: Record<string, unknown> }>,
   mutationCount: 1 as number | null,
@@ -57,6 +58,7 @@ function validExpenseForm(overrides: Record<string, string> = {}) {
     amount: "45.90",
     payment_method: "pix",
     bank_or_card: "Conta principal",
+    bank_id: "bank-1",
     notes: "Compra semanal",
     ...overrides,
   });
@@ -118,6 +120,11 @@ function makeQuery(table: string) {
 function makeSupabaseClient() {
   return {
     rpc(name: string, payload: Record<string, unknown>) {
+      if (name === "create_expense_with_movement") {
+        mockState.expenseMovementCalls.push(payload);
+        return Promise.resolve({ data: mockState.insertedExpense?.id ?? null, error: mockState.mutationError });
+      }
+
       if (name !== "record_audit_event") {
         throw new Error(`Unexpected rpc: ${name}`);
       }
@@ -186,6 +193,7 @@ describe("expense write audit runtime actions", () => {
     mockState.insertedExpense = {
       id: "expense-new",
     };
+    mockState.expenseMovementCalls = [];
     mockState.insertedRows = [];
     mockState.updatedRows = [];
     mockState.mutationCount = 1;
@@ -210,22 +218,20 @@ describe("expense write audit runtime actions", () => {
         organizationId: "org-1",
       },
     ]);
-    expect(mockState.insertedRows).toEqual([
+    expect(mockState.expenseMovementCalls).toEqual([
       {
-        table: "expenses",
-        payload: {
-          owner_id: "org-owner-1",
-          organization_id: "org-1",
-          family_member_id: "member-1",
-          category_id: "category-1",
-          expense_date: "2026-05-17",
-          description: "Mercado",
-          purchase_location: "Padaria",
-          amount: 45.9,
-          payment_method: "pix",
-          bank_or_card: "Conta principal",
-          notes: "Compra semanal",
-        },
+        target_organization_id: "org-1",
+        target_owner_id: "org-owner-1",
+        target_family_member_id: "member-1",
+        target_category_id: "category-1",
+        target_expense_date: "2026-05-17",
+        target_description: "Mercado",
+        target_purchase_location: "Padaria",
+        target_amount: 45.9,
+        target_payment_method: "pix",
+        target_bank_id: "bank-1",
+        target_notes: "Compra semanal",
+        target_profile_id: "profile-1",
       },
     ]);
     expect(mockState.auditEvents).toEqual([
@@ -252,6 +258,7 @@ describe("expense write audit runtime actions", () => {
     expect(result).toEqual({
       error: "Muitas tentativas de cadastro de gasto. Tente novamente em alguns minutos.",
     });
+    expect(mockState.expenseMovementCalls).toHaveLength(0);
     expect(mockState.insertedRows).toHaveLength(0);
     expect(mockState.auditEvents).toEqual([
       expect.objectContaining({

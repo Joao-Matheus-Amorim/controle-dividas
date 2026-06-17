@@ -209,10 +209,6 @@ export async function createExpense(
     return validationError;
   }
 
-  if (!input.bankId) {
-    return { error: "Selecione o banco usado no gasto." };
-  }
-
   const supabase = await createClient();
   const profile = await getCurrentProfile();
   const { organization } = await requireOrganizationAccess();
@@ -234,6 +230,10 @@ export async function createExpense(
           ? error.message
           : "Voce nao tem permissao para cadastrar gasto para esta pessoa.",
     };
+  }
+
+  if (!input.bankId) {
+    return { error: "Selecione o banco usado no gasto." };
   }
 
   const rateLimit = checkSensitiveOperationRateLimit({
