@@ -15,16 +15,6 @@ export const defaultFamilyMembers: DefaultFamilyMember[] = [
 ];
 
 export const defaultExpenseCategories: DefaultExpenseCategory[] = [
-  { name: "Alimentação" },
-  { name: "Transporte / Passagem" },
-  { name: "Mercado" },
-  { name: "Escola" },
-  { name: "Lazer" },
-  { name: "Saúde" },
-  { name: "Judô" },
-  { name: "Natação" },
-  { name: "Luta" },
-  { name: "Roupas" },
-  { name: "Casa" },
-  { name: "Outros" },
+  // Categories are intentionally not seeded. Owners should validate and create
+  // the category structure for each organization instead of inheriting demo data.
 ];

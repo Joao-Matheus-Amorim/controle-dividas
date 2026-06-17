@@ -23,7 +23,7 @@ function createSeedClient(
 }
 
 describe("finance seed server", () => {
-  it("upserts organization-scoped default categories without seeding demo members", async () => {
+  it("skips demo member and category seeding when defaults are intentionally empty", async () => {
     const ownerId = "owner-123";
     const organizationId = "org-123";
     const { client, from, upsertCalls } = createSeedClient();
@@ -31,38 +31,19 @@ describe("finance seed server", () => {
     await seedInitialFinanceDataForOwner(client, ownerId, organizationId);
 
     expect(buildDefaultFamilyMemberSeedRows(ownerId, organizationId)).toEqual([]);
-    expect(from).toHaveBeenCalledTimes(1);
-    expect(from).toHaveBeenNthCalledWith(1, "expense_categories");
-    expect(upsertCalls).toEqual([
-      {
-        table: "expense_categories",
-        rows: buildDefaultExpenseCategorySeedRows(ownerId, organizationId),
-        options: { onConflict: "owner_id,name", ignoreDuplicates: true },
-      },
-    ]);
+    expect(buildDefaultExpenseCategorySeedRows(ownerId, organizationId)).toEqual([]);
+    expect(from).not.toHaveBeenCalled();
+    expect(upsertCalls).toEqual([]);
   });
 
-  it("does not call family member seed when no default members exist", async () => {
+  it("does not call any seed upsert when no default rows exist", async () => {
     const { client, from } = createSeedClient({
       family_members: { error: { message: "family seed failed" } },
+      expense_categories: { error: { message: "category seed failed" } },
     });
 
     await expect(seedInitialFinanceDataForOwner(client, "owner-123", "org-123")).resolves.toBeUndefined();
 
-    expect(from).toHaveBeenCalledTimes(1);
-    expect(from).toHaveBeenCalledWith("expense_categories");
-  });
-
-  it("throws when default category seed upsert fails", async () => {
-    const { client, from } = createSeedClient({
-      expense_categories: { error: { message: "category seed failed" } },
-    });
-
-    await expect(seedInitialFinanceDataForOwner(client, "owner-123", "org-123")).rejects.toThrow(
-      "category seed failed",
-    );
-
-    expect(from).toHaveBeenCalledTimes(1);
-    expect(from).toHaveBeenNthCalledWith(1, "expense_categories");
+    expect(from).not.toHaveBeenCalled();
   });
 });
