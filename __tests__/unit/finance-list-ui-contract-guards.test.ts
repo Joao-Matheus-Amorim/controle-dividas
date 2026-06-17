@@ -102,6 +102,8 @@ describe("finance list UI contract guards", () => {
     expect(item).toContain("BankAccountEditDialog");
     expect(item).toContain("BankBalanceForm");
     expect(item).toContain("BankDeleteForm");
+    expect(item).toContain("Saldo manual");
+    expect(item).toContain("compactCurrency(Number(account.current_balance))");
   });
 
   it("keeps people list identity, access, status, and edit surfaces explicit", () => {
