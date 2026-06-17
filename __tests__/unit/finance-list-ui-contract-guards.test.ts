@@ -37,7 +37,9 @@ describe("finance list UI contract guards", () => {
     const client = readSource("components/finance/expense-list-client.tsx");
 
     expect(section).toContain("gastos cadastrados");
-    expect(section).toContain("nenhum gasto cadastrado ainda");
+    expect(section).toContain("nenhum gasto cadastrado");
+    expect(section).toContain("novo gasto");
+    expect(section).toContain("cancreate");
     expect(section).toContain("expenselistclient");
     expect(section).toContain("canedit={canedit}");
     expect(section).toContain("candelete={candelete}");
@@ -74,7 +76,9 @@ describe("finance list UI contract guards", () => {
     const item = readSource("components/receivables/receivable-list-item.tsx");
 
     expect(list).toContain("recebimentos");
-    expect(list).toContain("nenhuma conta a receber cadastrada ainda");
+    expect(list).toContain("nenhum recebimento previsto");
+    expect(list).toContain("novo recebimento");
+    expect(list).toContain("cancreate");
     expect(list).toContain("receivablelistitem");
     expect(list).toContain("canedit={canedit}");
     expect(list).toContain("candelete={candelete}");
@@ -92,6 +96,8 @@ describe("finance list UI contract guards", () => {
 
     expect(list).toContain("bancos cadastrados");
     expect(list).toContain("nenhum banco cadastrado ainda");
+    expect(list).toContain("novo banco");
+    expect(list).toContain("cancreate");
     expect(list).toContain("banklistitem");
     expect(list).toContain("canedit={canedit}");
     expect(list).toContain("candelete={candelete}");

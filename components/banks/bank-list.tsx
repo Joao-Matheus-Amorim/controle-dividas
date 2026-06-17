@@ -1,3 +1,8 @@
+import Link from "next/link";
+import { Landmark, PlusCircle } from "lucide-react";
+
+import { AppEmptyState } from "@/components/app/app-empty-state";
+import { Button } from "@/components/ui/button";
 import type { DbBankAccount, DbFamilyMember } from "@/lib/finance/types";
 import { BankListItem } from "./bank-list-item";
 
@@ -6,9 +11,10 @@ interface BankListProps {
   members: DbFamilyMember[];
   canEdit: boolean;
   canDelete: boolean;
+  canCreate: boolean;
 }
 
-export function BankList({ accounts, members, canEdit, canDelete }: BankListProps) {
+export function BankList({ accounts, members, canEdit, canDelete, canCreate }: BankListProps) {
   return (
     <section className="space-y-3 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4 sm:p-5">
       <div className="flex items-center justify-between gap-3">
@@ -17,7 +23,22 @@ export function BankList({ accounts, members, canEdit, canDelete }: BankListProp
       </div>
 
       {accounts.length === 0 ? (
-        <p className="text-sm text-white/35">Nenhum banco cadastrado ainda.</p>
+        <AppEmptyState
+          icon={Landmark}
+          title="Nenhum banco cadastrado"
+          description="Adicione uma conta, cartao ou saldo em dinheiro para conectar movimentacoes ao lugar certo."
+          action={
+            canCreate ? (
+              <Button asChild size="sm" className="h-10 w-full rounded-2xl bg-[#8b72f8] px-4 font-bold text-white hover:bg-[#7d66e4] sm:w-auto">
+                <Link href="#novo-banco">
+                  <PlusCircle className="h-4 w-4" />
+                  Novo banco
+                </Link>
+              </Button>
+            ) : null
+          }
+          className="items-start text-left"
+        />
       ) : (
         accounts.map((account) => (
           <BankListItem

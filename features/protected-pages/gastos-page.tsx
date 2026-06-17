@@ -157,6 +157,7 @@ export async function GastosPage({ searchParams, orgSlug }: GastosPageProps) {
         categories={categories}
         canEdit={canEdit}
         canDelete={canDelete}
+        canCreate={canCreate}
       />
     </div>
   );

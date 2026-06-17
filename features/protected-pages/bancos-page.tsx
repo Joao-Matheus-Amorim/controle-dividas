@@ -56,6 +56,7 @@ export async function BancosPage({ orgSlug }: BancosPageProps = {}) {
         members={members}
         canEdit={canEdit}
         canDelete={canDelete}
+        canCreate={canCreate}
       />
     </div>
   );

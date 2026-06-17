@@ -24,6 +24,7 @@ export function ExpenseCreateSection({
 
   return (
     <FinanceCreateCard
+      id="novo-gasto"
       eyebrow="Novo gasto"
       title="Pessoa obrigatoria para gastos"
       description="Registre um lancamento financeiro sem sair do fluxo principal."

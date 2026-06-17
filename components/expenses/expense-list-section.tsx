@@ -1,4 +1,9 @@
+import Link from "next/link";
+import { PlusCircle, ReceiptText } from "lucide-react";
+
+import { AppEmptyState } from "@/components/app/app-empty-state";
 import { ExpenseListClient } from "@/components/finance/expense-list-client";
+import { Button } from "@/components/ui/button";
 import type { DbExpense, DbExpenseCategory, DbFamilyMember } from "@/lib/finance/types";
 
 interface ExpenseListSectionProps {
@@ -7,6 +12,7 @@ interface ExpenseListSectionProps {
   categories: DbExpenseCategory[];
   canEdit: boolean;
   canDelete: boolean;
+  canCreate: boolean;
 }
 
 export function ExpenseListSection({
@@ -15,6 +21,7 @@ export function ExpenseListSection({
   categories,
   canEdit,
   canDelete,
+  canCreate,
 }: ExpenseListSectionProps) {
   return (
     <section className="space-y-3 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4 sm:p-5">
@@ -24,7 +31,22 @@ export function ExpenseListSection({
       </div>
 
       {expenses.length === 0 ? (
-        <p className="text-sm text-white/35">Nenhum gasto cadastrado ainda.</p>
+        <AppEmptyState
+          icon={ReceiptText}
+          title="Nenhum gasto cadastrado"
+          description="Registre um gasto para acompanhar impacto por pessoa, categoria e banco."
+          action={
+            canCreate ? (
+              <Button asChild size="sm" className="h-10 w-full rounded-2xl bg-[#8b72f8] px-4 font-bold text-white hover:bg-[#7d66e4] sm:w-auto">
+                <Link href="#novo-gasto">
+                  <PlusCircle className="h-4 w-4" />
+                  Novo gasto
+                </Link>
+              </Button>
+            ) : null
+          }
+          className="items-start text-left"
+        />
       ) : (
         <ExpenseListClient
           expenses={expenses}
