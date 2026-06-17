@@ -129,10 +129,12 @@ describe("finance beta UX contract guards", () => {
     }
   });
 
-  it("keeps the shared form sheet structured as a mobile bottom sheet", () => {
+  it("keeps the shared form sheet responsive for mobile and desktop admin use", () => {
     expect(appFormSheet).toContain("h-12 w-full rounded-2xl");
-    expect(appFormSheet).toContain("max-h-[92vh]");
-    expect(appFormSheet).toContain("flex max-h-[92vh] flex-col overflow-hidden");
+    expect(appFormSheet).toContain("h-[100dvh]");
+    expect(appFormSheet).toContain("md:w-[calc(100vw-2rem)]");
+    expect(appFormSheet).toContain("md:max-w-none");
+    expect(appFormSheet).not.toContain("md:max-w-md");
     expect(appFormSheet).toContain("sticky top-0");
     expect(appFormSheet).toContain("flex-1 overflow-y-auto");
   });
