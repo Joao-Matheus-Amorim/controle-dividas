@@ -40,12 +40,15 @@ export function AppFormSheet({
           </Button>
         )}
       </SheetTrigger>
-      <SheetContent side="bottom" className="flex max-h-[92vh] flex-col overflow-hidden rounded-t-[1.75rem] p-0 md:inset-y-0 md:left-auto md:right-0 md:h-full md:w-3/4 md:max-w-md md:rounded-none md:border-l md:border-t-0 md:data-[state=closed]:slide-out-to-right md:data-[state=open]:slide-in-from-right">
-        <SheetHeader className="sticky top-0 z-10 border-b border-white/10 bg-background/95 px-5 pb-4 pt-5 text-left backdrop-blur">
-          <SheetTitle className="text-xl">{title}</SheetTitle>
+      <SheetContent
+        side="bottom"
+        className="flex h-[100dvh] max-h-[100dvh] flex-col overflow-hidden rounded-none border-x-0 border-b-0 p-0 md:inset-4 md:h-[calc(100dvh-2rem)] md:w-[calc(100vw-2rem)] md:max-w-none md:rounded-3xl md:border md:border-white/10 md:data-[state=closed]:slide-out-to-bottom md:data-[state=open]:slide-in-from-bottom xl:inset-x-8 xl:inset-y-6 xl:h-[calc(100dvh-3rem)] xl:w-[calc(100vw-4rem)]"
+      >
+        <SheetHeader className="sticky top-0 z-10 border-b border-white/10 bg-background/95 px-5 pb-4 pt-5 text-left backdrop-blur sm:px-6 lg:px-8">
+          <SheetTitle className="text-xl lg:text-2xl">{title}</SheetTitle>
           {description ? <SheetDescription>{description}</SheetDescription> : null}
         </SheetHeader>
-        <div className="flex-1 overflow-y-auto px-5 py-5">{children}</div>
+        <div className="flex-1 overflow-y-auto px-5 py-5 sm:px-6 lg:px-8">{children}</div>
       </SheetContent>
     </Sheet>
   );

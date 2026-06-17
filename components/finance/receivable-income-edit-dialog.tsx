@@ -17,7 +17,7 @@ export function ReceivableIncomeEditDialog({
   return (
     <AppFormSheet
       title="Editar recebimento"
-      description="Atualize pessoa, origem, valor, data, status, banco e observacoes."
+      description="Atualize pessoa, origem, valor, data, status, banco e observações."
       triggerLabel="Editar recebimento"
       trigger={
         <Button
