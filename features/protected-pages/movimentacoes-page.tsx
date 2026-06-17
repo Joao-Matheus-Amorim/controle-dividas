@@ -23,6 +23,7 @@ export async function MovimentacoesPage({ searchParams, orgSlug }: Movimentacoes
   const params = await searchParams;
   const filters: MovementFilters = {
     movementType: getSearchValue(params, "tipo") ?? "",
+    direction: getSearchValue(params, "direcao") ?? "",
     memberId: getSearchValue(params, "pessoa") ?? "",
     bankId: getSearchValue(params, "banco") ?? "",
     dateFrom: getSearchValue(params, "de") ?? "",
@@ -32,12 +33,13 @@ export async function MovimentacoesPage({ searchParams, orgSlug }: Movimentacoes
   const filteredMovements = movements.filter((movement) => {
     const movementDate = movement.occurred_at.slice(0, 10);
     const typeMatches = !filters.movementType || movement.movement_type === filters.movementType;
+    const directionMatches = !filters.direction || movement.direction === filters.direction;
     const memberMatches = !filters.memberId || movement.family_member_id === filters.memberId;
     const bankMatches = !filters.bankId || movement.bank_id === filters.bankId;
     const fromMatches = !filters.dateFrom || movementDate >= filters.dateFrom;
     const toMatches = !filters.dateTo || movementDate <= filters.dateTo;
 
-    return typeMatches && memberMatches && bankMatches && fromMatches && toMatches;
+    return typeMatches && directionMatches && memberMatches && bankMatches && fromMatches && toMatches;
   });
   const totalInflow = filteredMovements
     .filter((movement) => movement.direction === "inflow")
