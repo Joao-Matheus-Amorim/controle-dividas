@@ -50,7 +50,7 @@ describe("expense category write audit runtime guards", () => {
     expect(createAction).toContain(".select(\"id\").single()");
     expect(createAction).toContain("category_created");
 
-    expect(updateAction).toContain('select("id, name, description, is_default")');
+    expect(updateAction).toContain('select("id, name, description, parent_category_id, is_default")');
     expect(updateAction).toContain("requireorganizationadmin");
     expect(updateAction).toContain("const categorychanged");
     expect(updateAction).toContain("categoryupdateratelimit");
