@@ -8,6 +8,7 @@ import { movementTypeLabelFromType } from "./movement-utils";
 
 export type MovementFilters = {
   movementType: string;
+  direction: string;
   memberId: string;
   bankId: string;
   dateFrom: string;
@@ -70,7 +71,7 @@ export function MovementFilterBar({
         ) : null}
       </div>
 
-      <form className="grid gap-3 md:grid-cols-5" method="get">
+      <form className="grid gap-3 md:grid-cols-6" method="get">
         <select
           name="tipo"
           defaultValue={filters.movementType}
@@ -82,6 +83,16 @@ export function MovementFilterBar({
               {movementTypeLabelFromType(type as FinancialMovementType)}
             </option>
           ))}
+        </select>
+
+        <select
+          name="direcao"
+          defaultValue={filters.direction}
+          className="h-10 rounded-xl border border-white/10 bg-[#080810] px-3 text-sm text-white"
+        >
+          <option value="">Entradas e saidas</option>
+          <option value="inflow">Entradas</option>
+          <option value="outflow">Saidas</option>
         </select>
 
         <select
@@ -113,7 +124,7 @@ export function MovementFilterBar({
         <Input name="de" type="date" defaultValue={filters.dateFrom} className="h-10 rounded-xl" />
         <Input name="ate" type="date" defaultValue={filters.dateTo} className="h-10 rounded-xl" />
 
-        <div className="md:col-span-5">
+        <div className="md:col-span-6">
           <Button type="submit" variant="outline" className="h-10 rounded-xl border-white/10 bg-transparent text-white/70 hover:bg-white/10 hover:text-white">
             Aplicar filtros
           </Button>

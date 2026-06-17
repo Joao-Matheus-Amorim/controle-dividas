@@ -34,6 +34,7 @@ describe("financial movements page guards", () => {
     expect(movementsPage).toContain("<MovementList movements={filteredMovements}");
     expect(movementsPage).toContain("<MovementFilterBar");
     expect(movementsPage).toContain("movement.movement_type === filters.movementType");
+    expect(movementsPage).toContain("movement.direction === filters.direction");
     expect(movementsPage).toContain("movement.family_member_id === filters.memberId");
     expect(movementsPage).toContain("movement.bank_id === filters.bankId");
   });
@@ -41,6 +42,9 @@ describe("financial movements page guards", () => {
   it("keeps movement filters constrained to generated app movement types", () => {
     expect(movementFilterBar).toContain("movementTypeLabelFromType");
     expect(movementFilterBar).toContain('name="tipo"');
+    expect(movementFilterBar).toContain('name="direcao"');
+    expect(movementFilterBar).toContain('value="inflow"');
+    expect(movementFilterBar).toContain('value="outflow"');
     expect(movementFilterBar).toContain('name="pessoa"');
     expect(movementFilterBar).toContain('name="banco"');
     expect(movementFilterBar).toContain('name="de"');
