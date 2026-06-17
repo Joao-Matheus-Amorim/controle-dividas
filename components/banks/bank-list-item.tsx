@@ -4,7 +4,7 @@ import type { DbBankAccount, DbFamilyMember } from "@/lib/finance/types";
 import { Banknote } from "lucide-react";
 import { BankBalanceForm } from "./bank-balance-form";
 import { BankDeleteForm } from "./bank-delete-form";
-import { compactCurrency } from "./bank-utils";
+import { compactCurrencyForCode } from "./bank-utils";
 
 interface BankListItemProps {
   account: DbBankAccount;
@@ -30,7 +30,7 @@ export function BankListItem({ account, members, canEdit, canDelete }: BankListI
 
       <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-2 md:min-w-40 md:text-right">
         <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/25">Saldo manual</p>
-        <p className="mt-1 text-sm font-bold text-[#1de9b2]">{compactCurrency(Number(account.current_balance))}</p>
+        <p className="mt-1 text-sm font-bold text-[#1de9b2]">{compactCurrencyForCode(Number(account.current_balance), account.currency)}</p>
       </div>
 
       {(canEdit || canDelete) ? (

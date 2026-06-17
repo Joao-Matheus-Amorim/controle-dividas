@@ -1,3 +1,3 @@
-import { compactCurrency, initials } from "@/lib/finance/formatting";
+import { compactCurrency, compactCurrencyForCode, initials } from "@/lib/finance/formatting";
 
-export { compactCurrency, initials };
+export { compactCurrency, compactCurrencyForCode, initials };
