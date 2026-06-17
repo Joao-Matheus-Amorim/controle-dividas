@@ -83,6 +83,34 @@ export type DbBankAccount = {
   family_members: Pick<DbFamilyMember, "id" | "name"> | null;
 };
 
+export type FinancialMovementType = "payable_bill_payment" | "receivable_income_receipt";
+
+export type FinancialMovementDirection = "inflow" | "outflow";
+
+export type DbFinancialMovement = {
+  id: string;
+  owner_id: string;
+  organization_id: string;
+  family_member_id: string;
+  bank_id: string;
+  movement_type: FinancialMovementType;
+  direction: FinancialMovementDirection;
+  amount: number;
+  currency: string;
+  occurred_at: string;
+  recorded_timezone: string | null;
+  payable_bill_id: string | null;
+  receivable_income_id: string | null;
+  created_by_profile_id: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+  family_members: Pick<DbFamilyMember, "id" | "name"> | null;
+  banks: Pick<DbBankAccount, "id" | "bank_name" | "account_type" | "currency"> | null;
+  payable_bills: Pick<DbPayableBill, "id" | "name" | "bill_type" | "status"> | null;
+  receivable_incomes: Pick<DbReceivableIncome, "id" | "source" | "income_type" | "status"> | null;
+};
+
 export type FamilyMemberFormState = {
   error?: string;
   success?: string;

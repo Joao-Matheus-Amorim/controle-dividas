@@ -7,6 +7,10 @@ const revokeMigrationPath = join(
   migrationsDir,
   "055_revoke_anon_select_sensitive_tables.sql",
 );
+const financialMovementsMigrationPath = join(
+  migrationsDir,
+  "057_financial_movements_ledger_base.sql",
+);
 
 function read(path: string) {
   return readFileSync(path, "utf8").toLowerCase();
@@ -53,5 +57,15 @@ describe("anonymous table privilege guards", () => {
         forbiddenGrantPattern,
       );
     });
+  });
+
+  it("revokes anonymous access from the financial movements ledger", () => {
+    const migration = read(financialMovementsMigrationPath);
+
+    expect(migration).toContain("revoke all on public.financial_movements from anon");
+    expect(migration).toContain("revoke all on public.financial_movements from authenticated");
+    expect(migration).toContain(
+      "grant select, insert, update, delete on public.financial_movements to authenticated",
+    );
   });
 });
