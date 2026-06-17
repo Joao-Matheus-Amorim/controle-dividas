@@ -29,6 +29,7 @@ const navigation: NavItem[] = [
   { href: "/protected/gastos", label: "Gastos", module: "GASTOS", iconKey: "expenses" },
   { href: "/protected/contas-a-pagar", label: "Contas a pagar", module: "CONTAS_A_PAGAR", iconKey: "payables" },
   { href: "/protected/contas-a-receber", label: "Contas a receber", module: "CONTAS_A_RECEBER", iconKey: "receivables" },
+  { href: "/protected/movimentacoes", label: "Movimentacoes", module: "MOVIMENTACOES", iconKey: "movements" },
   { href: "/protected/bancos", label: "Bancos", module: "BANCOS", iconKey: "banks" },
   { href: "/protected/relatorios", label: "Relatórios", module: "RELATORIOS", iconKey: "reports" },
   { href: "/protected/configuracoes", label: "Configurações", module: "CONFIGURACOES", iconKey: "settings" },

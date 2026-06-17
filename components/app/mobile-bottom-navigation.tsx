@@ -5,6 +5,7 @@ import {
   BarChart3,
   Home,
   Menu,
+  Repeat2,
   ReceiptText,
   Settings,
   ShieldCheck,
@@ -33,6 +34,7 @@ export type MobileNavigationIconKey =
   | "dashboard"
   | "expenses"
   | "more"
+  | "movements"
   | "payables"
   | "people"
   | "receivables"
@@ -51,6 +53,7 @@ const iconMap: Record<MobileNavigationIconKey, LucideIcon> = {
   dashboard: Home,
   expenses: ReceiptText,
   more: Menu,
+  movements: Repeat2,
   payables: WalletCards,
   people: Users,
   receivables: TrendingUp,
