@@ -499,7 +499,7 @@ export async function updatePayableBill(
       });
     }
 
-    revalidateOrganizationPaths(["/protected/contas-a-pagar", "/protected"], organization.slug);
+    revalidateOrganizationPaths(["/protected/contas-a-pagar", "/protected/bancos", "/protected"], organization.slug);
 
     return { success: "Conta atualizada com sucesso." };
   } catch (error) {
