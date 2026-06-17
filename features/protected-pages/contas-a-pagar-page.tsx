@@ -103,6 +103,7 @@ export async function ContasAPagarPage({ searchParams, orgSlug }: ContasAPagarPa
         canEdit={canEdit}
         canDelete={canDelete}
         canCreate={canCreate}
+        orgSlug={orgSlug}
       />
     </div>
   );
