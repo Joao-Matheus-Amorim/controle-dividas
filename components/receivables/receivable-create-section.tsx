@@ -20,6 +20,7 @@ export function ReceivableCreateSection({
 
   return (
     <FinanceCreateCard
+      id="novo-recebimento"
       eyebrow="Entrada de dinheiro"
       title="Pessoa obrigatória para recebimentos"
       description="Cadastre salário, comissão, renda fixa, venda ou recebimento pontual."

@@ -20,6 +20,7 @@ export function BankCreateSection({
 
   return (
     <FinanceCreateCard
+      id="novo-banco"
       eyebrow="Novo banco"
       title="Pessoa obrigatoria para bancos"
       description="Cadastre contas, cartoes e saldos vinculados ao escopo da familia."

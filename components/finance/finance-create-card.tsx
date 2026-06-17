@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 
 interface FinanceCreateCardProps {
+  id?: string;
   eyebrow: string;
   title: string;
   description: string;
@@ -11,6 +12,7 @@ interface FinanceCreateCardProps {
 }
 
 export function FinanceCreateCard({
+  id,
   eyebrow,
   title,
   description,
@@ -21,7 +23,7 @@ export function FinanceCreateCard({
   const hasMembers = memberCount > 0;
 
   return (
-    <section className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4 sm:p-5">
+    <section id={id} className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4 sm:p-5">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/25">{eyebrow}</p>

@@ -75,6 +75,7 @@ export async function ContasAReceberPage({ orgSlug }: ContasAReceberPageProps = 
         bankAccounts={bankAccounts}
         canEdit={canEdit}
         canDelete={canDelete}
+        canCreate={canCreate}
       />
     </div>
   );

@@ -1,3 +1,8 @@
+import Link from "next/link";
+import { PlusCircle, TrendingUp } from "lucide-react";
+
+import { AppEmptyState } from "@/components/app/app-empty-state";
+import { Button } from "@/components/ui/button";
 import type { DbBankAccount, DbFamilyMember, DbReceivableIncome } from "@/lib/finance/types";
 import { ReceivableListItem } from "./receivable-list-item";
 
@@ -9,9 +14,10 @@ interface ReceivableListProps {
   bankAccounts: DbBankAccount[];
   canEdit: boolean;
   canDelete: boolean;
+  canCreate: boolean;
 }
 
-export function ReceivableList({ incomes, members, bankAccounts, canEdit, canDelete }: ReceivableListProps) {
+export function ReceivableList({ incomes, members, bankAccounts, canEdit, canDelete, canCreate }: ReceivableListProps) {
   return (
     <section className="space-y-3 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
       <div className="flex items-center justify-between">
@@ -20,7 +26,22 @@ export function ReceivableList({ incomes, members, bankAccounts, canEdit, canDel
       </div>
 
       {incomes.length === 0 ? (
-        <p className="text-sm text-white/35">Nenhuma conta a receber cadastrada ainda.</p>
+        <AppEmptyState
+          icon={TrendingUp}
+          title="Nenhum recebimento previsto"
+          description="Cadastre uma entrada para acompanhar valores esperados, atrasados e recebidos."
+          action={
+            canCreate ? (
+              <Button asChild size="sm" className="h-10 w-full rounded-2xl bg-[#8b72f8] px-4 font-bold text-white hover:bg-[#7d66e4] sm:w-auto">
+                <Link href="#novo-recebimento">
+                  <PlusCircle className="h-4 w-4" />
+                  Novo recebimento
+                </Link>
+              </Button>
+            ) : null
+          }
+          className="items-start text-left"
+        />
       ) : (
         incomes.map((income) => (
           <ReceivableListItem
