@@ -1,3 +1,5 @@
+import { isSystemCurrencyOption } from "@/lib/finance/bank-options";
+
 export const currencyFormatter = new Intl.NumberFormat("pt-PT", {
   style: "currency",
   currency: "EUR",
@@ -12,9 +14,25 @@ export function compactCurrency(value: number) {
 }
 
 export function compactCurrencyForCode(value: number, currency: string) {
+  const normalizedCurrency = currency.trim().toUpperCase();
+
+  if (!isSystemCurrencyOption(normalizedCurrency)) {
+    const formattedAmount = new Intl.NumberFormat("pt-PT", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })
+      .format(value)
+      .replace(/\s+/g, " ")
+      .trim();
+
+    return normalizedCurrency
+      ? `${currency.trim()} ${formattedAmount}`.replace(/\s+/g, " ").trim()
+      : formattedAmount;
+  }
+
   return new Intl.NumberFormat("pt-PT", {
     style: "currency",
-    currency,
+    currency: normalizedCurrency,
   })
     .format(value)
     .replace(/\s+/g, " ")

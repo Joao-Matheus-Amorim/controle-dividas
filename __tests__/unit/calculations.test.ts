@@ -25,6 +25,7 @@ import {
   getTotalReceivableIncomes,
   getUpcomingBills,
 } from "@/lib/finance/calculations";
+import { compactCurrencyForCode } from "@/lib/finance/formatting";
 
 describe("finance calculations", () => {
   it("formats currency in EUR for European family", () => {
@@ -47,6 +48,13 @@ describe("finance calculations", () => {
     expect(compactCurrency(1_000_000)).toContain("€");
     expect(compactCurrency(1_000_000)).toContain("1");
     expect(compactCurrency(1_000_000)).toContain("000");
+  });
+
+  it("formats account currency codes without crashing on legacy labels", () => {
+    expect(compactCurrencyForCode(150, "brl")).toMatch(/150[,\.]00/);
+    expect(() => compactCurrencyForCode(150, "R$")).not.toThrow();
+    expect(compactCurrencyForCode(150, "R$")).toContain("R$");
+    expect(compactCurrencyForCode(150, "Real")).toContain("Real");
   });
 
   it("calculates remaining limit with zero, negative and large values", () => {
