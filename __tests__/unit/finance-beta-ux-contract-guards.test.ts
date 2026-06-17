@@ -135,8 +135,20 @@ describe("finance beta UX contract guards", () => {
     expect(appFormSheet).toContain("md:w-[calc(100vw-2rem)]");
     expect(appFormSheet).toContain("md:max-w-none");
     expect(appFormSheet).not.toContain("md:max-w-md");
+    expect(appFormSheet).toContain("SheetClose");
+    expect(appFormSheet).toContain("Voltar");
     expect(appFormSheet).toContain("sticky top-0");
     expect(appFormSheet).toContain("flex-1 overflow-y-auto");
+  });
+
+  it("keeps fixed payable bills explicit about family or person targeting", () => {
+    const payableForm = readSource("components/finance/payable-bill-form.tsx");
+
+    expect(payableForm).toContain("Direcionamento da conta fixa");
+    expect(payableForm).toContain("Família inteira");
+    expect(payableForm).toContain("Personalizada por pessoa");
+    expect(payableForm).toContain('name="fixed_bill_audience"');
+    expect(payableForm).toContain("Responsável financeiro");
   });
 
   it("keeps bank account type selection synchronized with submitted data", () => {

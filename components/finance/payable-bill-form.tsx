@@ -38,6 +38,8 @@ const categories = [
   "Outros",
 ];
 
+type FixedBillAudience = "family" | "person";
+
 type PayableBillFormProps = {
   members: DbFamilyMember[];
   bill?: DbPayableBill;
@@ -54,8 +56,10 @@ export function PayableBillForm({
   const action = mode === "edit" ? updatePayableBill : createPayableBill;
   const [state, formAction, isPending] = useActionState(action, initialState);
   const [billType, setBillType] = useState<PayableBillType>(bill?.bill_type ?? "avulsa");
+  const [fixedBillAudience, setFixedBillAudience] = useState<FixedBillAudience>("family");
   const today = new Date().toISOString().slice(0, 10);
   const isEditing = mode === "edit" && Boolean(bill);
+  const isFixedBill = billType === "fixa";
   const automaticMember = !isEditing && defaultMemberId
     ? members.find((member) => member.id === defaultMemberId) ?? null
     : null;
@@ -94,6 +98,43 @@ export function PayableBillForm({
           </label>
         </div>
       </div>
+
+      {isFixedBill ? (
+        <div className={financeChoiceGroupClass}>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/35">Direcionamento da conta fixa</p>
+          <div className="mt-3 grid gap-2 md:grid-cols-2">
+            <label className={financeChoiceOptionClass}>
+              <input
+                type="radio"
+                name="fixed_bill_audience"
+                value="family"
+                checked={fixedBillAudience === "family"}
+                onChange={() => setFixedBillAudience("family")}
+                className="sr-only"
+              />
+              <span className="text-sm font-semibold text-white">Família inteira</span>
+              <span className="mt-1 block text-xs leading-5 text-white/35">
+                Conta compartilhada da casa. Escolha abaixo quem será o responsável financeiro pelo pagamento.
+              </span>
+            </label>
+
+            <label className={financeChoiceOptionClass}>
+              <input
+                type="radio"
+                name="fixed_bill_audience"
+                value="person"
+                checked={fixedBillAudience === "person"}
+                onChange={() => setFixedBillAudience("person")}
+                className="sr-only"
+              />
+              <span className="text-sm font-semibold text-white">Personalizada por pessoa</span>
+              <span className="mt-1 block text-xs leading-5 text-white/35">
+                Use quando a conta fixa pertence a uma pessoa específica, como mensalidade ou plano individual.
+              </span>
+            </label>
+          </div>
+        </div>
+      ) : null}
 
       <div className={financeGridFourClass}>
         <div className={financeFieldClass}>
@@ -153,13 +194,15 @@ export function PayableBillForm({
 
       <div className={financeGridFourClass}>
         <div className={financeFieldClass}>
-          <Label htmlFor={isEditing ? `responsible_member_id-${bill?.id}` : "responsible_member_id"}>Responsavel</Label>
+          <Label htmlFor={isEditing ? `responsible_member_id-${bill?.id}` : "responsible_member_id"}>
+            {isFixedBill && fixedBillAudience === "family" ? "Responsável financeiro" : "Responsável"}
+          </Label>
           {automaticMember ? (
             <>
               <input type="hidden" name="responsible_member_id" value={automaticMember.id} />
               <div className={financeAutomaticMemberClass}>
                 <p className="font-semibold">{automaticMember.name}</p>
-                <p className="mt-1 text-xs text-white/45">Responsavel definido automaticamente pelo seu acesso.</p>
+                <p className="mt-1 text-xs text-white/45">Responsável definido automaticamente pelo seu acesso.</p>
               </div>
             </>
           ) : (
@@ -178,6 +221,13 @@ export function PayableBillForm({
               ))}
             </select>
           )}
+          {isFixedBill ? (
+            <p className={financeHelperTextClass}>
+              {fixedBillAudience === "family"
+                ? "A conta fica registrada como fixa da família, com esta pessoa como responsável financeiro."
+                : "A conta fixa fica personalizada para a pessoa selecionada."}
+            </p>
+          ) : null}
         </div>
 
         <div className={financeFieldClass}>
