@@ -25,6 +25,7 @@ function createIncome(overrides: Partial<DbReceivableIncome>): DbReceivableIncom
     owner_id: ownerId,
     receiver_member_id: "member-1",
     source: "Income",
+    payment_origin: null,
     income_type: "fixa",
     amount: 100,
     expected_date: "2999-01-01",

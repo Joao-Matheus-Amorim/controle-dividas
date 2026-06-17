@@ -206,6 +206,22 @@ export function ReceivableIncomeForm({
           </div>
 
           <div className={financeFieldClass}>
+            <Label htmlFor={isEditing ? `payment_origin-${income?.id}` : "payment_origin"}>
+              De onde/de quem vem o pagamento
+            </Label>
+            <Input
+              id={isEditing ? `payment_origin-${income?.id}` : "payment_origin"}
+              name="payment_origin"
+              placeholder="Ex: Empresa, cliente, pessoa ou plataforma"
+              defaultValue={income?.payment_origin ?? ""}
+              className={financeInputClass}
+            />
+            <p className={financeHelperTextClass}>
+              Identifique o pagador ou a origem concreta do dinheiro.
+            </p>
+          </div>
+
+          <div className={financeFieldClass}>
             <Label htmlFor={isEditing ? `amount-${income?.id}` : "amount"}>Valor em euro</Label>
             <div className="relative">
               <CircleDollarSign className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/28" aria-hidden="true" />

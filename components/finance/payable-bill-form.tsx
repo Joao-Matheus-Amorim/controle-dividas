@@ -163,7 +163,6 @@ export function PayableBillForm({
             name={isCustomCategory ? "category_preset" : "category"}
             value={categoryValue}
             onChange={(event) => setCategoryValue(event.target.value)}
-            required={!isCustomCategory}
             className={financeNativeSelectClass}
           >
             <option value="">Selecione</option>

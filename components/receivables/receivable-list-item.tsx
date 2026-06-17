@@ -24,6 +24,9 @@ export function ReceivableListItem({ income, members, canEdit, canDelete }: Rece
           <Badge variant="outline" className="border-white/10 text-white/50">renda {income.income_type}</Badge>
         </div>
         <p className="mt-1 truncate text-xs text-white/35">{income.family_members?.name || "Sem pessoa vinculada"}</p>
+        {income.payment_origin ? (
+          <p className="mt-0.5 truncate text-xs text-white/30">Origem do pagamento: {income.payment_origin}</p>
+        ) : null}
         <p className="mt-0.5 truncate text-xs text-white/25">Data prevista: {new Date(`${income.expected_date}T00:00:00`).toLocaleDateString("pt-BR")}{income.receiving_bank ? ` · ${income.receiving_bank}` : ""}</p>
       </div>
 

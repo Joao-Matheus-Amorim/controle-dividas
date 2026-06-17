@@ -59,6 +59,7 @@ export type DbReceivableIncome = {
   owner_id: string;
   receiver_member_id: string | null;
   source: string;
+  payment_origin: string | null;
   income_type: "fixa" | "variavel";
   amount: number;
   expected_date: string;
