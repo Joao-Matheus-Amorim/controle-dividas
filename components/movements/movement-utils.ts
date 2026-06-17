@@ -1,5 +1,5 @@
 import { compactCurrency } from "@/lib/finance/formatting";
-import type { DbFinancialMovement } from "@/lib/finance/types";
+import type { DbFinancialMovement, FinancialMovementType } from "@/lib/finance/types";
 
 export { compactCurrency };
 
@@ -16,11 +16,15 @@ export function movementTitle(movement: DbFinancialMovement) {
 }
 
 export function movementTypeLabel(movement: DbFinancialMovement) {
-  if (movement.movement_type === "payable_bill_payment") {
+  return movementTypeLabelFromType(movement.movement_type);
+}
+
+export function movementTypeLabelFromType(type: FinancialMovementType) {
+  if (type === "payable_bill_payment") {
     return "Conta a pagar";
   }
 
-  if (movement.movement_type === "expense_payment") {
+  if (type === "expense_payment") {
     return "Gasto";
   }
 
