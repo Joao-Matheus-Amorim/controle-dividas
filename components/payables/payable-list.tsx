@@ -4,6 +4,7 @@ import { FileText, PlusCircle, SearchX } from "lucide-react";
 import { AppEmptyState } from "@/components/app/app-empty-state";
 import { Button } from "@/components/ui/button";
 import type { DbBankAccount, DbFamilyMember, DbPayableBill } from "@/lib/finance/types";
+import { getOrgPathFromProtectedPath } from "@/lib/organizations/paths";
 import { PayableFilterBar } from "./payable-filter-bar";
 import { PayableListItem } from "./payable-list-item";
 import type { StatusFilter, TypeFilter } from "./payable-utils";
@@ -21,6 +22,7 @@ interface PayableListProps {
   canEdit: boolean;
   canDelete: boolean;
   canCreate: boolean;
+  orgSlug?: string;
 }
 
 export function PayableList({
@@ -34,7 +36,10 @@ export function PayableList({
   canEdit,
   canDelete,
   canCreate,
+  orgSlug,
 }: PayableListProps) {
+  const clearFiltersHref = getOrgPathFromProtectedPath("/protected/contas-a-pagar", orgSlug);
+
   return (
     <section className="space-y-4 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
@@ -45,7 +50,7 @@ export function PayableList({
           </p>
         </div>
         {hasActiveFilters ? (
-          <Link href="/protected/contas-a-pagar" className="text-xs font-semibold text-[#8b72f8] underline-offset-4 hover:underline">
+          <Link href={clearFiltersHref} className="text-xs font-semibold text-[#8b72f8] underline-offset-4 hover:underline">
             Limpar filtros
           </Link>
         ) : null}
@@ -77,7 +82,7 @@ export function PayableList({
           description="Volte para todos os status ou ajuste o tipo de conta para ver outros itens."
           action={
             <Button asChild size="sm" variant="outline" className="h-10 w-full rounded-2xl border-white/10 bg-transparent text-white hover:bg-white/10 sm:w-auto">
-              <Link href="/protected/contas-a-pagar">Limpar filtros</Link>
+              <Link href={clearFiltersHref}>Limpar filtros</Link>
             </Button>
           }
           className="items-start text-left"

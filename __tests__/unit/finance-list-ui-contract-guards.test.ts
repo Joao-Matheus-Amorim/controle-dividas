@@ -64,6 +64,8 @@ describe("finance list UI contract guards", () => {
     expect(list).toContain("nova conta");
     expect(list).toContain("nenhuma conta neste filtro");
     expect(list).toContain("cancreate");
+    expect(list).toContain("getOrgPathFromProtectedPath");
+    expect(list).toContain("clearFiltersHref");
     expect(list).toContain("hasactivefilters");
 
     expect(item).toContain("canEdit ? (");
