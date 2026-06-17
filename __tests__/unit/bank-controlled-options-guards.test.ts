@@ -45,7 +45,9 @@ describe("bank controlled options contract", () => {
     expect(actions).toContain("isSystemCurrencyOption(input.currency)");
     expect(actions).toContain("existingBankName && input.bankName === existingBankName");
     expect(actions).toContain("existingCurrency && input.currency === existingCurrency");
-    expect(actions).toContain("validateBankAccountInput(input, String(account.bank_name");
+    expect(actions).toContain("validateBankAccountInput(");
+    expect(actions).toContain("String(account.bank_name");
+    expect(actions).toContain("String(account.currency");
     expect(actions).toContain("Selecione um banco da lista do sistema.");
     expect(actions).toContain("Selecione uma moeda da lista do sistema.");
     expect(actions).toContain("bank_name: input.bankName");
