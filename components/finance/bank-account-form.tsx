@@ -26,18 +26,30 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { isSystemBankOption, systemBankOptions } from "@/lib/finance/bank-options";
+import {
+  isSystemBankOption,
+  isSystemCurrencyOption,
+  systemBankOptions,
+  systemCurrencyOptions,
+} from "@/lib/finance/bank-options";
 import type { BankAccountFormState, DbBankAccount, DbFamilyMember } from "@/lib/finance/types";
 
 const initialState: BankAccountFormState = {};
 const emptyAccountTypeValue = "__none";
 
 const accountTypes = [
+  "Conta a ordem",
   "Conta corrente",
   "Conta digital",
+  "Conta pagamento",
+  "Conta salario",
   "Poupanca",
+  "Investimentos",
   "Cartao de credito",
+  "Cartao de debito",
   "Cartao pre-pago",
+  "Beneficio refeicao",
+  "Carteira digital",
   "Dinheiro",
   "Outros",
 ];
@@ -62,6 +74,10 @@ export function BankAccountForm({
   const selectedBankName = account?.bank_name ?? "";
   const legacyBankName = selectedBankName && !isSystemBankOption(selectedBankName)
     ? selectedBankName
+    : null;
+  const selectedCurrency = account?.currency ?? "EUR";
+  const legacyCurrency = selectedCurrency && !isSystemCurrencyOption(selectedCurrency)
+    ? selectedCurrency
     : null;
   const automaticMember = !isEditing && defaultMemberId
     ? members.find((member) => member.id === defaultMemberId) ?? null
@@ -157,12 +173,22 @@ export function BankAccountForm({
       <div className={financeGridTwoClass}>
         <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `currency-${account?.id}` : "currency"}>Moeda</Label>
-          <Input
+          <select
             id={isEditing ? `currency-${account?.id}` : "currency"}
             name="currency"
-            defaultValue={account?.currency ?? "EUR"}
-            className={financeInputClass}
-          />
+            defaultValue={selectedCurrency}
+            required
+            className={financeNativeSelectClass}
+          >
+            {legacyCurrency ? (
+              <option value={legacyCurrency}>{legacyCurrency} (cadastrada)</option>
+            ) : null}
+            {systemCurrencyOptions.map((currency) => (
+              <option key={currency} value={currency}>
+                {currency}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className={financeFieldClass}>

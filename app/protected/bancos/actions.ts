@@ -5,7 +5,7 @@ import {
   assertCanAccessMember,
   getCurrentProfile,
 } from "@/lib/finance/access-control";
-import { isSystemBankOption } from "@/lib/finance/bank-options";
+import { isSystemBankOption, isSystemCurrencyOption } from "@/lib/finance/bank-options";
 import type { PermissionAction } from "@/lib/finance/permissions";
 import type { BankAccountFormState } from "@/lib/finance/types";
 import { revalidateOrganizationPaths } from "@/lib/organizations/revalidation";
@@ -151,6 +151,7 @@ function parseBankAccountForm(formData: FormData) {
 function validateBankAccountInput(
   input: ReturnType<typeof parseBankAccountForm>,
   existingBankName?: string | null,
+  existingCurrency?: string | null,
 ): BankAccountFormState | null {
   if (!input.familyMemberId) {
     return { error: "Selecione a pessoa vinculada ao banco." };
@@ -169,6 +170,13 @@ function validateBankAccountInput(
 
   if (Number.isNaN(input.currentBalance)) {
     return { error: "Informe um saldo valido." };
+  }
+
+  const preservesExistingLegacyCurrency =
+    existingCurrency && input.currency === existingCurrency;
+
+  if (!isSystemCurrencyOption(input.currency) && !preservesExistingLegacyCurrency) {
+    return { error: "Selecione uma moeda da lista do sistema." };
   }
 
   return null;
@@ -282,7 +290,11 @@ export async function updateBankAccount(
 
   try {
     const { profile, organization, account } = await assertCanManageBankAccount(id, "can_edit");
-    const validationError = validateBankAccountInput(input, String(account.bank_name ?? ""));
+    const validationError = validateBankAccountInput(
+      input,
+      String(account.bank_name ?? ""),
+      String(account.currency ?? "EUR"),
+    );
 
     if (validationError) {
       return validationError;
