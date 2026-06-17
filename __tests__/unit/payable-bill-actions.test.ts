@@ -14,6 +14,12 @@ const mockState = vi.hoisted(() => ({
   insertedPayloads: [] as Array<Record<string, unknown>>,
   updatedPayloads: [] as Array<Record<string, unknown>>,
   deletedIds: [] as string[],
+  bankLookup: {
+    id: "bank-1",
+    organization_id: "org-1",
+    family_member_id: "member-1",
+    currency: "BRL",
+  } as Record<string, unknown> | null,
   billLookup: {
     id: "bill-1",
     owner_id: "owner-1",
@@ -112,6 +118,10 @@ function makeQuery(table: string) {
         return Promise.resolve({ data: mockState.memberLookup, error: null });
       }
 
+      if (table === "banks") {
+        return Promise.resolve({ data: mockState.bankLookup, error: null });
+      }
+
       return Promise.resolve({ data: null, error: null });
     },
     single() {
@@ -149,7 +159,7 @@ function makeSupabaseClient() {
       return Promise.resolve({ error: null });
     },
     from(table: string) {
-      if (!["payable_bills", "family_members"].includes(table)) {
+      if (!["payable_bills", "family_members", "banks", "financial_movements"].includes(table)) {
         throw new Error(`Unexpected table: ${table}`);
       }
 
@@ -204,6 +214,12 @@ describe("payable bill actions", () => {
     mockState.insertedPayloads = [];
     mockState.updatedPayloads = [];
     mockState.deletedIds = [];
+    mockState.bankLookup = {
+      id: "bank-1",
+      organization_id: "org-1",
+      family_member_id: "member-1",
+      currency: "BRL",
+    };
     mockState.billLookup = {
       id: "bill-1",
       owner_id: "owner-1",
@@ -793,6 +809,7 @@ describe("payable bill actions", () => {
     const result = await updatePayableBillStatus({}, createFormData({
       id: "bill-1",
       status: "pago",
+      bank_id: "bank-1",
     }));
 
     expect(result).toEqual({ success: "Status atualizado com sucesso." });
@@ -838,6 +855,7 @@ describe("payable bill actions", () => {
     const result = await updatePayableBillStatus({}, createFormData({
       id: "bill-1",
       status: "pago",
+      bank_id: "bank-1",
     }));
 
     expect(result).toEqual({ success: "Status atualizado com sucesso." });

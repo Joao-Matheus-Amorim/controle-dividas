@@ -346,10 +346,6 @@ export async function updatePayableBill(
     }
 
     const statusChanged = String(bill.status) !== input.status;
-    if (statusChanged && input.status === "pago") {
-      return { error: "Para marcar como pago, use o status rapido e selecione o banco usado." };
-    }
-
     const payableStatusRateLimitInput = {
       ...payableStatusRateLimit,
       actorKey: profile.id,

@@ -17,6 +17,12 @@ const mockState = vi.hoisted(() => ({
   } as Record<string, unknown> | null,
   updatedPayloads: [] as Array<Record<string, unknown>>,
   deletedIds: [] as string[],
+  bankLookup: {
+    id: "bank-1",
+    organization_id: "org-1",
+    family_member_id: "member-1",
+    currency: "BRL",
+  } as Record<string, unknown> | null,
   incomeLookup: {
     id: "income-1",
     owner_id: "owner-1",
@@ -111,6 +117,10 @@ function makeQuery(table: string) {
         return Promise.resolve({ data: mockState.memberLookup, error: null });
       }
 
+      if (table === "banks") {
+        return Promise.resolve({ data: mockState.bankLookup, error: null });
+      }
+
       return Promise.resolve({ data: null, error: null });
     },
     single() {
@@ -158,7 +168,7 @@ function makeSupabaseClient() {
       return Promise.resolve({ error: null });
     },
     from(table: string) {
-      if (!["receivable_incomes", "family_members"].includes(table)) {
+      if (!["receivable_incomes", "family_members", "banks", "financial_movements"].includes(table)) {
         throw new Error(`Unexpected table: ${table}`);
       }
 
@@ -216,6 +226,12 @@ describe("receivable income actions", () => {
     };
     mockState.updatedPayloads = [];
     mockState.deletedIds = [];
+    mockState.bankLookup = {
+      id: "bank-1",
+      organization_id: "org-1",
+      family_member_id: "member-1",
+      currency: "BRL",
+    };
     mockState.incomeLookup = {
       id: "income-1",
       owner_id: "owner-1",
@@ -349,6 +365,7 @@ describe("receivable income actions", () => {
     const result = await updateReceivableIncomeStatus(createFormData({
       id: "income-1",
       status: "recebido",
+      bank_id: "bank-1",
     }));
 
     expect(result).toEqual({ error: "database status update failed" });
@@ -375,6 +392,7 @@ describe("receivable income actions", () => {
     const result = await updateReceivableIncomeStatus(createFormData({
       id: "income-1",
       status: "recebido",
+      bank_id: "bank-1",
     }));
 
     expect(result).toEqual({ success: "Status atualizado com sucesso." });
@@ -420,6 +438,7 @@ describe("receivable income actions", () => {
     const result = await updateReceivableIncomeStatus(createFormData({
       id: "income-1",
       status: "recebido",
+      bank_id: "bank-1",
     }));
 
     expect(result).toEqual({ success: "Status atualizado com sucesso." });

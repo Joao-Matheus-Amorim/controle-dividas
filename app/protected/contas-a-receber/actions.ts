@@ -340,10 +340,6 @@ export async function updateReceivableIncome(
     }
 
     const statusChanged = String(income.status) !== input.status;
-    if (statusChanged && input.status === "recebido") {
-      return { error: "Para marcar como recebido, use o status rapido e selecione o banco que recebeu." };
-    }
-
     const receivableStatusRateLimitInput = {
       ...receivableStatusRateLimit,
       actorKey: profile.id,
