@@ -45,6 +45,7 @@ describe("expense dashboard aggregation helper", () => {
       {
         id: "category-1",
         owner_id: ownerId,
+        parent_category_id: null,
         name: "Mercado",
         description: null,
         is_default: true,

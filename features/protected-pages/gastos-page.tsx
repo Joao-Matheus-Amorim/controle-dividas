@@ -7,6 +7,7 @@ import { ExpenseMemberImpact } from "@/components/expenses/expense-member-impact
 import { ExpensePageHeader } from "@/components/expenses/expense-page-header";
 import { ExpenseSummaryCards } from "@/components/expenses/expense-summary-cards";
 import { getCurrentOrganizationProfile, getModulePermission } from "@/lib/finance/access-control";
+import { buildExpenseCategoryLabelMap } from "@/lib/finance/category-labels";
 import { getAccessibleMemberOptions } from "@/lib/finance/member-options";
 import { getCurrentMonthLabel } from "@/lib/finance/period-context";
 import { getOrganizationBankAccountsForMembers } from "@/lib/organizations/banks";
@@ -59,6 +60,7 @@ export async function GastosPage({ searchParams, orgSlug }: GastosPageProps) {
   const periodLabel = getCurrentMonthLabel();
 
   const { members, categories, expenses, memberSummaries } = expenseData;
+  const categoryLabels = buildExpenseCategoryLabelMap(categories);
   const filteredExpenses = expenses.filter((expense) => {
     const memberMatches = !filters.memberId || expense.family_member_id === filters.memberId;
     const categoryMatches = !filters.categoryId || expense.category_id === filters.categoryId;
@@ -99,7 +101,7 @@ export async function GastosPage({ searchParams, orgSlug }: GastosPageProps) {
         .filter((expense) => expense.category_id === category.id)
         .reduce((sum, expense) => sum + Number(expense.amount), 0);
 
-      return { id: category.id, name: category.name, total };
+      return { id: category.id, name: categoryLabels.get(category.id) ?? category.name, total };
     })
     .filter((category) => category.total > 0)
     .sort((a, b) => b.total - a.total);

@@ -1,4 +1,5 @@
 import { getBanksDashboardData } from "./banks-server";
+import { buildExpenseCategoryLabelMap } from "./category-labels";
 import {
   getExpenseDashboardData,
   getPayableBillsDashboardData,
@@ -65,6 +66,7 @@ export async function getReportsDashboardData(filters: ReportDashboardFilters = 
     .filter((income) => income.computed_status !== "recebido")
     .reduce((total, income) => total + Number(income.amount), 0);
   const finalMonthlyBalance = totalMonthlyLimit + totalReceivedIncomes - totalExpenses - totalPendingBills;
+  const categoryLabels = buildExpenseCategoryLabelMap(expenseData.categories);
 
   const expensesByPerson = scopedMembers
     .map((member) => {
@@ -95,7 +97,7 @@ export async function getReportsDashboardData(filters: ReportDashboardFilters = 
 
       return {
         id: category.id,
-        name: category.name,
+        name: categoryLabels.get(category.id) ?? category.name,
         total,
       };
     })

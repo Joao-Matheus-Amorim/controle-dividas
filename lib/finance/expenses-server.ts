@@ -5,11 +5,11 @@ import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { createClient } from "@/lib/supabase/server";
 
 const expenseSelectFields =
-  "id, owner_id, family_member_id, category_id, expense_date, description, purchase_location, amount, payment_method, bank_or_card, notes, created_at, family_members(id, name, monthly_limit), expense_categories(id, name)";
+  "id, owner_id, family_member_id, category_id, expense_date, description, purchase_location, amount, payment_method, bank_or_card, notes, created_at, family_members(id, name, monthly_limit), expense_categories(id, name, parent_category_id)";
 
 type RawExpense = Omit<DbExpense, "family_members" | "expense_categories"> & {
   family_members: MaybeArray<Pick<DbFamilyMember, "id" | "name" | "monthly_limit">>;
-  expense_categories: MaybeArray<Pick<DbExpenseCategory, "id" | "name">>;
+  expense_categories: MaybeArray<Pick<DbExpenseCategory, "id" | "name" | "parent_category_id">>;
 };
 
 type LegacyOrganizationScope = {

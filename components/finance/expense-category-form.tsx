@@ -16,18 +16,21 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { buildExpenseCategoryLabelMap } from "@/lib/finance/category-labels";
 import type { DbExpenseCategory } from "@/lib/finance/types";
 
 const initialState: { error?: string; success?: string } = {};
 
 type ExpenseCategoryFormProps = {
   category?: DbExpenseCategory;
+  categories?: DbExpenseCategory[];
   mode?: "create" | "edit";
   submitLayout?: "inline" | "sheet";
 };
 
 export function ExpenseCategoryForm({
   category,
+  categories = [],
   mode = "create",
   submitLayout = "inline",
 }: ExpenseCategoryFormProps) {
@@ -36,6 +39,10 @@ export function ExpenseCategoryForm({
   const isEditing = mode === "edit" && Boolean(category);
   const submitBarClass =
     submitLayout === "sheet" ? financeSubmitBarClass : financeInlineSubmitBarClass;
+  const categoryLabels = buildExpenseCategoryLabelMap(categories);
+  const parentCategoryOptions = categories.filter(
+    (option) => option.id !== category?.id && !option.parent_category_id,
+  );
 
   return (
     <form action={formAction} className={financeFormClass}>
@@ -62,6 +69,24 @@ export function ExpenseCategoryForm({
             defaultValue={category?.description ?? ""}
             className={financeInputClass}
           />
+        </div>
+        <div className={financeFieldClass}>
+          <Label htmlFor={isEditing ? `parent_category_id-${category?.id}` : "parent_category_id"}>
+            Categoria principal
+          </Label>
+          <select
+            id={isEditing ? `parent_category_id-${category?.id}` : "parent_category_id"}
+            name="parent_category_id"
+            defaultValue={category?.parent_category_id ?? ""}
+            className={financeInputClass}
+          >
+            <option value="">Categoria principal</option>
+            {parentCategoryOptions.map((option) => (
+              <option key={option.id} value={option.id}>
+                {categoryLabels.get(option.id) ?? option.name}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 

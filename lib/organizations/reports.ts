@@ -1,4 +1,5 @@
 import { getOrganizationBanksDashboardData } from "@/lib/organizations/banks";
+import { buildExpenseCategoryLabelMap } from "@/lib/finance/category-labels";
 import { getOrganizationExpenseDashboardData } from "@/lib/organizations/expenses";
 import { getOrganizationPayableBillsDashboardData } from "@/lib/organizations/payables";
 import { getOrganizationReceivableIncomesDashboardData } from "@/lib/organizations/receivables";
@@ -66,6 +67,7 @@ export async function getOrganizationReportsDashboardData(
     .filter((income) => income.computed_status !== "recebido")
     .reduce((total, income) => total + Number(income.amount), 0);
   const finalMonthlyBalance = totalMonthlyLimit + totalReceivedIncomes - totalExpenses - totalPendingBills;
+  const categoryLabels = buildExpenseCategoryLabelMap(expenseData.categories);
 
   const expensesByPerson = scopedMembers
     .map((member) => {
@@ -96,7 +98,7 @@ export async function getOrganizationReportsDashboardData(
 
       return {
         id: category.id,
-        name: category.name,
+        name: categoryLabels.get(category.id) ?? category.name,
         total,
       };
     })

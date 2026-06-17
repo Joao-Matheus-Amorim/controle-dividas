@@ -9,7 +9,7 @@ type RawExpense = Omit<DbExpense, "family_members" | "expense_categories"> & {
 };
 
 type ExpenseMemberRelation = Pick<DbFamilyMember, "id" | "name" | "monthly_limit">;
-type ExpenseCategoryRelation = Pick<DbExpenseCategory, "id" | "name">;
+type ExpenseCategoryRelation = Pick<DbExpenseCategory, "id" | "name" | "parent_category_id">;
 
 function normalizeExpense(
   expense: RawExpense,
@@ -54,7 +54,7 @@ export async function getOrganizationExpenseCategories(orgSlug?: string) {
 
   const { data, error } = await supabase
     .from("expense_categories")
-    .select("id, owner_id, name, description, is_default, created_at")
+    .select("id, owner_id, parent_category_id, name, description, is_default, created_at")
     .eq("organization_id", organization.id)
     .order("name", { ascending: true });
 
@@ -101,7 +101,7 @@ export async function getOrganizationExpenses(orgSlug?: string) {
   const categoriesById = new Map(
     categories.map((category) => [
       category.id,
-      { id: category.id, name: category.name },
+      { id: category.id, name: category.name, parent_category_id: category.parent_category_id },
     ]),
   );
 

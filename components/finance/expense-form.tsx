@@ -20,6 +20,7 @@ import {
   financeSubmitBarClass,
   financeSubmitButtonClass,
 } from "@/components/finance/finance-form-ui";
+import { buildExpenseCategoryLabelMap } from "@/lib/finance/category-labels";
 import type {
   DbBankAccount,
   DbExpense,
@@ -59,6 +60,7 @@ export function ExpenseForm({
   const memberBankAccounts = bankAccounts.filter(
     (account) => account.family_member_id === selectedMemberId,
   );
+  const categoryLabels = buildExpenseCategoryLabelMap(categories);
 
   return (
     <form action={formAction} className={financeFormClass}>
@@ -105,7 +107,7 @@ export function ExpenseForm({
             <option value="">Sem categoria</option>
             {categories.map((category) => (
               <option key={category.id} value={category.id}>
-                {category.name}
+                {categoryLabels.get(category.id) ?? category.name}
               </option>
             ))}
           </select>
