@@ -11,6 +11,7 @@ import {
 import { getCurrentOrganizationProfile, getModulePermission } from "@/lib/finance/access-control";
 import { getAccessibleMemberOptions } from "@/lib/finance/member-options";
 import { getCurrentMonthLabel } from "@/lib/finance/period-context";
+import { getOrganizationBankAccountsForMembers } from "@/lib/organizations/banks";
 import { getOrganizationPayableBillsDashboardData } from "@/lib/organizations/payables";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
 
@@ -40,6 +41,9 @@ export async function ContasAPagarPage({ searchParams, orgSlug }: ContasAPagarPa
   const canDelete = isOrganizationManager || Boolean(permission?.can_delete);
   const createMembers = canCreate
     ? await getAccessibleMemberOptions("CONTAS_A_PAGAR", "can_create", orgSlug)
+    : [];
+  const bankAccounts = canEdit
+    ? await getOrganizationBankAccountsForMembers(payableData.members, orgSlug)
     : [];
   const periodLabel = getCurrentMonthLabel();
 
@@ -92,6 +96,7 @@ export async function ContasAPagarPage({ searchParams, orgSlug }: ContasAPagarPa
         bills={bills}
         filteredBills={filteredBills}
         members={members}
+        bankAccounts={bankAccounts}
         statusFilter={statusFilter}
         typeFilter={typeFilter}
         hasActiveFilters={hasActiveFilters}

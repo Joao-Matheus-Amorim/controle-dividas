@@ -128,6 +128,34 @@ async function assertCanManagePayableBill(
   };
 }
 
+async function assertMovementBankBelongsToMember(
+  organizationId: string,
+  bankId: string,
+  responsibleMemberId: string,
+) {
+  if (!bankId) {
+    throw new Error("Selecione o banco usado no pagamento.");
+  }
+
+  const supabase = await createClient();
+  const { data: bank, error } = await supabase
+    .from("banks")
+    .select("id, organization_id, family_member_id, currency")
+    .eq("id", bankId)
+    .eq("organization_id", organizationId)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (!bank || String(bank.family_member_id ?? "") !== responsibleMemberId) {
+    throw new Error("Banco selecionado nao pertence ao responsavel desta conta.");
+  }
+
+  return bank;
+}
+
 function parsePayableBillForm(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   const category = String(formData.get("category") ?? "").trim();
@@ -490,6 +518,8 @@ export async function updatePayableBillStatus(
 ): Promise<PayableBillActionState> {
   const id = String(formData.get("id") ?? "");
   const status = String(formData.get("status") ?? "pendente");
+  const bankId = String(formData.get("bank_id") ?? "");
+  const recordedTimezone = String(formData.get("recorded_timezone") ?? "").trim() || null;
 
   if (!id) {
     return { error: "Conta nao encontrada." };
@@ -501,6 +531,14 @@ export async function updatePayableBillStatus(
 
   try {
     const { profile, organization, bill } = await assertCanManagePayableBill(id, "can_edit");
+    const transitionToPaid = String(bill.status) !== "pago" && status === "pago";
+    if (transitionToPaid) {
+      await assertMovementBankBelongsToMember(
+        organization.id,
+        bankId,
+        String(bill.responsible_member_id),
+      );
+    }
 
     if (String(bill.status) !== status) {
       const rateLimit = checkSensitiveOperationRateLimit({
@@ -528,21 +566,35 @@ export async function updatePayableBillStatus(
 
     const supabase = await createClient();
 
-    const { error, count } = await supabase
-      .from("payable_bills")
-      .update({
-        status,
-        organization_id: organization.id,
-      }, { count: "exact" })
-      .eq("id", id)
-      .eq("organization_id", organization.id);
+    if (transitionToPaid) {
+      const { error } = await supabase.rpc("mark_payable_bill_paid_with_movement", {
+        target_organization_id: organization.id,
+        target_payable_bill_id: id,
+        target_bank_id: bankId,
+        target_profile_id: profile.id,
+        target_recorded_timezone: recordedTimezone,
+      });
 
-    if (error) {
-      return { error: error.message };
-    }
+      if (error) {
+        return { error: error.message };
+      }
+    } else {
+      const { error, count } = await supabase
+        .from("payable_bills")
+        .update({
+          status,
+          organization_id: organization.id,
+        }, { count: "exact" })
+        .eq("id", id)
+        .eq("organization_id", organization.id);
 
-    if (count !== 1) {
-      return { error: "Conta nao encontrada." };
+      if (error) {
+        return { error: error.message };
+      }
+
+      if (count !== 1) {
+        return { error: "Conta nao encontrada." };
+      }
     }
 
     if (String(bill.status) !== status) {

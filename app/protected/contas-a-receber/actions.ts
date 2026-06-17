@@ -128,6 +128,34 @@ async function assertCanManageReceivableIncome(
   };
 }
 
+async function assertMovementBankBelongsToMember(
+  organizationId: string,
+  bankId: string,
+  receiverMemberId: string,
+) {
+  if (!bankId) {
+    throw new Error("Selecione o banco que recebeu o dinheiro.");
+  }
+
+  const supabase = await createClient();
+  const { data: bank, error } = await supabase
+    .from("banks")
+    .select("id, organization_id, family_member_id, currency")
+    .eq("id", bankId)
+    .eq("organization_id", organizationId)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (!bank || String(bank.family_member_id ?? "") !== receiverMemberId) {
+    throw new Error("Banco selecionado nao pertence a pessoa recebedora.");
+  }
+
+  return bank;
+}
+
 function parseReceivableIncomeForm(formData: FormData) {
   const receiverMemberId = String(formData.get("receiver_member_id") ?? "");
   const source = String(formData.get("source") ?? "").trim();
@@ -479,6 +507,8 @@ export async function updateReceivableIncomeStatus(
 ): Promise<ReceivableIncomeActionState> {
   const id = String(formData.get("id") ?? "");
   const status = String(formData.get("status") ?? "previsto");
+  const bankId = String(formData.get("bank_id") ?? "");
+  const recordedTimezone = String(formData.get("recorded_timezone") ?? "").trim() || null;
 
   if (!id) {
     return { error: "Recebimento nao encontrado." };
@@ -490,6 +520,14 @@ export async function updateReceivableIncomeStatus(
 
   try {
     const { profile, organization, income } = await assertCanManageReceivableIncome(id, "can_edit");
+    const transitionToReceived = String(income.status) !== "recebido" && status === "recebido";
+    if (transitionToReceived) {
+      await assertMovementBankBelongsToMember(
+        organization.id,
+        bankId,
+        String(income.receiver_member_id),
+      );
+    }
 
     if (String(income.status) !== status) {
       const rateLimit = checkSensitiveOperationRateLimit({
@@ -517,21 +555,35 @@ export async function updateReceivableIncomeStatus(
 
     const supabase = await createClient();
 
-    const { error, count } = await supabase
-      .from("receivable_incomes")
-      .update({
-        status,
-        organization_id: organization.id,
-      }, { count: "exact" })
-      .eq("id", id)
-      .eq("organization_id", organization.id);
+    if (transitionToReceived) {
+      const { error } = await supabase.rpc("mark_receivable_income_received_with_movement", {
+        target_organization_id: organization.id,
+        target_receivable_income_id: id,
+        target_bank_id: bankId,
+        target_profile_id: profile.id,
+        target_recorded_timezone: recordedTimezone,
+      });
 
-    if (error) {
-      return { error: error.message };
-    }
+      if (error) {
+        return { error: error.message };
+      }
+    } else {
+      const { error, count } = await supabase
+        .from("receivable_incomes")
+        .update({
+          status,
+          organization_id: organization.id,
+        }, { count: "exact" })
+        .eq("id", id)
+        .eq("organization_id", organization.id);
 
-    if (count !== 1) {
-      return { error: "Recebimento nao encontrado." };
+      if (error) {
+        return { error: error.message };
+      }
+
+      if (count !== 1) {
+        return { error: "Recebimento nao encontrado." };
+      }
     }
 
     if (String(income.status) !== status) {
