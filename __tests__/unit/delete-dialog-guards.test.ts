@@ -20,7 +20,8 @@ describe("expense list active overlay guards", () => {
     expect(source).toContain("open={Boolean(editingExpense)}");
     expect(source).toContain("<SheetContent");
     expect(source).toContain('side="bottom"');
-    expect(source).toContain("<SheetTitle>Editar gasto</SheetTitle>");
+    expect(source).toContain("<SheetTitle");
+    expect(source).toContain("Editar gasto</SheetTitle>");
     expect(source).toContain("expense={editingExpense}");
     expect(source).toContain('mode="edit"');
   });
