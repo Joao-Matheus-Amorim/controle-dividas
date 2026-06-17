@@ -138,15 +138,19 @@ describe("finance form UI contract guards", () => {
     expect(source).toContain("createBankAccount");
     expect(source).toContain("updateBankAccount");
     expect(source).toContain("emptyAccountTypeValue");
+    expect(source).toContain("systemBankOptions");
+    expect(source).toContain("isSystemBankOption");
     expect(source).toContain('name="id"');
     expect(source).toContain('name="family_member_id"');
     expect(source).toContain('name="bank_name"');
+    expect(source).toContain("Selecione um banco");
     expect(source).toContain('name="account_type_select"');
     expect(source).toContain('name="account_type"');
     expect(source).toContain('type="hidden"');
     expect(source).toContain('name="current_balance"');
     expect(source).toContain('name="currency"');
     expect(source).toContain('name="notes"');
+    expect(source).not.toContain('placeholder="Ex: Revolut, Wise"');
   });
 
   it("keeps family member form minimal create contract", () => {

@@ -5,6 +5,7 @@ import {
   assertCanAccessMember,
   getCurrentProfile,
 } from "@/lib/finance/access-control";
+import { isSystemBankOption } from "@/lib/finance/bank-options";
 import type { PermissionAction } from "@/lib/finance/permissions";
 import type { BankAccountFormState } from "@/lib/finance/types";
 import { revalidateOrganizationPaths } from "@/lib/organizations/revalidation";
@@ -153,7 +154,11 @@ function validateBankAccountInput(input: ReturnType<typeof parseBankAccountForm>
   }
 
   if (!input.bankName) {
-    return { error: "Informe o nome do banco." };
+    return { error: "Selecione o banco." };
+  }
+
+  if (!isSystemBankOption(input.bankName)) {
+    return { error: "Selecione um banco da lista do sistema." };
   }
 
   if (Number.isNaN(input.currentBalance)) {

@@ -23,7 +23,7 @@ function createFormData(values: Record<string, string>) {
 function validBankAccountForm(overrides: Record<string, string> = {}) {
   return createFormData({
     family_member_id: "member-1",
-    bank_name: "Banco Principal",
+    bank_name: "Revolut",
     account_type: "corrente",
     current_balance: "1500.25",
     currency: "BRL",
@@ -137,8 +137,18 @@ describe("bank account organization access actions", () => {
         owner_id: "org-owner-1",
         organization_id: "org-1",
         family_member_id: "member-1",
+        bank_name: "Revolut",
       }),
     ]);
     expectMemberLookupFilters("member-1");
+  });
+
+  it("rejects bank names outside the controlled system options", async () => {
+    const { createBankAccount } = await import("@/app/protected/bancos/actions");
+
+    const result = await createBankAccount({}, validBankAccountForm({ bank_name: "Banco Manual" }));
+
+    expect(result).toEqual({ error: "Selecione um banco da lista do sistema." });
+    expect(mockState.insertedPayloads).toHaveLength(0);
   });
 });
