@@ -24,6 +24,7 @@ export function BankBalanceForm({ account }: { account: DbBankAccount }) {
       <div className="flex gap-2">
         <input type="hidden" name="id" value={account.id} />
         <Input
+          aria-label="Saldo manual"
           name="current_balance"
           type="number"
           step="0.01"
@@ -40,6 +41,9 @@ export function BankBalanceForm({ account }: { account: DbBankAccount }) {
         </Button>
       </div>
 
+      <p className="max-w-[220px] text-[11px] text-white/30">
+        Ajuste manual do saldo atual.
+      </p>
       <AppActionFeedback error={state.error} success={state.success} className="max-w-[220px] text-xs" />
     </form>
   );
