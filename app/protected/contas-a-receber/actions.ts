@@ -166,23 +166,23 @@ async function assertBankNameBelongsToReceiverMember(
   }
 
   const supabase = await createClient();
-  const { data: bank, error } = await supabase
+  const { data: banks, error } = await supabase
     .from("banks")
-    .select("id, organization_id, family_member_id, bank_name")
+    .select("id")
     .eq("bank_name", bankName)
     .eq("family_member_id", receiverMemberId)
     .eq("organization_id", organizationId)
-    .maybeSingle();
+    .limit(1);
 
   if (error) {
     throw new Error(error.message);
   }
 
-  if (!bank) {
+  if (!banks?.length) {
     throw new Error("Selecione um banco cadastrado para a pessoa recebedora.");
   }
 
-  return bank;
+  return banks[0];
 }
 
 function parseReceivableIncomeForm(formData: FormData) {

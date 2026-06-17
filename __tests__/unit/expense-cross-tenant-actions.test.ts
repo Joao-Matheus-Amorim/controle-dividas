@@ -117,6 +117,26 @@ function makeQuery(table: string) {
 
       return Promise.resolve({ data: null, error: null });
     },
+    limit(value: number) {
+      if (value !== 1) {
+        throw new Error("Expected existence lookup limit");
+      }
+
+      mockState.queryRecords.push({
+        table: record.table,
+        eq: { ...record.eq },
+        or: record.or,
+      });
+
+      if (table === "banks") {
+        return Promise.resolve({
+          data: mockState.bankLookup ? [mockState.bankLookup] : [],
+          error: null,
+        });
+      }
+
+      return Promise.resolve({ data: [], error: null });
+    },
     insert(payload: Record<string, unknown>) {
       mockState.insertedPayloads.push(payload);
       return Promise.resolve({ error: null });

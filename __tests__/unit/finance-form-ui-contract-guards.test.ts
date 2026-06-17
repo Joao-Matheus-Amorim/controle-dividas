@@ -182,10 +182,13 @@ describe("finance form UI contract guards", () => {
     expect(expenseForm).toContain("Selecione um banco cadastrado");
 
     expect(payableActions).toContain("assertBankNameBelongsToResponsibleMember");
+    expect(payableActions).toContain(".limit(1)");
     expect(payableActions).toContain("Selecione um banco cadastrado para o responsavel desta conta.");
     expect(receivableActions).toContain("assertBankNameBelongsToReceiverMember");
+    expect(receivableActions).toContain(".limit(1)");
     expect(receivableActions).toContain("Selecione um banco cadastrado para a pessoa recebedora.");
     expect(expenseActions).toContain("assertBankNameBelongsToExpenseMember");
+    expect(expenseActions).toContain(".limit(1)");
     expect(expenseActions).toContain("Selecione um banco cadastrado para a pessoa responsavel pelo gasto.");
   });
 

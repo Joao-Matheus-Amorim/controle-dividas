@@ -123,6 +123,20 @@ function makeQuery(table: string) {
 
       return Promise.resolve({ data: null, error: null });
     },
+    limit(value: number) {
+      if (value !== 1) {
+        throw new Error("Expected existence lookup limit");
+      }
+
+      if (table === "banks") {
+        return Promise.resolve({
+          data: mockState.bankLookup ? [mockState.bankLookup] : [],
+          error: null,
+        });
+      }
+
+      return Promise.resolve({ data: [], error: null });
+    },
     single() {
       if (insertPayload) {
         return Promise.resolve({ data: mockState.insertedIncome, error: mockState.insertError });
