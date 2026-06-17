@@ -38,6 +38,8 @@ const categories = [
   "Outros",
 ];
 
+const customCategoryValue = "__custom_category__";
+
 type FixedBillAudience = "family" | "person";
 
 type PayableBillFormProps = {
@@ -59,6 +61,11 @@ export function PayableBillForm({
   const [fixedBillAudience, setFixedBillAudience] = useState<FixedBillAudience>("family");
   const today = new Date().toISOString().slice(0, 10);
   const isEditing = mode === "edit" && Boolean(bill);
+  const selectedCategory = bill?.category ?? "";
+  const [categoryValue, setCategoryValue] = useState(
+    selectedCategory && !categories.includes(selectedCategory) ? customCategoryValue : selectedCategory,
+  );
+  const isCustomCategory = categoryValue === customCategoryValue;
   const isFixedBill = billType === "fixa";
   const automaticMember = !isEditing && defaultMemberId
     ? members.find((member) => member.id === defaultMemberId) ?? null
@@ -153,8 +160,10 @@ export function PayableBillForm({
           <Label htmlFor={isEditing ? `category-${bill?.id}` : "category"}>Categoria</Label>
           <select
             id={isEditing ? `category-${bill?.id}` : "category"}
-            name="category"
-            defaultValue={bill?.category ?? ""}
+            name={isCustomCategory ? "category_preset" : "category"}
+            value={categoryValue}
+            onChange={(event) => setCategoryValue(event.target.value)}
+            required={!isCustomCategory}
             className={financeNativeSelectClass}
           >
             <option value="">Selecione</option>
@@ -163,7 +172,23 @@ export function PayableBillForm({
                 {category}
               </option>
             ))}
+            <option value={customCategoryValue}>Cadastrar nova categoria</option>
           </select>
+          {isCustomCategory ? (
+            <>
+              <Label className="sr-only" htmlFor={isEditing ? `category-custom-${bill?.id}` : "category-custom"}>
+                Nova categoria
+              </Label>
+              <Input
+                id={isEditing ? `category-custom-${bill?.id}` : "category-custom"}
+                name="category"
+                placeholder="Digite a categoria"
+                defaultValue={selectedCategory && !categories.includes(selectedCategory) ? selectedCategory : ""}
+                required
+                className={financeInputClass}
+              />
+            </>
+          ) : null}
         </div>
 
         <div className={financeFieldClass}>

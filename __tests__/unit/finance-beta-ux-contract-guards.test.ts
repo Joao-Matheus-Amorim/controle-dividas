@@ -151,6 +151,23 @@ describe("finance beta UX contract guards", () => {
     expect(payableForm).toContain("Responsável financeiro");
   });
 
+  it("allows payable and receivable forms to submit custom category labels without schema changes", () => {
+    const payableForm = readSource("components/finance/payable-bill-form.tsx");
+    const receivableForm = readSource("components/finance/receivable-income-form.tsx");
+
+    expect(payableForm).toContain("customCategoryValue");
+    expect(payableForm).toContain("Cadastrar nova categoria");
+    expect(payableForm).toContain('name={isCustomCategory ? "category_preset" : "category"}');
+    expect(payableForm).toContain('name="category"');
+    expect(payableForm).toContain("Digite a categoria");
+
+    expect(receivableForm).toContain("customIncomeSourceValue");
+    expect(receivableForm).toContain("Cadastrar nova origem");
+    expect(receivableForm).toContain('name={isCustomSource ? "source_preset" : "source"}');
+    expect(receivableForm).toContain('name="source"');
+    expect(receivableForm).toContain("Digite a origem");
+  });
+
   it("keeps bank account type selection synchronized with submitted data", () => {
     const bankForm = readSource("components/finance/bank-account-form.tsx");
 
