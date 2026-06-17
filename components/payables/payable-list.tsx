@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import type { DbFamilyMember, DbPayableBill } from "@/lib/finance/types";
+import type { DbBankAccount, DbFamilyMember, DbPayableBill } from "@/lib/finance/types";
 import { PayableFilterBar } from "./payable-filter-bar";
 import { PayableListItem } from "./payable-list-item";
 import type { StatusFilter, TypeFilter } from "./payable-utils";
@@ -11,6 +11,7 @@ interface PayableListProps {
   bills: PayableListBill[];
   filteredBills: PayableListBill[];
   members: DbFamilyMember[];
+  bankAccounts: DbBankAccount[];
   statusFilter: StatusFilter;
   typeFilter: TypeFilter;
   hasActiveFilters: boolean;
@@ -22,6 +23,7 @@ export function PayableList({
   bills,
   filteredBills,
   members,
+  bankAccounts,
   statusFilter,
   typeFilter,
   hasActiveFilters,
@@ -60,6 +62,7 @@ export function PayableList({
             key={bill.id}
             bill={bill}
             members={members}
+            bankAccounts={bankAccounts}
             canEdit={canEdit}
             canDelete={canDelete}
           />

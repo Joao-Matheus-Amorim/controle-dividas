@@ -128,6 +128,34 @@ async function assertCanManageReceivableIncome(
   };
 }
 
+async function assertMovementBankBelongsToMember(
+  organizationId: string,
+  bankId: string,
+  receiverMemberId: string,
+) {
+  if (!bankId) {
+    throw new Error("Selecione o banco que recebeu o dinheiro.");
+  }
+
+  const supabase = await createClient();
+  const { data: bank, error } = await supabase
+    .from("banks")
+    .select("id, organization_id, family_member_id, currency")
+    .eq("id", bankId)
+    .eq("organization_id", organizationId)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (!bank || String(bank.family_member_id ?? "") !== receiverMemberId) {
+    throw new Error("Banco selecionado nao pertence a pessoa recebedora.");
+  }
+
+  return bank;
+}
+
 function parseReceivableIncomeForm(formData: FormData) {
   const receiverMemberId = String(formData.get("receiver_member_id") ?? "");
   const source = String(formData.get("source") ?? "").trim();
@@ -312,6 +340,10 @@ export async function updateReceivableIncome(
     }
 
     const statusChanged = String(income.status) !== input.status;
+    if (statusChanged && input.status === "recebido") {
+      return { error: "Para marcar como recebido, use o status rapido e selecione o banco que recebeu." };
+    }
+
     const receivableStatusRateLimitInput = {
       ...receivableStatusRateLimit,
       actorKey: profile.id,
@@ -479,6 +511,8 @@ export async function updateReceivableIncomeStatus(
 ): Promise<ReceivableIncomeActionState> {
   const id = String(formData.get("id") ?? "");
   const status = String(formData.get("status") ?? "previsto");
+  const bankId = String(formData.get("bank_id") ?? "");
+  const recordedTimezone = String(formData.get("recorded_timezone") ?? "").trim() || null;
 
   if (!id) {
     return { error: "Recebimento nao encontrado." };
@@ -490,6 +524,14 @@ export async function updateReceivableIncomeStatus(
 
   try {
     const { profile, organization, income } = await assertCanManageReceivableIncome(id, "can_edit");
+    const transitionToReceived = String(income.status) !== "recebido" && status === "recebido";
+    const movementBank = transitionToReceived
+      ? await assertMovementBankBelongsToMember(
+          organization.id,
+          bankId,
+          String(income.receiver_member_id),
+        )
+      : null;
 
     if (String(income.status) !== status) {
       const rateLimit = checkSensitiveOperationRateLimit({
@@ -532,6 +574,30 @@ export async function updateReceivableIncomeStatus(
 
     if (count !== 1) {
       return { error: "Recebimento nao encontrado." };
+    }
+
+    if (transitionToReceived && movementBank) {
+      const { error: movementError } = await supabase
+        .from("financial_movements")
+        .insert({
+          owner_id: organization.owner_auth_user_id,
+          organization_id: organization.id,
+          family_member_id: String(income.receiver_member_id),
+          bank_id: movementBank.id,
+          movement_type: "receivable_income_receipt",
+          direction: "inflow",
+          amount: Number(income.amount),
+          currency: String(movementBank.currency ?? "EUR"),
+          recorded_timezone: recordedTimezone,
+          payable_bill_id: null,
+          receivable_income_id: id,
+          created_by_profile_id: profile.id,
+          notes: `Recebimento de ${String(income.source ?? "conta a receber")}`,
+        });
+
+      if (movementError) {
+        return { error: movementError.message };
+      }
     }
 
     if (String(income.status) !== status) {

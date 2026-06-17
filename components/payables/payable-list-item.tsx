@@ -2,7 +2,7 @@ import { PayableBillDeleteDialog } from "@/components/finance/payable-bill-delet
 import { PayableBillEditDialog } from "@/components/finance/payable-bill-edit-dialog";
 import { PayableBillStatusForm } from "@/components/finance/payable-bill-status-form";
 import { Badge } from "@/components/ui/badge";
-import type { DbFamilyMember, DbPayableBill } from "@/lib/finance/types";
+import type { DbBankAccount, DbFamilyMember, DbPayableBill } from "@/lib/finance/types";
 import { compactCurrency, statusVariant } from "./payable-utils";
 
 type PayableListBill = DbPayableBill & { computed_status: string };
@@ -10,11 +10,12 @@ type PayableListBill = DbPayableBill & { computed_status: string };
 interface PayableListItemProps {
   bill: PayableListBill;
   members: DbFamilyMember[];
+  bankAccounts: DbBankAccount[];
   canEdit: boolean;
   canDelete: boolean;
 }
 
-export function PayableListItem({ bill, members, canEdit, canDelete }: PayableListItemProps) {
+export function PayableListItem({ bill, members, bankAccounts, canEdit, canDelete }: PayableListItemProps) {
   return (
     <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-[#080810]/50 p-3 md:flex-row md:items-center md:justify-between">
       <div className="min-w-0 flex-1">
@@ -35,7 +36,7 @@ export function PayableListItem({ bill, members, canEdit, canDelete }: PayableLi
         {canEdit ? (
           <>
             <PayableBillEditDialog bill={bill} members={members} />
-            <PayableBillStatusForm bill={bill} />
+            <PayableBillStatusForm bill={bill} bankAccounts={bankAccounts} />
           </>
         ) : null}
         {canDelete ? <PayableBillDeleteDialog bill={bill} /> : null}

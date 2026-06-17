@@ -128,6 +128,34 @@ async function assertCanManagePayableBill(
   };
 }
 
+async function assertMovementBankBelongsToMember(
+  organizationId: string,
+  bankId: string,
+  responsibleMemberId: string,
+) {
+  if (!bankId) {
+    throw new Error("Selecione o banco usado no pagamento.");
+  }
+
+  const supabase = await createClient();
+  const { data: bank, error } = await supabase
+    .from("banks")
+    .select("id, organization_id, family_member_id, currency")
+    .eq("id", bankId)
+    .eq("organization_id", organizationId)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (!bank || String(bank.family_member_id ?? "") !== responsibleMemberId) {
+    throw new Error("Banco selecionado nao pertence ao responsavel desta conta.");
+  }
+
+  return bank;
+}
+
 function parsePayableBillForm(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   const category = String(formData.get("category") ?? "").trim();
@@ -318,6 +346,10 @@ export async function updatePayableBill(
     }
 
     const statusChanged = String(bill.status) !== input.status;
+    if (statusChanged && input.status === "pago") {
+      return { error: "Para marcar como pago, use o status rapido e selecione o banco usado." };
+    }
+
     const payableStatusRateLimitInput = {
       ...payableStatusRateLimit,
       actorKey: profile.id,
@@ -490,6 +522,8 @@ export async function updatePayableBillStatus(
 ): Promise<PayableBillActionState> {
   const id = String(formData.get("id") ?? "");
   const status = String(formData.get("status") ?? "pendente");
+  const bankId = String(formData.get("bank_id") ?? "");
+  const recordedTimezone = String(formData.get("recorded_timezone") ?? "").trim() || null;
 
   if (!id) {
     return { error: "Conta nao encontrada." };
@@ -501,6 +535,14 @@ export async function updatePayableBillStatus(
 
   try {
     const { profile, organization, bill } = await assertCanManagePayableBill(id, "can_edit");
+    const transitionToPaid = String(bill.status) !== "pago" && status === "pago";
+    const movementBank = transitionToPaid
+      ? await assertMovementBankBelongsToMember(
+          organization.id,
+          bankId,
+          String(bill.responsible_member_id),
+        )
+      : null;
 
     if (String(bill.status) !== status) {
       const rateLimit = checkSensitiveOperationRateLimit({
@@ -543,6 +585,30 @@ export async function updatePayableBillStatus(
 
     if (count !== 1) {
       return { error: "Conta nao encontrada." };
+    }
+
+    if (transitionToPaid && movementBank) {
+      const { error: movementError } = await supabase
+        .from("financial_movements")
+        .insert({
+          owner_id: organization.owner_auth_user_id,
+          organization_id: organization.id,
+          family_member_id: String(bill.responsible_member_id),
+          bank_id: movementBank.id,
+          movement_type: "payable_bill_payment",
+          direction: "outflow",
+          amount: Number(bill.amount),
+          currency: String(movementBank.currency ?? "EUR"),
+          recorded_timezone: recordedTimezone,
+          payable_bill_id: id,
+          receivable_income_id: null,
+          created_by_profile_id: profile.id,
+          notes: `Pagamento de ${String(bill.name ?? "conta")}`,
+        });
+
+      if (movementError) {
+        return { error: movementError.message };
+      }
     }
 
     if (String(bill.status) !== status) {
