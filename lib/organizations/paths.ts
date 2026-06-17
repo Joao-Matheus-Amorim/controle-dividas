@@ -6,6 +6,7 @@ const protectedToOrgSegment: Record<string, string> = {
   "/protected/gastos": "gastos",
   "/protected/contas-a-pagar": "contas-a-pagar",
   "/protected/contas-a-receber": "contas-a-receber",
+  "/protected/movimentacoes": "movimentacoes",
   "/protected/bancos": "bancos",
   "/protected/relatorios": "relatorios",
   "/protected/configuracoes": "configuracoes",

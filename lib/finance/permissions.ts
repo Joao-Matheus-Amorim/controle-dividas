@@ -5,6 +5,7 @@ export const FINANCE_MODULES = [
   { key: "CONTAS_FIXAS", label: "Contas fixas" },
   { key: "CONTAS_A_PAGAR", label: "Contas a pagar" },
   { key: "CONTAS_A_RECEBER", label: "Contas a receber" },
+  { key: "MOVIMENTACOES", label: "Movimentacoes" },
   { key: "BANCOS", label: "Bancos" },
   { key: "RENDAS", label: "Rendas" },
   { key: "RELATORIOS", label: "Relatorios" },
