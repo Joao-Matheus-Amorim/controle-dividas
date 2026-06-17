@@ -26,6 +26,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { formatCurrency } from "@/lib/finance/formatting";
+import { buildExpenseCategoryLabelMap } from "@/lib/finance/category-labels";
 import type {
   DbExpense,
   DbExpenseCategory,
@@ -57,6 +58,7 @@ export function ExpenseListClient({
     useState<ExpenseActionState>(initialDeleteState);
   const [isDeleteConfirmed, setIsDeleteConfirmed] = useState(false);
   const [isDeleting, startDeleteTransition] = useTransition();
+  const categoryLabels = buildExpenseCategoryLabelMap(categories);
 
   function resetDeleteDialog() {
     setDeletingExpense(null);
@@ -102,7 +104,9 @@ export function ExpenseListClient({
                   variant="secondary"
                   className="border-white/10 bg-white/10 text-white/60"
                 >
-                  {expense.expense_categories?.name || "Sem categoria"}
+                  {expense.category_id
+                    ? categoryLabels.get(expense.category_id) ?? expense.expense_categories?.name ?? "Sem categoria"
+                    : "Sem categoria"}
                 </Badge>
               </div>
 

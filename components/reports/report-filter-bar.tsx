@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { buildExpenseCategoryLabelMap } from "@/lib/finance/category-labels";
 import type { DbExpenseCategory, DbFamilyMember } from "@/lib/finance/types";
 
 export type ReportFilters = {
@@ -24,6 +25,8 @@ export function ReportFilterBar({
   categories,
   hasActiveFilters,
 }: ReportFilterBarProps) {
+  const categoryLabels = buildExpenseCategoryLabelMap(categories);
+
   return (
     <section className="space-y-3 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
       <div className="flex items-center justify-between gap-3">
@@ -49,7 +52,7 @@ export function ReportFilterBar({
         <select name="categoria" defaultValue={filters.categoryId} className="h-10 rounded-xl border border-white/10 bg-[#080810] px-3 text-sm text-white">
           <option value="">Todas as categorias</option>
           {categories.map((category) => (
-            <option key={category.id} value={category.id}>{category.name}</option>
+            <option key={category.id} value={category.id}>{categoryLabels.get(category.id) ?? category.name}</option>
           ))}
         </select>
 

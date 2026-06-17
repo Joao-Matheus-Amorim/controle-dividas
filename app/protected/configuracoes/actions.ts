@@ -78,16 +78,77 @@ async function recordExpenseCategoryAuditEvent({
 function parseExpenseCategoryForm(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
+  const parentCategoryId = String(formData.get("parent_category_id") ?? "").trim();
 
   return {
     name,
     description,
+    parentCategoryId,
   };
 }
 
 function validateExpenseCategoryInput(input: ReturnType<typeof parseExpenseCategoryForm>): FormState | null {
   if (!input.name) {
     return { error: "Informe o nome da categoria." };
+  }
+
+  return null;
+}
+
+async function validateExpenseCategoryParent({
+  supabase,
+  organizationId,
+  parentCategoryId,
+  currentCategoryId,
+}: {
+  supabase: Awaited<ReturnType<typeof createClient>>;
+  organizationId: string;
+  parentCategoryId: string;
+  currentCategoryId?: string;
+}): Promise<FormState | null> {
+  if (!parentCategoryId) {
+    return null;
+  }
+
+  if (currentCategoryId && parentCategoryId === currentCategoryId) {
+    return { error: "Categoria nao pode ser subcategoria dela mesma." };
+  }
+
+  const { data: parentCategory, error } = await supabase
+    .from("expense_categories")
+    .select("id, parent_category_id")
+    .eq("id", parentCategoryId)
+    .eq("organization_id", organizationId)
+    .maybeSingle();
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  if (!parentCategory) {
+    return { error: "Categoria principal nao encontrada." };
+  }
+
+  if (parentCategory.parent_category_id) {
+    return { error: "Selecione uma categoria principal, nao uma subcategoria." };
+  }
+
+  if (currentCategoryId) {
+    const { data: childCategory, error: childError } = await supabase
+      .from("expense_categories")
+      .select("id")
+      .eq("parent_category_id", currentCategoryId)
+      .eq("organization_id", organizationId)
+      .limit(1)
+      .maybeSingle();
+
+    if (childError) {
+      return { error: childError.message };
+    }
+
+    if (childCategory) {
+      return { error: "Categoria com subcategorias nao pode virar subcategoria." };
+    }
   }
 
   return null;
@@ -128,9 +189,20 @@ export async function createExpenseCategory(
     return { error: "Muitas tentativas de cadastro de categoria. Tente novamente em alguns minutos." };
   }
 
+  const parentValidationError = await validateExpenseCategoryParent({
+    supabase,
+    organizationId: organization.id,
+    parentCategoryId: input.parentCategoryId,
+  });
+
+  if (parentValidationError) {
+    return parentValidationError;
+  }
+
   const { data: category, error } = await supabase.from("expense_categories").insert({
     owner_id: organization.owner_auth_user_id,
     organization_id: organization.id,
+    parent_category_id: input.parentCategoryId || null,
     name: input.name,
     description: input.description || null,
     is_default: false,
@@ -179,7 +251,7 @@ export async function updateExpenseCategory(
 
   const { data: category, error: fetchError } = await supabase
     .from("expense_categories")
-    .select("id, name, description, is_default")
+    .select("id, name, description, parent_category_id, is_default")
     .eq("id", id)
     .eq("organization_id", organization.id)
     .maybeSingle();
@@ -198,10 +270,22 @@ export async function updateExpenseCategory(
 
   const categoryChanged =
     String(category.name ?? "").trim() !== input.name ||
-    String(category.description ?? "").trim() !== input.description;
+    String(category.description ?? "").trim() !== input.description ||
+    String(category.parent_category_id ?? "") !== input.parentCategoryId;
 
   if (!categoryChanged) {
     return { success: "Categoria atualizada com sucesso." };
+  }
+
+  const parentValidationError = await validateExpenseCategoryParent({
+    supabase,
+    organizationId: organization.id,
+    parentCategoryId: input.parentCategoryId,
+    currentCategoryId: id,
+  });
+
+  if (parentValidationError) {
+    return parentValidationError;
   }
 
   const rateLimit = checkSensitiveOperationRateLimit({
@@ -231,6 +315,7 @@ export async function updateExpenseCategory(
     .update({
       name: input.name,
       description: input.description || null,
+      parent_category_id: input.parentCategoryId || null,
       organization_id: organization.id,
     }, { count: "exact" })
     .eq("id", id)

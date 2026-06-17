@@ -19,6 +19,7 @@ const mockState = vi.hoisted(() => ({
     id: "category-1",
     name: "Mercado",
     description: "Compras",
+    parent_category_id: null,
     is_default: false,
   } as Record<string, unknown> | null,
   insertedCategory: {
@@ -161,6 +162,7 @@ describe("expense category write audit runtime actions", () => {
       id: "category-1",
       name: "Mercado",
       description: "Compras",
+      parent_category_id: null,
       is_default: false,
     };
     mockState.insertedCategory = {
@@ -199,6 +201,7 @@ describe("expense category write audit runtime actions", () => {
         payload: {
           owner_id: "org-owner-1",
           organization_id: "org-1",
+          parent_category_id: null,
           name: "Mercado",
           description: "Compras",
           is_default: false,
@@ -273,6 +276,7 @@ describe("expense category write audit runtime actions", () => {
         payload: {
           name: "Mercado mensal",
           description: "Compras da casa",
+          parent_category_id: null,
           organization_id: "org-1",
         },
         filters: {

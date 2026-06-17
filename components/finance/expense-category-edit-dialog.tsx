@@ -7,11 +7,17 @@ import { ExpenseCategoryForm } from "@/components/finance/expense-category-form"
 import { Button } from "@/components/ui/button";
 import type { DbExpenseCategory } from "@/lib/finance/types";
 
-export function ExpenseCategoryEditDialog({ category }: { category: DbExpenseCategory }) {
+export function ExpenseCategoryEditDialog({
+  category,
+  categories,
+}: {
+  category: DbExpenseCategory;
+  categories: DbExpenseCategory[];
+}) {
   return (
     <AppFormSheet
       title="Editar categoria"
-      description="Atualize nome e descricao da categoria personalizada."
+      description="Atualize nome, descricao e categoria principal."
       triggerLabel="Editar categoria"
       trigger={
         <Button
@@ -25,7 +31,12 @@ export function ExpenseCategoryEditDialog({ category }: { category: DbExpenseCat
         </Button>
       }
     >
-      <ExpenseCategoryForm category={category} mode="edit" submitLayout="sheet" />
+      <ExpenseCategoryForm
+        category={category}
+        categories={categories}
+        mode="edit"
+        submitLayout="sheet"
+      />
     </AppFormSheet>
   );
 }

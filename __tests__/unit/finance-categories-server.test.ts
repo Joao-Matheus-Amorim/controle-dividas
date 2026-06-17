@@ -26,8 +26,9 @@ describe("finance categories server", () => {
       {
         id: "category-1",
         owner_id: ownerId,
-        name: "Alimentação",
-        description: "Gastos com alimentação",
+        parent_category_id: null,
+        name: "Alimentacao",
+        description: "Gastos com alimentacao",
         is_default: true,
         created_at: "2026-01-01T00:00:00.000Z",
       },
@@ -39,7 +40,7 @@ describe("finance categories server", () => {
     expect(result).toEqual(categoryRows);
     expect(calls.from).toHaveBeenCalledWith("expense_categories");
     expect(calls.select).toHaveBeenCalledWith(
-      "id, owner_id, name, description, is_default, created_at",
+      "id, owner_id, parent_category_id, name, description, is_default, created_at",
     );
     expect(calls.eq).toHaveBeenCalledWith("owner_id", ownerId);
     expect(calls.organizationEq).toHaveBeenCalledWith("organization_id", organizationId);

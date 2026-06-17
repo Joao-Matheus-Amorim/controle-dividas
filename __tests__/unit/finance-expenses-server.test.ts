@@ -47,7 +47,7 @@ describe("finance expenses server", () => {
         notes: "nota",
         created_at: "2026-05-01T00:00:00.000Z",
         family_members: [{ id: "member-1", name: "Member 1", monthly_limit: 1000 }],
-        expense_categories: [{ id: "category-1", name: "Alimentação" }],
+        expense_categories: [{ id: "category-1", name: "Alimentacao", parent_category_id: null }],
       },
     ];
     const { client, calls } = createExpensesClient(expenseRows);
@@ -62,12 +62,12 @@ describe("finance expenses server", () => {
       {
         ...expenseRows[0],
         family_members: { id: "member-1", name: "Member 1", monthly_limit: 1000 },
-        expense_categories: { id: "category-1", name: "Alimentação" },
+        expense_categories: { id: "category-1", name: "Alimentacao", parent_category_id: null },
       },
     ]);
     expect(calls.from).toHaveBeenCalledWith("expenses");
     expect(calls.select).toHaveBeenCalledWith(
-      "id, owner_id, family_member_id, category_id, expense_date, description, purchase_location, amount, payment_method, bank_or_card, notes, created_at, family_members(id, name, monthly_limit), expense_categories(id, name)",
+      "id, owner_id, family_member_id, category_id, expense_date, description, purchase_location, amount, payment_method, bank_or_card, notes, created_at, family_members(id, name, monthly_limit), expense_categories(id, name, parent_category_id)",
     );
     expect(calls.eq).toHaveBeenCalledWith("owner_id", ownerId);
     expect(calls.organizationEq).toHaveBeenCalledWith("organization_id", organizationId);
@@ -92,7 +92,7 @@ describe("finance expenses server", () => {
         notes: null,
         created_at: "2026-05-01T00:00:00.000Z",
         family_members: { id: "member-1", name: "Member 1", monthly_limit: 1000 },
-        expense_categories: { id: "category-1", name: "Alimentação" },
+        expense_categories: { id: "category-1", name: "Alimentacao", parent_category_id: null },
       },
     ];
     const { client } = createExpensesClient(expenseRows);

@@ -28,6 +28,7 @@ import {
 } from "@/components/dashboard/dashboard-detail-sections";
 import { compactCurrency } from "@/components/dashboard/dashboard-utils";
 import { getVisibleModuleKeys } from "@/lib/finance/access-control";
+import { buildExpenseCategoryLabelMap } from "@/lib/finance/category-labels";
 import type { FinanceModuleKey } from "@/lib/finance/permissions";
 import { getCurrentPeriodContextLabel } from "@/lib/finance/period-context";
 import { getOrganizationBanksDashboardData } from "@/lib/organizations/banks";
@@ -168,16 +169,20 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
   const healthyMonth = remainingMonthlyLimit >= 0;
 
   const categorySummaries = canExpenses
-    ? expenseData.categories
+    ? (() => {
+        const categoryLabels = buildExpenseCategoryLabelMap(expenseData.categories);
+
+        return expenseData.categories
         .map((category) => {
           const total = expenseData.expenses
             .filter((expense) => expense.category_id === category.id)
             .reduce((sum, expense) => sum + Number(expense.amount), 0);
 
-          return { id: category.id, name: category.name, total };
+          return { id: category.id, name: categoryLabels.get(category.id) ?? category.name, total };
         })
         .filter((category) => category.total > 0)
-        .sort((a, b) => b.total - a.total)
+        .sort((a, b) => b.total - a.total);
+      })()
     : [];
 
   const upcomingBills = canPayables

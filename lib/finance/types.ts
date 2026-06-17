@@ -12,6 +12,7 @@ export type DbFamilyMember = {
 export type DbExpenseCategory = {
   id: string;
   owner_id: string;
+  parent_category_id: string | null;
   name: string;
   description: string | null;
   is_default: boolean;

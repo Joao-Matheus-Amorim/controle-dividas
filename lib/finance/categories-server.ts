@@ -2,7 +2,7 @@ import type { DbExpenseCategory } from "@/lib/finance/types";
 import { createClient } from "@/lib/supabase/server";
 
 const expenseCategorySelectFields =
-  "id, owner_id, name, description, is_default, created_at";
+  "id, owner_id, parent_category_id, name, description, is_default, created_at";
 
 type ExpenseCategoryQueryBuilder = {
   select(fields: typeof expenseCategorySelectFields): {
