@@ -14,6 +14,8 @@ describe("financial movements page guards", () => {
   const mobileNavigation = read("components/app/mobile-bottom-navigation.tsx");
   const movementsPage = read("features/protected-pages/movimentacoes-page.tsx");
   const movementFilterBar = read("components/movements/movement-filter-bar.tsx");
+  const movementList = read("components/movements/movement-list.tsx");
+  const movementUtils = read("components/movements/movement-utils.ts");
   const payableActions = read("app/protected/contas-a-pagar/actions.ts");
   const receivableActions = read("app/protected/contas-a-receber/actions.ts");
 
@@ -43,6 +45,15 @@ describe("financial movements page guards", () => {
     expect(movementFilterBar).toContain('name="banco"');
     expect(movementFilterBar).toContain('name="de"');
     expect(movementFilterBar).toContain('name="ate"');
+  });
+
+  it("shows bank, currency, and source details in movement rows", () => {
+    expect(movementList).toContain("movementBankLabel(movement)");
+    expect(movementList).toContain("movementReferenceLabel(movement)");
+    expect(movementUtils).toContain("movementCurrencyLabel");
+    expect(movementUtils).toContain("movement.banks?.account_type");
+    expect(movementUtils).toContain("movement.banks?.currency");
+    expect(movementUtils).toContain("movement.expenses?.payment_method");
   });
 
   it("revalidates movements after status actions create ledger entries", () => {

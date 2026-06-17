@@ -2,7 +2,9 @@ import { Badge } from "@/components/ui/badge";
 import type { DbFinancialMovement } from "@/lib/finance/types";
 import {
   movementAmount,
+  movementBankLabel,
   movementDateTime,
+  movementReferenceLabel,
   movementTitle,
   movementTypeLabel,
 } from "./movement-utils";
@@ -47,7 +49,10 @@ export function MovementList({ movements }: MovementListProps) {
                   </Badge>
                 </div>
                 <p className="mt-1 truncate text-xs text-white/35">
-                  {movement.family_members?.name ?? "Sem pessoa"} - {movement.banks?.bank_name ?? "Sem banco"}
+                  {movement.family_members?.name ?? "Sem pessoa"} - {movementBankLabel(movement)}
+                </p>
+                <p className="mt-0.5 truncate text-xs text-white/25">
+                  {movementReferenceLabel(movement)}
                 </p>
               </div>
 
