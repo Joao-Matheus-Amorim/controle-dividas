@@ -26,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { isSystemBankOption, systemBankOptions } from "@/lib/finance/bank-options";
 import type { BankAccountFormState, DbBankAccount, DbFamilyMember } from "@/lib/finance/types";
 
 const initialState: BankAccountFormState = {};
@@ -58,6 +59,10 @@ export function BankAccountForm({
   const [state, formAction, isPending] = useActionState(action, initialState);
   const isEditing = mode === "edit" && Boolean(account);
   const [accountTypeValue, setAccountTypeValue] = useState(account?.account_type ?? emptyAccountTypeValue);
+  const selectedBankName = account?.bank_name ?? "";
+  const legacyBankName = selectedBankName && !isSystemBankOption(selectedBankName)
+    ? selectedBankName
+    : null;
   const automaticMember = !isEditing && defaultMemberId
     ? members.find((member) => member.id === defaultMemberId) ?? null
     : null;
@@ -97,14 +102,23 @@ export function BankAccountForm({
 
         <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `bank_name-${account?.id}` : "bank_name"}>Nome do banco</Label>
-          <Input
+          <select
             id={isEditing ? `bank_name-${account?.id}` : "bank_name"}
             name="bank_name"
-            placeholder="Ex: Revolut, Wise"
-            defaultValue={account?.bank_name ?? ""}
+            defaultValue={selectedBankName}
             required
-            className={financeInputClass}
-          />
+            className={financeNativeSelectClass}
+          >
+            <option value="">Selecione um banco</option>
+            {legacyBankName ? (
+              <option value={legacyBankName}>{legacyBankName} (cadastrado)</option>
+            ) : null}
+            {systemBankOptions.map((bankName) => (
+              <option key={bankName} value={bankName}>
+                {bankName}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className={financeFieldClass}>

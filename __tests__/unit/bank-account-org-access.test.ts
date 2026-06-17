@@ -9,7 +9,9 @@ const mockState = vi.hoisted(() => ({
   currentProfile: { id: "profile-1", owner_id: "owner-1", role: "admin" },
   currentOrganization: { id: "org-1", slug: "familia-a", owner_auth_user_id: "org-owner-1" },
   insertedPayloads: [] as Array<Record<string, unknown>>,
+  updatedPayloads: [] as Array<Record<string, unknown>>,
   queryRecords: [] as QueryRecord[],
+  bankLookup: null as Record<string, unknown> | null,
   memberLookup: { id: "member-1", organization_id: "org-1" } as Record<string, unknown> | null,
   accessError: null as Error | null,
 }));
@@ -23,7 +25,7 @@ function createFormData(values: Record<string, string>) {
 function validBankAccountForm(overrides: Record<string, string> = {}) {
   return createFormData({
     family_member_id: "member-1",
-    bank_name: "Banco Principal",
+    bank_name: "Revolut",
     account_type: "corrente",
     current_balance: "1500.25",
     currency: "BRL",
@@ -47,7 +49,10 @@ function makeQuery(table: string) {
     eq(key: string, value: unknown) { record.eq[key] = value; return query; },
     maybeSingle() {
       mockState.queryRecords.push({ table: record.table, eq: { ...record.eq } });
-      return Promise.resolve({ data: table === "family_members" ? mockState.memberLookup : null, error: null });
+      return Promise.resolve({
+        data: table === "family_members" ? mockState.memberLookup : mockState.bankLookup,
+        error: null,
+      });
     },
     insert(payload: Record<string, unknown>) {
       mockState.insertedPayloads.push(payload);
@@ -60,6 +65,20 @@ function makeQuery(table: string) {
           };
         },
       };
+    },
+    update(payload: Record<string, unknown>) {
+      mockState.updatedPayloads.push(payload);
+      const updateQuery = {
+        eq(key: string, value: unknown) {
+          record.eq[key] = value;
+          return updateQuery;
+        },
+        then(resolve: (value: { error: null; count: number }) => void) {
+          mockState.queryRecords.push({ table: record.table, eq: { ...record.eq } });
+          return Promise.resolve({ error: null, count: 1 }).then(resolve);
+        },
+      };
+      return updateQuery;
     },
   };
   return query;
@@ -99,7 +118,9 @@ vi.mock("@/lib/finance/access-control", () => ({
 describe("bank account organization access actions", () => {
   beforeEach(() => {
     mockState.insertedPayloads = [];
+    mockState.updatedPayloads = [];
     mockState.queryRecords = [];
+    mockState.bankLookup = null;
     mockState.memberLookup = { id: "member-1", organization_id: "org-1" };
     mockState.accessError = null;
   });
@@ -137,8 +158,46 @@ describe("bank account organization access actions", () => {
         owner_id: "org-owner-1",
         organization_id: "org-1",
         family_member_id: "member-1",
+        bank_name: "Revolut",
       }),
     ]);
     expectMemberLookupFilters("member-1");
+  });
+
+  it("rejects bank names outside the controlled system options", async () => {
+    const { createBankAccount } = await import("@/app/protected/bancos/actions");
+
+    const result = await createBankAccount({}, validBankAccountForm({ bank_name: "Banco Manual" }));
+
+    expect(result).toEqual({ error: "Selecione um banco da lista do sistema." });
+    expect(mockState.insertedPayloads).toHaveLength(0);
+  });
+
+  it("preserves a saved legacy bank name when updating other account fields", async () => {
+    const { updateBankAccount } = await import("@/app/protected/bancos/actions");
+    mockState.bankLookup = {
+      id: "bank-legacy",
+      owner_id: "org-owner-1",
+      family_member_id: "member-1",
+      bank_name: "Banco Manual Antigo",
+      account_type: "corrente",
+      current_balance: 1500.25,
+      currency: "BRL",
+      notes: "Conta familiar",
+    };
+
+    const result = await updateBankAccount({}, validBankAccountForm({
+      id: "bank-legacy",
+      bank_name: "Banco Manual Antigo",
+      notes: "Conta atualizada",
+    }));
+
+    expect(result).toEqual({ success: "Banco atualizado com sucesso." });
+    expect(mockState.updatedPayloads).toEqual([
+      expect.objectContaining({
+        bank_name: "Banco Manual Antigo",
+        notes: "Conta atualizada",
+      }),
+    ]);
   });
 });
