@@ -73,13 +73,6 @@ const writeExpectations: FunctionExpectation[] = [
   },
   {
     file: "app/protected/gastos/actions.ts",
-    functionName: "createExpense",
-    table: "expenses",
-    operation: "insert",
-    requiresOrganizationId: true,
-  },
-  {
-    file: "app/protected/gastos/actions.ts",
     functionName: "updateExpense",
     table: "expenses",
     operation: "update",
@@ -439,6 +432,15 @@ describe("finance write organization_id coverage", () => {
       }
     },
   );
+
+  it("keeps createExpense organization context inside the atomic expense movement RPC", () => {
+    const block = compact(functionBlock("app/protected/gastos/actions.ts", "createExpense"));
+
+    expect(block).toContain('supabase.rpc("create_expense_with_movement"');
+    expect(block).toContain("target_organization_id:organization.id");
+    expect(block).toContain("target_owner_id:organization.owner_auth_user_id");
+    expect(block).toContain("target_family_member_id:input.familyMemberId");
+  });
 
   it("keeps bootstrap admin profile explicitly transitional until organization onboarding assigns scope", () => {
     const bootstrap = readSource("lib/finance/bootstrap-admin-profile.ts");

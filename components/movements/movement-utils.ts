@@ -8,12 +8,20 @@ export function movementTitle(movement: DbFinancialMovement) {
     return movement.payable_bills?.name ?? "Pagamento de conta";
   }
 
+  if (movement.movement_type === "expense_payment") {
+    return movement.expenses?.description ?? "Gasto";
+  }
+
   return movement.receivable_incomes?.source ?? "Recebimento";
 }
 
 export function movementTypeLabel(movement: DbFinancialMovement) {
   if (movement.movement_type === "payable_bill_payment") {
     return "Conta a pagar";
+  }
+
+  if (movement.movement_type === "expense_payment") {
+    return "Gasto";
   }
 
   return "Conta a receber";

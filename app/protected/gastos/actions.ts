@@ -159,6 +159,7 @@ function parseExpenseForm(formData: FormData) {
   const amount = Number(formData.get("amount") ?? 0);
   const paymentMethod = String(formData.get("payment_method") ?? "").trim();
   const bankOrCard = String(formData.get("bank_or_card") ?? "").trim();
+  const bankId = String(formData.get("bank_id") ?? "");
   const notes = String(formData.get("notes") ?? "").trim();
 
   return {
@@ -170,6 +171,7 @@ function parseExpenseForm(formData: FormData) {
     amount,
     paymentMethod,
     bankOrCard,
+    bankId,
     notes,
   };
 }
@@ -230,6 +232,10 @@ export async function createExpense(
     };
   }
 
+  if (!input.bankId) {
+    return { error: "Selecione o banco usado no gasto." };
+  }
+
   const rateLimit = checkSensitiveOperationRateLimit({
     ...expenseCreateRateLimit,
     actorKey: profile.id,
@@ -252,22 +258,20 @@ export async function createExpense(
     return { error: "Muitas tentativas de cadastro de gasto. Tente novamente em alguns minutos." };
   }
 
-  const { data: createdExpense, error } = await supabase
-    .from("expenses").insert({
-      owner_id: organization.owner_auth_user_id,
-      organization_id: organization.id,
-      family_member_id: input.familyMemberId,
-      category_id: input.categoryId || null,
-      expense_date: input.expenseDate,
-      description: input.description,
-      purchase_location: input.purchaseLocation || null,
-      amount: input.amount,
-      payment_method: input.paymentMethod || null,
-      bank_or_card: input.bankOrCard || null,
-      notes: input.notes || null,
-    })
-    .select("id")
-    .single();
+  const { data: createdExpenseId, error } = await supabase.rpc("create_expense_with_movement", {
+    target_organization_id: organization.id,
+    target_owner_id: organization.owner_auth_user_id,
+    target_family_member_id: input.familyMemberId,
+    target_category_id: input.categoryId || null,
+    target_expense_date: input.expenseDate,
+    target_description: input.description,
+    target_purchase_location: input.purchaseLocation,
+    target_amount: input.amount,
+    target_payment_method: input.paymentMethod,
+    target_bank_id: input.bankId,
+    target_notes: input.notes,
+    target_profile_id: profile.id,
+  });
 
   if (error) {
     return { error: error.message };
@@ -276,14 +280,19 @@ export async function createExpense(
   await recordExpenseAuditEvent({
     organizationId: organization.id,
     action: "finance.expense.create",
-    expenseId: createdExpense?.id ? String(createdExpense.id) : null,
+    expenseId: createdExpenseId ? String(createdExpenseId) : null,
     metadata: {
       expense_created: true,
       family_member_id: input.familyMemberId,
     },
   });
 
-  revalidateOrganizationPaths(["/protected/gastos", "/protected"], organization.slug);
+  revalidateOrganizationPaths([
+    "/protected/gastos",
+    "/protected/movimentacoes",
+    "/protected/bancos",
+    "/protected",
+  ], organization.slug);
 
   return { success: "Gasto cadastrado com sucesso." };
 }
@@ -447,6 +456,10 @@ export async function deleteExpense(
       .eq("organization_id", organization.id);
 
     if (error) {
+      if (error.code === "23503" || error.message.toLowerCase().includes("financial_movements")) {
+        return { error: "Gasto com movimentacao financeira nao pode ser excluido sem estorno." };
+      }
+
       return { error: error.message };
     }
 

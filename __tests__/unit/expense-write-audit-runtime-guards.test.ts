@@ -45,8 +45,10 @@ describe("expense write audit runtime guards", () => {
     expect(createAction).toContain("actorkey: profile.id");
     expect(createAction).toContain("organizationid: organization.id");
     expect(createAction).not.toContain("targetkey:");
-    expect(createAction).toContain('.select("id")');
-    expect(createAction).toContain(".single()");
+    expect(createAction).toContain('supabase.rpc("create_expense_with_movement"');
+    expect(createAction).toContain("target_organization_id: organization.id");
+    expect(createAction).toContain("target_owner_id: organization.owner_auth_user_id");
+    expect(createAction).toContain("target_bank_id: input.bankid");
     expect(createAction).toContain("expense_created");
     expect(createAction).toContain('outcome: "denied"');
 

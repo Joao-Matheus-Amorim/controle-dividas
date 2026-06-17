@@ -66,7 +66,7 @@ describe("financial movements ledger base", () => {
   });
 
   it("exposes typed read contracts for future movement screens and reports", () => {
-    expect(types).toContain('export type FinancialMovementType = "payable_bill_payment" | "receivable_income_receipt"');
+    expect(types).toContain('export type FinancialMovementType = "payable_bill_payment" | "receivable_income_receipt" | "expense_payment"');
     expect(types).toContain('export type FinancialMovementDirection = "inflow" | "outflow"');
     expect(types).toContain("export type DbFinancialMovement");
     expect(types).toContain("recorded_timezone: string | null");
@@ -74,15 +74,18 @@ describe("financial movements ledger base", () => {
     expect(types).toContain("receivable_income_id: string | null");
 
     expect(readModel).toContain("getOrganizationFinancialMovements");
-    expect(readModel).toContain("const [payableMemberIds, receivableMemberIds] = await Promise.all");
+    expect(readModel).toContain("const [payableMemberIds, receivableMemberIds, expenseMemberIds] = await Promise.all");
     expect(readModel).toContain('getAccessibleMemberIds("CONTAS_A_PAGAR", "can_view"');
     expect(readModel).toContain('getAccessibleMemberIds("CONTAS_A_RECEBER", "can_view"');
+    expect(readModel).toContain('getAccessibleMemberIds("GASTOS", "can_view"');
     expect(readModel).toContain('.from("financial_movements")');
     expect(readModel).toContain('.eq("organization_id", organization.id)');
     expect(readModel).toContain('.eq("movement_type", "payable_bill_payment")');
     expect(readModel).toContain('.in("family_member_id", payableMemberIds)');
     expect(readModel).toContain('.eq("movement_type", "receivable_income_receipt")');
     expect(readModel).toContain('.in("family_member_id", receivableMemberIds)');
+    expect(readModel).toContain('.eq("movement_type", "expense_payment")');
+    expect(readModel).toContain('.in("family_member_id", expenseMemberIds)');
     expect(readModel).not.toContain("moduleMemberIds.flat()");
     expect(readModel).not.toContain('.in("family_member_id", accessibleMemberIds)');
     expect(readModel).toContain('.order("occurred_at", { ascending: false })');

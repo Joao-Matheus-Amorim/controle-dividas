@@ -61,11 +61,6 @@ const insertGuards: InsertGuard[] = [
     functionName: "createExpenseCategory",
   },
   {
-    path: "app/protected/gastos/actions.ts",
-    table: "expenses",
-    functionName: "createExpense",
-  },
-  {
     path: "app/protected/contas-a-pagar/actions.ts",
     table: "payable_bills",
     functionName: "createPayableBill",
@@ -101,9 +96,17 @@ describe("organization_id insert guards", () => {
     },
   );
 
+  it("createExpense sends active organization context to the atomic expense movement RPC", () => {
+    const source = readSource("app/protected/gastos/actions.ts");
+    const functionBody = getFunctionBody(source, "createExpense");
+
+    expect(functionBody).toContain('supabase.rpc("create_expense_with_movement"');
+    expect(functionBody).toContain("target_organization_id: organization.id");
+    expect(functionBody).toContain("target_owner_id: organization.owner_auth_user_id");
+  });
+
   it.each([
     ["family members", "app/protected/pessoas/actions.ts", "createFamilyMember"],
-    ["expenses", "app/protected/gastos/actions.ts", "createExpense"],
     ["payable bills", "app/protected/contas-a-pagar/actions.ts", "createPayableBill"],
     ["receivable incomes", "app/protected/contas-a-receber/actions.ts", "createReceivableIncome"],
     ["bank accounts", "app/protected/bancos/actions.ts", "createBankAccount"],

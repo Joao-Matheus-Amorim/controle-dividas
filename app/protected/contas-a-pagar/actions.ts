@@ -618,7 +618,12 @@ export async function updatePayableBillStatus(
       });
     }
 
-    revalidateOrganizationPaths(["/protected/contas-a-pagar", "/protected/bancos", "/protected"], organization.slug);
+    revalidateOrganizationPaths([
+      "/protected/contas-a-pagar",
+      "/protected/movimentacoes",
+      "/protected/bancos",
+      "/protected",
+    ], organization.slug);
 
     return { success: "Status atualizado com sucesso." };
   } catch (error) {
