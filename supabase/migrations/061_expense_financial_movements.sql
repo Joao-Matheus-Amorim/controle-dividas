@@ -4,9 +4,10 @@ alter table public.financial_movements
   add column if not exists expense_id uuid references public.expenses(id) on delete restrict;
 
 drop index if exists financial_movements_expense_idx;
-create index financial_movements_expense_idx
+drop index if exists financial_movements_expense_payment_once_idx;
+create unique index financial_movements_expense_payment_once_idx
   on public.financial_movements(expense_id)
-  where expense_id is not null;
+  where movement_type = 'expense_payment';
 
 alter table public.financial_movements
   drop constraint if exists financial_movements_type_check;
@@ -322,6 +323,7 @@ begin
     direction,
     amount,
     currency,
+    occurred_at,
     expense_id,
     created_by_profile_id,
     notes
@@ -335,6 +337,7 @@ begin
     'outflow',
     target_amount,
     target_bank.currency,
+    target_expense_date::timestamptz,
     created_expense_id,
     target_profile_id,
     'Gasto: ' || target_description
