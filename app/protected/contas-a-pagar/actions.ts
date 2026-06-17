@@ -532,13 +532,13 @@ export async function updatePayableBillStatus(
   try {
     const { profile, organization, bill } = await assertCanManagePayableBill(id, "can_edit");
     const transitionToPaid = String(bill.status) !== "pago" && status === "pago";
-    const movementBank = transitionToPaid
-      ? await assertMovementBankBelongsToMember(
-          organization.id,
-          bankId,
-          String(bill.responsible_member_id),
-        )
-      : null;
+    if (transitionToPaid) {
+      await assertMovementBankBelongsToMember(
+        organization.id,
+        bankId,
+        String(bill.responsible_member_id),
+      );
+    }
 
     if (String(bill.status) !== status) {
       const rateLimit = checkSensitiveOperationRateLimit({
@@ -566,44 +566,34 @@ export async function updatePayableBillStatus(
 
     const supabase = await createClient();
 
-    const { error, count } = await supabase
-      .from("payable_bills")
-      .update({
-        status,
-        organization_id: organization.id,
-      }, { count: "exact" })
-      .eq("id", id)
-      .eq("organization_id", organization.id);
+    if (transitionToPaid) {
+      const { error } = await supabase.rpc("mark_payable_bill_paid_with_movement", {
+        target_organization_id: organization.id,
+        target_payable_bill_id: id,
+        target_bank_id: bankId,
+        target_profile_id: profile.id,
+        target_recorded_timezone: recordedTimezone,
+      });
 
-    if (error) {
-      return { error: error.message };
-    }
-
-    if (count !== 1) {
-      return { error: "Conta nao encontrada." };
-    }
-
-    if (transitionToPaid && movementBank) {
-      const { error: movementError } = await supabase
-        .from("financial_movements")
-        .insert({
-          owner_id: organization.owner_auth_user_id,
+      if (error) {
+        return { error: error.message };
+      }
+    } else {
+      const { error, count } = await supabase
+        .from("payable_bills")
+        .update({
+          status,
           organization_id: organization.id,
-          family_member_id: String(bill.responsible_member_id),
-          bank_id: movementBank.id,
-          movement_type: "payable_bill_payment",
-          direction: "outflow",
-          amount: Number(bill.amount),
-          currency: String(movementBank.currency ?? "EUR"),
-          recorded_timezone: recordedTimezone,
-          payable_bill_id: id,
-          receivable_income_id: null,
-          created_by_profile_id: profile.id,
-          notes: `Pagamento de ${String(bill.name ?? "conta")}`,
-        });
+        }, { count: "exact" })
+        .eq("id", id)
+        .eq("organization_id", organization.id);
 
-      if (movementError) {
-        return { error: movementError.message };
+      if (error) {
+        return { error: error.message };
+      }
+
+      if (count !== 1) {
+        return { error: "Conta nao encontrada." };
       }
     }
 

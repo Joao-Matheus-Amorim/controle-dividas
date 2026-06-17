@@ -11,7 +11,7 @@ import {
 import { getCurrentOrganizationProfile, getModulePermission } from "@/lib/finance/access-control";
 import { getAccessibleMemberOptions } from "@/lib/finance/member-options";
 import { getCurrentMonthLabel } from "@/lib/finance/period-context";
-import { getOrganizationBankAccounts } from "@/lib/organizations/banks";
+import { getOrganizationBankAccountsForMembers } from "@/lib/organizations/banks";
 import { getOrganizationPayableBillsDashboardData } from "@/lib/organizations/payables";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
 
@@ -27,11 +27,10 @@ export async function ContasAPagarPage({ searchParams, orgSlug }: ContasAPagarPa
   const statusFilter = normalizeStatusFilter(getSearchValue(params, "status"));
   const typeFilter = normalizeTypeFilter(getSearchValue(params, "tipo"));
 
-  const [profile, payableData, organizationContext, bankAccounts] = await Promise.all([
+  const [profile, payableData, organizationContext] = await Promise.all([
     getCurrentOrganizationProfile(orgSlug),
     getOrganizationPayableBillsDashboardData(orgSlug),
     requireOrganizationAccess(orgSlug),
-    getOrganizationBankAccounts(orgSlug),
   ]);
   const isOrganizationManager = ["owner", "admin"].includes(organizationContext.membership.role);
   const permission = isOrganizationManager || !profile?.is_active
@@ -42,6 +41,9 @@ export async function ContasAPagarPage({ searchParams, orgSlug }: ContasAPagarPa
   const canDelete = isOrganizationManager || Boolean(permission?.can_delete);
   const createMembers = canCreate
     ? await getAccessibleMemberOptions("CONTAS_A_PAGAR", "can_create", orgSlug)
+    : [];
+  const bankAccounts = canEdit
+    ? await getOrganizationBankAccountsForMembers(payableData.members, orgSlug)
     : [];
   const periodLabel = getCurrentMonthLabel();
 

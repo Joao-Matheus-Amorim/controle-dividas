@@ -77,6 +77,42 @@ export async function getOrganizationBankAccounts(orgSlug?: string) {
   );
 }
 
+export async function getOrganizationBankAccountsForMembers(
+  members: Array<Pick<DbFamilyMember, "id" | "name">>,
+  orgSlug?: string,
+) {
+  const scopedMemberIds = members.map((member) => member.id);
+
+  if (scopedMemberIds.length === 0) {
+    return [];
+  }
+
+  const supabase = await createClient();
+  const { organization } = await requireOrganizationAccess(orgSlug);
+
+  const { data, error } = await supabase
+    .from("banks")
+    .select(
+      "id, owner_id, family_member_id, bank_name, account_type, current_balance, currency, notes, created_at",
+    )
+    .eq("organization_id", organization.id)
+    .in("family_member_id", scopedMemberIds)
+    .order("bank_name", { ascending: true })
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const membersById = new Map(
+    members.map((member) => [member.id, { id: member.id, name: member.name }]),
+  );
+
+  return ((data ?? []) as RawBankAccount[]).map((account) =>
+    normalizeBankAccount(account, membersById),
+  );
+}
+
 export async function getOrganizationBanksDashboardData(orgSlug?: string) {
   const [members, accounts] = await Promise.all([
     getOrganizationAccessibleMembers(orgSlug),

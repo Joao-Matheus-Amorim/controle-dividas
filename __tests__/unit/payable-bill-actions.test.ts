@@ -151,6 +151,19 @@ function makeQuery(table: string) {
 function makeSupabaseClient() {
   return {
     rpc(name: string, payload: Record<string, unknown>) {
+      if (name === "mark_payable_bill_paid_with_movement") {
+        mockState.updatedPayloads.push({
+          status: "pago",
+          organization_id: payload.target_organization_id,
+          filters: {
+            id: payload.target_payable_bill_id,
+            organization_id: payload.target_organization_id,
+          },
+        });
+
+        return Promise.resolve({ error: mockState.mutationError });
+      }
+
       if (name !== "record_audit_event") {
         throw new Error(`Unexpected rpc: ${name}`);
       }

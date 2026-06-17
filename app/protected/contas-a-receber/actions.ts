@@ -521,13 +521,13 @@ export async function updateReceivableIncomeStatus(
   try {
     const { profile, organization, income } = await assertCanManageReceivableIncome(id, "can_edit");
     const transitionToReceived = String(income.status) !== "recebido" && status === "recebido";
-    const movementBank = transitionToReceived
-      ? await assertMovementBankBelongsToMember(
-          organization.id,
-          bankId,
-          String(income.receiver_member_id),
-        )
-      : null;
+    if (transitionToReceived) {
+      await assertMovementBankBelongsToMember(
+        organization.id,
+        bankId,
+        String(income.receiver_member_id),
+      );
+    }
 
     if (String(income.status) !== status) {
       const rateLimit = checkSensitiveOperationRateLimit({
@@ -555,44 +555,34 @@ export async function updateReceivableIncomeStatus(
 
     const supabase = await createClient();
 
-    const { error, count } = await supabase
-      .from("receivable_incomes")
-      .update({
-        status,
-        organization_id: organization.id,
-      }, { count: "exact" })
-      .eq("id", id)
-      .eq("organization_id", organization.id);
+    if (transitionToReceived) {
+      const { error } = await supabase.rpc("mark_receivable_income_received_with_movement", {
+        target_organization_id: organization.id,
+        target_receivable_income_id: id,
+        target_bank_id: bankId,
+        target_profile_id: profile.id,
+        target_recorded_timezone: recordedTimezone,
+      });
 
-    if (error) {
-      return { error: error.message };
-    }
-
-    if (count !== 1) {
-      return { error: "Recebimento nao encontrado." };
-    }
-
-    if (transitionToReceived && movementBank) {
-      const { error: movementError } = await supabase
-        .from("financial_movements")
-        .insert({
-          owner_id: organization.owner_auth_user_id,
+      if (error) {
+        return { error: error.message };
+      }
+    } else {
+      const { error, count } = await supabase
+        .from("receivable_incomes")
+        .update({
+          status,
           organization_id: organization.id,
-          family_member_id: String(income.receiver_member_id),
-          bank_id: movementBank.id,
-          movement_type: "receivable_income_receipt",
-          direction: "inflow",
-          amount: Number(income.amount),
-          currency: String(movementBank.currency ?? "EUR"),
-          recorded_timezone: recordedTimezone,
-          payable_bill_id: null,
-          receivable_income_id: id,
-          created_by_profile_id: profile.id,
-          notes: `Recebimento de ${String(income.source ?? "conta a receber")}`,
-        });
+        }, { count: "exact" })
+        .eq("id", id)
+        .eq("organization_id", organization.id);
 
-      if (movementError) {
-        return { error: movementError.message };
+      if (error) {
+        return { error: error.message };
+      }
+
+      if (count !== 1) {
+        return { error: "Recebimento nao encontrado." };
       }
     }
 
