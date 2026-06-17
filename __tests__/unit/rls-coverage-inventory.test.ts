@@ -26,6 +26,7 @@ const criticalFinanceTenantTables = [
   "banks",
   "payable_bills",
   "receivable_incomes",
+  "financial_movements",
   "user_module_permissions",
   "user_feature_permissions",
 ] as const;
@@ -147,6 +148,17 @@ const rlsCoverage: RlsTableExpectation[] = [
       { file: "054_receivable_incomes_organization_write_rls.sql", name: "receivable_incomes_insert_organization", operation: "insert" },
       { file: "054_receivable_incomes_organization_write_rls.sql", name: "receivable_incomes_update_organization", operation: "update" },
       { file: "054_receivable_incomes_organization_write_rls.sql", name: "receivable_incomes_delete_organization", operation: "delete" },
+    ],
+  },
+  {
+    table: "financial_movements",
+    rlsFiles: ["057_financial_movements_ledger_base.sql"],
+    status: "covered",
+    policies: [
+      { file: "057_financial_movements_ledger_base.sql", name: "financial_movements_select_organization", operation: "select" },
+      { file: "057_financial_movements_ledger_base.sql", name: "financial_movements_insert_organization", operation: "insert" },
+      { file: "057_financial_movements_ledger_base.sql", name: "financial_movements_update_organization", operation: "update" },
+      { file: "057_financial_movements_ledger_base.sql", name: "financial_movements_delete_organization", operation: "delete" },
     ],
   },
   {
