@@ -1,5 +1,6 @@
 "use client";
 
+import { Sparkles } from "lucide-react";
 import { useActionState, useEffect, useState } from "react";
 
 import { createBankAccount, updateBankAccount } from "@/app/protected/bancos/actions";
@@ -32,6 +33,7 @@ import {
   systemBankOptions,
   systemCurrencyOptions,
 } from "@/lib/finance/bank-options";
+import { buildBankAccountDraftSuggestion } from "@/lib/finance/bank-draft";
 import type { BankAccountFormState, DbBankAccount, DbFamilyMember } from "@/lib/finance/types";
 
 const initialState: BankAccountFormState = {};
@@ -72,12 +74,18 @@ export function BankAccountForm({
   const action = mode === "edit" ? updateBankAccount : createBankAccount;
   const [state, formAction, isPending] = useActionState(action, initialState);
   const isEditing = mode === "edit" && Boolean(account);
+  const [draftPrompt, setDraftPrompt] = useState("");
+  const [draftApplied, setDraftApplied] = useState(false);
   const [accountTypeValue, setAccountTypeValue] = useState(account?.account_type ?? emptyAccountTypeValue);
   const selectedBankName = account?.bank_name ?? "";
+  const [bankName, setBankName] = useState(selectedBankName);
   const legacyBankName = selectedBankName && !isSystemBankOption(selectedBankName)
     ? selectedBankName
     : null;
   const selectedCurrency = account?.currency ?? "EUR";
+  const [currency, setCurrency] = useState(selectedCurrency);
+  const [currentBalance, setCurrentBalance] = useState(account ? String(account.current_balance) : "");
+  const [notes, setNotes] = useState(account?.notes ?? "");
   const legacyCurrency = selectedCurrency && !isSystemCurrencyOption(selectedCurrency)
     ? selectedCurrency
     : null;
@@ -91,9 +99,57 @@ export function BankAccountForm({
     }
   }, [onSuccess, state.success]);
 
+  function applyDraftSuggestion() {
+    const suggestion = buildBankAccountDraftSuggestion(draftPrompt);
+
+    setBankName(suggestion.bankName);
+    setAccountTypeValue(suggestion.accountType || emptyAccountTypeValue);
+    setCurrentBalance(suggestion.currentBalance);
+    setCurrency(suggestion.currency);
+    setNotes(suggestion.notes);
+    setDraftApplied(true);
+  }
+
   return (
     <form action={formAction} className={financeFormClass}>
       {account ? <input type="hidden" name="id" value={account.id} /> : null}
+
+      {!isEditing ? (
+        <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/35">Rascunho assistido</p>
+              <p className="mt-1 text-sm text-white/45">Descreva a conta e revise os campos antes de cadastrar.</p>
+            </div>
+            {draftApplied ? (
+              <span className="rounded-full bg-[#8b72f8]/15 px-3 py-1 text-xs font-semibold text-[#c9bfff]">
+                rascunho aplicado
+              </span>
+            ) : null}
+          </div>
+          <div className="grid gap-3 md:grid-cols-[1fr_auto]">
+            <Input
+              value={draftPrompt}
+              onChange={(event) => {
+                setDraftPrompt(event.target.value);
+                setDraftApplied(false);
+              }}
+              placeholder="Ex: Cartao Itau saldo 500 EUR"
+              className={financeInputClass}
+            />
+            <Button
+              type="button"
+              variant="secondary"
+              className="h-11 rounded-2xl px-4"
+              onClick={applyDraftSuggestion}
+              disabled={!draftPrompt.trim()}
+            >
+              <Sparkles className="h-4 w-4" />
+              Sugerir
+            </Button>
+          </div>
+        </div>
+      ) : null}
 
       <div className={financeGridFourClass}>
         <div className={financeFieldClass}>
@@ -129,7 +185,8 @@ export function BankAccountForm({
           <select
             id={isEditing ? `bank_name-${account?.id}` : "bank_name"}
             name="bank_name"
-            defaultValue={selectedBankName}
+            value={bankName}
+            onChange={(event) => setBankName(event.target.value)}
             required
             className={financeNativeSelectClass}
           >
@@ -171,7 +228,8 @@ export function BankAccountForm({
             type="number"
             step="0.01"
             placeholder="500.00"
-            defaultValue={account ? String(account.current_balance) : ""}
+            value={currentBalance}
+            onChange={(event) => setCurrentBalance(event.target.value)}
             required
             className={financeInputClass}
           />
@@ -184,7 +242,8 @@ export function BankAccountForm({
           <select
             id={isEditing ? `currency-${account?.id}` : "currency"}
             name="currency"
-            defaultValue={selectedCurrency}
+            value={currency}
+            onChange={(event) => setCurrency(event.target.value)}
             required
             className={financeNativeSelectClass}
           >
@@ -205,7 +264,8 @@ export function BankAccountForm({
             id={isEditing ? `notes-${account?.id}` : "notes"}
             name="notes"
             placeholder="Opcional"
-            defaultValue={account?.notes ?? ""}
+            value={notes}
+            onChange={(event) => setNotes(event.target.value)}
             className={financeInputClass}
           />
         </div>
