@@ -46,4 +46,16 @@ describe("reports feature completeness guards", () => {
     expect(exportActions).toContain("financialMovements.map");
     expect(exportActions).toContain("movementBankLabel");
   });
+
+  it("keeps transfers out of expense report totals", () => {
+    const organizationReports = read("lib/organizations/reports.ts");
+    const legacyReports = read("lib/finance/reports-server.ts");
+
+    for (const source of [organizationReports, legacyReports]) {
+      expect(source).toContain("isTransferCategoryName");
+      expect(source).toContain("reportableExpenses");
+      expect(source).toContain("const totalExpenses = reportableExpenses.reduce");
+      expect(source).toContain(".filter((category) => !isTransferCategoryName(category.name))");
+    }
+  });
 });

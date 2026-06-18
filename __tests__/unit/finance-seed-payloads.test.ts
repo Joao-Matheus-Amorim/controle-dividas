@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { financeCategoryTaxonomy, isTransferCategoryName } from "@/lib/finance/category-taxonomy";
 import {
   defaultExpenseCategories,
   defaultFamilyMembers,
@@ -34,6 +35,13 @@ describe("finance seed payload builders", () => {
     const rows = buildDefaultExpenseCategorySeedRows(ownerId, organizationId);
 
     expect(defaultExpenseCategories).toHaveLength(20);
+    expect(defaultExpenseCategories).toEqual(
+      financeCategoryTaxonomy.map(({ key, name, description }) => ({
+        key,
+        name,
+        description,
+      })),
+    );
     expect(defaultExpenseCategories.map((category) => category.name)).toEqual([
       "Receitas",
       "Moradia",
@@ -70,6 +78,7 @@ describe("finance seed payload builders", () => {
     expect(rows.find((row) => row.name === "Transferências")?.description).toContain(
       "não entra no relatório de gastos",
     );
+    expect(isTransferCategoryName("Transferencias")).toBe(true);
   });
 
   it("uses the provided owner id for every seed row", () => {

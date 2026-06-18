@@ -1,5 +1,6 @@
 import { getOrganizationBanksDashboardData } from "@/lib/organizations/banks";
 import { buildExpenseCategoryLabelMap } from "@/lib/finance/category-labels";
+import { isTransferCategoryName } from "@/lib/finance/category-taxonomy";
 import { getOrganizationExpenseDashboardData } from "@/lib/organizations/expenses";
 import { getOrganizationFinancialMovements } from "@/lib/organizations/financial-movements";
 import { getOrganizationPayableBillsDashboardData } from "@/lib/organizations/payables";
@@ -66,7 +67,13 @@ export async function getOrganizationReportsDashboardData(
     0,
   );
 
-  const totalExpenses = filteredExpenses.reduce((total, expense) => total + Number(expense.amount), 0);
+  const categoriesById = new Map(expenseData.categories.map((category) => [category.id, category]));
+  const reportableExpenses = filteredExpenses.filter((expense) => {
+    const category = expense.category_id ? categoriesById.get(expense.category_id) : null;
+
+    return !isTransferCategoryName(category?.name);
+  });
+  const totalExpenses = reportableExpenses.reduce((total, expense) => total + Number(expense.amount), 0);
   const totalPendingBills = filteredBills
     .filter((bill) => bill.computed_status !== "pago")
     .reduce((total, bill) => total + Number(bill.amount), 0);
@@ -81,7 +88,7 @@ export async function getOrganizationReportsDashboardData(
 
   const expensesByPerson = scopedMembers
     .map((member) => {
-      const spent = filteredExpenses
+      const spent = reportableExpenses
         .filter((expense) => expense.family_member_id === member.id)
         .reduce((total, expense) => total + Number(expense.amount), 0);
       const limit = Number(member.monthly_limit);
@@ -101,8 +108,9 @@ export async function getOrganizationReportsDashboardData(
     .sort((a, b) => b.spent - a.spent);
 
   const expensesByCategory = expenseData.categories
+    .filter((category) => !isTransferCategoryName(category.name))
     .map((category) => {
-      const total = filteredExpenses
+      const total = reportableExpenses
         .filter((expense) => expense.category_id === category.id)
         .reduce((sum, expense) => sum + Number(expense.amount), 0);
 
@@ -173,7 +181,7 @@ export async function getOrganizationReportsDashboardData(
     finalMonthlyBalance,
     expensesByPerson,
     expensesByCategory,
-    expenses: filteredExpenses,
+    expenses: reportableExpenses,
     pendingBills,
     receivedIncomes,
     expectedIncomes,
@@ -184,7 +192,7 @@ export async function getOrganizationReportsDashboardData(
     members: expenseData.members,
     categories: expenseData.categories,
     counts: {
-      expenses: filteredExpenses.length,
+      expenses: reportableExpenses.length,
       pendingBills: pendingBills.length,
       receivedIncomes: receivedIncomes.length,
       expectedIncomes: expectedIncomes.length,
