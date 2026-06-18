@@ -16,6 +16,10 @@ import {
   type DashboardQuickAction,
 } from "@/components/dashboard/dashboard-quick-actions";
 import {
+  DashboardReadinessChecklist,
+  type DashboardReadinessChecklistItem,
+} from "@/components/dashboard/dashboard-readiness-checklist";
+import {
   DashboardSummarySection,
   type DashboardSummaryRow,
 } from "@/components/dashboard/dashboard-summary-section";
@@ -224,6 +228,55 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
       : null,
   ].filter(Boolean) as DashboardQuickAction[];
 
+  const hasAccessibleMember =
+    expenseData.members.length > 0 ||
+    payableData.members.length > 0 ||
+    receivableData.members.length > 0 ||
+    bankData.members.length > 0;
+
+  const readinessChecklistItems: DashboardReadinessChecklistItem[] = [
+    canPeople
+      ? {
+          href: getOrgPathFromProtectedPath("/protected/pessoas", orgSlug),
+          title: "Pessoa do owner",
+          detail: "Cadastro base para vincular lancamentos.",
+          isComplete: hasAccessibleMember,
+        }
+      : null,
+    canBanks
+      ? {
+          href: getOrgPathFromProtectedPath("/protected/bancos", orgSlug),
+          title: "Banco",
+          detail: "Conta ou cartao para movimentar saldo.",
+          isComplete: bankData.accounts.length > 0,
+        }
+      : null,
+    canExpenses
+      ? {
+          href: getOrgPathFromProtectedPath("/protected/gastos", orgSlug),
+          title: "Gasto",
+          detail: "Primeira saida lancada no mes.",
+          isComplete: expenseData.expenses.length > 0,
+        }
+      : null,
+    canPayables
+      ? {
+          href: getOrgPathFromProtectedPath("/protected/contas-a-pagar", orgSlug),
+          title: "Conta a pagar",
+          detail: "Divida fixa ou avulsa cadastrada.",
+          isComplete: payableData.bills.length > 0,
+        }
+      : null,
+    canReceivables
+      ? {
+          href: getOrgPathFromProtectedPath("/protected/contas-a-receber", orgSlug),
+          title: "Conta a receber",
+          detail: "Entrada prevista ou recebida cadastrada.",
+          isComplete: receivableData.incomes.length > 0,
+        }
+      : null,
+  ].filter(Boolean) as DashboardReadinessChecklistItem[];
+
   const summaryRows: DashboardSummaryRow[] = [
     canExpenses
       ? {
@@ -294,6 +347,8 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
       />
 
       <DashboardQuickActions actions={quickActions} />
+
+      <DashboardReadinessChecklist items={readinessChecklistItems} />
 
       <DashboardSummarySection
         rows={summaryRows}
