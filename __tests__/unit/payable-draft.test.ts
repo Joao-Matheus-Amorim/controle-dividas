@@ -34,4 +34,17 @@ describe("payable bill draft suggestion", () => {
     expect(draft.name).toContain("Conta de luz");
     expect(draft.notes).toContain("confira antes de cadastrar");
   });
+
+  it("does not treat future payables as already paid when text says pagar", () => {
+    const draft = buildPayableBillDraftSuggestion(
+      "Conta de luz 120 para pagar amanha no itau",
+      categories,
+      bankAccounts,
+      "2026-06-18",
+    );
+
+    expect(draft.status).toBe("pendente");
+    expect(draft.dueDate).toBe("2026-06-19");
+    expect(draft.bankUsed).toBe("Itau");
+  });
 });

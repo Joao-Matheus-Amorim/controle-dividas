@@ -23,15 +23,11 @@ function normalizeText(value: string) {
 function parsePayableStatus(text: string): PayableBillDraftSuggestion["status"] {
   const normalizedText = normalizeText(text);
 
-  if (
-    normalizedText.includes("pago") ||
-    normalizedText.includes("paga") ||
-    normalizedText.includes("paguei")
-  ) {
+  if (/\b(?:pago|paga|paguei)\b/.test(normalizedText)) {
     return "pago";
   }
 
-  if (normalizedText.includes("atrasado") || normalizedText.includes("venceu")) {
+  if (/\b(?:atrasado|venceu)\b/.test(normalizedText)) {
     return "atrasado";
   }
 
