@@ -392,77 +392,6 @@ export async function toggleFamilyMemberStatusFormAction(formData: FormData): Pr
   await toggleFamilyMemberStatus(formData);
 }
 
-function hasRows<T>(result: { data: T[] | null; error: { message: string } | null }) {
-  if (result.error) {
-    throw new Error(result.error.message);
-  }
-
-  return Boolean(result.data?.length);
-}
-
-async function assertFamilyMemberCanBeDeleted(
-  familyMemberId: string,
-  organizationId: string,
-) {
-  const supabase = await createClient();
-  const [
-    expenses,
-    payableBills,
-    receivableIncomes,
-    banks,
-    profiles,
-    financialMovements,
-  ] = await Promise.all([
-    supabase
-      .from("expenses")
-      .select("id")
-      .eq("family_member_id", familyMemberId)
-      .eq("organization_id", organizationId)
-      .limit(1),
-    supabase
-      .from("payable_bills")
-      .select("id")
-      .eq("responsible_member_id", familyMemberId)
-      .eq("organization_id", organizationId)
-      .limit(1),
-    supabase
-      .from("receivable_incomes")
-      .select("id")
-      .eq("receiver_member_id", familyMemberId)
-      .eq("organization_id", organizationId)
-      .limit(1),
-    supabase
-      .from("banks")
-      .select("id")
-      .eq("family_member_id", familyMemberId)
-      .eq("organization_id", organizationId)
-      .limit(1),
-    supabase
-      .from("profiles")
-      .select("id")
-      .eq("linked_family_member_id", familyMemberId)
-      .eq("organization_id", organizationId)
-      .limit(1),
-    supabase
-      .from("financial_movements")
-      .select("id")
-      .eq("family_member_id", familyMemberId)
-      .eq("organization_id", organizationId)
-      .limit(1),
-  ]);
-
-  if (
-    hasRows(expenses) ||
-    hasRows(payableBills) ||
-    hasRows(receivableIncomes) ||
-    hasRows(banks) ||
-    hasRows(profiles) ||
-    hasRows(financialMovements)
-  ) {
-    throw new Error("Esta pessoa possui vinculos financeiros ou acesso criado. Desative a pessoa em vez de excluir.");
-  }
-}
-
 export async function deleteFamilyMember(
   formData: FormData,
 ): Promise<FamilyMemberActionState> {
@@ -496,22 +425,10 @@ export async function deleteFamilyMember(
     return { error: "Pessoa nao encontrada." };
   }
 
-  try {
-    await assertFamilyMemberCanBeDeleted(id, organization.id);
-  } catch (error) {
-    return {
-      error:
-        error instanceof Error
-          ? error.message
-          : "Nao foi possivel validar os vinculos desta pessoa.",
-    };
-  }
-
   const rateLimit = checkSensitiveOperationRateLimit({
     ...familyMemberDeleteRateLimit,
     actorKey: profile.id,
     organizationId: organization.id,
-    targetKey: id,
   });
 
   if (!rateLimit.allowed) {
@@ -529,22 +446,17 @@ export async function deleteFamilyMember(
     return { error: "Muitas tentativas de exclusao de pessoa. Tente novamente em alguns minutos." };
   }
 
-  const { error, count } = await supabase
-    .from("family_members")
-    .delete({ count: "exact" })
-    .eq("id", id)
-    .eq("organization_id", organization.id);
+  const { error } = await supabase.rpc("delete_family_member_if_unlinked", {
+    target_organization_id: organization.id,
+    target_family_member_id: id,
+  });
 
   if (error) {
-    if (error.code === "23503") {
+    if (error.code === "23503" || error.message.toLowerCase().includes("vinculos")) {
       return { error: "Esta pessoa possui vinculos financeiros ou acesso criado. Desative a pessoa em vez de excluir." };
     }
 
     return { error: error.message };
-  }
-
-  if (count !== 1) {
-    return { error: "Pessoa nao encontrada." };
   }
 
   await recordFamilyMemberWriteAuditEvent({

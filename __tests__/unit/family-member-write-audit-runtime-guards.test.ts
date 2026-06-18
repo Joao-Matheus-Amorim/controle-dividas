@@ -41,6 +41,7 @@ describe("family member write audit runtime guards", () => {
   const createAction = functionBlock(peopleActions, "createfamilymember");
   const updateAction = functionBlock(peopleActions, "updatefamilymember");
   const deleteAction = functionBlock(peopleActions, "deletefamilymember");
+  const deleteMigration = read("supabase/migrations/063_guarded_family_member_delete.sql");
   const memberCreateRateLimitCall = rateLimitCallBlock(createAction, "familymembercreateratelimit");
   const memberUpdateRateLimitCall = updateAction;
   const actions = [peopleActions, writeControls].join("\n");
@@ -85,10 +86,20 @@ describe("family member write audit runtime guards", () => {
 
     expect(deleteAction).toContain("requireorganizationadmin");
     expect(deleteAction).toContain("familymemberdeleteratelimit");
-    expect(deleteAction).toContain("assertfamilymembercanbedeleted");
-    expect(deleteAction).toContain(".delete({ count: \"exact\" })");
-    expect(deleteAction).toContain(".eq(\"organization_id\", organization.id)");
+    expect(deleteAction).toContain('supabase.rpc("delete_family_member_if_unlinked"');
+    expect(deleteAction).toContain("target_organization_id: organization.id");
+    expect(deleteAction).toContain("target_family_member_id: id");
+    expect(deleteAction).not.toContain("targetkey: id");
     expect(deleteAction).toContain("member_deleted");
+
+    expect(deleteMigration).toContain("for update");
+    expect(deleteMigration).toContain("from public.expenses");
+    expect(deleteMigration).toContain("from public.payable_bills");
+    expect(deleteMigration).toContain("from public.receivable_incomes");
+    expect(deleteMigration).toContain("from public.banks");
+    expect(deleteMigration).toContain("from public.profiles");
+    expect(deleteMigration).toContain("from public.financial_movements");
+    expect(deleteMigration).toContain("delete from public.family_members");
   });
 
   it("keeps emitted metadata redacted and small", () => {

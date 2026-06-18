@@ -93,7 +93,7 @@ Initial limits should be grouped by risk:
 | Bank writes | `finance.bank.create`, `finance.bank.update` | Authenticated and organization-scoped; create is actor/organization-scoped, and update is target-scoped only when non-balance bank fields change. |
 | Member limit update | `finance.member.limit.update` | Authenticated, organization-scoped, owner-scoped, and target-scoped. |
 | Member status update | `finance.member.status.update` | Authenticated, organization-scoped, owner-scoped, and target-scoped. |
-| Member writes | `finance.member.create`, `finance.member.update`, `finance.member.delete` | Authenticated and organization-scoped, keyed by the current profile actor so linked members do not share the family owner's bucket; create is actor/organization-scoped, and profile update/delete are target-scoped. |
+| Member writes | `finance.member.create`, `finance.member.update`, `finance.member.delete` | Authenticated and organization-scoped, keyed by the current profile actor so linked members do not share the family owner's bucket; create and delete are actor/organization-scoped, and profile update is target-scoped. |
 | Category delete | `finance.category.delete` | Authenticated and organization-scoped. |
 | Category writes | `finance.category.create`, `finance.category.update` | Authenticated and organization-scoped; create is actor/organization-scoped, and update is target-scoped. |
 | Admin permission updates | `admin.permission.update`, `admin.feature_permission.update` | Authenticated, organization-scoped, owner/admin only. |

@@ -42,13 +42,6 @@ const writeExpectations: FunctionExpectation[] = [
     requiresActiveOrganizationFilter: true,
   },
   {
-    file: "app/protected/pessoas/actions.ts",
-    functionName: "deleteFamilyMember",
-    table: "family_members",
-    operation: "delete",
-    requiresActiveOrganizationFilter: true,
-  },
-  {
     file: "app/protected/configuracoes/actions.ts",
     functionName: "createExpenseCategory",
     table: "expense_categories",
