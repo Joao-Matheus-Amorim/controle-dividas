@@ -140,7 +140,6 @@ describe("finance list UI contract guards", () => {
     expect(deleteForm).toContain("Excluir pessoa");
     expect(deleteForm).toContain("Desative a pessoa em vez de excluir");
     expect(actions).toContain("export async function deleteFamilyMember");
-    expect(actions).toContain("assertFamilyMemberCanBeDeleted");
-    expect(actions).toContain("financial_movements");
+    expect(actions).toContain("delete_family_member_if_unlinked");
   });
 });
