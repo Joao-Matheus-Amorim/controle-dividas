@@ -10,7 +10,7 @@ export function ReportPageHeader({ periodContextLabel }: ReportPageHeaderProps) 
   return (
     <AppPageHeader
       eyebrow={periodContextLabel}
-      title="Relatórios"
+      title="Relatorios"
       description="Resumo financeiro"
       icon={PieChart}
     />

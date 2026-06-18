@@ -27,7 +27,9 @@ export function ReportPendingBills({ bills }: ReportPendingBillsProps) {
                 <p className="truncate text-sm font-semibold text-white">{bill.name}</p>
                 <Badge variant={bill.computed_status === "atrasado" ? "destructive" : "outline"}>{bill.computed_status}</Badge>
               </div>
-              <p className="mt-1 truncate text-xs text-white/35">{bill.category || "Sem categoria"} · {bill.family_members?.name || "Sem responsável"}</p>
+              <p className="mt-1 truncate text-xs text-white/35">
+                {bill.category || "Sem categoria"} - {bill.family_members?.name || "Sem responsavel"}
+              </p>
               <p className="mt-0.5 text-xs text-white/25">Vence em {formatDate(bill.due_date)}</p>
             </div>
             <p className="text-sm font-bold text-white">{compactCurrency(Number(bill.amount))}</p>

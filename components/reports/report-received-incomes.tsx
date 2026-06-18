@@ -28,7 +28,9 @@ export function ReportReceivedIncomes({ incomes }: ReportReceivedIncomesProps) {
                 <Badge variant="secondary">recebido</Badge>
                 <Badge variant="outline" className="border-white/10 text-white/50">{income.income_type}</Badge>
               </div>
-              <p className="mt-1 truncate text-xs text-white/35">{income.family_members?.name || "Sem pessoa"} · {income.receiving_bank || "Sem banco"}</p>
+              <p className="mt-1 truncate text-xs text-white/35">
+                {income.family_members?.name || "Sem pessoa"} - {income.receiving_bank || "Sem banco"}
+              </p>
               <p className="mt-0.5 text-xs text-white/25">Data: {formatDate(income.expected_date)}</p>
             </div>
             <p className="text-sm font-bold text-[#1de9b2]">{compactCurrency(Number(income.amount))}</p>

@@ -1,5 +1,8 @@
 import { ReportExpensesByCategory } from "@/components/reports/report-expenses-by-category";
 import { ReportExpensesByPerson } from "@/components/reports/report-expenses-by-person";
+import { ReportCashFlow } from "@/components/reports/report-cash-flow";
+import { ReportExpectedIncomes } from "@/components/reports/report-expected-incomes";
+import { ReportExportActions } from "@/components/reports/report-export-actions";
 import { ReportFilterBar, type ReportFilters } from "@/components/reports/report-filter-bar";
 import { ReportHeroSummary } from "@/components/reports/report-hero-summary";
 import { ReportPageHeader } from "@/components/reports/report-page-header";
@@ -61,16 +64,36 @@ export async function RelatoriosPage({ searchParams, orgSlug }: RelatoriosPagePr
         members={report.members}
         categories={report.categories}
         hasActiveFilters={hasActiveFilters}
+        orgSlug={orgSlug}
       />
+
+      <div className="flex justify-end">
+        <ReportExportActions
+          expenses={report.expenses}
+          pendingBills={report.pendingBills}
+          receivedIncomes={report.receivedIncomes}
+          expectedIncomes={report.expectedIncomes}
+          financialMovements={report.financialMovements}
+        />
+      </div>
 
       <section className="grid gap-4 xl:grid-cols-2">
         <ReportExpensesByPerson people={report.expensesByPerson} />
         <ReportExpensesByCategory categories={report.expensesByCategory} />
       </section>
 
+      <ReportCashFlow
+        totalInflow={report.totalMovementInflow}
+        totalOutflow={report.totalMovementOutflow}
+        netTotal={report.netMovementTotal}
+        cashFlowByBank={report.cashFlowByBank}
+        movementCount={report.counts.financialMovements}
+      />
+
       <section className="grid gap-4 xl:grid-cols-2">
         <ReportPendingBills bills={report.pendingBills} />
         <ReportReceivedIncomes incomes={report.receivedIncomes} />
+        <ReportExpectedIncomes incomes={report.expectedIncomes} />
       </section>
     </div>
   );
