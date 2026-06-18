@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import type { DbFamilyMember } from "@/lib/finance/types";
+import { PeopleDeleteForm } from "./people-delete-form";
 import { PeopleEditForm } from "./people-edit-form";
 import { PeopleStatusForm } from "./people-status-form";
 import { compactCurrency, initials, type AccessProfileSummary } from "./people-utils";
@@ -55,6 +56,7 @@ export function PeopleListItem({
             Editar pessoa
           </summary>
           <PeopleEditForm member={member} />
+          <PeopleDeleteForm member={member} />
         </details>
       ) : null}
     </div>

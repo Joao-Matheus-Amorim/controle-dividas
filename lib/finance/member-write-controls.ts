@@ -12,6 +12,12 @@ export const familyMemberUpdateRateLimit = {
   windowMs: 10 * 60 * 1000,
 };
 
+export const familyMemberDeleteRateLimit = {
+  operationKey: "finance.member.delete",
+  limit: 5,
+  windowMs: 10 * 60 * 1000,
+};
+
 export async function recordFamilyMemberWriteAuditEvent({
   organizationId,
   action,
@@ -20,7 +26,7 @@ export async function recordFamilyMemberWriteAuditEvent({
   metadata = {},
 }: {
   organizationId: string;
-  action: "finance.member.create" | "finance.member.update";
+  action: "finance.member.create" | "finance.member.update" | "finance.member.delete";
   familyMemberId?: string | null;
   outcome?: "success" | "denied";
   metadata?: Record<string, string | number | boolean | null>;
