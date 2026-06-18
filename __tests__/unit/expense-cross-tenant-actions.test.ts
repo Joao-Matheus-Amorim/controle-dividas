@@ -27,6 +27,12 @@ const mockState = vi.hoisted(() => ({
     id: "category-1",
     organization_id: "org-1",
   } as Record<string, unknown> | null,
+  bankLookup: {
+    id: "bank-1",
+    organization_id: "org-1",
+    family_member_id: "member-1",
+    bank_name: "Conta principal",
+  } as Record<string, unknown> | null,
   accessError: null as Error | null,
 }));
 
@@ -105,7 +111,31 @@ function makeQuery(table: string) {
         return Promise.resolve({ data: mockState.categoryLookup, error: null });
       }
 
+      if (table === "banks") {
+        return Promise.resolve({ data: mockState.bankLookup, error: null });
+      }
+
       return Promise.resolve({ data: null, error: null });
+    },
+    limit(value: number) {
+      if (value !== 1) {
+        throw new Error("Expected existence lookup limit");
+      }
+
+      mockState.queryRecords.push({
+        table: record.table,
+        eq: { ...record.eq },
+        or: record.or,
+      });
+
+      if (table === "banks") {
+        return Promise.resolve({
+          data: mockState.bankLookup ? [mockState.bankLookup] : [],
+          error: null,
+        });
+      }
+
+      return Promise.resolve({ data: [], error: null });
     },
     insert(payload: Record<string, unknown>) {
       mockState.insertedPayloads.push(payload);
@@ -119,7 +149,7 @@ function makeQuery(table: string) {
 function makeSupabaseClient() {
   return {
     from(table: string) {
-      if (!["expenses", "family_members", "expense_categories"].includes(table)) {
+      if (!["expenses", "family_members", "expense_categories", "banks"].includes(table)) {
         throw new Error(`Unexpected table: ${table}`);
       }
 
@@ -166,6 +196,12 @@ describe("expense organization access actions", () => {
     mockState.categoryLookup = {
       id: "category-1",
       organization_id: "org-1",
+    };
+    mockState.bankLookup = {
+      id: "bank-1",
+      organization_id: "org-1",
+      family_member_id: "member-1",
+      bank_name: "Conta principal",
     };
     mockState.accessError = null;
   });

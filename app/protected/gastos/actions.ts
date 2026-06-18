@@ -123,7 +123,7 @@ async function assertCanManageExpense(
 
   const { data: expense, error } = await supabase
     .from("expenses")
-    .select("id, owner_id, family_member_id")
+    .select("id, owner_id, family_member_id, bank_or_card")
     .eq("id", expenseId)
     .eq("organization_id", organization.id)
     .maybeSingle();
@@ -148,6 +148,35 @@ async function assertCanManageExpense(
     organization,
     expense,
   };
+}
+
+async function assertBankNameBelongsToExpenseMember(
+  organizationId: string,
+  bankName: string,
+  familyMemberId: string,
+) {
+  if (!bankName) {
+    return null;
+  }
+
+  const supabase = await createClient();
+  const { data: banks, error } = await supabase
+    .from("banks")
+    .select("id")
+    .eq("bank_name", bankName)
+    .eq("family_member_id", familyMemberId)
+    .eq("organization_id", organizationId)
+    .limit(1);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (!banks?.length) {
+    throw new Error("Selecione um banco cadastrado para a pessoa responsavel pelo gasto.");
+  }
+
+  return banks[0];
 }
 
 function parseExpenseForm(formData: FormData) {
@@ -318,8 +347,9 @@ export async function updateExpense(
       id,
       "can_edit",
     );
+    const memberChanged = String(expense.family_member_id) !== input.familyMemberId;
 
-    if (String(expense.family_member_id) !== input.familyMemberId) {
+    if (memberChanged) {
       await assertMemberBelongsToOrganization(
         organization.id,
         input.familyMemberId,
@@ -331,6 +361,15 @@ export async function updateExpense(
       organization.id,
       input.categoryId,
     );
+
+    const existingBankOrCard = String(expense.bank_or_card ?? "").trim();
+    if (input.bankOrCard && (input.bankOrCard !== existingBankOrCard || memberChanged)) {
+      await assertBankNameBelongsToExpenseMember(
+        organization.id,
+        input.bankOrCard,
+        input.familyMemberId,
+      );
+    }
 
     const rateLimit = checkSensitiveOperationRateLimit({
       ...expenseUpdateRateLimit,

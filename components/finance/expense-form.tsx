@@ -60,6 +60,11 @@ export function ExpenseForm({
   const memberBankAccounts = bankAccounts.filter(
     (account) => account.family_member_id === selectedMemberId,
   );
+  const selectedBankOrCard = expense?.bank_or_card ?? "";
+  const keepsLegacyBankOrCard =
+    isEditing &&
+    selectedBankOrCard &&
+    !memberBankAccounts.some((account) => account.bank_name === selectedBankOrCard);
   const categoryLabels = buildExpenseCategoryLabelMap(categories);
 
   return (
@@ -179,13 +184,22 @@ export function ExpenseForm({
         {isEditing ? (
           <div className={financeFieldClass}>
             <Label htmlFor={`bank_or_card-${expense?.id}`}>Banco ou cartao</Label>
-            <Input
+            <select
               id={`bank_or_card-${expense?.id}`}
               name="bank_or_card"
-              placeholder="Ex: Revolut, Wise"
               defaultValue={expense?.bank_or_card ?? ""}
-              className={financeInputClass}
-            />
+              className={financeNativeSelectClass}
+            >
+              <option value="">Selecione um banco cadastrado</option>
+              {keepsLegacyBankOrCard ? (
+                <option value={selectedBankOrCard}>{selectedBankOrCard}</option>
+              ) : null}
+              {memberBankAccounts.map((account) => (
+                <option key={account.id} value={account.bank_name}>
+                  {account.bank_name} - {account.account_type ?? "Conta"}
+                </option>
+              ))}
+            </select>
           </div>
         ) : (
           <div className={financeFieldClass}>

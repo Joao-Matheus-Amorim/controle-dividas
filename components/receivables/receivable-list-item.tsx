@@ -35,7 +35,7 @@ export function ReceivableListItem({ income, members, bankAccounts, canEdit, can
         <p className="pt-2 text-sm font-bold text-[#1de9b2]">{compactCurrency(Number(income.amount))}</p>
         {canEdit ? (
           <>
-            <ReceivableIncomeEditDialog income={income} members={members} />
+            <ReceivableIncomeEditDialog income={income} members={members} bankAccounts={bankAccounts} />
             <ReceivableStatusForm income={income} bankAccounts={bankAccounts} />
           </>
         ) : null}

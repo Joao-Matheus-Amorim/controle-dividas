@@ -4,13 +4,15 @@ import { TrendingUp } from "lucide-react";
 
 import { AppFormSheet } from "@/components/app/app-form-sheet";
 import { ReceivableIncomeForm } from "@/components/finance/receivable-income-form";
-import type { DbFamilyMember } from "@/lib/finance/types";
+import type { DbBankAccount, DbFamilyMember } from "@/lib/finance/types";
 
 export function ReceivableIncomeFormDialog({
   members,
+  bankAccounts,
   defaultMemberId,
 }: {
   members: DbFamilyMember[];
+  bankAccounts: DbBankAccount[];
   defaultMemberId?: string;
 }) {
   return (
@@ -20,7 +22,7 @@ export function ReceivableIncomeFormDialog({
       triggerLabel="Nova entrada"
       icon={TrendingUp}
     >
-      <ReceivableIncomeForm members={members} defaultMemberId={defaultMemberId} />
+      <ReceivableIncomeForm members={members} bankAccounts={bankAccounts} defaultMemberId={defaultMemberId} />
     </AppFormSheet>
   );
 }

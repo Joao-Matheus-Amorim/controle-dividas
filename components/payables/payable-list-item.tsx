@@ -35,7 +35,7 @@ export function PayableListItem({ bill, members, bankAccounts, canEdit, canDelet
         <p className="text-sm font-bold text-white">{compactCurrency(Number(bill.amount))}</p>
         {canEdit ? (
           <>
-            <PayableBillEditDialog bill={bill} members={members} />
+            <PayableBillEditDialog bill={bill} members={members} bankAccounts={bankAccounts} />
             <PayableBillStatusForm bill={bill} bankAccounts={bankAccounts} />
           </>
         ) : null}

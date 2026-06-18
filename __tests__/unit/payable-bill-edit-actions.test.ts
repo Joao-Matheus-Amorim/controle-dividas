@@ -32,6 +32,12 @@ const mockState = vi.hoisted(() => ({
     id: "member-1",
     organization_id: "org-1",
   } as Record<string, unknown> | null,
+  bankLookup: {
+    id: "bank-1",
+    organization_id: "org-1",
+    family_member_id: "member-1",
+    bank_name: "Wise",
+  } as Record<string, unknown> | null,
   accessError: null as Error | null,
 }));
 
@@ -84,7 +90,25 @@ function makeQuery(table: string) {
         return Promise.resolve({ data: mockState.memberLookup, error: null });
       }
 
+      if (table === "banks") {
+        return Promise.resolve({ data: mockState.bankLookup, error: null });
+      }
+
       return Promise.resolve({ data: null, error: null });
+    },
+    limit(value: number) {
+      if (value !== 1) {
+        throw new Error("Expected existence lookup limit");
+      }
+
+      if (table === "banks") {
+        return Promise.resolve({
+          data: mockState.bankLookup ? [mockState.bankLookup] : [],
+          error: null,
+        });
+      }
+
+      return Promise.resolve({ data: [], error: null });
     },
     update(payload: Record<string, unknown>) {
       updatePayload = payload;
@@ -106,7 +130,7 @@ function makeSupabaseClient() {
       return Promise.resolve({ error: null });
     },
     from(table: string) {
-      if (!["payable_bills", "family_members"].includes(table)) {
+      if (!["payable_bills", "family_members", "banks"].includes(table)) {
         throw new Error(`Unexpected table: ${table}`);
       }
 
@@ -172,6 +196,12 @@ describe("payable bill edit action", () => {
     mockState.memberLookup = {
       id: "member-1",
       organization_id: "org-1",
+    };
+    mockState.bankLookup = {
+      id: "bank-1",
+      organization_id: "org-1",
+      family_member_id: "member-1",
+      bank_name: "Wise",
     };
     mockState.accessError = null;
   });

@@ -30,7 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { DbFamilyMember, DbReceivableIncome, ReceivableIncomeFormState } from "@/lib/finance/types";
+import type { DbBankAccount, DbFamilyMember, DbReceivableIncome, ReceivableIncomeFormState } from "@/lib/finance/types";
 
 const initialState: ReceivableIncomeFormState = {};
 
@@ -81,6 +81,7 @@ function FormSection({ icon: Icon, title, description, children }: FormSectionPr
 
 type ReceivableIncomeFormProps = {
   members: DbFamilyMember[];
+  bankAccounts?: DbBankAccount[];
   income?: DbReceivableIncome;
   mode?: "create" | "edit";
   defaultMemberId?: string;
@@ -88,6 +89,7 @@ type ReceivableIncomeFormProps = {
 
 export function ReceivableIncomeForm({
   members,
+  bankAccounts = [],
   income,
   mode = "create",
   defaultMemberId,
@@ -96,6 +98,8 @@ export function ReceivableIncomeForm({
   const [state, formAction, isPending] = useActionState(action, initialState);
   const today = new Date().toISOString().slice(0, 10);
   const isEditing = mode === "edit" && Boolean(income);
+  const initialMemberId = income?.receiver_member_id ?? defaultMemberId ?? "";
+  const [selectedMemberId, setSelectedMemberId] = useState(initialMemberId);
   const automaticMember = !isEditing && defaultMemberId
     ? members.find((member) => member.id === defaultMemberId) ?? null
     : null;
@@ -104,6 +108,14 @@ export function ReceivableIncomeForm({
     selectedSource && !incomeSources.includes(selectedSource) ? customIncomeSourceValue : selectedSource,
   );
   const isCustomSource = sourceValue === customIncomeSourceValue;
+  const memberBankAccounts = bankAccounts.filter(
+    (account) => account.family_member_id === selectedMemberId,
+  );
+  const selectedReceivingBank = income?.receiving_bank ?? "";
+  const keepsLegacyReceivingBank =
+    isEditing &&
+    selectedReceivingBank &&
+    !memberBankAccounts.some((account) => account.bank_name === selectedReceivingBank);
 
   return (
     <form action={formAction} className={financeFormClass}>
@@ -129,7 +141,8 @@ export function ReceivableIncomeForm({
               <select
                 id={isEditing ? `receiver_member_id-${income?.id}` : "receiver_member_id"}
                 name="receiver_member_id"
-                defaultValue={income?.receiver_member_id ?? defaultMemberId ?? ""}
+                defaultValue={initialMemberId}
+                onChange={(event) => setSelectedMemberId(event.target.value)}
                 required
                 className={financeNativeSelectClass}
               >
@@ -276,14 +289,26 @@ export function ReceivableIncomeForm({
             <Label htmlFor={isEditing ? `receiving_bank-${income?.id}` : "receiving_bank"}>Banco de recebimento</Label>
             <div className="relative">
               <Landmark className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/28" aria-hidden="true" />
-              <Input
+              <select
                 id={isEditing ? `receiving_bank-${income?.id}` : "receiving_bank"}
                 name="receiving_bank"
-                placeholder="Ex: Revolut, Wise"
                 defaultValue={income?.receiving_bank ?? ""}
-                className={`${financeInputClass} pl-10`}
-              />
+                className={`${financeNativeSelectClass} pl-10`}
+              >
+                <option value="">Selecione um banco cadastrado</option>
+                {keepsLegacyReceivingBank ? (
+                  <option value={selectedReceivingBank}>{selectedReceivingBank}</option>
+                ) : null}
+                {memberBankAccounts.map((account) => (
+                  <option key={account.id} value={account.bank_name}>
+                    {account.bank_name} - {account.account_type ?? "Conta"}
+                  </option>
+                ))}
+              </select>
             </div>
+            <p className={financeHelperTextClass}>
+              Use somente bancos cadastrados na aba Bancos para a pessoa recebedora.
+            </p>
           </div>
         </div>
       </FormSection>

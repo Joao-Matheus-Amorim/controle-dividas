@@ -156,6 +156,35 @@ async function assertMovementBankBelongsToMember(
   return bank;
 }
 
+async function assertBankNameBelongsToReceiverMember(
+  organizationId: string,
+  bankName: string,
+  receiverMemberId: string,
+) {
+  if (!bankName) {
+    return null;
+  }
+
+  const supabase = await createClient();
+  const { data: banks, error } = await supabase
+    .from("banks")
+    .select("id")
+    .eq("bank_name", bankName)
+    .eq("family_member_id", receiverMemberId)
+    .eq("organization_id", organizationId)
+    .limit(1);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (!banks?.length) {
+    throw new Error("Selecione um banco cadastrado para a pessoa recebedora.");
+  }
+
+  return banks[0];
+}
+
 function parseReceivableIncomeForm(formData: FormData) {
   const receiverMemberId = String(formData.get("receiver_member_id") ?? "");
   const source = String(formData.get("source") ?? "").trim();
@@ -247,6 +276,11 @@ export async function createReceivableIncome(
       input.receiverMemberId,
     );
     await assertCanAccessMember("CONTAS_A_RECEBER", "can_create", input.receiverMemberId);
+    await assertBankNameBelongsToReceiverMember(
+      organization.id,
+      input.receivingBank,
+      input.receiverMemberId,
+    );
   } catch (error) {
     return {
       error:
@@ -330,13 +364,23 @@ export async function updateReceivableIncome(
   try {
     const { profile, organization, income } = await assertCanManageReceivableIncome(id, "can_edit");
     const incomeChanged = hasReceivableIncomeWriteChanges(income, input);
+    const receiverMemberChanged = String(income.receiver_member_id) !== input.receiverMemberId;
 
-    if (String(income.receiver_member_id) !== input.receiverMemberId) {
+    if (receiverMemberChanged) {
       await assertReceiverMemberBelongsToOrganization(
         organization.id,
         input.receiverMemberId,
       );
       await assertCanAccessMember("CONTAS_A_RECEBER", "can_edit", input.receiverMemberId);
+    }
+
+    const existingReceivingBank = String(income.receiving_bank ?? "").trim();
+    if (input.receivingBank && (input.receivingBank !== existingReceivingBank || receiverMemberChanged)) {
+      await assertBankNameBelongsToReceiverMember(
+        organization.id,
+        input.receivingBank,
+        input.receiverMemberId,
+      );
     }
 
     const statusChanged = String(income.status) !== input.status;

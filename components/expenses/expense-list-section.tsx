@@ -4,12 +4,13 @@ import { PlusCircle, ReceiptText } from "lucide-react";
 import { AppEmptyState } from "@/components/app/app-empty-state";
 import { ExpenseListClient } from "@/components/finance/expense-list-client";
 import { Button } from "@/components/ui/button";
-import type { DbExpense, DbExpenseCategory, DbFamilyMember } from "@/lib/finance/types";
+import type { DbBankAccount, DbExpense, DbExpenseCategory, DbFamilyMember } from "@/lib/finance/types";
 
 interface ExpenseListSectionProps {
   expenses: DbExpense[];
   members: DbFamilyMember[];
   categories: DbExpenseCategory[];
+  bankAccounts: DbBankAccount[];
   canEdit: boolean;
   canDelete: boolean;
   canCreate: boolean;
@@ -19,6 +20,7 @@ export function ExpenseListSection({
   expenses,
   members,
   categories,
+  bankAccounts,
   canEdit,
   canDelete,
   canCreate,
@@ -52,6 +54,7 @@ export function ExpenseListSection({
           expenses={expenses}
           members={members}
           categories={categories}
+          bankAccounts={bankAccounts}
           canEdit={canEdit}
           canDelete={canDelete}
         />

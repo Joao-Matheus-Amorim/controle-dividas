@@ -42,6 +42,9 @@ export async function ContasAPagarPage({ searchParams, orgSlug }: ContasAPagarPa
   const createMembers = canCreate
     ? await getAccessibleMemberOptions("CONTAS_A_PAGAR", "can_create", orgSlug)
     : [];
+  const createBankAccounts = canCreate
+    ? await getOrganizationBankAccountsForMembers(createMembers, orgSlug)
+    : [];
   const bankAccounts = canEdit
     ? await getOrganizationBankAccountsForMembers(payableData.members, orgSlug)
     : [];
@@ -90,7 +93,12 @@ export async function ContasAPagarPage({ searchParams, orgSlug }: ContasAPagarPa
         fixedCount={fixedCount}
       />
 
-      <PayableCreateSection canCreate={canCreate} members={createMembers} orgSlug={orgSlug} />
+      <PayableCreateSection
+        canCreate={canCreate}
+        members={createMembers}
+        bankAccounts={createBankAccounts}
+        orgSlug={orgSlug}
+      />
 
       <PayableList
         bills={bills}

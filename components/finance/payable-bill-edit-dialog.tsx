@@ -5,14 +5,16 @@ import { Pencil } from "lucide-react";
 import { AppFormSheet } from "@/components/app/app-form-sheet";
 import { PayableBillForm } from "@/components/finance/payable-bill-form";
 import { Button } from "@/components/ui/button";
-import type { DbFamilyMember, DbPayableBill } from "@/lib/finance/types";
+import type { DbBankAccount, DbFamilyMember, DbPayableBill } from "@/lib/finance/types";
 
 export function PayableBillEditDialog({
   bill,
   members,
+  bankAccounts,
 }: {
   bill: DbPayableBill;
   members: DbFamilyMember[];
+  bankAccounts: DbBankAccount[];
 }) {
   return (
     <AppFormSheet
@@ -31,7 +33,7 @@ export function PayableBillEditDialog({
         </Button>
       }
     >
-      <PayableBillForm members={members} bill={bill} mode="edit" />
+      <PayableBillForm members={members} bankAccounts={bankAccounts} bill={bill} mode="edit" />
     </AppFormSheet>
   );
 }
