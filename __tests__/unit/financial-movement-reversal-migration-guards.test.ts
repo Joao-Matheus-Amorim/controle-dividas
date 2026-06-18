@@ -11,9 +11,11 @@ function read(path: string) {
 
 describe("financial movement reversal migration guards", () => {
   const migration = read("supabase/migrations/065_financial_movement_reversals.sql");
+  const hardeningMigration = read("supabase/migrations/066_harden_financial_movement_reversal_boundary.sql");
   const types = read("lib/finance/types.ts");
   const reports = read("lib/organizations/reports.ts");
   const movementsPage = read("features/protected-pages/movimentacoes-page.tsx");
+  const movementActions = read("app/protected/movimentacoes/actions.ts");
 
   it("adds reversal metadata without deleting ledger rows", () => {
     expect(migration).toContain("add column if not exists reversed_at");
@@ -39,6 +41,24 @@ describe("financial movement reversal migration guards", () => {
     expect(migration).toContain("current_balance = current_balance - target_movement.amount");
     expect(migration).toContain("set reversed_at = now()");
     expect(migration).toContain("grant execute on function public.reverse_financial_movement");
+  });
+
+  it("blocks direct reversal flag writes and keeps reversal controls inside the rpc", () => {
+    expect(hardeningMigration).toContain("revoke update on public.financial_movements from authenticated");
+    expect(hardeningMigration).toContain("block_direct_financial_movement_reversal_updates");
+    expect(hardeningMigration).toContain("financial_movements_block_direct_reversal_updates");
+    expect(hardeningMigration).toContain("current_setting('app.allow_financial_movement_reversal_update', true)");
+    expect(hardeningMigration).toContain("set_config('app.allow_financial_movement_reversal_update', 'on', true)");
+    expect(hardeningMigration).toContain("financial_movement_reversal_attempts");
+    expect(hardeningMigration).toContain("attempted_at >= now() - interval '10 minutes'");
+    expect(hardeningMigration).toContain("recent_attempt_count >= 5");
+    expect(hardeningMigration).toContain("record_audit_event");
+    expect(hardeningMigration).toContain("finance.movement.reverse");
+    expect(hardeningMigration).toContain("auth_user_id = auth.uid()");
+    expect(hardeningMigration).toContain("'can_delete'");
+    expect(movementActions).toContain("reverse_financial_movement");
+    expect(movementActions).not.toContain("checksensitiveoperationratelimit");
+    expect(movementActions).not.toContain("recordauditevent");
   });
 
   it("keeps read models aware of reversed movements", () => {
