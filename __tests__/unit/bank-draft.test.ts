@@ -23,4 +23,23 @@ describe("bank account draft suggestion", () => {
     expect(draft.currentBalance).toBe("100");
     expect(draft.currency).toBe("BRL");
   });
+
+  it("preserves negative balances from the draft text", () => {
+    const draft = buildBankAccountDraftSuggestion("Cartao Itau saldo -500 EUR");
+
+    expect(draft.currentBalance).toBe("-500");
+    expect(draft.currency).toBe("EUR");
+  });
+
+  it("matches currency only as a standalone token", () => {
+    const draft = buildBankAccountDraftSuggestion("cadastrar conta Itau saldo 100");
+
+    expect(draft.currency).toBe("EUR");
+  });
+
+  it("detects debit cards before generic card text", () => {
+    const draft = buildBankAccountDraftSuggestion("cartao de debito Itau saldo 100 EUR");
+
+    expect(draft.accountType).toBe("Cartao de debito");
+  });
 });

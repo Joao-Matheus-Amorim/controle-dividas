@@ -29,8 +29,8 @@ function parseBankName(text: string) {
 function parseAccountType(text: string) {
   const normalizedText = normalizeText(text);
 
-  if (/\b(?:cartao|credito)\b/.test(normalizedText)) return "Cartao de credito";
   if (/\bdebito\b/.test(normalizedText)) return "Cartao de debito";
+  if (/\b(?:cartao|credito)\b/.test(normalizedText)) return "Cartao de credito";
   if (/\bpoupanca\b/.test(normalizedText)) return "Poupanca";
   if (/\binvest(?:imento|imentos)?\b/.test(normalizedText)) return "Investimentos";
   if (/\bsalario\b/.test(normalizedText)) return "Conta salario";
@@ -44,17 +44,21 @@ function parseAccountType(text: string) {
 function parseCurrency(text: string) {
   const normalizedText = normalizeText(text);
 
-  return systemCurrencyOptions.find((currency) => normalizedText.includes(normalizeText(currency))) ?? "EUR";
+  return systemCurrencyOptions.find((currency) => {
+    const normalizedCurrency = normalizeText(currency);
+
+    return new RegExp(`\\b${normalizedCurrency}\\b`).test(normalizedText);
+  }) ?? "EUR";
 }
 
 function parseCurrentBalance(text: string) {
-  const balanceMatch = text.match(/\b(?:saldo|balance)\s*(?:de|atual|inicial)?\s*(?:r\$|eur|usd|brl|gbp)?\s*(\d{1,9}(?:[.,]\d{1,2})?)/i);
+  const balanceMatch = text.match(/\b(?:saldo|balance)\s*(?:de|atual|inicial)?\s*(?:r\$|eur|usd|brl|gbp)?\s*(-?\d{1,9}(?:[.,]\d{1,2})?)/i);
 
   if (balanceMatch?.[1]) {
     return balanceMatch[1].replace(",", ".");
   }
 
-  const amountMatches = Array.from(text.matchAll(/(?:r\$|eur|usd|brl|gbp)?\s*(\d{1,9}(?:[.,]\d{1,2})?)/gi));
+  const amountMatches = Array.from(text.matchAll(/(?:r\$|eur|usd|brl|gbp)?\s*(-?\d{1,9}(?:[.,]\d{1,2})?)/gi));
   const amountMatch = amountMatches[amountMatches.length - 1];
 
   return amountMatch?.[1]?.replace(",", ".") ?? "";
