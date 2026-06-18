@@ -20,6 +20,11 @@ const mockState = vi.hoisted(() => ({
     family_member_id: "member-1",
     currency: "BRL",
   } as Record<string, unknown> | null,
+  expenseCategoryLookup: {
+    id: "category-1",
+    organization_id: "org-1",
+    name: "Outros",
+  } as Record<string, unknown> | null,
   billLookup: {
     id: "bill-1",
     owner_id: "owner-1",
@@ -100,6 +105,10 @@ function makeQuery(table: string) {
 
       return query;
     },
+    ilike(key: string, value: unknown) {
+      filters[key] = value;
+      return query;
+    },
     or(expression: string) {
       filters.or = expression;
 
@@ -122,6 +131,10 @@ function makeQuery(table: string) {
         return Promise.resolve({ data: mockState.bankLookup, error: null });
       }
 
+      if (table === "expense_categories") {
+        return Promise.resolve({ data: mockState.expenseCategoryLookup, error: null });
+      }
+
       return Promise.resolve({ data: null, error: null });
     },
     limit(value: number) {
@@ -129,14 +142,20 @@ function makeQuery(table: string) {
         throw new Error("Expected existence lookup limit");
       }
 
-      if (table === "banks") {
-        return Promise.resolve({
-          data: mockState.bankLookup ? [mockState.bankLookup] : [],
-          error: null,
-        });
-      }
+      filters.limit = value;
+      return query;
+    },
+    then(
+      onfulfilled?: ((value: { data: Record<string, unknown>[]; error: null }) => unknown) | null,
+      onrejected?: ((reason: unknown) => unknown) | null,
+    ) {
+      const data = table === "banks"
+        ? (mockState.bankLookup ? [mockState.bankLookup] : [])
+        : table === "expense_categories"
+          ? (mockState.expenseCategoryLookup ? [mockState.expenseCategoryLookup] : [])
+          : [];
 
-      return Promise.resolve({ data: [], error: null });
+      return Promise.resolve({ data, error: null }).then(onfulfilled, onrejected);
     },
     single() {
       return Promise.resolve({ data: mockState.insertedBill, error: mockState.insertError });
@@ -186,7 +205,13 @@ function makeSupabaseClient() {
       return Promise.resolve({ error: null });
     },
     from(table: string) {
-      if (!["payable_bills", "family_members", "banks", "financial_movements"].includes(table)) {
+      if (![
+        "payable_bills",
+        "family_members",
+        "banks",
+        "financial_movements",
+        "expense_categories",
+      ].includes(table)) {
         throw new Error(`Unexpected table: ${table}`);
       }
 
@@ -247,6 +272,11 @@ describe("payable bill actions", () => {
       family_member_id: "member-1",
       currency: "BRL",
     };
+    mockState.expenseCategoryLookup = {
+      id: "category-1",
+      organization_id: "org-1",
+      name: "Outros",
+    };
     mockState.billLookup = {
       id: "bill-1",
       owner_id: "owner-1",
@@ -298,6 +328,7 @@ describe("payable bill actions", () => {
 
     const result = await createPayableBill({}, createFormData({
       name: "Internet",
+      category: "Outros",
       amount: "0",
       due_date: "2026-05-20",
       responsible_member_id: "member-1",
@@ -422,6 +453,7 @@ describe("payable bill actions", () => {
 
     const result = await createPayableBill({}, createFormData({
       name: "Escola",
+      category: "Outros",
       amount: "300",
       due_date: "2026-05-10",
       responsible_member_id: "member-2",
@@ -496,6 +528,7 @@ describe("payable bill actions", () => {
     const result = await updatePayableBill({}, createFormData({
       id: "bill-1",
       name: "Aluguel atualizado",
+      category: "Aluguel",
       amount: "900",
       due_date: "2026-05-05",
       responsible_member_id: "member-1",
@@ -587,6 +620,7 @@ describe("payable bill actions", () => {
     const result = await updatePayableBill({}, createFormData({
       id: "bill-1",
       name: "Conta atualizada",
+      category: "Outros",
       amount: "150",
       due_date: "2026-05-25",
       responsible_member_id: "member-1",
@@ -665,6 +699,7 @@ describe("payable bill actions", () => {
     const result = await updatePayableBill({}, createFormData({
       id: "bill-1",
       name: "Conta atualizada",
+      category: "Outros",
       amount: "150",
       due_date: "2026-05-25",
       responsible_member_id: "member-1",
@@ -708,6 +743,7 @@ describe("payable bill actions", () => {
     const result = await updatePayableBill({}, createFormData({
       id: "bill-1",
       name: "Conta atualizada",
+      category: "Outros",
       amount: "150",
       due_date: "2026-05-25",
       responsible_member_id: "member-1",
@@ -755,6 +791,7 @@ describe("payable bill actions", () => {
     const result = await updatePayableBill({}, createFormData({
       id: "bill-1",
       name: "Conta atualizada",
+      category: "Outros",
       amount: "150",
       due_date: "2026-05-25",
       responsible_member_id: "member-1",
@@ -807,6 +844,7 @@ describe("payable bill actions", () => {
     const result = await updatePayableBill({}, createFormData({
       id: "bill-1",
       name: "Escola",
+      category: "Outros",
       amount: "300",
       due_date: "2026-05-10",
       responsible_member_id: "member-2",

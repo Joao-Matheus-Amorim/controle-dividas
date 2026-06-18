@@ -151,22 +151,26 @@ describe("finance beta UX contract guards", () => {
     expect(payableForm).toContain("Responsável financeiro");
   });
 
-  it("allows payable and receivable forms to submit custom category labels without schema changes", () => {
+  it("keeps payable and receivable option labels sourced from admin catalogs while preserving legacy edits", () => {
     const payableForm = readSource("components/finance/payable-bill-form.tsx");
     const receivableForm = readSource("components/finance/receivable-income-form.tsx");
 
+    expect(payableForm).toContain("categories?: DbExpenseCategory[]");
+    expect(payableForm).toContain("categoryNames = categories.map");
+    expect(payableForm).toContain("Use as categorias definidas em Configuracoes");
     expect(payableForm).toContain("customCategoryValue");
-    expect(payableForm).toContain("Cadastrar nova categoria");
     expect(payableForm).toContain('name={isCustomCategory ? "category_preset" : "category"}');
     expect(payableForm).toContain('name="category"');
     expect(payableForm).toContain("Digite a categoria");
-    expect(payableForm).not.toContain("required={!isCustomCategory}");
+    expect(payableForm).toContain("required={!isCustomCategory}");
 
+    expect(receivableForm).toContain("sources?: DbReceivableIncomeSource[]");
+    expect(receivableForm).toContain("sourceNames = sources.map");
     expect(receivableForm).toContain("customIncomeSourceValue");
-    expect(receivableForm).toContain("Cadastrar nova origem");
     expect(receivableForm).toContain('name={isCustomSource ? "source_preset" : "source"}');
     expect(receivableForm).toContain('name="source"');
     expect(receivableForm).toContain("Digite a origem");
+    expect(receivableForm).toContain("required={!isCustomSource}");
   });
 
   it("keeps receivable incomes tracking who or where the payment comes from", () => {
