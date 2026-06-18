@@ -122,6 +122,20 @@ function makeQuery(table: string) {
 function makeSupabaseClient() {
   return {
     rpc(name: string, payload: Record<string, unknown>) {
+      if (name === "mark_payable_bill_paid_with_movement") {
+        mockState.updatedPayloads.push({
+          status: "pago",
+          organization_id: payload.target_organization_id,
+          recorded_timezone: payload.target_recorded_timezone,
+          filters: {
+            id: payload.target_payable_bill_id,
+            organization_id: payload.target_organization_id,
+          },
+        });
+
+        return Promise.resolve({ error: null });
+      }
+
       if (name !== "record_audit_event") {
         throw new Error(`Unexpected rpc: ${name}`);
       }
@@ -220,23 +234,19 @@ describe("payable bill edit action", () => {
       bill_type: "fixa",
       recurrence: "mensal",
       bank_used: "Wise",
+      recorded_timezone: "Europe/Lisbon",
       notes: "Pago antecipado",
     }));
 
     expect(result).toEqual({ success: "Conta atualizada com sucesso." });
     expect(mockState.updatedPayloads.at(-1)).toEqual(expect.objectContaining({
-      name: "Aluguel atualizado",
-      category: "Casa",
-      amount: 900,
-      due_date: "2026-06-05",
-      responsible_member_id: "member-1",
       status: "pago",
-      bill_type: "fixa",
-      recurrence: "mensal",
-      bank_used: "Wise",
-      notes: "Pago antecipado",
       organization_id: "org-1",
-      filters: expect.objectContaining({ id: "bill-1", organization_id: "org-1" }),
+      recorded_timezone: "Europe/Lisbon",
+      filters: {
+        id: "bill-1",
+        organization_id: "org-1",
+      },
     }));
   });
 

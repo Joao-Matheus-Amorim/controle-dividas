@@ -221,6 +221,7 @@ function parsePayableBillForm(formData: FormData) {
     ? (rawBillType as PayableBillType)
     : "avulsa";
   const bankUsed = String(formData.get("bank_used") ?? "").trim();
+  const recordedTimezone = String(formData.get("recorded_timezone") ?? "").trim() || null;
   const recurrence = billType === "fixa" ? "mensal" : "";
   const notes = String(formData.get("notes") ?? "").trim();
 
@@ -233,6 +234,7 @@ function parsePayableBillForm(formData: FormData) {
     status,
     billType,
     bankUsed,
+    recordedTimezone,
     recurrence,
     notes,
   };
@@ -297,6 +299,8 @@ export async function createPayableBill(
   const supabase = await createClient();
   const profile = await getCurrentProfile();
   const { organization } = await requireOrganizationAccess();
+  const shouldCreatePaidMovement = input.status === "pago";
+  let paidMovementBank: Record<string, unknown> | null = null;
 
   try {
     await assertResponsibleMemberBelongsToOrganization(
@@ -304,15 +308,22 @@ export async function createPayableBill(
       input.responsibleMemberId,
     );
     await assertCanAccessMember("CONTAS_A_PAGAR", "can_create", input.responsibleMemberId);
+    if (shouldCreatePaidMovement) {
+      await assertCanAccessMember("CONTAS_A_PAGAR", "can_edit", input.responsibleMemberId);
+    }
     await assertPayableCategoryBelongsToOrganization(
       organization.id,
       input.category,
     );
-    await assertBankNameBelongsToResponsibleMember(
+    paidMovementBank = await assertBankNameBelongsToResponsibleMember(
       organization.id,
       input.bankUsed,
       input.responsibleMemberId,
     );
+
+    if (shouldCreatePaidMovement && !paidMovementBank?.id) {
+      throw new Error("Selecione um banco cadastrado para registrar o pagamento.");
+    }
   } catch (error) {
     return {
       error:
@@ -352,7 +363,7 @@ export async function createPayableBill(
     amount: input.amount,
     due_date: input.dueDate,
     responsible_member_id: input.responsibleMemberId,
-    status: input.status,
+    status: shouldCreatePaidMovement ? "pendente" : input.status,
     bill_type: input.billType,
     bank_used: input.bankUsed || null,
     recurrence: input.recurrence || null,
@@ -363,17 +374,51 @@ export async function createPayableBill(
     return { error: error.message };
   }
 
+  const createdBillId = createdBill?.id ? String(createdBill.id) : null;
+
+  if (shouldCreatePaidMovement && createdBillId && paidMovementBank?.id) {
+    const { error: movementError } = await supabase.rpc("mark_payable_bill_paid_with_movement", {
+      target_organization_id: organization.id,
+      target_payable_bill_id: createdBillId,
+      target_bank_id: String(paidMovementBank.id),
+      target_profile_id: profile.id,
+      target_recorded_timezone: input.recordedTimezone,
+    });
+
+    if (movementError) {
+      return { error: movementError.message };
+    }
+  }
+
   await recordPayableBillAuditEvent({
     organizationId: organization.id,
     action: "finance.payable.create",
-    billId: createdBill?.id ? String(createdBill.id) : null,
+    billId: createdBillId,
     metadata: {
       payable_created: true,
       responsible_member_id: input.responsibleMemberId,
     },
   });
 
-  revalidateOrganizationPaths(["/protected/contas-a-pagar", "/protected"], organization.slug);
+  if (shouldCreatePaidMovement) {
+    await recordPayableBillAuditEvent({
+      organizationId: organization.id,
+      action: "finance.payable.status.update",
+      billId: createdBillId,
+      metadata: {
+        previous_status: "pendente",
+        next_status: "pago",
+        responsible_member_id: input.responsibleMemberId,
+      },
+    });
+  }
+
+  revalidateOrganizationPaths([
+    "/protected/contas-a-pagar",
+    "/protected/movimentacoes",
+    "/protected/bancos",
+    "/protected",
+  ], organization.slug);
 
   return {
     success:
@@ -419,16 +464,27 @@ export async function updatePayableBill(
       );
     }
 
+    const statusChanged = String(bill.status) !== input.status;
+    const transitionToPaid = String(bill.status) !== "pago" && input.status === "pago";
+    let paidMovementBank: Record<string, unknown> | null = null;
+
+    if (String(bill.status) === "pago" && input.status !== "pago") {
+      return { error: "Conta paga ja possui movimentacao. Estorno sera tratado pelo fluxo de movimentacoes." };
+    }
+
     const existingBankUsed = String(bill.bank_used ?? "").trim();
-    if (input.bankUsed && (input.bankUsed !== existingBankUsed || responsibleMemberChanged)) {
-      await assertBankNameBelongsToResponsibleMember(
+    if (input.bankUsed && (input.bankUsed !== existingBankUsed || responsibleMemberChanged || transitionToPaid)) {
+      paidMovementBank = await assertBankNameBelongsToResponsibleMember(
         organization.id,
         input.bankUsed,
         input.responsibleMemberId,
       );
     }
 
-    const statusChanged = String(bill.status) !== input.status;
+    if (transitionToPaid && !paidMovementBank?.id) {
+      throw new Error("Selecione um banco cadastrado para registrar o pagamento.");
+    }
+
     const payableStatusRateLimitInput = {
       ...payableStatusRateLimit,
       actorKey: profile.id,
@@ -537,7 +593,7 @@ export async function updatePayableBill(
           amount: input.amount,
           due_date: input.dueDate,
           responsible_member_id: input.responsibleMemberId,
-          status: input.status,
+          status: transitionToPaid ? String(bill.status) : input.status,
           bill_type: input.billType,
           bank_used: input.bankUsed || null,
           recurrence: input.recurrence || null,
@@ -555,6 +611,20 @@ export async function updatePayableBill(
 
     if (count !== 1) {
       return { error: "Conta nao encontrada." };
+    }
+
+    if (transitionToPaid && paidMovementBank?.id) {
+      const { error: movementError } = await supabase.rpc("mark_payable_bill_paid_with_movement", {
+        target_organization_id: organization.id,
+        target_payable_bill_id: id,
+        target_bank_id: String(paidMovementBank.id),
+        target_profile_id: profile.id,
+        target_recorded_timezone: input.recordedTimezone,
+      });
+
+      if (movementError) {
+        return { error: movementError.message };
+      }
     }
 
     if (billChanged) {
