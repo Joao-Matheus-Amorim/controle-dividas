@@ -30,11 +30,46 @@ describe("finance seed payload builders", () => {
     );
   });
 
-  it("does not build default expense category seed rows before owner validation", () => {
+  it("builds the default root expense category taxonomy for AI classification", () => {
     const rows = buildDefaultExpenseCategorySeedRows(ownerId, organizationId);
 
-    expect(defaultExpenseCategories).toEqual([]);
-    expect(rows).toEqual([]);
+    expect(defaultExpenseCategories).toHaveLength(20);
+    expect(defaultExpenseCategories.map((category) => category.name)).toEqual([
+      "Receitas",
+      "Moradia",
+      "Utilidades",
+      "Alimentação",
+      "Alimentação Fora",
+      "Transporte",
+      "Saúde",
+      "Educação",
+      "Filhos",
+      "Trabalho",
+      "Marketing",
+      "Roupas e Acessórios",
+      "Lazer e Entretenimento",
+      "Viagens",
+      "Igreja e Doações",
+      "Investimentos",
+      "Negócios",
+      "Documentação e Taxas",
+      "Transferências",
+      "Dívidas e Financiamentos",
+    ]);
+    expect(rows).toEqual(
+      defaultExpenseCategories.map((category) => ({
+        owner_id: ownerId,
+        organization_id: organizationId,
+        name: category.name,
+        description: category.description ?? null,
+        parent_category_id: null,
+        is_default: false,
+      })),
+    );
+    expect(rows.every((row) => row.parent_category_id === null)).toBe(true);
+    expect(rows.find((row) => row.name === "Transferências")?.description).toContain(
+      "não entra no relatório de gastos",
+    );
   });
 
   it("uses the provided owner id for every seed row", () => {
