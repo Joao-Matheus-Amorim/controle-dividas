@@ -21,9 +21,7 @@ const mockState = vi.hoisted(() => ({
     reversed_at: null,
   } as Record<string, unknown> | null,
   rpcCalls: [] as Array<{ name: string; payload: Record<string, unknown> }>,
-  auditEvents: [] as Array<Record<string, unknown>>,
-  rateLimitChecks: [] as Array<Record<string, unknown>>,
-  rateLimitAllowed: true,
+  rpcData: { success: true } as Record<string, unknown> | null,
   rpcError: null as { message: string } | null,
 }));
 
@@ -37,50 +35,15 @@ function createFormData(values: Record<string, string>) {
   return formData;
 }
 
-function makeQuery(table: string) {
-  const filters: Record<string, unknown> = {};
-
-  const query = {
-    select() {
-      return query;
-    },
-    eq(key: string, value: unknown) {
-      filters[key] = value;
-      return query;
-    },
-    maybeSingle() {
-      if (table === "financial_movements") {
-        return Promise.resolve({ data: mockState.movementLookup, error: null });
-      }
-
-      return Promise.resolve({ data: null, error: null });
-    },
-  };
-
-  return query;
-}
-
 function makeSupabaseClient() {
   return {
     rpc(name: string, payload: Record<string, unknown>) {
-      if (name === "record_audit_event") {
-        mockState.auditEvents.push(payload);
-        return Promise.resolve({ error: null });
-      }
-
       if (name === "reverse_financial_movement") {
         mockState.rpcCalls.push({ name, payload });
-        return Promise.resolve({ error: mockState.rpcError });
+        return Promise.resolve({ data: mockState.rpcData, error: mockState.rpcError });
       }
 
       throw new Error(`Unexpected rpc: ${name}`);
-    },
-    from(table: string) {
-      if (table !== "financial_movements") {
-        throw new Error(`Unexpected table: ${table}`);
-      }
-
-      return makeQuery(table);
     },
   };
 }
@@ -107,16 +70,6 @@ vi.mock("@/lib/finance/access-control", () => ({
   getCurrentProfile: vi.fn(async () => mockState.currentProfile),
 }));
 
-vi.mock("@/lib/security/sensitive-rate-limit", () => ({
-  checkSensitiveOperationRateLimit: vi.fn((input: Record<string, unknown>) => {
-    mockState.rateLimitChecks.push(input);
-
-    return mockState.rateLimitAllowed
-      ? { allowed: true, remaining: 4, resetAt: 1000 }
-      : { allowed: false, retryAfterMs: 1000, resetAt: 1000 };
-  }),
-}));
-
 describe("movement reversal actions", () => {
   beforeEach(() => {
     mockState.movementLookup = {
@@ -129,9 +82,7 @@ describe("movement reversal actions", () => {
       reversed_at: null,
     };
     mockState.rpcCalls = [];
-    mockState.auditEvents = [];
-    mockState.rateLimitChecks = [];
-    mockState.rateLimitAllowed = true;
+    mockState.rpcData = { success: true };
     mockState.rpcError = null;
   });
 
@@ -144,14 +95,6 @@ describe("movement reversal actions", () => {
     }));
 
     expect(result).toEqual({ success: "Movimentacao estornada com sucesso." });
-    expect(mockState.rateLimitChecks).toEqual([
-      expect.objectContaining({
-        operationKey: "finance.movement.reverse",
-        actorKey: "profile-1",
-        organizationId: "org-1",
-        targetKey: "movement-1",
-      }),
-    ]);
     expect(mockState.rpcCalls).toEqual([
       {
         name: "reverse_financial_movement",
@@ -163,40 +106,29 @@ describe("movement reversal actions", () => {
         },
       },
     ]);
-    expect(mockState.auditEvents).toEqual([
-      expect.objectContaining({
-        p_action: "finance.movement.reverse",
-        p_target_type: "financial_movement",
-        p_target_id: "movement-1",
-        p_outcome: "success",
-        p_metadata: expect.objectContaining({
-          movement_reversed: true,
-          movement_type: "payable_bill_payment",
-          payable_bill_id: "bill-1",
-        }),
-      }),
-    ]);
   });
 
-  it("does not call the rpc when the movement is already reversed", async () => {
+  it("returns rpc validation errors from the database boundary", async () => {
     const { reverseFinancialMovement } = await import("@/app/protected/movimentacoes/actions");
-    mockState.movementLookup = {
-      ...mockState.movementLookup,
-      reversed_at: "2026-06-18T00:00:00.000Z",
-    } as Record<string, unknown>;
+    mockState.rpcData = {
+      success: false,
+      error: "Movimentacao ja estornada.",
+    };
 
     const result = await reverseFinancialMovement({}, createFormData({
       id: "movement-1",
     }));
 
     expect(result).toEqual({ error: "Movimentacao ja estornada." });
-    expect(mockState.rpcCalls).toHaveLength(0);
-    expect(mockState.rateLimitChecks).toHaveLength(0);
+    expect(mockState.rpcCalls).toHaveLength(1);
   });
 
-  it("audits denied reversals when the rate limit blocks the action", async () => {
+  it("returns database-enforced rate limit errors from direct rpc controls", async () => {
     const { reverseFinancialMovement } = await import("@/app/protected/movimentacoes/actions");
-    mockState.rateLimitAllowed = false;
+    mockState.rpcData = {
+      success: false,
+      error: "Muitas tentativas de estorno. Tente novamente em alguns minutos.",
+    };
 
     const result = await reverseFinancialMovement({}, createFormData({
       id: "movement-1",
@@ -205,17 +137,6 @@ describe("movement reversal actions", () => {
     expect(result).toEqual({
       error: "Muitas tentativas de estorno. Tente novamente em alguns minutos.",
     });
-    expect(mockState.rpcCalls).toHaveLength(0);
-    expect(mockState.auditEvents).toEqual([
-      expect.objectContaining({
-        p_action: "finance.movement.reverse",
-        p_target_id: "movement-1",
-        p_outcome: "denied",
-        p_metadata: expect.objectContaining({
-          status: "rate_limited",
-          movement_type: "payable_bill_payment",
-        }),
-      }),
-    ]);
+    expect(mockState.rpcCalls).toHaveLength(1);
   });
 });
