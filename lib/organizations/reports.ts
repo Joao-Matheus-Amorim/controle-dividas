@@ -1,6 +1,6 @@
 import { getOrganizationBanksDashboardData } from "@/lib/organizations/banks";
 import { buildExpenseCategoryLabelMap } from "@/lib/finance/category-labels";
-import { isTransferCategoryName } from "@/lib/finance/category-taxonomy";
+import { isTransferCategoryOrDescendant } from "@/lib/finance/category-taxonomy";
 import { getOrganizationExpenseDashboardData } from "@/lib/organizations/expenses";
 import { getOrganizationFinancialMovements } from "@/lib/organizations/financial-movements";
 import { getOrganizationPayableBillsDashboardData } from "@/lib/organizations/payables";
@@ -71,7 +71,7 @@ export async function getOrganizationReportsDashboardData(
   const reportableExpenses = filteredExpenses.filter((expense) => {
     const category = expense.category_id ? categoriesById.get(expense.category_id) : null;
 
-    return !isTransferCategoryName(category?.name);
+    return !isTransferCategoryOrDescendant(category, categoriesById);
   });
   const totalExpenses = reportableExpenses.reduce((total, expense) => total + Number(expense.amount), 0);
   const totalPendingBills = filteredBills
@@ -108,7 +108,7 @@ export async function getOrganizationReportsDashboardData(
     .sort((a, b) => b.spent - a.spent);
 
   const expensesByCategory = expenseData.categories
-    .filter((category) => !isTransferCategoryName(category.name))
+    .filter((category) => !isTransferCategoryOrDescendant(category, categoriesById))
     .map((category) => {
       const total = reportableExpenses
         .filter((expense) => expense.category_id === category.id)
