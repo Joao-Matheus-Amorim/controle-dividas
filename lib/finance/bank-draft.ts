@@ -1,4 +1,8 @@
 import { systemBankOptions, systemCurrencyOptions } from "@/lib/finance/bank-options";
+import {
+  financeDraftReviewNote,
+  normalizeFinanceDraftText,
+} from "@/lib/finance/finance-draft-utils";
 
 export type BankAccountDraftSuggestion = {
   accountType: string;
@@ -8,26 +12,18 @@ export type BankAccountDraftSuggestion = {
   notes: string;
 };
 
-function normalizeText(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .trim()
-    .toLowerCase();
-}
-
 function parseBankName(text: string) {
-  const normalizedText = normalizeText(text);
+  const normalizedText = normalizeFinanceDraftText(text);
 
   return systemBankOptions.find((bankName) => {
-    const normalizedBankName = normalizeText(bankName);
+    const normalizedBankName = normalizeFinanceDraftText(bankName);
 
     return normalizedBankName.length >= 2 && normalizedText.includes(normalizedBankName);
   }) ?? "";
 }
 
 function parseAccountType(text: string) {
-  const normalizedText = normalizeText(text);
+  const normalizedText = normalizeFinanceDraftText(text);
 
   if (/\bdebito\b/.test(normalizedText)) return "Cartao de debito";
   if (/\b(?:cartao|credito)\b/.test(normalizedText)) return "Cartao de credito";
@@ -42,10 +38,10 @@ function parseAccountType(text: string) {
 }
 
 function parseCurrency(text: string) {
-  const normalizedText = normalizeText(text);
+  const normalizedText = normalizeFinanceDraftText(text);
 
   return systemCurrencyOptions.find((currency) => {
-    const normalizedCurrency = normalizeText(currency);
+    const normalizedCurrency = normalizeFinanceDraftText(currency);
 
     return new RegExp(`\\b${normalizedCurrency}\\b`).test(normalizedText);
   }) ?? "EUR";
@@ -70,6 +66,6 @@ export function buildBankAccountDraftSuggestion(text: string): BankAccountDraftS
     bankName: parseBankName(text),
     currentBalance: parseCurrentBalance(text),
     currency: parseCurrency(text),
-    notes: "Rascunho assistido; confira antes de cadastrar.",
+    notes: financeDraftReviewNote,
   };
 }

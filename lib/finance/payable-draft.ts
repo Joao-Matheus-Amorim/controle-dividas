@@ -1,4 +1,9 @@
 import { buildExpenseDraftSuggestion } from "@/lib/finance/expense-draft";
+import {
+  cleanFinanceDraftText,
+  financeDraftReviewNote,
+  normalizeFinanceDraftText,
+} from "@/lib/finance/finance-draft-utils";
 import type { DbBankAccount, DbExpenseCategory } from "@/lib/finance/types";
 
 export type PayableBillDraftSuggestion = {
@@ -12,16 +17,8 @@ export type PayableBillDraftSuggestion = {
   status: "pendente" | "pago" | "atrasado";
 };
 
-function normalizeText(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .trim()
-    .toLowerCase();
-}
-
 function parsePayableStatus(text: string): PayableBillDraftSuggestion["status"] {
-  const normalizedText = normalizeText(text);
+  const normalizedText = normalizeFinanceDraftText(text);
 
   if (/\b(?:pago|paga|paguei)\b/.test(normalizedText)) {
     return "pago";
@@ -35,7 +32,7 @@ function parsePayableStatus(text: string): PayableBillDraftSuggestion["status"] 
 }
 
 function parseBillType(text: string): PayableBillDraftSuggestion["billType"] {
-  const normalizedText = normalizeText(text);
+  const normalizedText = normalizeFinanceDraftText(text);
 
   return normalizedText.includes("fixa") ||
     normalizedText.includes("mensal") ||
@@ -59,7 +56,7 @@ export function buildPayableBillDraftSuggestion(
   today: string,
 ): PayableBillDraftSuggestion {
   const baseDraft = buildExpenseDraftSuggestion(text, categories, bankAccounts, today);
-  const cleanText = text.trim().replace(/\s+/g, " ");
+  const cleanText = cleanFinanceDraftText(text);
 
   return {
     amount: baseDraft.amount,
@@ -68,7 +65,7 @@ export function buildPayableBillDraftSuggestion(
     category: findCategoryName(baseDraft.categoryId, categories),
     dueDate: baseDraft.expenseDate,
     name: cleanText.slice(0, 80),
-    notes: "Rascunho assistido; confira antes de cadastrar.",
+    notes: financeDraftReviewNote,
     status: parsePayableStatus(cleanText),
   };
 }
