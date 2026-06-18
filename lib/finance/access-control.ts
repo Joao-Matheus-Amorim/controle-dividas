@@ -334,6 +334,10 @@ export async function getAccessibleMemberIds(
     return [];
   }
 
+  if (action === "can_create") {
+    return profile.linked_family_member_id ? [profile.linked_family_member_id] : [];
+  }
+
   if (permission.scope === "family") {
     return getAllActiveMemberIds(organization.id);
   }

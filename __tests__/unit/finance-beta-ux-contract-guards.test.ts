@@ -98,6 +98,7 @@ describe("finance beta UX contract guards", () => {
   });
 
   it("uses can_create member options and auto-selects a single allowed member on create", () => {
+    const accessControl = readSource("lib/finance/access-control.ts");
     const moduleContracts = [
       ["features/protected-pages/gastos-page.tsx", '"GASTOS"', '"can_create"'],
       ["features/protected-pages/contas-a-pagar-page.tsx", '"CONTAS_A_PAGAR"', '"can_create"'],
@@ -127,6 +128,9 @@ describe("finance beta UX contract guards", () => {
       expect(source).toContain("automaticamente pelo seu acesso");
       expect(source).toContain("Selecione uma pessoa");
     }
+
+    expect(accessControl).toContain('if (action === "can_create")');
+    expect(accessControl).toContain("profile.linked_family_member_id ? [profile.linked_family_member_id] : []");
   });
 
   it("keeps the shared form sheet responsive for mobile and desktop admin use", () => {
