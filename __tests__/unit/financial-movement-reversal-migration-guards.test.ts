@@ -45,8 +45,13 @@ describe("financial movement reversal migration guards", () => {
 
   it("blocks direct reversal flag writes and keeps reversal controls inside the rpc", () => {
     expect(hardeningMigration).toContain("revoke update on public.financial_movements from authenticated");
-    expect(hardeningMigration).toContain("block_direct_financial_movement_reversal_updates");
+    expect(hardeningMigration).toContain("block_direct_financial_movement_reversal_metadata_writes");
+    expect(hardeningMigration).toContain("financial_movements_block_direct_reversal_inserts");
     expect(hardeningMigration).toContain("financial_movements_block_direct_reversal_updates");
+    expect(hardeningMigration).toContain("before insert");
+    expect(hardeningMigration).toContain("new.reversed_at is not null");
+    expect(hardeningMigration).toContain("new.reversed_by_profile_id is not null");
+    expect(hardeningMigration).toContain("nullif(trim(new.reversal_reason), '') is not null");
     expect(hardeningMigration).toContain("current_setting('app.allow_financial_movement_reversal_update', true)");
     expect(hardeningMigration).toContain("set_config('app.allow_financial_movement_reversal_update', 'on', true)");
     expect(hardeningMigration).toContain("financial_movement_reversal_attempts");

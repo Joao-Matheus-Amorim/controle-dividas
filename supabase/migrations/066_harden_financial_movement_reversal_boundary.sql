@@ -30,12 +30,22 @@ revoke all on public.financial_movement_reversal_attempts from public;
 revoke all on public.financial_movement_reversal_attempts from anon;
 revoke all on public.financial_movement_reversal_attempts from authenticated;
 
-create or replace function public.block_direct_financial_movement_reversal_updates()
+create or replace function public.block_direct_financial_movement_reversal_metadata_writes()
 returns trigger
 language plpgsql
 set search_path = public
 as $$
 begin
+  if tg_op = 'INSERT' then
+    if new.reversed_at is not null
+      or new.reversed_by_profile_id is not null
+      or nullif(trim(new.reversal_reason), '') is not null then
+      raise exception 'Reversal metadata can only be set through reverse_financial_movement.';
+    end if;
+
+    return new;
+  end if;
+
   if current_setting('app.allow_financial_movement_reversal_update', true) = 'on' then
     return new;
   end if;
@@ -50,17 +60,25 @@ begin
 end;
 $$;
 
-revoke all on function public.block_direct_financial_movement_reversal_updates() from public;
-revoke all on function public.block_direct_financial_movement_reversal_updates() from anon;
-revoke all on function public.block_direct_financial_movement_reversal_updates() from authenticated;
+revoke all on function public.block_direct_financial_movement_reversal_metadata_writes() from public;
+revoke all on function public.block_direct_financial_movement_reversal_metadata_writes() from anon;
+revoke all on function public.block_direct_financial_movement_reversal_metadata_writes() from authenticated;
+
+drop trigger if exists financial_movements_block_direct_reversal_inserts on public.financial_movements;
 
 drop trigger if exists financial_movements_block_direct_reversal_updates on public.financial_movements;
+
+create trigger financial_movements_block_direct_reversal_inserts
+  before insert
+  on public.financial_movements
+  for each row
+  execute function public.block_direct_financial_movement_reversal_metadata_writes();
 
 create trigger financial_movements_block_direct_reversal_updates
   before update of reversed_at, reversed_by_profile_id, reversal_reason
   on public.financial_movements
   for each row
-  execute function public.block_direct_financial_movement_reversal_updates();
+  execute function public.block_direct_financial_movement_reversal_metadata_writes();
 
 drop function if exists public.reverse_financial_movement(uuid, uuid, uuid, text);
 
