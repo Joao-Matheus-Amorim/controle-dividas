@@ -1,5 +1,6 @@
 "use client";
 
+import { Sparkles } from "lucide-react";
 import { useActionState, useEffect, useRef, useState } from "react";
 
 import { createPayableBill, updatePayableBill } from "@/app/protected/contas-a-pagar/actions";
@@ -21,6 +22,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { buildPayableBillDraftSuggestion } from "@/lib/finance/payable-draft";
 import type {
   DbBankAccount,
   DbExpenseCategory,
@@ -35,6 +37,7 @@ const initialState: PayableBillFormState = {};
 const customCategoryValue = "__custom_category__";
 
 type FixedBillAudience = "family" | "person";
+type PayableBillStatus = "pendente" | "pago" | "atrasado";
 
 type PayableBillFormProps = {
   members: DbFamilyMember[];
@@ -60,6 +63,8 @@ export function PayableBillForm({
   const recordedTimezoneRef = useRef<HTMLInputElement>(null);
   const [billType, setBillType] = useState<PayableBillType>(bill?.bill_type ?? "avulsa");
   const [fixedBillAudience, setFixedBillAudience] = useState<FixedBillAudience>("family");
+  const [draftPrompt, setDraftPrompt] = useState("");
+  const [draftApplied, setDraftApplied] = useState(false);
   const today = new Date().toISOString().slice(0, 10);
   const isEditing = mode === "edit" && Boolean(bill);
   const initialMemberId = bill?.responsible_member_id ?? defaultMemberId ?? "";
@@ -69,6 +74,12 @@ export function PayableBillForm({
   const [categoryValue, setCategoryValue] = useState(
     selectedCategory && !categoryNames.includes(selectedCategory) ? customCategoryValue : selectedCategory,
   );
+  const [name, setName] = useState(bill?.name ?? "");
+  const [amount, setAmount] = useState(bill ? String(bill.amount) : "");
+  const [dueDate, setDueDate] = useState(bill?.due_date ?? today);
+  const [status, setStatus] = useState<PayableBillStatus>(bill?.status ?? "pendente");
+  const [bankUsed, setBankUsed] = useState(bill?.bank_used ?? "");
+  const [notes, setNotes] = useState(bill?.notes ?? "");
   const isCustomCategory = categoryValue === customCategoryValue;
   const isFixedBill = billType === "fixa";
   const automaticMember = !isEditing && defaultMemberId
@@ -78,10 +89,14 @@ export function PayableBillForm({
     (account) => account.family_member_id === selectedMemberId,
   );
   const selectedBankUsed = bill?.bank_used ?? "";
+  const bankUsedBelongsToSelectedMember = memberBankAccounts.some((account) => account.bank_name === bankUsed);
   const keepsLegacyBankUsed =
     isEditing &&
     selectedBankUsed &&
     !memberBankAccounts.some((account) => account.bank_name === selectedBankUsed);
+  const selectedBankUsedValue = bankUsedBelongsToSelectedMember || keepsLegacyBankUsed
+    ? bankUsed
+    : "";
 
   useEffect(() => {
     if (state.success) {
@@ -95,10 +110,66 @@ export function PayableBillForm({
     }
   }
 
+  function applyDraftSuggestion() {
+    const suggestion = buildPayableBillDraftSuggestion(
+      draftPrompt,
+      categories,
+      memberBankAccounts,
+      today,
+    );
+
+    setBillType(suggestion.billType);
+    setCategoryValue(suggestion.category);
+    setName(suggestion.name);
+    setAmount(suggestion.amount);
+    setDueDate(suggestion.dueDate);
+    setStatus(suggestion.status);
+    setBankUsed(suggestion.bankUsed);
+    setNotes(suggestion.notes);
+    setDraftApplied(true);
+  }
+
   return (
     <form action={formAction} onSubmit={captureRecordedTimezone} className={financeFormClass}>
       {bill ? <input type="hidden" name="id" value={bill.id} /> : null}
       <input ref={recordedTimezoneRef} type="hidden" name="recorded_timezone" defaultValue="" />
+
+      {!isEditing ? (
+        <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/35">Rascunho assistido</p>
+              <p className="mt-1 text-sm text-white/45">Descreva a conta e revise os campos antes de cadastrar.</p>
+            </div>
+            {draftApplied ? (
+              <span className="rounded-full bg-[#8b72f8]/15 px-3 py-1 text-xs font-semibold text-[#c9bfff]">
+                rascunho aplicado
+              </span>
+            ) : null}
+          </div>
+          <div className="grid gap-3 md:grid-cols-[1fr_auto]">
+            <Input
+              value={draftPrompt}
+              onChange={(event) => {
+                setDraftPrompt(event.target.value);
+                setDraftApplied(false);
+              }}
+              placeholder="Ex: Conta de luz 120 no cartao itau vencendo amanha"
+              className={financeInputClass}
+            />
+            <Button
+              type="button"
+              variant="secondary"
+              className="h-11 rounded-2xl px-4"
+              onClick={applyDraftSuggestion}
+              disabled={!draftPrompt.trim()}
+            >
+              <Sparkles className="h-4 w-4" />
+              Sugerir
+            </Button>
+          </div>
+        </div>
+      ) : null}
 
       <div className={financeChoiceGroupClass}>
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/35">Tipo de conta</p>
@@ -175,7 +246,8 @@ export function PayableBillForm({
             id={isEditing ? `name-${bill?.id}` : "name"}
             name="name"
             placeholder={billType === "fixa" ? "Ex: Aluguel" : "Ex: Boleto eventual"}
-            defaultValue={bill?.name ?? ""}
+            value={name}
+            onChange={(event) => setName(event.target.value)}
             required
             className={financeInputClass}
           />
@@ -227,7 +299,8 @@ export function PayableBillForm({
             min="0.01"
             step="0.01"
             placeholder="120.00"
-            defaultValue={bill ? String(bill.amount) : ""}
+            value={amount}
+            onChange={(event) => setAmount(event.target.value)}
             required
             className={financeInputClass}
           />
@@ -237,7 +310,9 @@ export function PayableBillForm({
           <FinanceDateField
             id={isEditing ? `due_date-${bill?.id}` : "due_date"}
             name="due_date"
-            defaultValue={bill?.due_date ?? today}
+            defaultValue={dueDate}
+            value={dueDate}
+            onValueChange={setDueDate}
             label="Vencimento"
             required
           />
@@ -262,7 +337,10 @@ export function PayableBillForm({
               id={isEditing ? `responsible_member_id-${bill?.id}` : "responsible_member_id"}
               name="responsible_member_id"
               defaultValue={initialMemberId}
-              onChange={(event) => setSelectedMemberId(event.target.value)}
+              onChange={(event) => {
+                setSelectedMemberId(event.target.value);
+                setBankUsed("");
+              }}
               required
               className={financeNativeSelectClass}
             >
@@ -288,7 +366,8 @@ export function PayableBillForm({
           <select
             id={isEditing ? `status-${bill?.id}` : "status"}
             name="status"
-            defaultValue={bill?.status ?? "pendente"}
+            value={status}
+            onChange={(event) => setStatus(event.target.value as PayableBillStatus)}
             className={financeNativeSelectClass}
           >
             <option value="pendente">Pendente</option>
@@ -302,7 +381,8 @@ export function PayableBillForm({
           <select
             id={isEditing ? `bank_used-${bill?.id}` : "bank_used"}
             name="bank_used"
-            defaultValue={bill?.bank_used ?? ""}
+            value={selectedBankUsedValue}
+            onChange={(event) => setBankUsed(event.target.value)}
             className={financeNativeSelectClass}
           >
             <option value="">Selecione um banco cadastrado</option>
@@ -342,7 +422,8 @@ export function PayableBillForm({
           id={isEditing ? `notes-${bill?.id}` : "notes"}
           name="notes"
           placeholder="Opcional"
-          defaultValue={bill?.notes ?? ""}
+          value={notes}
+          onChange={(event) => setNotes(event.target.value)}
           className={financeInputClass}
         />
       </div>
