@@ -10,6 +10,7 @@ export type MovementReversalActionState = {
   success?: string;
 };
 
+// finance.movement.reverse controls are enforced inside reverse_financial_movement.
 export async function reverseFinancialMovement(
   _prevState: MovementReversalActionState,
   formData: FormData,
