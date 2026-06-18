@@ -15,7 +15,9 @@ describe("financial movements page guards", () => {
   const movementsPage = read("features/protected-pages/movimentacoes-page.tsx");
   const movementFilterBar = read("components/movements/movement-filter-bar.tsx");
   const movementList = read("components/movements/movement-list.tsx");
+  const movementReversalForm = read("components/movements/movement-reversal-form.tsx");
   const movementUtils = read("components/movements/movement-utils.ts");
+  const movementActions = read("app/protected/movimentacoes/actions.ts");
   const payableActions = read("app/protected/contas-a-pagar/actions.ts");
   const receivableActions = read("app/protected/contas-a-receber/actions.ts");
 
@@ -58,6 +60,19 @@ describe("financial movements page guards", () => {
     expect(movementUtils).toContain("movement.banks?.account_type");
     expect(movementUtils).toContain("movement.banks?.currency");
     expect(movementUtils).toContain("movement.expenses?.payment_method");
+  });
+
+  it("exposes movement reversal only for active payable and receivable ledger rows", () => {
+    expect(movementList).toContain("MovementReversalForm");
+    expect(movementList).toContain("!movement.reversed_at");
+    expect(movementList).toContain('movement.movement_type === "payable_bill_payment"');
+    expect(movementList).toContain('movement.movement_type === "receivable_income_receipt"');
+    expect(movementList).toContain("estornado");
+    expect(movementReversalForm).toContain("reverseFinancialMovement");
+    expect(movementReversalForm).toContain('name="id"');
+    expect(movementActions).toContain("finance.movement.reverse");
+    expect(movementActions).toContain("reverse_financial_movement");
+    expect(movementActions).toContain('"/protected/relatorios"');
   });
 
   it("revalidates movements after status actions create ledger entries", () => {

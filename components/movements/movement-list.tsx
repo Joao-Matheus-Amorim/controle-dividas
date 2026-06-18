@@ -8,6 +8,7 @@ import {
   movementTitle,
   movementTypeLabel,
 } from "./movement-utils";
+import { MovementReversalForm } from "./movement-reversal-form";
 
 interface MovementListProps {
   movements: DbFinancialMovement[];
@@ -47,6 +48,11 @@ export function MovementList({ movements }: MovementListProps) {
                   <Badge variant={movement.direction === "inflow" ? "secondary" : "destructive"}>
                     {movementTypeLabel(movement)}
                   </Badge>
+                  {movement.reversed_at ? (
+                    <Badge variant="outline" className="border-white/10 text-white/45">
+                      estornado
+                    </Badge>
+                  ) : null}
                 </div>
                 <p className="mt-1 truncate text-xs text-white/35">
                   {movement.family_members?.name ?? "Sem pessoa"} - {movementBankLabel(movement)}
@@ -61,14 +67,29 @@ export function MovementList({ movements }: MovementListProps) {
                 {movement.recorded_timezone ? (
                   <p className="mt-0.5 truncate text-white/25">{movement.recorded_timezone}</p>
                 ) : null}
+                {movement.reversed_at ? (
+                  <p className="mt-0.5 truncate text-ff-destructive">
+                    Estornado em {movementDateTime({ ...movement, occurred_at: movement.reversed_at })}
+                  </p>
+                ) : null}
               </div>
 
-              <p className={movement.direction === "inflow"
-                ? "text-sm font-bold text-[#1de9b2]"
-                : "text-sm font-bold text-ff-destructive"}
-              >
-                {movementAmount(movement)}
-              </p>
+              <div className="flex flex-col items-start gap-2 md:items-end">
+                <p className={movement.reversed_at
+                  ? "text-sm font-bold text-white/35 line-through"
+                  : movement.direction === "inflow"
+                    ? "text-sm font-bold text-[#1de9b2]"
+                    : "text-sm font-bold text-ff-destructive"}
+                >
+                  {movementAmount(movement)}
+                </p>
+                {!movement.reversed_at && (
+                  movement.movement_type === "payable_bill_payment" ||
+                  movement.movement_type === "receivable_income_receipt"
+                ) ? (
+                  <MovementReversalForm movementId={movement.id} />
+                ) : null}
+              </div>
             </div>
           ))}
         </div>
