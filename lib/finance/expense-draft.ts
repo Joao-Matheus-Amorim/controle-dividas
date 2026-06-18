@@ -1,4 +1,11 @@
 import { financeCategoryTaxonomy } from "@/lib/finance/category-taxonomy";
+import {
+  cleanFinanceDraftText,
+  financeDraftReviewNote,
+  findFinanceDraftBankByName,
+  normalizeFinanceDraftText,
+  parseFinanceDraftDate,
+} from "@/lib/finance/finance-draft-utils";
 import type { DbBankAccount, DbExpenseCategory } from "@/lib/finance/types";
 
 export type ExpenseDraftSuggestion = {
@@ -57,14 +64,6 @@ const categoryAliasesByKey: Record<string, string[]> = {
   "dividas-e-financiamentos": ["dividas e financiamentos"],
 };
 
-function normalizeText(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .trim()
-    .toLowerCase();
-}
-
 function parseDraftAmount(text: string) {
   const amountMatches = Array.from(text.matchAll(/(?:r\$|eur)?\s*(\d{1,6}(?:[.,]\d{1,2})?)/gi));
   const amountMatch = amountMatches[amountMatches.length - 1];
@@ -76,37 +75,8 @@ function parseDraftAmount(text: string) {
   return amountMatch[1].replace(",", ".");
 }
 
-function parseDraftDate(text: string, today: string) {
-  const normalizedText = normalizeText(text);
-
-  if (normalizedText.includes("ontem")) {
-    const date = new Date(`${today}T00:00:00`);
-    date.setDate(date.getDate() - 1);
-    return date.toISOString().slice(0, 10);
-  }
-
-  if (normalizedText.includes("amanha")) {
-    const date = new Date(`${today}T00:00:00`);
-    date.setDate(date.getDate() + 1);
-    return date.toISOString().slice(0, 10);
-  }
-
-  const dateMatch = text.match(/\b(\d{1,2})[/-](\d{1,2})(?:[/-](\d{2,4}))?\b/);
-  if (!dateMatch?.[1] || !dateMatch?.[2]) {
-    return today;
-  }
-
-  const year = dateMatch[3]
-    ? dateMatch[3].padStart(4, "20")
-    : today.slice(0, 4);
-  const month = dateMatch[2].padStart(2, "0");
-  const day = dateMatch[1].padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
-}
-
 function parsePaymentMethod(text: string) {
-  const normalizedText = normalizeText(text);
+  const normalizedText = normalizeFinanceDraftText(text);
 
   if (normalizedText.includes("pix")) return "PIX";
   if (normalizedText.includes("cartao")) return "Cartao";
@@ -126,13 +96,9 @@ function parsePurchaseLocation(text: string) {
 }
 
 function findBankAccountId(text: string, bankAccounts: DbBankAccount[]) {
-  const normalizedText = normalizeText(text);
+  const normalizedText = normalizeFinanceDraftText(text);
   const mentionsCard = normalizedText.includes("cartao");
-  const matchingAccounts = bankAccounts.filter((account) => {
-    const bankName = normalizeText(account.bank_name);
-
-    return bankName.length >= 2 && normalizedText.includes(bankName);
-  });
+  const matchingAccounts = bankAccounts.filter((account) => findFinanceDraftBankByName(text, [account]));
 
   if (matchingAccounts.length === 0) {
     return bankAccounts.length === 1 ? bankAccounts[0].id : "";
@@ -140,7 +106,7 @@ function findBankAccountId(text: string, bankAccounts: DbBankAccount[]) {
 
   if (mentionsCard) {
     const cardAccount = matchingAccounts.find((account) => {
-      const accountType = normalizeText(account.account_type ?? "");
+      const accountType = normalizeFinanceDraftText(account.account_type ?? "");
 
       return accountType.includes("cartao") || accountType.includes("credito");
     });
@@ -154,17 +120,17 @@ function findBankAccountId(text: string, bankAccounts: DbBankAccount[]) {
 }
 
 function findCategoryId(text: string, categories: DbExpenseCategory[]) {
-  const normalizedText = normalizeText(text);
+  const normalizedText = normalizeFinanceDraftText(text);
   const categoryByName = new Map(
-    categories.map((category) => [normalizeText(category.name), category.id]),
+    categories.map((category) => [normalizeFinanceDraftText(category.name), category.id]),
   );
   const categoryByTaxonomyKey = new Map<string, string>();
 
   for (const taxonomy of financeCategoryTaxonomy) {
     const categoryId =
-      categoryByName.get(normalizeText(taxonomy.name)) ??
+      categoryByName.get(normalizeFinanceDraftText(taxonomy.name)) ??
       categoryAliasesByKey[taxonomy.key]
-        ?.map((alias) => categoryByName.get(normalizeText(alias)))
+        ?.map((alias) => categoryByName.get(normalizeFinanceDraftText(alias)))
         .find((id): id is string => Boolean(id));
 
     if (categoryId) {
@@ -173,19 +139,19 @@ function findCategoryId(text: string, categories: DbExpenseCategory[]) {
   }
 
   for (const category of categories) {
-    if (normalizedText.includes(normalizeText(category.name))) {
+    if (normalizedText.includes(normalizeFinanceDraftText(category.name))) {
       return category.id;
     }
   }
 
   for (const group of categoryKeywordGroups) {
-    if (group.keywords.some((keyword) => normalizedText.includes(normalizeText(keyword)))) {
+    if (group.keywords.some((keyword) => normalizedText.includes(normalizeFinanceDraftText(keyword)))) {
       return categoryByTaxonomyKey.get(group.key) ?? "";
     }
   }
 
   for (const taxonomy of financeCategoryTaxonomy) {
-    const examples = taxonomy.classificationExamples.map(normalizeText);
+    const examples = taxonomy.classificationExamples.map(normalizeFinanceDraftText);
     if (examples.some((example) => normalizedText.includes(example))) {
       return categoryByTaxonomyKey.get(taxonomy.key) ?? "";
     }
@@ -206,10 +172,10 @@ export function buildExpenseDraftSuggestion(
     amount: parseDraftAmount(cleanText),
     bankId: findBankAccountId(cleanText, bankAccounts),
     categoryId: findCategoryId(cleanText, categories),
-    description: cleanText.replace(/\s+/g, " ").slice(0, 80),
-    expenseDate: parseDraftDate(cleanText, today),
+    description: cleanFinanceDraftText(cleanText).slice(0, 80),
+    expenseDate: parseFinanceDraftDate(cleanText, today),
     paymentMethod: parsePaymentMethod(cleanText),
     purchaseLocation: parsePurchaseLocation(cleanText),
-    notes: "Rascunho assistido; confira antes de cadastrar.",
+    notes: financeDraftReviewNote,
   };
 }

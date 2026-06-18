@@ -1,4 +1,10 @@
 import { buildExpenseDraftSuggestion } from "@/lib/finance/expense-draft";
+import {
+  cleanFinanceDraftText,
+  financeDraftReviewNote,
+  findFinanceDraftBankByName,
+  normalizeFinanceDraftText,
+} from "@/lib/finance/finance-draft-utils";
 import type { DbBankAccount, DbReceivableIncomeSource } from "@/lib/finance/types";
 
 export type ReceivableIncomeDraftSuggestion = {
@@ -12,16 +18,8 @@ export type ReceivableIncomeDraftSuggestion = {
   status: "previsto" | "recebido" | "atrasado";
 };
 
-function normalizeText(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .trim()
-    .toLowerCase();
-}
-
 function parseReceivableStatus(text: string): ReceivableIncomeDraftSuggestion["status"] {
-  const normalizedText = normalizeText(text);
+  const normalizedText = normalizeFinanceDraftText(text);
 
   if (/\b(?:recebi|recebido|recebida|caiu)\b/.test(normalizedText)) {
     return "recebido";
@@ -35,7 +33,7 @@ function parseReceivableStatus(text: string): ReceivableIncomeDraftSuggestion["s
 }
 
 function parseIncomeType(text: string): ReceivableIncomeDraftSuggestion["incomeType"] {
-  const normalizedText = normalizeText(text);
+  const normalizedText = normalizeFinanceDraftText(text);
 
   return /\b(?:salario|mensal|recorrente|fixa|fixo)\b/.test(normalizedText)
     ? "fixa"
@@ -43,22 +41,17 @@ function parseIncomeType(text: string): ReceivableIncomeDraftSuggestion["incomeT
 }
 
 function findReceivingBankName(text: string, bankAccounts: DbBankAccount[]) {
-  const normalizedText = normalizeText(text);
-  const matchingAccount = bankAccounts.find((account) => {
-    const bankName = normalizeText(account.bank_name);
-
-    return bankName.length >= 2 && normalizedText.includes(bankName);
-  });
+  const matchingAccount = findFinanceDraftBankByName(text, bankAccounts);
 
   return matchingAccount?.bank_name ?? (bankAccounts.length === 1 ? bankAccounts[0].bank_name : "");
 }
 
 function findSourceName(text: string, sources: DbReceivableIncomeSource[]) {
-  const normalizedText = normalizeText(text);
-  const sourceByName = new Map(sources.map((source) => [normalizeText(source.name), source.name]));
+  const normalizedText = normalizeFinanceDraftText(text);
+  const sourceByName = new Map(sources.map((source) => [normalizeFinanceDraftText(source.name), source.name]));
 
   for (const source of sources) {
-    if (normalizedText.includes(normalizeText(source.name))) {
+    if (normalizedText.includes(normalizeFinanceDraftText(source.name))) {
       return source.name;
     }
   }
@@ -79,7 +72,7 @@ function findSourceName(text: string, sources: DbReceivableIncomeSource[]) {
     }
 
     const source = group.sourceNames
-      .map((sourceName) => sourceByName.get(normalizeText(sourceName)))
+      .map((sourceName) => sourceByName.get(normalizeFinanceDraftText(sourceName)))
       .find((sourceName): sourceName is string => Boolean(sourceName));
 
     if (source) {
@@ -118,13 +111,13 @@ export function buildReceivableIncomeDraftSuggestion(
   today: string,
 ): ReceivableIncomeDraftSuggestion {
   const baseDraft = buildExpenseDraftSuggestion(text, [], bankAccounts, today);
-  const cleanText = text.trim().replace(/\s+/g, " ");
+  const cleanText = cleanFinanceDraftText(text);
 
   return {
     amount: parseReceivableAmount(cleanText),
     expectedDate: baseDraft.expenseDate,
     incomeType: parseIncomeType(cleanText),
-    notes: "Rascunho assistido; confira antes de cadastrar.",
+    notes: financeDraftReviewNote,
     paymentOrigin: parsePaymentOrigin(cleanText),
     receivingBank: findReceivingBankName(cleanText, bankAccounts),
     source: findSourceName(cleanText, sources),
