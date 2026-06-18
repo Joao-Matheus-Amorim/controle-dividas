@@ -32,7 +32,7 @@ const mockState = vi.hoisted(() => ({
   updatedRows: [] as Array<{ table: string; payload: Record<string, unknown>; filters: Record<string, unknown> }>,
   deletedRows: [] as Array<{ table: string; filters: Record<string, unknown> }>,
   mutationCount: 1 as number | null,
-  mutationError: null as { code?: string; message: string; details?: string } | null,
+  mutationError: null as { message: string } | null,
   rateLimitAllowed: true,
   rateLimitAllowedByOperation: {} as Record<string, boolean>,
   rateLimitChecks: [] as Array<Record<string, unknown>>,
@@ -638,7 +638,6 @@ describe("bank audit runtime actions", () => {
 
     const result = await deleteBankAccount(createFormData({
       id: "bank-1",
-      confirm_delete: "confirmado",
     }));
 
     expect(result).toEqual({ success: "Banco excluido com sucesso." });
@@ -666,49 +665,16 @@ describe("bank audit runtime actions", () => {
     ]);
   });
 
-  it("blocks bank delete without explicit confirmation", async () => {
-    const { deleteBankAccount } = await import("@/app/protected/bancos/actions");
-
-    const result = await deleteBankAccount(createFormData({
-      id: "bank-1",
-      confirm_delete: "",
-    }));
-
-    expect(result).toEqual({ error: "Confirme a exclusao antes de continuar." });
-    expect(mockState.deletedRows).toHaveLength(0);
-    expect(mockState.auditEvents).toHaveLength(0);
-  });
-
   it("does not record bank delete audit event when no row was deleted", async () => {
     const { deleteBankAccount } = await import("@/app/protected/bancos/actions");
     mockState.mutationCount = 0;
 
     const result = await deleteBankAccount(createFormData({
       id: "bank-1",
-      confirm_delete: "confirmado",
     }));
 
     expect(result).toEqual({ error: "Banco nao encontrado." });
     expect(mockState.deletedRows).toHaveLength(1);
-    expect(mockState.auditEvents).toHaveLength(0);
-  });
-
-  it("returns a product message when bank delete is blocked by movements", async () => {
-    const { deleteBankAccount } = await import("@/app/protected/bancos/actions");
-    mockState.mutationError = {
-      code: "23503",
-      message: "update or delete on table banks violates foreign key constraint",
-      details: "Key is still referenced from table financial_movements.",
-    };
-
-    const result = await deleteBankAccount(createFormData({
-      id: "bank-1",
-      confirm_delete: "confirmado",
-    }));
-
-    expect(result).toEqual({
-      error: "Banco com movimentacao financeira nao pode ser excluido sem estorno ou migracao.",
-    });
     expect(mockState.auditEvents).toHaveLength(0);
   });
 
@@ -718,7 +684,6 @@ describe("bank audit runtime actions", () => {
 
     const result = await deleteBankAccount(createFormData({
       id: "bank-1",
-      confirm_delete: "confirmado",
     }));
 
     expect(result).toEqual({

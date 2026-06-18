@@ -5,7 +5,6 @@ import {
   assertCanAccessMember,
   getCurrentProfile,
 } from "@/lib/finance/access-control";
-import { isFinancialMovementReferenceError } from "@/lib/finance/delete-guard-errors";
 import type { PermissionAction } from "@/lib/finance/permissions";
 import type { ExpenseFormState } from "@/lib/finance/types";
 import { revalidateOrganizationPaths } from "@/lib/organizations/revalidation";
@@ -496,7 +495,7 @@ export async function deleteExpense(
       .eq("organization_id", organization.id);
 
     if (error) {
-      if (isFinancialMovementReferenceError(error)) {
+      if (error.code === "23503" || error.message.toLowerCase().includes("financial_movements")) {
         return { error: "Gasto com movimentacao financeira nao pode ser excluido sem estorno." };
       }
 
