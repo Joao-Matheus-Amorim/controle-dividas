@@ -29,7 +29,7 @@ Bank audit runtime exists in app/protected/bancos/actions.ts using record_audit_
 Bank write audit runtime exists in app/protected/bancos/actions.ts using record_audit_event.
 Member limit audit runtime exists in lib/finance/member-limit-controls.ts, app/protected/configuracoes/actions.ts, and app/protected/pessoas/actions.ts using record_audit_event.
 Member status audit runtime exists in lib/finance/member-status-controls.ts and app/protected/pessoas/actions.ts using record_audit_event.
-Member write audit runtime exists in lib/finance/member-write-controls.ts and app/protected/pessoas/actions.ts using record_audit_event.
+Member write audit runtime exists in lib/finance/member-write-controls.ts and app/protected/pessoas/actions.ts using record_audit_event for `finance.member.create`, `finance.member.update`, and `finance.member.delete`.
 Read-side RLS exists for organization owner/admin.
 No insert/update/delete policy for authenticated users.
 No UI.
@@ -77,7 +77,7 @@ Initial operation keys should be stable strings, not translated UI labels:
 | Finance category writes | `finance.category.create`, `finance.category.update` |
 | Finance bank writes | `finance.bank.create`, `finance.bank.update` |
 | Finance status/balance/limit changes | `finance.payable.status.update`, `finance.receivable.status.update`, `finance.bank.balance.update`, `finance.member.limit.update`, `finance.member.status.update` |
-| Finance member writes | `finance.member.create`, `finance.member.update` |
+| Finance member writes | `finance.member.create`, `finance.member.update`, `finance.member.delete` |
 | Organization membership | `organization.membership.role.update`, `organization.membership.status.update` |
 
 Each runtime PR should add only the keys it actually emits.
@@ -127,7 +127,7 @@ The initial audit event storage decision is:
 - Category write runtime calls `record_audit_event` for category creation and update without storing names or descriptions.
 - Bank runtime calls `record_audit_event` for creation, update, balance updates, and deletion without storing balances, bank names, notes, or full payloads.
 - Member limit runtime calls `record_audit_event` for monthly limit updates without storing previous or next amounts.
-- Member write runtime calls `record_audit_event` for family member creation and profile updates without storing names, roles, or financial amounts.
+- Member write runtime calls `record_audit_event` for family member creation, profile updates, and guarded deletion without storing names, roles, or financial amounts.
 
 Runtime logging PRs must call the write boundary from one operation family at a time.
 

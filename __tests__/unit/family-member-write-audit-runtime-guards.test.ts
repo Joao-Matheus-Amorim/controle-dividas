@@ -40,6 +40,7 @@ describe("family member write audit runtime guards", () => {
   const writeControls = read("lib/finance/member-write-controls.ts");
   const createAction = functionBlock(peopleActions, "createfamilymember");
   const updateAction = functionBlock(peopleActions, "updatefamilymember");
+  const deleteAction = functionBlock(peopleActions, "deletefamilymember");
   const memberCreateRateLimitCall = rateLimitCallBlock(createAction, "familymembercreateratelimit");
   const memberUpdateRateLimitCall = updateAction;
   const actions = [peopleActions, writeControls].join("\n");
@@ -54,10 +55,12 @@ describe("family member write audit runtime guards", () => {
     expect(actions).toContain("recordfamilymemberwriteauditevent");
     expect(actions).toContain("finance.member.create");
     expect(actions).toContain("finance.member.update");
+    expect(actions).toContain("finance.member.delete");
     expect(actions).toContain('targettype: "family_member"');
     expect(actions).toContain("checksensitiveoperationratelimit");
     expect(actions).toContain('operationkey: "finance.member.create"');
     expect(actions).toContain('operationkey: "finance.member.update"');
+    expect(actions).toContain('operationkey: "finance.member.delete"');
 
     expect(createAction).toContain("familymembercreateratelimit");
     expect(createAction).toContain("requireorganizationadmin");
@@ -79,11 +82,19 @@ describe("family member write audit runtime guards", () => {
     expect(updateAction).toContain("rate_limited");
     expect(updateAction).toContain("if (count !== 1)");
     expect(updateAction).not.toContain('.eq("owner_id", profile.owner_id)');
+
+    expect(deleteAction).toContain("requireorganizationadmin");
+    expect(deleteAction).toContain("familymemberdeleteratelimit");
+    expect(deleteAction).toContain("assertfamilymembercanbedeleted");
+    expect(deleteAction).toContain(".delete({ count: \"exact\" })");
+    expect(deleteAction).toContain(".eq(\"organization_id\", organization.id)");
+    expect(deleteAction).toContain("member_deleted");
   });
 
   it("keeps emitted metadata redacted and small", () => {
     expect(actions).toContain("member_created");
     expect(actions).toContain("member_profile_changed");
+    expect(actions).toContain("member_deleted");
     expect(actions).not.toContain("previous_name");
     expect(actions).not.toContain("next_name");
     expect(actions).not.toContain("previous_role");
@@ -105,6 +116,7 @@ describe("family member write audit runtime guards", () => {
     for (const source of [schemaPlan, rateLimitPlan, contract, roadmap, liveStatus, gapRegister]) {
       expect(source).toContain("finance.member.create");
       expect(source).toContain("finance.member.update");
+      expect(source).toContain("finance.member.delete");
     }
 
     for (const source of [rateLimitPlan, contract, roadmap, liveStatus, gapRegister]) {

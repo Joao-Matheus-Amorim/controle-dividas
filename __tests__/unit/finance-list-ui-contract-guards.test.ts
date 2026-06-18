@@ -120,6 +120,8 @@ describe("finance list UI contract guards", () => {
   it("keeps people list identity, access, status, and edit surfaces explicit", () => {
     const list = readNormalized("components/people/people-list.tsx");
     const item = readSource("components/people/people-list-item.tsx");
+    const deleteForm = readSource("components/people/people-delete-form.tsx");
+    const actions = readSource("app/protected/pessoas/actions.ts");
 
     expect(list).toContain("membros cadastrados");
     expect(list).toContain("peoplelistitem");
@@ -127,9 +129,18 @@ describe("finance list UI contract guards", () => {
 
     expect(item).toContain("PeopleStatusForm");
     expect(item).toContain("PeopleEditForm");
+    expect(item).toContain("PeopleDeleteForm");
     expect(item).toContain("Login ativo");
     expect(item).toContain("Aguardando primeiro acesso");
     expect(item).toContain("Sem acesso");
     expect(item).toContain("Editar pessoa");
+
+    expect(deleteForm).toContain("deleteFamilyMemberWithState");
+    expect(deleteForm).toContain('name="confirm_delete"');
+    expect(deleteForm).toContain("Excluir pessoa");
+    expect(deleteForm).toContain("Desative a pessoa em vez de excluir");
+    expect(actions).toContain("export async function deleteFamilyMember");
+    expect(actions).toContain("assertFamilyMemberCanBeDeleted");
+    expect(actions).toContain("financial_movements");
   });
 });
