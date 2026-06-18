@@ -5,6 +5,7 @@ import {
   assertCanAccessMember,
   getCurrentProfile,
 } from "@/lib/finance/access-control";
+import { isFinancialMovementReferenceError } from "@/lib/finance/delete-guard-errors";
 import type { PermissionAction } from "@/lib/finance/permissions";
 import type { PayableBillFormState, PayableBillType } from "@/lib/finance/types";
 import { revalidateOrganizationPaths } from "@/lib/organizations/revalidation";
@@ -727,6 +728,10 @@ export async function deletePayableBill(
       .eq("organization_id", organization.id);
 
     if (error) {
+      if (isFinancialMovementReferenceError(error)) {
+        return { error: "Conta com movimentacao financeira nao pode ser excluida sem estorno." };
+      }
+
       return { error: error.message };
     }
 
