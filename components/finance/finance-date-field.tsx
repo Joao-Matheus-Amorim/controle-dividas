@@ -21,6 +21,8 @@ type FinanceDateFieldProps = {
   name: string;
   label: string;
   defaultValue: string;
+  value?: string;
+  onValueChange?: (value: string) => void;
   required?: boolean;
 };
 
@@ -43,12 +45,20 @@ export function FinanceDateField({
   name,
   label,
   defaultValue,
+  value: controlledValue,
+  onValueChange,
   required = false,
 }: FinanceDateFieldProps) {
-  const [value, setValue] = useState(defaultValue);
+  const [internalValue, setInternalValue] = useState(defaultValue);
   const [isOpen, setIsOpen] = useState(false);
   const pickerId = `${id}-picker`;
   const triggerId = `${id}-trigger`;
+  const value = controlledValue ?? internalValue;
+
+  function handleValueChange(nextValue: string) {
+    setInternalValue(nextValue);
+    onValueChange?.(nextValue);
+  }
 
   return (
     <>
@@ -78,7 +88,7 @@ export function FinanceDateField({
                 id={pickerId}
                 type="date"
                 value={value}
-                onChange={(event) => setValue(event.target.value)}
+                onChange={(event) => handleValueChange(event.target.value)}
                 required={required}
                 className={financeInputClass}
               />
