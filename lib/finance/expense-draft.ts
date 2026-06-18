@@ -1,11 +1,12 @@
 import { financeCategoryTaxonomy } from "@/lib/finance/category-taxonomy";
-import type { DbExpenseCategory } from "@/lib/finance/types";
+import type { DbBankAccount, DbExpenseCategory } from "@/lib/finance/types";
 
 export type ExpenseDraftSuggestion = {
   amount: string;
   categoryId: string;
   description: string;
   expenseDate: string;
+  bankId: string;
   paymentMethod: string;
   purchaseLocation: string;
   notes: string;
@@ -113,7 +114,38 @@ function parsePurchaseLocation(text: string) {
   const locationMatch = text.match(/\b(?:no|na|em)\s+([A-Za-z0-9&.' -]{2,40})/i);
   const rawLocation = locationMatch?.[1]?.trim() ?? "";
 
-  return rawLocation.replace(/\s+(?:de|do|da)\s+\d.*$/i, "").trim();
+  return rawLocation
+    .replace(/\s+(?:de|do|da|por)\s+\d.*$/i, "")
+    .replace(/\s+(?:no|na|com)\s+(?:cartao|pix|dinheiro|transferencia).*$/i, "")
+    .trim();
+}
+
+function findBankAccountId(text: string, bankAccounts: DbBankAccount[]) {
+  const normalizedText = normalizeText(text);
+  const mentionsCard = normalizedText.includes("cartao");
+  const matchingAccounts = bankAccounts.filter((account) => {
+    const bankName = normalizeText(account.bank_name);
+
+    return bankName.length >= 2 && normalizedText.includes(bankName);
+  });
+
+  if (matchingAccounts.length === 0) {
+    return bankAccounts.length === 1 ? bankAccounts[0].id : "";
+  }
+
+  if (mentionsCard) {
+    const cardAccount = matchingAccounts.find((account) => {
+      const accountType = normalizeText(account.account_type ?? "");
+
+      return accountType.includes("cartao") || accountType.includes("credito");
+    });
+
+    if (cardAccount) {
+      return cardAccount.id;
+    }
+  }
+
+  return matchingAccounts[0].id;
 }
 
 function findCategoryId(text: string, categories: DbExpenseCategory[]) {
@@ -160,12 +192,14 @@ function findCategoryId(text: string, categories: DbExpenseCategory[]) {
 export function buildExpenseDraftSuggestion(
   text: string,
   categories: DbExpenseCategory[],
+  bankAccounts: DbBankAccount[],
   today: string,
 ): ExpenseDraftSuggestion {
   const cleanText = text.trim();
 
   return {
     amount: parseDraftAmount(cleanText),
+    bankId: findBankAccountId(cleanText, bankAccounts),
     categoryId: findCategoryId(cleanText, categories),
     description: cleanText.replace(/\s+/g, " ").slice(0, 80),
     expenseDate: parseDraftDate(cleanText, today),

@@ -66,6 +66,7 @@ export function ExpenseForm({
   const [description, setDescription] = useState(expense?.description ?? "");
   const [purchaseLocation, setPurchaseLocation] = useState(expense?.purchase_location ?? "");
   const [paymentMethod, setPaymentMethod] = useState(expense?.payment_method ?? "");
+  const [bankId, setBankId] = useState("");
   const [notes, setNotes] = useState(expense?.notes ?? "");
   const automaticMember = !isEditing && defaultMemberId
     ? members.find((member) => member.id === defaultMemberId) ?? null
@@ -86,11 +87,23 @@ export function ExpenseForm({
     }
   }, [onSuccess, state.success]);
 
+  useEffect(() => {
+    if (bankId && !memberBankAccounts.some((account) => account.id === bankId)) {
+      setBankId("");
+    }
+  }, [bankId, memberBankAccounts]);
+
   function applyDraftSuggestion() {
-    const suggestion = buildExpenseDraftSuggestion(draftPrompt, categories, today);
+    const suggestion = buildExpenseDraftSuggestion(
+      draftPrompt,
+      categories,
+      memberBankAccounts,
+      today,
+    );
 
     if (suggestion.categoryId) setCategoryId(suggestion.categoryId);
     if (suggestion.expenseDate) setExpenseDate(suggestion.expenseDate);
+    if (suggestion.bankId) setBankId(suggestion.bankId);
     if (suggestion.amount) setAmount(suggestion.amount);
     if (suggestion.description) setDescription(suggestion.description);
     if (suggestion.purchaseLocation) setPurchaseLocation(suggestion.purchaseLocation);
@@ -283,6 +296,8 @@ export function ExpenseForm({
             <select
               id="bank_id"
               name="bank_id"
+              value={bankId}
+              onChange={(event) => setBankId(event.target.value)}
               required
               className={financeNativeSelectClass}
             >
