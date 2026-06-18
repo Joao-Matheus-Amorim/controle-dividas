@@ -139,7 +139,7 @@ Residual risk:
    - Needs inventory, preflight, rollback, migration, and action/read-helper changes in multiple small PRs.
 
 4. Product feature completeness
-   - Known gaps from `VALIDACAO_TECNICA.md`: full edit flows for expenses/payables/receivables/banks, category editing, currency/period/general settings, advanced reports filters/export/charts, dynamic period.
+   - Known gaps from `VALIDACAO_TECNICA.md`: category editing, currency/period/general settings, advanced reports filters/export/charts, dynamic period.
 
 ### P2 - UI/design migration
 

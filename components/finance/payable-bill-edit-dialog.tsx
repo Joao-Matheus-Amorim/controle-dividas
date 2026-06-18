@@ -1,23 +1,35 @@
 "use client";
 
 import { Pencil } from "lucide-react";
+import { useState } from "react";
 
 import { AppFormSheet } from "@/components/app/app-form-sheet";
 import { PayableBillForm } from "@/components/finance/payable-bill-form";
 import { Button } from "@/components/ui/button";
-import type { DbBankAccount, DbFamilyMember, DbPayableBill } from "@/lib/finance/types";
+import type {
+  DbBankAccount,
+  DbExpenseCategory,
+  DbFamilyMember,
+  DbPayableBill,
+} from "@/lib/finance/types";
 
 export function PayableBillEditDialog({
   bill,
   members,
+  categories,
   bankAccounts,
 }: {
   bill: DbPayableBill;
   members: DbFamilyMember[];
+  categories: DbExpenseCategory[];
   bankAccounts: DbBankAccount[];
 }) {
+  const [open, setOpen] = useState(false);
+
   return (
     <AppFormSheet
+      open={open}
+      onOpenChange={setOpen}
       title="Editar conta ou divida"
       description="Atualize dados, tipo, responsavel, vencimento, status e observacoes."
       triggerLabel="Editar conta"
@@ -33,7 +45,14 @@ export function PayableBillEditDialog({
         </Button>
       }
     >
-      <PayableBillForm members={members} bankAccounts={bankAccounts} bill={bill} mode="edit" />
+      <PayableBillForm
+        members={members}
+        categories={categories}
+        bankAccounts={bankAccounts}
+        bill={bill}
+        mode="edit"
+        onSuccess={() => setOpen(false)}
+      />
     </AppFormSheet>
   );
 }

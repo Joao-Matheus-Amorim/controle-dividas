@@ -186,6 +186,30 @@ async function assertBankNameBelongsToReceiverMember(
   return banks[0];
 }
 
+async function assertReceivableSourceBelongsToOrganization(
+  organizationId: string,
+  sourceName: string,
+) {
+  const supabase = await createClient();
+  const { data: source, error } = await supabase
+    .from("receivable_income_sources")
+    .select("id")
+    .eq("organization_id", organizationId)
+    .ilike("name", sourceName)
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (!source) {
+    throw new Error("Selecione uma origem cadastrada em Configuracoes.");
+  }
+
+  return source;
+}
+
 function parseReceivableIncomeForm(formData: FormData) {
   const receiverMemberId = String(formData.get("receiver_member_id") ?? "");
   const source = String(formData.get("source") ?? "").trim();
@@ -277,6 +301,10 @@ export async function createReceivableIncome(
       input.receiverMemberId,
     );
     await assertCanAccessMember("CONTAS_A_RECEBER", "can_create", input.receiverMemberId);
+    await assertReceivableSourceBelongsToOrganization(
+      organization.id,
+      input.source,
+    );
     await assertBankNameBelongsToReceiverMember(
       organization.id,
       input.receivingBank,
@@ -373,6 +401,13 @@ export async function updateReceivableIncome(
         input.receiverMemberId,
       );
       await assertCanAccessMember("CONTAS_A_RECEBER", "can_edit", input.receiverMemberId);
+    }
+
+    if (String(income.source ?? "").trim() !== input.source) {
+      await assertReceivableSourceBelongsToOrganization(
+        organization.id,
+        input.source,
+      );
     }
 
     const existingReceivingBank = String(income.receiving_bank ?? "").trim();

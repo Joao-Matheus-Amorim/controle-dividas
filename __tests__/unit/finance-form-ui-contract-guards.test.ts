@@ -68,6 +68,27 @@ describe("finance form UI contract guards", () => {
     expect(source).toContain("icon=");
   });
 
+  it("closes primary finance create sheets after successful saves", () => {
+    const primaryCreateDialogs = [
+      "components/finance/expense-form-dialog.tsx",
+      "components/finance/payable-bill-form-dialog.tsx",
+      "components/finance/receivable-income-form-dialog.tsx",
+      "components/finance/bank-account-form-dialog.tsx",
+    ];
+
+    for (const path of primaryCreateDialogs) {
+      const source = readSource(path);
+
+      expect(source).toContain("useState");
+      expect(source).toContain("open={open}");
+      expect(source).toContain("onOpenChange={setOpen}");
+      expect(source).toContain("function handleSuccess()");
+      expect(source).toContain("setOpen(false)");
+      expect(source).toContain("setFormKey");
+      expect(source).toContain("onSuccess={handleSuccess}");
+    }
+  });
+
   it("keeps expense form create/edit fields and hidden edit id", () => {
     const source = readSource("components/finance/expense-form.tsx");
 

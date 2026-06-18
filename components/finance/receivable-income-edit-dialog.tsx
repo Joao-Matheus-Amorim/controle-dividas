@@ -1,23 +1,35 @@
 "use client";
 
 import { Pencil } from "lucide-react";
+import { useState } from "react";
 
 import { AppFormSheet } from "@/components/app/app-form-sheet";
 import { ReceivableIncomeForm } from "@/components/finance/receivable-income-form";
 import { Button } from "@/components/ui/button";
-import type { DbBankAccount, DbFamilyMember, DbReceivableIncome } from "@/lib/finance/types";
+import type {
+  DbBankAccount,
+  DbFamilyMember,
+  DbReceivableIncome,
+  DbReceivableIncomeSource,
+} from "@/lib/finance/types";
 
 export function ReceivableIncomeEditDialog({
   income,
   members,
+  sources,
   bankAccounts,
 }: {
   income: DbReceivableIncome;
   members: DbFamilyMember[];
+  sources: DbReceivableIncomeSource[];
   bankAccounts: DbBankAccount[];
 }) {
+  const [open, setOpen] = useState(false);
+
   return (
     <AppFormSheet
+      open={open}
+      onOpenChange={setOpen}
       title="Editar recebimento"
       description="Atualize pessoa, origem, pagador, valor, data, status, banco e observações."
       triggerLabel="Editar recebimento"
@@ -33,7 +45,14 @@ export function ReceivableIncomeEditDialog({
         </Button>
       }
     >
-      <ReceivableIncomeForm members={members} bankAccounts={bankAccounts} income={income} mode="edit" />
+      <ReceivableIncomeForm
+        members={members}
+        sources={sources}
+        bankAccounts={bankAccounts}
+        income={income}
+        mode="edit"
+        onSuccess={() => setOpen(false)}
+      />
     </AppFormSheet>
   );
 }

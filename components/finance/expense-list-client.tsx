@@ -203,6 +203,7 @@ export function ExpenseListClient({
                 bankAccounts={bankAccounts}
                 expense={editingExpense}
                 mode="edit"
+                onSuccess={() => setEditingExpense(null)}
               />
             ) : null}
           </div>

@@ -401,9 +401,7 @@ Pendente conhecido:
 - [ ] Gasto aparece por categoria.
 - [ ] Permissao por membro e respeitada.
 
-Pendente conhecido:
-
-- edicao completa de gasto.
+- [ ] Editar gasto completo.
 
 ### 9. Contas a pagar
 
@@ -414,10 +412,9 @@ Pendente conhecido:
 - [ ] Conta aparece no Dashboard.
 - [ ] Conta aparece nos Relatorios.
 - [ ] Permissao por responsavel e respeitada.
+- [ ] Categoria da conta a pagar vem de Configuracoes.
 
-Pendente conhecido:
-
-- edicao completa de conta a pagar.
+- [ ] Editar conta a pagar completa.
 
 ### 10. Contas a receber
 
@@ -427,10 +424,9 @@ Pendente conhecido:
 - [ ] Recebimento vencido aparece como atrasado.
 - [ ] Recebimento recebido aparece em Relatorios.
 - [ ] Permissao por recebedor e respeitada.
+- [ ] Origem do recebimento vem de Configuracoes.
 
-Pendente conhecido:
-
-- edicao completa de conta a receber.
+- [ ] Editar conta a receber completa.
 
 ### 11. Bancos
 
@@ -441,14 +437,14 @@ Pendente conhecido:
 - [ ] Saldo aparece em Relatorios.
 - [ ] Permissao por membro vinculado e respeitada.
 
-Pendente conhecido:
-
-- edicao completa de conta bancaria.
+- [ ] Editar conta bancaria completa.
 
 ### 12. Configuracoes
 
 - [ ] Criar categoria.
 - [ ] Excluir categoria.
+- [ ] Criar origem de recebimento.
+- [ ] Excluir origem de recebimento.
 - [ ] Atualizar limite mensal.
 
 Pendentes conhecidos:

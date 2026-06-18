@@ -126,19 +126,19 @@ Legenda:
 - [PARCIAL] 6.6 Editar categoria.
 - [OK] 6.7 Criar gasto.
 - [OK] 6.8 Excluir gasto.
-- [PARCIAL] 6.9 Editar gasto completo.
+- [OK] 6.9 Editar gasto completo.
 - [OK] 6.10 Criar conta a pagar.
 - [OK] 6.11 Alterar status de conta a pagar.
 - [OK] 6.12 Excluir conta a pagar.
-- [PARCIAL] 6.13 Editar conta a pagar completa.
+- [OK] 6.13 Editar conta a pagar completa.
 - [OK] 6.14 Criar conta a receber.
 - [OK] 6.15 Alterar status de conta a receber.
 - [OK] 6.16 Excluir conta a receber.
-- [PARCIAL] 6.17 Editar conta a receber completa.
+- [OK] 6.17 Editar conta a receber completa.
 - [OK] 6.18 Criar banco/conta bancaria.
 - [OK] 6.19 Atualizar saldo bancario.
 - [OK] 6.20 Excluir banco/conta bancaria.
-- [PARCIAL] 6.21 Editar banco completo.
+- [OK] 6.21 Editar banco completo.
 - [PLANEJADO] 6.22 Validar todas as actions por organizacao ativa.
 - [PLANEJADO] 6.23 Impedir mutacoes cross-tenant em Server Actions.
 - [PLANEJADO] 6.24 Testar fluxo de CRUD por duas organizacoes distintas.

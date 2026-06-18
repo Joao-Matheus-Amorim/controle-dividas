@@ -1,11 +1,12 @@
 import { FinanceCreateCard } from "@/components/finance/finance-create-card";
 import { PayableBillFormDialog } from "@/components/finance/payable-bill-form-dialog";
-import type { DbBankAccount, DbFamilyMember } from "@/lib/finance/types";
+import type { DbBankAccount, DbExpenseCategory, DbFamilyMember } from "@/lib/finance/types";
 import { getOrgPathFromProtectedPath } from "@/lib/organizations/paths";
 
 interface PayableCreateSectionProps {
   canCreate: boolean;
   members: DbFamilyMember[];
+  categories: DbExpenseCategory[];
   bankAccounts: DbBankAccount[];
   orgSlug?: string;
 }
@@ -13,6 +14,7 @@ interface PayableCreateSectionProps {
 export function PayableCreateSection({
   canCreate,
   members,
+  categories,
   bankAccounts,
   orgSlug,
 }: PayableCreateSectionProps) {
@@ -29,7 +31,12 @@ export function PayableCreateSection({
       memberCount={members.length}
       peopleHref={getOrgPathFromProtectedPath("/protected/pessoas", orgSlug)}
     >
-      <PayableBillFormDialog members={members} bankAccounts={bankAccounts} defaultMemberId={defaultMemberId} />
+      <PayableBillFormDialog
+        members={members}
+        categories={categories}
+        bankAccounts={bankAccounts}
+        defaultMemberId={defaultMemberId}
+      />
     </FinanceCreateCard>
   );
 }

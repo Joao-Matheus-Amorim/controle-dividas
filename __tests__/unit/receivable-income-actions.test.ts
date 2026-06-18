@@ -36,6 +36,11 @@ const mockState = vi.hoisted(() => ({
     receiving_bank: null,
     notes: null,
   } as Record<string, unknown> | null,
+  incomeSourceLookup: {
+    id: "source-1",
+    organization_id: "org-1",
+    name: "Freelance",
+  } as Record<string, unknown> | null,
   memberLookup: {
     id: "member-1",
     organization_id: "org-1",
@@ -94,6 +99,10 @@ function makeQuery(table: string) {
 
       return query;
     },
+    ilike(key: string, value: unknown) {
+      filters[key] = value;
+      return query;
+    },
     or(expression: string) {
       filters.or = expression;
 
@@ -121,6 +130,10 @@ function makeQuery(table: string) {
         return Promise.resolve({ data: mockState.bankLookup, error: null });
       }
 
+      if (table === "receivable_income_sources") {
+        return Promise.resolve({ data: mockState.incomeSourceLookup, error: null });
+      }
+
       return Promise.resolve({ data: null, error: null });
     },
     limit(value: number) {
@@ -128,14 +141,20 @@ function makeQuery(table: string) {
         throw new Error("Expected existence lookup limit");
       }
 
-      if (table === "banks") {
-        return Promise.resolve({
-          data: mockState.bankLookup ? [mockState.bankLookup] : [],
-          error: null,
-        });
-      }
+      filters.limit = value;
+      return query;
+    },
+    then(
+      onfulfilled?: ((value: { data: Record<string, unknown>[]; error: null }) => unknown) | null,
+      onrejected?: ((reason: unknown) => unknown) | null,
+    ) {
+      const data = table === "banks"
+        ? (mockState.bankLookup ? [mockState.bankLookup] : [])
+        : table === "receivable_income_sources"
+          ? (mockState.incomeSourceLookup ? [mockState.incomeSourceLookup] : [])
+          : [];
 
-      return Promise.resolve({ data: [], error: null });
+      return Promise.resolve({ data, error: null }).then(onfulfilled, onrejected);
     },
     single() {
       if (insertPayload) {
@@ -195,7 +214,13 @@ function makeSupabaseClient() {
       return Promise.resolve({ error: null });
     },
     from(table: string) {
-      if (!["receivable_incomes", "family_members", "banks", "financial_movements"].includes(table)) {
+      if (![
+        "receivable_incomes",
+        "family_members",
+        "banks",
+        "financial_movements",
+        "receivable_income_sources",
+      ].includes(table)) {
         throw new Error(`Unexpected table: ${table}`);
       }
 
@@ -271,6 +296,11 @@ describe("receivable income actions", () => {
       status: "previsto",
       receiving_bank: null,
       notes: null,
+    };
+    mockState.incomeSourceLookup = {
+      id: "source-1",
+      organization_id: "org-1",
+      name: "Freelance",
     };
     mockState.memberLookup = {
       id: "member-1",

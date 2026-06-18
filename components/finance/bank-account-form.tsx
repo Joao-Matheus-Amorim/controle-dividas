@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 
 import { createBankAccount, updateBankAccount } from "@/app/protected/bancos/actions";
 import { AppActionFeedback } from "@/components/app/app-action-feedback";
@@ -59,6 +59,7 @@ type BankAccountFormProps = {
   account?: DbBankAccount;
   mode?: "create" | "edit";
   defaultMemberId?: string;
+  onSuccess?: () => void;
 };
 
 export function BankAccountForm({
@@ -66,6 +67,7 @@ export function BankAccountForm({
   account,
   mode = "create",
   defaultMemberId,
+  onSuccess,
 }: BankAccountFormProps) {
   const action = mode === "edit" ? updateBankAccount : createBankAccount;
   const [state, formAction, isPending] = useActionState(action, initialState);
@@ -82,6 +84,12 @@ export function BankAccountForm({
   const automaticMember = !isEditing && defaultMemberId
     ? members.find((member) => member.id === defaultMemberId) ?? null
     : null;
+
+  useEffect(() => {
+    if (state.success) {
+      onSuccess?.();
+    }
+  }, [onSuccess, state.success]);
 
   return (
     <form action={formAction} className={financeFormClass}>

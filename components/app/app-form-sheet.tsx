@@ -21,6 +21,8 @@ interface AppFormSheetProps {
   icon?: LucideIcon;
   trigger?: ReactNode;
   children: ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 export function AppFormSheet({
@@ -30,9 +32,11 @@ export function AppFormSheet({
   icon: Icon,
   trigger,
   children,
+  open,
+  onOpenChange,
 }: AppFormSheetProps) {
   return (
-    <Sheet>
+    <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetTrigger asChild>
         {trigger ?? (
           <Button size="lg" className="h-12 w-full rounded-2xl text-base font-bold sm:w-auto sm:min-w-[12rem]">

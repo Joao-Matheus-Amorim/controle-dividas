@@ -3,7 +3,12 @@ import { FileText, PlusCircle, SearchX } from "lucide-react";
 
 import { AppEmptyState } from "@/components/app/app-empty-state";
 import { Button } from "@/components/ui/button";
-import type { DbBankAccount, DbFamilyMember, DbPayableBill } from "@/lib/finance/types";
+import type {
+  DbBankAccount,
+  DbExpenseCategory,
+  DbFamilyMember,
+  DbPayableBill,
+} from "@/lib/finance/types";
 import { getOrgPathFromProtectedPath } from "@/lib/organizations/paths";
 import { PayableFilterBar } from "./payable-filter-bar";
 import { PayableListItem } from "./payable-list-item";
@@ -15,6 +20,7 @@ interface PayableListProps {
   bills: PayableListBill[];
   filteredBills: PayableListBill[];
   members: DbFamilyMember[];
+  categories: DbExpenseCategory[];
   bankAccounts: DbBankAccount[];
   statusFilter: StatusFilter;
   typeFilter: TypeFilter;
@@ -29,6 +35,7 @@ export function PayableList({
   bills,
   filteredBills,
   members,
+  categories,
   bankAccounts,
   statusFilter,
   typeFilter,
@@ -93,6 +100,7 @@ export function PayableList({
             key={bill.id}
             bill={bill}
             members={members}
+            categories={categories}
             bankAccounts={bankAccounts}
             canEdit={canEdit}
             canDelete={canDelete}

@@ -4,9 +4,11 @@ import { SettingsCategories } from "@/components/settings/settings-categories";
 import { SettingsHeroSummary } from "@/components/settings/settings-hero-summary";
 import { SettingsMemberLimits } from "@/components/settings/settings-member-limits";
 import { SettingsPageHeader } from "@/components/settings/settings-page-header";
+import { SettingsReceivableIncomeSources } from "@/components/settings/settings-receivable-income-sources";
 import { SettingsSummaryCards } from "@/components/settings/settings-summary-cards";
 import { getStripeConfigurationBoundary } from "@/lib/billing/stripe-config";
 import { getOrganizationExpenseCategories } from "@/lib/organizations/categories";
+import { getOrganizationReceivableIncomeSources } from "@/lib/organizations/receivable-income-sources";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { getOrganizationFamilyMembers } from "@/lib/organizations/people";
 
@@ -21,9 +23,10 @@ export async function ConfiguracoesPage({
   checkoutStatus,
   portalStatus,
 }: ConfiguracoesPageProps = {}) {
-  const [members, categories, organization] = await Promise.all([
+  const [members, categories, receivableIncomeSources, organization] = await Promise.all([
     getOrganizationFamilyMembers(orgSlug),
     getOrganizationExpenseCategories(orgSlug),
+    getOrganizationReceivableIncomeSources(orgSlug),
     requireOrganizationAccess(orgSlug),
   ]);
   const stripeBoundary = getStripeConfigurationBoundary();
@@ -69,6 +72,11 @@ export async function ConfiguracoesPage({
       <SettingsMemberLimits members={members} canManagePeople={canManagePeople} />
 
       <SettingsCategories categories={categories} canManageCategories={canManageCategories} />
+
+      <SettingsReceivableIncomeSources
+        sources={receivableIncomeSources}
+        canManageSources={canManageCategories}
+      />
 
       <SettingsAutomaticRules />
     </div>

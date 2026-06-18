@@ -37,19 +37,19 @@ Futuro        -> fora do MVP atual
 | RF-014 | Edicao de categorias de gastos | Media | Parcial |
 | RF-015 | Cadastro de gastos | Alta | Implementado |
 | RF-016 | Exclusao de gastos | Media | Implementado |
-| RF-017 | Edicao completa de gastos | Alta | Parcial |
+| RF-017 | Edicao completa de gastos | Alta | Implementado |
 | RF-018 | Contas a pagar | Alta | Implementado |
 | RF-019 | Alterar status de contas a pagar | Alta | Implementado |
 | RF-020 | Excluir contas a pagar | Media | Implementado |
-| RF-021 | Edicao completa de contas a pagar | Alta | Parcial |
+| RF-021 | Edicao completa de contas a pagar | Alta | Implementado |
 | RF-022 | Contas a receber/rendas | Alta | Implementado |
 | RF-023 | Alterar status de contas a receber | Alta | Implementado |
 | RF-024 | Excluir contas a receber | Media | Implementado |
-| RF-025 | Edicao completa de contas a receber | Alta | Parcial |
+| RF-025 | Edicao completa de contas a receber | Alta | Implementado |
 | RF-026 | Bancos por pessoa | Alta | Implementado |
 | RF-027 | Atualizar saldo bancario | Alta | Implementado |
 | RF-028 | Excluir banco/conta bancaria | Media | Implementado |
-| RF-029 | Edicao completa de banco/conta bancaria | Alta | Parcial |
+| RF-029 | Edicao completa de banco/conta bancaria | Alta | Implementado |
 | RF-030 | Relatorios consolidados | Alta | Implementado |
 | RF-031 | Filtros avancados de relatorios | Media | Planejado |
 | RF-032 | Exportacao de relatorios | Media | Planejado |

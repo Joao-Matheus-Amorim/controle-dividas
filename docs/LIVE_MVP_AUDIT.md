@@ -66,12 +66,12 @@ Exemplos de contas fixas:
 | Navegacao desktop | Implementado | Menu dinamico por permissao |
 | Navegacao mobile | Implementado | Bottom navigation dinamica por permissao |
 | Pessoas | Implementado | Cadastro, edicao basica e ativacao/desativacao de membro financeiro |
-| Gastos | Implementado parcial | Criacao e exclusao existem; edicao completa ainda pendente |
-| Contas a pagar | Implementado parcial | Criacao, status e exclusao existem; edicao completa e separacao fixa/avulsa ainda pendentes |
-| Contas a receber | Implementado parcial | Criacao, status e exclusao existem; edicao completa ainda pendente |
-| Bancos | Implementado parcial | Criacao, saldo e exclusao existem; edicao completa ainda pendente |
+| Gastos | Implementado | Criacao, edicao e exclusao existem; o fluxo de edicao fecha o sheet apos sucesso |
+| Contas a pagar | Implementado parcial | Criacao, edicao, status e exclusao existem; categorias de custo vem de Configuracoes; recorrencia personalizada ainda pendente |
+| Contas a receber | Implementado | Criacao, edicao, status e exclusao existem; origens de recebimento vem de Configuracoes |
+| Bancos | Implementado | Criacao, edicao, saldo e exclusao existem; o fluxo de edicao fecha o sheet apos sucesso |
 | Relatorios | Implementado parcial | Tela consolidada existe; filtros, graficos e exportacao ainda pendentes |
-| Configuracoes | Implementado parcial | Categorias e limites existem; edicao completa e configuracoes gerais ainda pendentes |
+| Configuracoes | Implementado parcial | Categorias de custos, origens de recebimento e limites existem; moeda, periodo e configuracoes gerais ainda pendentes |
 | Admin | Implementado | Usuarios familiares e permissoes por modulo/acao/escopo |
 | Testes | Implementado parcial | Ja existem testes de calculos, permissoes e dashboard queries |
 | PWA | Implementado | Manifest e estrategia mobile-first |

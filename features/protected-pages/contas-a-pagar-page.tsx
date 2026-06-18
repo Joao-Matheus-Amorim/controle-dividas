@@ -12,6 +12,7 @@ import { getCurrentOrganizationProfile, getModulePermission } from "@/lib/financ
 import { getAccessibleMemberOptions } from "@/lib/finance/member-options";
 import { getCurrentMonthLabel } from "@/lib/finance/period-context";
 import { getOrganizationBankAccountsForMembers } from "@/lib/organizations/banks";
+import { getOrganizationExpenseCategories } from "@/lib/organizations/categories";
 import { getOrganizationPayableBillsDashboardData } from "@/lib/organizations/payables";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
 
@@ -27,9 +28,10 @@ export async function ContasAPagarPage({ searchParams, orgSlug }: ContasAPagarPa
   const statusFilter = normalizeStatusFilter(getSearchValue(params, "status"));
   const typeFilter = normalizeTypeFilter(getSearchValue(params, "tipo"));
 
-  const [profile, payableData, organizationContext] = await Promise.all([
+  const [profile, payableData, categories, organizationContext] = await Promise.all([
     getCurrentOrganizationProfile(orgSlug),
     getOrganizationPayableBillsDashboardData(orgSlug),
+    getOrganizationExpenseCategories(orgSlug),
     requireOrganizationAccess(orgSlug),
   ]);
   const isOrganizationManager = ["owner", "admin"].includes(organizationContext.membership.role);
@@ -96,6 +98,7 @@ export async function ContasAPagarPage({ searchParams, orgSlug }: ContasAPagarPa
       <PayableCreateSection
         canCreate={canCreate}
         members={createMembers}
+        categories={categories}
         bankAccounts={createBankAccounts}
         orgSlug={orgSlug}
       />
@@ -104,6 +107,7 @@ export async function ContasAPagarPage({ searchParams, orgSlug }: ContasAPagarPa
         bills={bills}
         filteredBills={filteredBills}
         members={members}
+        categories={categories}
         bankAccounts={bankAccounts}
         statusFilter={statusFilter}
         typeFilter={typeFilter}

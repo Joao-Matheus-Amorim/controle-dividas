@@ -7,6 +7,7 @@ import { getCurrentOrganizationProfile, getModulePermission } from "@/lib/financ
 import { getAccessibleMemberOptions } from "@/lib/finance/member-options";
 import { getCurrentMonthLabel } from "@/lib/finance/period-context";
 import { getOrganizationBankAccountsForMembers } from "@/lib/organizations/banks";
+import { getOrganizationReceivableIncomeSources } from "@/lib/organizations/receivable-income-sources";
 import { getOrganizationReceivableIncomesDashboardData } from "@/lib/organizations/receivables";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
 
@@ -15,9 +16,10 @@ type ContasAReceberPageProps = {
 };
 
 export async function ContasAReceberPage({ orgSlug }: ContasAReceberPageProps = {}) {
-  const [profile, receivableData, organizationContext] = await Promise.all([
+  const [profile, receivableData, receivableIncomeSources, organizationContext] = await Promise.all([
     getCurrentOrganizationProfile(orgSlug),
     getOrganizationReceivableIncomesDashboardData(orgSlug),
+    getOrganizationReceivableIncomeSources(orgSlug),
     requireOrganizationAccess(orgSlug),
   ]);
   const isOrganizationManager = ["owner", "admin"].includes(organizationContext.membership.role);
@@ -73,6 +75,7 @@ export async function ContasAReceberPage({ orgSlug }: ContasAReceberPageProps = 
       <ReceivableCreateSection
         canCreate={canCreate}
         members={createMembers}
+        sources={receivableIncomeSources}
         bankAccounts={createBankAccounts}
         orgSlug={orgSlug}
       />
@@ -80,6 +83,7 @@ export async function ContasAReceberPage({ orgSlug }: ContasAReceberPageProps = 
       <ReceivableList
         incomes={incomes}
         members={members}
+        sources={receivableIncomeSources}
         bankAccounts={bankAccounts}
         canEdit={canEdit}
         canDelete={canDelete}

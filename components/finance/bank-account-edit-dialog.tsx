@@ -1,6 +1,7 @@
 "use client";
 
 import { Pencil } from "lucide-react";
+import { useState } from "react";
 
 import { AppFormSheet } from "@/components/app/app-form-sheet";
 import { BankAccountForm } from "@/components/finance/bank-account-form";
@@ -14,8 +15,12 @@ export function BankAccountEditDialog({
   account: DbBankAccount;
   members: DbFamilyMember[];
 }) {
+  const [open, setOpen] = useState(false);
+
   return (
     <AppFormSheet
+      open={open}
+      onOpenChange={setOpen}
       title="Editar banco"
       description="Atualize banco, pessoa vinculada, tipo de conta, saldo, moeda e observacoes."
       triggerLabel="Editar banco"
@@ -31,7 +36,12 @@ export function BankAccountEditDialog({
         </Button>
       }
     >
-      <BankAccountForm members={members} account={account} mode="edit" />
+      <BankAccountForm
+        members={members}
+        account={account}
+        mode="edit"
+        onSuccess={() => setOpen(false)}
+      />
     </AppFormSheet>
   );
 }

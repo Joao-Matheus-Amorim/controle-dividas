@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { CalendarDays, CircleDollarSign, FileText, Landmark, UserRound, WalletCards } from "lucide-react";
 
 import { createReceivableIncome, updateReceivableIncome } from "@/app/protected/contas-a-receber/actions";
@@ -30,7 +30,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { DbBankAccount, DbFamilyMember, DbReceivableIncome, ReceivableIncomeFormState } from "@/lib/finance/types";
+import type {
+  DbBankAccount,
+  DbFamilyMember,
+  DbReceivableIncome,
+  DbReceivableIncomeSource,
+  ReceivableIncomeFormState,
+} from "@/lib/finance/types";
 
 const initialState: ReceivableIncomeFormState = {};
 
@@ -81,18 +87,22 @@ function FormSection({ icon: Icon, title, description, children }: FormSectionPr
 
 type ReceivableIncomeFormProps = {
   members: DbFamilyMember[];
+  sources?: DbReceivableIncomeSource[];
   bankAccounts?: DbBankAccount[];
   income?: DbReceivableIncome;
   mode?: "create" | "edit";
   defaultMemberId?: string;
+  onSuccess?: () => void;
 };
 
 export function ReceivableIncomeForm({
   members,
+  sources = [],
   bankAccounts = [],
   income,
   mode = "create",
   defaultMemberId,
+  onSuccess,
 }: ReceivableIncomeFormProps) {
   const action = mode === "edit" ? updateReceivableIncome : createReceivableIncome;
   const [state, formAction, isPending] = useActionState(action, initialState);
@@ -100,12 +110,13 @@ export function ReceivableIncomeForm({
   const isEditing = mode === "edit" && Boolean(income);
   const initialMemberId = income?.receiver_member_id ?? defaultMemberId ?? "";
   const [selectedMemberId, setSelectedMemberId] = useState(initialMemberId);
+  const sourceNames = sources.map((source) => source.name);
   const automaticMember = !isEditing && defaultMemberId
     ? members.find((member) => member.id === defaultMemberId) ?? null
     : null;
   const selectedSource = income?.source ?? "";
   const [sourceValue, setSourceValue] = useState(
-    selectedSource && !incomeSources.includes(selectedSource) ? customIncomeSourceValue : selectedSource,
+    selectedSource && !sourceNames.includes(selectedSource) ? customIncomeSourceValue : selectedSource,
   );
   const isCustomSource = sourceValue === customIncomeSourceValue;
   const memberBankAccounts = bankAccounts.filter(
@@ -116,6 +127,12 @@ export function ReceivableIncomeForm({
     isEditing &&
     selectedReceivingBank &&
     !memberBankAccounts.some((account) => account.bank_name === selectedReceivingBank);
+
+  useEffect(() => {
+    if (state.success) {
+      onSuccess?.();
+    }
+  }, [onSuccess, state.success]);
 
   return (
     <form action={formAction} className={financeFormClass}>
@@ -175,12 +192,14 @@ export function ReceivableIncomeForm({
               className={financeNativeSelectClass}
             >
               <option value="">Selecione a origem</option>
-              {incomeSources.map((source) => (
+              {isCustomSource ? (
+                <option value={customIncomeSourceValue}>{selectedSource}</option>
+              ) : null}
+              {sourceNames.map((source) => (
                 <option key={source} value={source}>
                   {legacyIncomeSourceLabels[source] ?? source}
                 </option>
               ))}
-              <option value={customIncomeSourceValue}>Cadastrar nova origem</option>
             </select>
             {isCustomSource ? (
               <>
@@ -191,7 +210,7 @@ export function ReceivableIncomeForm({
                   id={isEditing ? `source-custom-${income?.id}` : "source-custom"}
                   name="source"
                   placeholder="Digite a origem"
-                  defaultValue={selectedSource && !incomeSources.includes(selectedSource) ? selectedSource : ""}
+                  defaultValue={selectedSource && !sourceNames.includes(selectedSource) ? selectedSource : ""}
                   required
                   className={financeInputClass}
                 />
