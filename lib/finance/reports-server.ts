@@ -1,6 +1,6 @@
 import { getBanksDashboardData } from "./banks-server";
 import { buildExpenseCategoryLabelMap } from "./category-labels";
-import { isTransferCategoryName } from "./category-taxonomy";
+import { isTransferCategoryOrDescendant } from "./category-taxonomy";
 import {
   getExpenseDashboardData,
   getPayableBillsDashboardData,
@@ -60,7 +60,7 @@ export async function getReportsDashboardData(filters: ReportDashboardFilters = 
   const reportableExpenses = filteredExpenses.filter((expense) => {
     const category = expense.category_id ? categoriesById.get(expense.category_id) : null;
 
-    return !isTransferCategoryName(category?.name);
+    return !isTransferCategoryOrDescendant(category, categoriesById);
   });
   const totalExpenses = reportableExpenses.reduce((total, expense) => total + Number(expense.amount), 0);
   const totalPendingBills = filteredBills
@@ -97,7 +97,7 @@ export async function getReportsDashboardData(filters: ReportDashboardFilters = 
     .sort((a, b) => b.spent - a.spent);
 
   const expensesByCategory = expenseData.categories
-    .filter((category) => !isTransferCategoryName(category.name))
+    .filter((category) => !isTransferCategoryOrDescendant(category, categoriesById))
     .map((category) => {
       const total = reportableExpenses
         .filter((expense) => expense.category_id === category.id)

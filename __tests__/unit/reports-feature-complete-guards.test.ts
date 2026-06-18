@@ -52,10 +52,10 @@ describe("reports feature completeness guards", () => {
     const legacyReports = read("lib/finance/reports-server.ts");
 
     for (const source of [organizationReports, legacyReports]) {
-      expect(source).toContain("isTransferCategoryName");
+      expect(source).toContain("isTransferCategoryOrDescendant");
       expect(source).toContain("reportableExpenses");
       expect(source).toContain("const totalExpenses = reportableExpenses.reduce");
-      expect(source).toContain(".filter((category) => !isTransferCategoryName(category.name))");
+      expect(source).toContain(".filter((category) => !isTransferCategoryOrDescendant(category, categoriesById))");
     }
   });
 });

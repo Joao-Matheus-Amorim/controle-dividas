@@ -145,3 +145,32 @@ const transferCategoryName = financeCategoryTaxonomy.find(
 export function isTransferCategoryName(name: string | null | undefined) {
   return normalizeCategoryName(name ?? "") === normalizeCategoryName(transferCategoryName);
 }
+
+export type CategoryAncestryNode = {
+  id: string;
+  name: string;
+  parent_category_id: string | null;
+};
+
+export function isTransferCategoryOrDescendant(
+  category: CategoryAncestryNode | null | undefined,
+  categoriesById: Map<string, CategoryAncestryNode>,
+) {
+  let currentCategory = category;
+  const visitedCategoryIds = new Set<string>();
+
+  while (currentCategory) {
+    if (isTransferCategoryName(currentCategory.name)) {
+      return true;
+    }
+
+    if (!currentCategory.parent_category_id || visitedCategoryIds.has(currentCategory.id)) {
+      return false;
+    }
+
+    visitedCategoryIds.add(currentCategory.id);
+    currentCategory = categoriesById.get(currentCategory.parent_category_id);
+  }
+
+  return false;
+}
