@@ -148,11 +148,10 @@ describe("finance form UI contract guards", () => {
     expect(source).toContain('name="notes"');
     expect(source).toContain('<SelectItem value="previsto">');
     expect(source).toContain('<SelectItem value="recebido">');
-    expect(normalized).toContain("renda fixa");
-    expect(normalized).toContain("salario");
-    expect(normalized).toContain("comissao");
-    expect(normalized).toContain("freelance / servicos");
-    expect(normalized).toContain("aluguel recebido");
+    expect(source).toContain("sources?: DbReceivableIncomeSource[]");
+    expect(source).toContain("sourceNames = sources.map");
+    expect(source).toContain("sourceNames.map");
+    expect(source).toContain("customIncomeSourceValue");
     expect(normalized).toContain("variavel / pontual");
     expect(source).toContain("legacyIncomeSourceLabels");
   });

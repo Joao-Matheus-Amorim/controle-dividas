@@ -40,19 +40,6 @@ import type {
 
 const initialState: ReceivableIncomeFormState = {};
 
-const incomeSources = [
-  "Renda fixa",
-  "Salário",
-  "Comissão",
-  "Freelance / serviços",
-  "Vendas",
-  "Bônus",
-  "Aluguel recebido",
-  "Reembolso",
-  "Mesada / apoio financeiro",
-  "Outros",
-];
-
 const customIncomeSourceValue = "__custom_income_source__";
 
 const legacyIncomeSourceLabels: Record<string, string> = {

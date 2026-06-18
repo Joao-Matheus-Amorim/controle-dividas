@@ -1,6 +1,7 @@
 import { getOrganizationBanksDashboardData } from "@/lib/organizations/banks";
 import { buildExpenseCategoryLabelMap } from "@/lib/finance/category-labels";
 import { getOrganizationExpenseDashboardData } from "@/lib/organizations/expenses";
+import { getOrganizationFinancialMovements } from "@/lib/organizations/financial-movements";
 import { getOrganizationPayableBillsDashboardData } from "@/lib/organizations/payables";
 import { getOrganizationReceivableIncomesDashboardData } from "@/lib/organizations/receivables";
 
@@ -15,11 +16,12 @@ export async function getOrganizationReportsDashboardData(
   filters: OrganizationReportFilters = {},
   orgSlug?: string,
 ) {
-  const [expenseData, payableData, receivableData, bankData] = await Promise.all([
+  const [expenseData, payableData, receivableData, bankData, financialMovements] = await Promise.all([
     getOrganizationExpenseDashboardData(orgSlug),
     getOrganizationPayableBillsDashboardData(orgSlug),
     getOrganizationReceivableIncomesDashboardData(orgSlug),
     getOrganizationBanksDashboardData(orgSlug),
+    getOrganizationFinancialMovements(orgSlug),
   ]);
 
   const filteredExpenses = expenseData.expenses.filter((expense) => {
@@ -43,6 +45,14 @@ export async function getOrganizationReportsDashboardData(
     const memberMatches = !filters.memberId || income.receiver_member_id === filters.memberId;
     const fromMatches = !filters.dateFrom || income.expected_date >= filters.dateFrom;
     const toMatches = !filters.dateTo || income.expected_date <= filters.dateTo;
+
+    return memberMatches && fromMatches && toMatches;
+  });
+  const filteredMovements = financialMovements.filter((movement) => {
+    const movementDate = movement.occurred_at.slice(0, 10);
+    const memberMatches = !filters.memberId || movement.family_member_id === filters.memberId;
+    const fromMatches = !filters.dateFrom || movementDate >= filters.dateFrom;
+    const toMatches = !filters.dateTo || movementDate <= filters.dateTo;
 
     return memberMatches && fromMatches && toMatches;
   });
@@ -116,6 +126,39 @@ export async function getOrganizationReportsDashboardData(
   const expectedIncomes = filteredIncomes
     .filter((income) => income.computed_status !== "recebido")
     .sort((a, b) => a.expected_date.localeCompare(b.expected_date));
+  const totalMovementInflow = filteredMovements
+    .filter((movement) => movement.direction === "inflow")
+    .reduce((total, movement) => total + Number(movement.amount), 0);
+  const totalMovementOutflow = filteredMovements
+    .filter((movement) => movement.direction === "outflow")
+    .reduce((total, movement) => total + Number(movement.amount), 0);
+  const netMovementTotal = totalMovementInflow - totalMovementOutflow;
+  const cashFlowByBank = bankData.accounts
+    .map((account) => {
+      const accountMovements = filteredMovements.filter(
+        (movement) => movement.bank_id === account.id,
+      );
+      const inflow = accountMovements
+        .filter((movement) => movement.direction === "inflow")
+        .reduce((total, movement) => total + Number(movement.amount), 0);
+      const outflow = accountMovements
+        .filter((movement) => movement.direction === "outflow")
+        .reduce((total, movement) => total + Number(movement.amount), 0);
+
+      return {
+        id: account.id,
+        name: account.bank_name,
+        accountType: account.account_type,
+        currency: account.currency,
+        inflow,
+        outflow,
+        net: inflow - outflow,
+        movementCount: accountMovements.length,
+      };
+    })
+    .filter((account) => account.movementCount > 0)
+    .sort((first, second) => Math.abs(second.net) - Math.abs(first.net));
+  const recentMovements = filteredMovements.slice(0, 8);
 
   return {
     totalMonthlyLimit,
@@ -123,13 +166,20 @@ export async function getOrganizationReportsDashboardData(
     totalPendingBills,
     totalReceivedIncomes,
     totalExpectedIncomes,
+    totalMovementInflow,
+    totalMovementOutflow,
+    netMovementTotal,
     totalBankBalance: bankData.totalBalance,
     finalMonthlyBalance,
     expensesByPerson,
     expensesByCategory,
+    expenses: filteredExpenses,
     pendingBills,
     receivedIncomes,
     expectedIncomes,
+    financialMovements: filteredMovements,
+    recentMovements,
+    cashFlowByBank,
     bankAccounts: bankData.accounts,
     members: expenseData.members,
     categories: expenseData.categories,
@@ -139,6 +189,7 @@ export async function getOrganizationReportsDashboardData(
       receivedIncomes: receivedIncomes.length,
       expectedIncomes: expectedIncomes.length,
       bankAccounts: bankData.accounts.length,
+      financialMovements: filteredMovements.length,
     },
   };
 }
