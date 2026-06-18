@@ -48,7 +48,7 @@ const mockState = vi.hoisted(() => ({
   insertError: null as { message: string } | null,
   updateError: null as { message: string } | null,
   updateCount: 1 as number | null,
-  deleteError: null as { code?: string; message: string; details?: string } | null,
+  deleteError: null as { message: string } | null,
   deleteCount: 1 as number | null,
   accessError: null as Error | null,
   rateLimitAllowed: true,
@@ -922,24 +922,10 @@ describe("receivable income actions", () => {
 
     const result = await deleteReceivableIncome(createFormData({
       id: "income-1",
-      confirm_delete: "confirmado",
     }));
 
     expect(result).toEqual({ error: "Voce nao tem permissao para executar esta acao para esta pessoa." });
     expect(mockState.deletedIds).toHaveLength(0);
-  });
-
-  it("blocks receivable income delete without explicit confirmation", async () => {
-    const { deleteReceivableIncome } = await import("@/app/protected/contas-a-receber/actions");
-
-    const result = await deleteReceivableIncome(createFormData({
-      id: "income-1",
-      confirm_delete: "",
-    }));
-
-    expect(result).toEqual({ error: "Confirme a exclusao antes de continuar." });
-    expect(mockState.deletedIds).toHaveLength(0);
-    expect(mockState.auditEvents).toHaveLength(0);
   });
 
   it("returns Supabase delete errors instead of swallowing them", async () => {
@@ -948,30 +934,10 @@ describe("receivable income actions", () => {
 
     const result = await deleteReceivableIncome(createFormData({
       id: "income-1",
-      confirm_delete: "confirmado",
     }));
 
     expect(result).toEqual({ error: "database delete failed" });
     expect(mockState.deletedIds).toEqual(["income-1"]);
-  });
-
-  it("returns a product message when receivable delete is blocked by movements", async () => {
-    const { deleteReceivableIncome } = await import("@/app/protected/contas-a-receber/actions");
-    mockState.deleteError = {
-      code: "23503",
-      message: "update or delete on table receivable_incomes violates foreign key constraint",
-      details: "Key is still referenced from table financial_movements.",
-    };
-
-    const result = await deleteReceivableIncome(createFormData({
-      id: "income-1",
-      confirm_delete: "confirmado",
-    }));
-
-    expect(result).toEqual({
-      error: "Recebimento com movimentacao financeira nao pode ser excluido sem estorno.",
-    });
-    expect(mockState.auditEvents).toHaveLength(0);
   });
 
   it("deletes receivable income successfully", async () => {
@@ -979,7 +945,6 @@ describe("receivable income actions", () => {
 
     const result = await deleteReceivableIncome(createFormData({
       id: "income-1",
-      confirm_delete: "confirmado",
     }));
 
     expect(result).toEqual({ success: "Recebimento excluido com sucesso." });
@@ -1013,7 +978,6 @@ describe("receivable income actions", () => {
 
     const result = await deleteReceivableIncome(createFormData({
       id: "income-1",
-      confirm_delete: "confirmado",
     }));
 
     expect(result).toEqual({
@@ -1041,7 +1005,6 @@ describe("receivable income actions", () => {
 
     const result = await deleteReceivableIncome(createFormData({
       id: "income-1",
-      confirm_delete: "confirmado",
     }));
 
     expect(result).toEqual({ error: "Recebimento nao encontrado." });

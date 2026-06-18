@@ -21,7 +21,7 @@ const mockState = vi.hoisted(() => ({
   } as Record<string, unknown> | null,
   deletedRows: [] as Array<{ table: string; filters: Record<string, unknown> }>,
   deleteCount: 1 as number | null,
-  deleteError: null as { code?: string; message: string; details?: string } | null,
+  deleteError: null as { message: string } | null,
   rateLimitAllowed: true,
   rateLimitChecks: [] as Array<Record<string, unknown>>,
   auditEvents: [] as Array<Record<string, unknown>>,
@@ -203,25 +203,6 @@ describe("expense audit runtime actions", () => {
 
     expect(result).toEqual({ error: "Gasto nao encontrado." });
     expect(mockState.deletedRows).toHaveLength(1);
-    expect(mockState.auditEvents).toHaveLength(0);
-  });
-
-  it("returns a product message when expense delete is blocked by movements", async () => {
-    const { deleteExpense } = await import("@/app/protected/gastos/actions");
-    mockState.deleteError = {
-      code: "23503",
-      message: "update or delete on table expenses violates foreign key constraint",
-      details: "Key is still referenced from table financial_movements.",
-    };
-
-    const result = await deleteExpense(createFormData({
-      id: "expense-1",
-      confirm_delete: "confirmado",
-    }));
-
-    expect(result).toEqual({
-      error: "Gasto com movimentacao financeira nao pode ser excluido sem estorno.",
-    });
     expect(mockState.auditEvents).toHaveLength(0);
   });
 

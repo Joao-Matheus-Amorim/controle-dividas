@@ -57,7 +57,7 @@ export function ReceivableListItem({
             <ReceivableStatusForm income={income} bankAccounts={bankAccounts} />
           </>
         ) : null}
-        {canDelete ? <ReceivableDeleteForm income={income} /> : null}
+        {canDelete ? <ReceivableDeleteForm incomeId={income.id} /> : null}
       </div>
     </div>
   );

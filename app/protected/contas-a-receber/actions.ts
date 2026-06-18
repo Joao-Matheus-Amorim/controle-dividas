@@ -5,7 +5,6 @@ import {
   assertCanAccessMember,
   getCurrentProfile,
 } from "@/lib/finance/access-control";
-import { isFinancialMovementReferenceError } from "@/lib/finance/delete-guard-errors";
 import type { PermissionAction } from "@/lib/finance/permissions";
 import type { ReceivableIncomeFormState } from "@/lib/finance/types";
 import { revalidateOrganizationPaths } from "@/lib/organizations/revalidation";
@@ -720,14 +719,9 @@ export async function deleteReceivableIncome(
   formData: FormData,
 ): Promise<ReceivableIncomeActionState> {
   const id = String(formData.get("id") ?? "");
-  const confirmation = String(formData.get("confirm_delete") ?? "");
 
   if (!id) {
     return { error: "Recebimento nao encontrado." };
-  }
-
-  if (confirmation !== "confirmado") {
-    return { error: "Confirme a exclusao antes de continuar." };
   }
 
   try {
@@ -762,10 +756,6 @@ export async function deleteReceivableIncome(
       .eq("organization_id", organization.id);
 
     if (error) {
-      if (isFinancialMovementReferenceError(error)) {
-        return { error: "Recebimento com movimentacao financeira nao pode ser excluido sem estorno." };
-      }
-
       return { error: error.message };
     }
 
