@@ -26,6 +26,8 @@ export function buildDefaultExpenseCategorySeedRows(
     owner_id: ownerId,
     organization_id: organizationId,
     name: category.name,
-    is_default: true,
+    description: category.description ?? null,
+    parent_category_id: null,
+    is_default: false,
   }));
 }
