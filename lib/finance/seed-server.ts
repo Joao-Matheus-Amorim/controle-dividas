@@ -9,7 +9,7 @@ const duplicateSafeSeedOptions = {
 } as const;
 
 type SeedUpsertResult = PromiseLike<{ error: { message: string } | null }>;
-type SeedInsertResult = PromiseLike<{ error: { message: string } | null }>;
+type SeedInsertError = { code?: string; message: string };
 type SeedSelectResult = PromiseLike<{
   count: number | null;
   error: { message: string } | null;
@@ -20,7 +20,7 @@ type SeedSupabaseClient = {
     upsert(rows: unknown[], options: typeof duplicateSafeSeedOptions): SeedUpsertResult;
   };
   from(table: "expense_categories"): {
-    insert(rows: unknown[]): SeedInsertResult;
+    insert(rows: unknown[]): PromiseLike<{ error: SeedInsertError | null }>;
     select(
       columns: string,
       options: { count: "exact"; head: true },
@@ -80,6 +80,15 @@ export async function seedInitialFinanceDataForOwner(
       const { error } = await seedClient.from("expense_categories").insert(categoryRows);
 
       if (error) {
+        const categoriesWereSeededConcurrently = await organizationAlreadyHasExpenseCategories(
+          seedClient,
+          organizationId,
+        );
+
+        if (error.code === "23505" && categoriesWereSeededConcurrently) {
+          return;
+        }
+
         throw new Error(error.message);
       }
     }

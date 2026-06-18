@@ -119,6 +119,7 @@ describe("organization-aware query guards", () => {
   it("keeps category helper reads on active organization equality after scoped fallback removal", () => {
     const source = readSource("lib/organizations/categories.ts");
 
+    expect(source).toContain("seedInitialFinanceDataForOwner");
     expect(source).toContain('.eq("organization_id", organization.id)');
     expect(source).not.toContain("organizationOrLegacyFilter");
     expect(source).not.toContain("organization_id.eq.${organizationId}");
@@ -137,6 +138,8 @@ describe("organization-aware query guards", () => {
   it("keeps expense helper reads on active organization equality after scoped fallback removal", () => {
     const source = readSource("lib/organizations/expenses.ts");
 
+    expect(source).toContain("@/lib/organizations/categories");
+    expect(source).not.toContain("export async function getOrganizationExpenseCategories");
     expect(source).toContain('.eq("organization_id", organization.id)');
     expect(source).not.toContain("organizationOrLegacyFilter");
     expect(source).not.toContain("organization_id.eq.${organizationId}");

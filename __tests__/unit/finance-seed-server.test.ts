@@ -6,14 +6,20 @@ import {
   buildDefaultFamilyMemberSeedRows,
 } from "@/lib/finance/seed-payloads";
 
+type SeedMockError = { code?: string; message: string };
+
 function createSeedClient(
   results: Partial<
-    Record<"family_members" | "expense_categories", { error: { message: string } | null }>
+    Record<"family_members" | "expense_categories", { error: SeedMockError | null }>
   > = {},
-  existingExpenseCategoryCount = 0,
+  existingExpenseCategoryCounts: number | number[] = 0,
 ) {
   const upsertCalls: Array<{ table: string; rows: unknown[]; options: unknown }> = [];
   const insertCalls: Array<{ table: string; rows: unknown[] }> = [];
+  const categoryCounts = Array.isArray(existingExpenseCategoryCounts)
+    ? [...existingExpenseCategoryCounts]
+    : [existingExpenseCategoryCounts];
+  const nextCategoryCount = () => categoryCounts.shift() ?? categoryCounts[categoryCounts.length - 1] ?? 0;
   const from = vi.fn((table: "family_members" | "expense_categories") => ({
     upsert: vi.fn(async (rows: unknown[], options: unknown) => {
       upsertCalls.push({ table, rows, options });
@@ -25,7 +31,7 @@ function createSeedClient(
     }),
     select: vi.fn(() => ({
       eq: vi.fn(async () => ({
-        count: existingExpenseCategoryCount,
+        count: nextCategoryCount(),
         error: null,
       })),
     })),
@@ -60,5 +66,15 @@ describe("finance seed server", () => {
     await expect(seedInitialFinanceDataForOwner(client, "owner-123", "org-123")).resolves.toBeUndefined();
 
     expect(insertCalls).toEqual([]);
+  });
+
+  it("tolerates concurrent initial category seeding when another request wins the insert race", async () => {
+    const { client, insertCalls } = createSeedClient({
+      expense_categories: { error: { code: "23505", message: "duplicate key value violates unique constraint" } },
+    }, [0, 20]);
+
+    await expect(seedInitialFinanceDataForOwner(client, "owner-123", "org-123")).resolves.toBeUndefined();
+
+    expect(insertCalls).toHaveLength(1);
   });
 });
