@@ -1,5 +1,5 @@
 import { getAccessibleMemberIds } from "@/lib/finance/access-control";
-import type { DbFamilyMember, DbReceivableIncome } from "@/lib/finance/types";
+import type { DbFamilyMember, DbReceivableIncome, ReversedMovementSummary } from "@/lib/finance/types";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { createClient } from "@/lib/supabase/server";
 
@@ -12,13 +12,79 @@ type ReceivableMemberRelation = Pick<DbFamilyMember, "id" | "name">;
 function normalizeReceivableIncome(
   income: RawReceivableIncome,
   membersById: Map<string, ReceivableMemberRelation>,
+  reversedMovementByIncomeId: Map<string, ReversedMovementSummary> = new Map(),
 ): DbReceivableIncome {
   return {
     ...income,
     family_members: income.receiver_member_id
       ? membersById.get(income.receiver_member_id) ?? null
       : null,
+    last_reversed_movement: reversedMovementByIncomeId.get(income.id) ?? null,
   };
+}
+
+async function getLatestReversedReceivableMovements(
+  incomeIds: string[],
+  organizationId: string,
+): Promise<Map<string, ReversedMovementSummary>> {
+  if (incomeIds.length === 0) {
+    return new Map();
+  }
+
+  const supabase = await createClient();
+  const { data: movements, error: movementsError } = await supabase
+    .from("financial_movements")
+    .select("id, receivable_income_id, bank_id, reversed_at")
+    .eq("organization_id", organizationId)
+    .eq("movement_type", "receivable_income_receipt")
+    .not("reversed_at", "is", null)
+    .in("receivable_income_id", incomeIds)
+    .order("reversed_at", { ascending: false });
+
+  if (movementsError) {
+    throw new Error(movementsError.message);
+  }
+
+  const bankIds = Array.from(new Set(
+    (movements ?? [])
+      .map((movement) => String(movement.bank_id ?? ""))
+      .filter(Boolean),
+  ));
+  const banksById = new Map<string, string>();
+
+  if (bankIds.length > 0) {
+    const { data: banks, error: banksError } = await supabase
+      .from("banks")
+      .select("id, bank_name")
+      .eq("organization_id", organizationId)
+      .in("id", bankIds);
+
+    if (banksError) {
+      throw new Error(banksError.message);
+    }
+
+    (banks ?? []).forEach((bank) => {
+      banksById.set(String(bank.id), String(bank.bank_name ?? ""));
+    });
+  }
+
+  const latestByIncomeId = new Map<string, ReversedMovementSummary>();
+
+  (movements ?? []).forEach((movement) => {
+    const incomeId = String(movement.receivable_income_id ?? "");
+
+    if (!incomeId || latestByIncomeId.has(incomeId) || !movement.reversed_at) {
+      return;
+    }
+
+    latestByIncomeId.set(incomeId, {
+      id: String(movement.id),
+      reversed_at: String(movement.reversed_at),
+      bank_name: banksById.get(String(movement.bank_id ?? "")) ?? null,
+    });
+  });
+
+  return latestByIncomeId;
 }
 
 export async function getOrganizationReceivableIncomes(orgSlug?: string) {
@@ -61,8 +127,14 @@ export async function getOrganizationReceivableIncomes(orgSlug?: string) {
     ]),
   );
 
-  return ((data ?? []) as RawReceivableIncome[]).map((income) =>
-    normalizeReceivableIncome(income, membersById),
+  const incomes = (data ?? []) as RawReceivableIncome[];
+  const reversedMovementByIncomeId = await getLatestReversedReceivableMovements(
+    incomes.map((income) => income.id),
+    organization.id,
+  );
+
+  return incomes.map((income) =>
+    normalizeReceivableIncome(income, membersById, reversedMovementByIncomeId),
   );
 }
 

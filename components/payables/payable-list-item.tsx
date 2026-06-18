@@ -29,6 +29,13 @@ export function PayableListItem({
   canEdit,
   canDelete,
 }: PayableListItemProps) {
+  const reversedAtLabel = bill.last_reversed_movement?.reversed_at
+    ? new Date(bill.last_reversed_movement.reversed_at).toLocaleDateString("pt-BR")
+    : null;
+  const reversedBankLabel = bill.last_reversed_movement?.bank_name
+    ? ` - ${bill.last_reversed_movement.bank_name}`
+    : "";
+
   return (
     <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-[#080810]/50 p-3 md:flex-row md:items-center md:justify-between">
       <div className="min-w-0 flex-1">
@@ -38,10 +45,27 @@ export function PayableListItem({
             {bill.bill_type === "fixa" ? "fixa" : "avulsa"}
           </Badge>
           <Badge variant={statusVariant(bill.computed_status)}>{bill.computed_status}</Badge>
-          {bill.recurrence ? <Badge variant="outline" className="border-white/10 text-white/50">{bill.recurrence}</Badge> : null}
+          {bill.last_reversed_movement ? (
+            <Badge variant="outline" className="border-amber-300/30 bg-amber-300/10 text-amber-100">
+              Pagamento estornado
+            </Badge>
+          ) : null}
+          {bill.recurrence ? (
+            <Badge variant="outline" className="border-white/10 text-white/50">{bill.recurrence}</Badge>
+          ) : null}
         </div>
-        <p className="mt-1 truncate text-xs text-white/35">{bill.category || "Sem categoria"} · {bill.family_members?.name || "Sem responsável"}</p>
-        <p className="mt-0.5 truncate text-xs text-white/25">Vencimento: {new Date(`${bill.due_date}T00:00:00`).toLocaleDateString("pt-BR")}{bill.bank_used ? ` · ${bill.bank_used}` : ""}</p>
+        <p className="mt-1 truncate text-xs text-white/35">
+          {bill.category || "Sem categoria"} - {bill.family_members?.name || "Sem responsavel"}
+        </p>
+        {reversedAtLabel ? (
+          <p className="mt-0.5 truncate text-xs text-amber-100/70">
+            Ultimo estorno: {reversedAtLabel}{reversedBankLabel}
+          </p>
+        ) : null}
+        <p className="mt-0.5 truncate text-xs text-white/25">
+          Vencimento: {new Date(`${bill.due_date}T00:00:00`).toLocaleDateString("pt-BR")}
+          {bill.bank_used ? ` - ${bill.bank_used}` : ""}
+        </p>
       </div>
 
       <div className="flex items-center justify-between gap-3 md:justify-end">

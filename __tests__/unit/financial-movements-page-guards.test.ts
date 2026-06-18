@@ -20,6 +20,10 @@ describe("financial movements page guards", () => {
   const movementActions = read("app/protected/movimentacoes/actions.ts");
   const payableActions = read("app/protected/contas-a-pagar/actions.ts");
   const receivableActions = read("app/protected/contas-a-receber/actions.ts");
+  const payablesReadModel = read("lib/organizations/payables.ts");
+  const receivablesReadModel = read("lib/organizations/receivables.ts");
+  const payableListItem = read("components/payables/payable-list-item.tsx");
+  const receivableListItem = read("components/receivables/receivable-list-item.tsx");
 
   it("registers movements as an app module and route", () => {
     expect(permissions).toContain('{ key: "MOVIMENTACOES", label: "Movimentacoes" }');
@@ -78,5 +82,20 @@ describe("financial movements page guards", () => {
   it("revalidates movements after status actions create ledger entries", () => {
     expect(payableActions).toContain('"/protected/movimentacoes"');
     expect(receivableActions).toContain('"/protected/movimentacoes"');
+  });
+
+  it("shows source records reopened by movement reversal with context", () => {
+    expect(payablesReadModel).toContain("getLatestReversedPayableMovements");
+    expect(payablesReadModel).toContain('.eq("movement_type", "payable_bill_payment")');
+    expect(payablesReadModel).toContain('.not("reversed_at", "is", null)');
+    expect(payablesReadModel).toContain("last_reversed_movement");
+    expect(receivablesReadModel).toContain("getLatestReversedReceivableMovements");
+    expect(receivablesReadModel).toContain('.eq("movement_type", "receivable_income_receipt")');
+    expect(receivablesReadModel).toContain('.not("reversed_at", "is", null)');
+    expect(receivablesReadModel).toContain("last_reversed_movement");
+    expect(payableListItem).toContain("Pagamento estornado");
+    expect(payableListItem).toContain("Ultimo estorno");
+    expect(receivableListItem).toContain("Recebimento estornado");
+    expect(receivableListItem).toContain("Ultimo estorno");
   });
 });
