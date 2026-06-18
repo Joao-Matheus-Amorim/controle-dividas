@@ -6,15 +6,22 @@ import { useState } from "react";
 import { AppFormSheet } from "@/components/app/app-form-sheet";
 import { ReceivableIncomeForm } from "@/components/finance/receivable-income-form";
 import { Button } from "@/components/ui/button";
-import type { DbBankAccount, DbFamilyMember, DbReceivableIncome } from "@/lib/finance/types";
+import type {
+  DbBankAccount,
+  DbFamilyMember,
+  DbReceivableIncome,
+  DbReceivableIncomeSource,
+} from "@/lib/finance/types";
 
 export function ReceivableIncomeEditDialog({
   income,
   members,
+  sources,
   bankAccounts,
 }: {
   income: DbReceivableIncome;
   members: DbFamilyMember[];
+  sources: DbReceivableIncomeSource[];
   bankAccounts: DbBankAccount[];
 }) {
   const [open, setOpen] = useState(false);
@@ -40,6 +47,7 @@ export function ReceivableIncomeEditDialog({
     >
       <ReceivableIncomeForm
         members={members}
+        sources={sources}
         bankAccounts={bankAccounts}
         income={income}
         mode="edit"

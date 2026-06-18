@@ -19,6 +19,15 @@ export type DbExpenseCategory = {
   created_at: string;
 };
 
+export type DbReceivableIncomeSource = {
+  id: string;
+  owner_id: string;
+  name: string;
+  description: string | null;
+  is_default: boolean;
+  created_at: string;
+};
+
 export type DbExpense = {
   id: string;
   owner_id: string;

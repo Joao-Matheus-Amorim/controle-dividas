@@ -41,6 +41,24 @@ const categoryUpdateRateLimit = {
   windowMs: 10 * 60 * 1000,
 };
 
+const receivableSourceDeleteRateLimit = {
+  operationKey: "finance.receivable_source.delete",
+  limit: 5,
+  windowMs: 10 * 60 * 1000,
+};
+
+const receivableSourceCreateRateLimit = {
+  operationKey: "finance.receivable_source.create",
+  limit: 10,
+  windowMs: 10 * 60 * 1000,
+};
+
+const receivableSourceUpdateRateLimit = {
+  operationKey: "finance.receivable_source.update",
+  limit: 10,
+  windowMs: 10 * 60 * 1000,
+};
+
 async function getCurrentUserId() {
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getClaims();
@@ -90,6 +108,50 @@ function parseExpenseCategoryForm(formData: FormData) {
 function validateExpenseCategoryInput(input: ReturnType<typeof parseExpenseCategoryForm>): FormState | null {
   if (!input.name) {
     return { error: "Informe o nome da categoria." };
+  }
+
+  return null;
+}
+
+async function recordReceivableSourceAuditEvent({
+  organizationId,
+  action = "finance.receivable_source.delete",
+  sourceId,
+  outcome = "success",
+  metadata,
+}: {
+  organizationId: string;
+  action?:
+    | "finance.receivable_source.create"
+    | "finance.receivable_source.update"
+    | "finance.receivable_source.delete";
+  sourceId: string | null;
+  outcome?: "success" | "denied";
+  metadata?: Record<string, string | number | boolean | null>;
+}) {
+  await recordAuditEvent({
+    organizationId,
+    action,
+    targetType: "receivable_income_source",
+    targetId: sourceId,
+    outcome,
+    metadata,
+  });
+}
+
+function parseReceivableSourceForm(formData: FormData) {
+  const name = String(formData.get("name") ?? "").trim();
+  const description = String(formData.get("description") ?? "").trim();
+
+  return {
+    name,
+    description,
+  };
+}
+
+function validateReceivableSourceInput(input: ReturnType<typeof parseReceivableSourceForm>): FormState | null {
+  if (!input.name) {
+    return { error: "Informe o nome da origem." };
   }
 
   return null;
@@ -414,6 +476,234 @@ export async function deleteExpenseCategoryWithState(
 
 export async function deleteExpenseCategoryFormAction(formData: FormData): Promise<void> {
   await deleteExpenseCategory(formData);
+}
+
+export async function createReceivableIncomeSource(
+  _prevState: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const input = parseReceivableSourceForm(formData);
+  const validationError = validateReceivableSourceInput(input);
+
+  if (validationError) {
+    return validationError;
+  }
+
+  const supabase = await createClient();
+  const currentUserId = await getCurrentUserId();
+  const { organization } = await requireOrganizationAdmin();
+  const rateLimit = checkSensitiveOperationRateLimit({
+    ...receivableSourceCreateRateLimit,
+    actorKey: currentUserId,
+    organizationId: organization.id,
+  });
+
+  if (!rateLimit.allowed) {
+    await recordReceivableSourceAuditEvent({
+      organizationId: organization.id,
+      action: "finance.receivable_source.create",
+      sourceId: null,
+      outcome: "denied",
+      metadata: {
+        status: "rate_limited",
+        source_created: true,
+      },
+    });
+
+    return { error: "Muitas tentativas de cadastro de origem. Tente novamente em alguns minutos." };
+  }
+
+  const { data: source, error } = await supabase.from("receivable_income_sources").insert({
+    owner_id: organization.owner_auth_user_id,
+    organization_id: organization.id,
+    name: input.name,
+    description: input.description || null,
+    is_default: false,
+  }).select("id").single();
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  await recordReceivableSourceAuditEvent({
+    organizationId: organization.id,
+    action: "finance.receivable_source.create",
+    sourceId: source?.id ? String(source.id) : null,
+    metadata: {
+      source_created: true,
+    },
+  });
+
+  revalidateOrganizationPaths(
+    ["/protected/configuracoes", "/protected/contas-a-receber", "/protected"],
+    organization.slug,
+  );
+
+  return { success: "Origem cadastrada com sucesso." };
+}
+
+export async function updateReceivableIncomeSource(
+  _prevState: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const id = String(formData.get("id") ?? "");
+  const input = parseReceivableSourceForm(formData);
+  const validationError = validateReceivableSourceInput(input);
+
+  if (!id) {
+    return { error: "Origem nao encontrada." };
+  }
+
+  if (validationError) {
+    return validationError;
+  }
+
+  const supabase = await createClient();
+  const currentUserId = await getCurrentUserId();
+  const { organization } = await requireOrganizationAdmin();
+
+  const { data: source, error: fetchError } = await supabase
+    .from("receivable_income_sources")
+    .select("id, name, description, is_default")
+    .eq("id", id)
+    .eq("organization_id", organization.id)
+    .maybeSingle();
+
+  if (fetchError) {
+    return { error: fetchError.message };
+  }
+
+  if (!source) {
+    return { error: "Origem nao encontrada." };
+  }
+
+  if (source.is_default) {
+    return { error: "Origens padrao nao podem ser editadas nesta fase." };
+  }
+
+  const sourceChanged =
+    String(source.name ?? "").trim() !== input.name ||
+    String(source.description ?? "").trim() !== input.description;
+
+  if (!sourceChanged) {
+    return { success: "Origem atualizada com sucesso." };
+  }
+
+  const rateLimit = checkSensitiveOperationRateLimit({
+    ...receivableSourceUpdateRateLimit,
+    actorKey: currentUserId,
+    organizationId: organization.id,
+    targetKey: id,
+  });
+
+  if (!rateLimit.allowed) {
+    await recordReceivableSourceAuditEvent({
+      organizationId: organization.id,
+      action: "finance.receivable_source.update",
+      sourceId: id,
+      outcome: "denied",
+      metadata: {
+        status: "rate_limited",
+        source_changed: true,
+      },
+    });
+
+    return { error: "Muitas tentativas de alteracao de origem. Tente novamente em alguns minutos." };
+  }
+
+  const { error, count } = await supabase
+    .from("receivable_income_sources")
+    .update({
+      name: input.name,
+      description: input.description || null,
+      organization_id: organization.id,
+    }, { count: "exact" })
+    .eq("id", id)
+    .eq("organization_id", organization.id);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  if (count !== 1) {
+    return { error: "Origem nao encontrada." };
+  }
+
+  await recordReceivableSourceAuditEvent({
+    organizationId: organization.id,
+    action: "finance.receivable_source.update",
+    sourceId: id,
+    metadata: {
+      source_changed: true,
+    },
+  });
+
+  revalidateOrganizationPaths(
+    ["/protected/configuracoes", "/protected/contas-a-receber", "/protected"],
+    organization.slug,
+  );
+
+  return { success: "Origem atualizada com sucesso." };
+}
+
+export async function deleteReceivableIncomeSource(
+  _prevState: SettingsActionState,
+  formData: FormData,
+): Promise<SettingsActionState> {
+  const id = String(formData.get("id") ?? "");
+
+  if (!id) {
+    return { error: "Origem nao encontrada." };
+  }
+
+  const supabase = await createClient();
+  const currentUserId = await getCurrentUserId();
+  const { organization } = await requireOrganizationAdmin();
+  const rateLimit = checkSensitiveOperationRateLimit({
+    ...receivableSourceDeleteRateLimit,
+    actorKey: currentUserId,
+    organizationId: organization.id,
+  });
+
+  if (!rateLimit.allowed) {
+    await recordReceivableSourceAuditEvent({
+      organizationId: organization.id,
+      sourceId: id,
+      outcome: "denied",
+      metadata: {
+        status: "rate_limited",
+      },
+    });
+
+    return { error: "Muitas tentativas de exclusao. Tente novamente em alguns minutos." };
+  }
+
+  const { error, count } = await supabase
+    .from("receivable_income_sources")
+    .delete({ count: "exact" })
+    .eq("id", id)
+    .eq("is_default", false)
+    .eq("organization_id", organization.id);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  if (count !== 1) {
+    return { error: "Origem nao encontrada." };
+  }
+
+  await recordReceivableSourceAuditEvent({
+    organizationId: organization.id,
+    sourceId: id,
+  });
+
+  revalidateOrganizationPaths(
+    ["/protected/configuracoes", "/protected/contas-a-receber", "/protected"],
+    organization.slug,
+  );
+
+  return { success: "Origem excluida com sucesso." };
 }
 
 export async function updateFamilyMemberLimit(

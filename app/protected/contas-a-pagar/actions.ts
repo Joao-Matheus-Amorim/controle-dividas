@@ -186,6 +186,30 @@ async function assertBankNameBelongsToResponsibleMember(
   return banks[0];
 }
 
+async function assertPayableCategoryBelongsToOrganization(
+  organizationId: string,
+  categoryName: string,
+) {
+  const supabase = await createClient();
+  const { data: category, error } = await supabase
+    .from("expense_categories")
+    .select("id")
+    .eq("organization_id", organizationId)
+    .ilike("name", categoryName)
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (!category) {
+    throw new Error("Selecione uma categoria cadastrada em Configuracoes.");
+  }
+
+  return category;
+}
+
 function parsePayableBillForm(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   const category = String(formData.get("category") ?? "").trim();
@@ -222,6 +246,10 @@ function validatePayableBillInput(input: ReturnType<typeof parsePayableBillForm>
 
   if (!input.name) {
     return { error: "Informe o nome da conta." };
+  }
+
+  if (!input.category) {
+    return { error: "Selecione a categoria da conta." };
   }
 
   if (Number.isNaN(input.amount) || input.amount <= 0) {
@@ -277,6 +305,10 @@ export async function createPayableBill(
       input.responsibleMemberId,
     );
     await assertCanAccessMember("CONTAS_A_PAGAR", "can_create", input.responsibleMemberId);
+    await assertPayableCategoryBelongsToOrganization(
+      organization.id,
+      input.category,
+    );
     await assertBankNameBelongsToResponsibleMember(
       organization.id,
       input.bankUsed,
@@ -379,6 +411,13 @@ export async function updatePayableBill(
         input.responsibleMemberId,
       );
       await assertCanAccessMember("CONTAS_A_PAGAR", "can_edit", input.responsibleMemberId);
+    }
+
+    if (String(bill.category ?? "").trim() !== input.category) {
+      await assertPayableCategoryBelongsToOrganization(
+        organization.id,
+        input.category,
+      );
     }
 
     const existingBankUsed = String(bill.bank_used ?? "").trim();

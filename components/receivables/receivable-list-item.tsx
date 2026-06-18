@@ -1,6 +1,11 @@
 import { ReceivableIncomeEditDialog } from "@/components/finance/receivable-income-edit-dialog";
 import { Badge } from "@/components/ui/badge";
-import type { DbBankAccount, DbFamilyMember, DbReceivableIncome } from "@/lib/finance/types";
+import type {
+  DbBankAccount,
+  DbFamilyMember,
+  DbReceivableIncome,
+  DbReceivableIncomeSource,
+} from "@/lib/finance/types";
 import { ReceivableDeleteForm } from "./receivable-delete-form";
 import { ReceivableStatusForm } from "./receivable-status-form";
 import { compactCurrency, statusVariant } from "./receivable-utils";
@@ -10,12 +15,20 @@ type ReceivableListIncome = DbReceivableIncome & { computed_status: string };
 interface ReceivableListItemProps {
   income: ReceivableListIncome;
   members: DbFamilyMember[];
+  sources: DbReceivableIncomeSource[];
   bankAccounts: DbBankAccount[];
   canEdit: boolean;
   canDelete: boolean;
 }
 
-export function ReceivableListItem({ income, members, bankAccounts, canEdit, canDelete }: ReceivableListItemProps) {
+export function ReceivableListItem({
+  income,
+  members,
+  sources,
+  bankAccounts,
+  canEdit,
+  canDelete,
+}: ReceivableListItemProps) {
   return (
     <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-[#080810]/50 p-3 md:flex-row md:items-center md:justify-between">
       <div className="min-w-0 flex-1">
@@ -35,7 +48,12 @@ export function ReceivableListItem({ income, members, bankAccounts, canEdit, can
         <p className="pt-2 text-sm font-bold text-[#1de9b2]">{compactCurrency(Number(income.amount))}</p>
         {canEdit ? (
           <>
-            <ReceivableIncomeEditDialog income={income} members={members} bankAccounts={bankAccounts} />
+            <ReceivableIncomeEditDialog
+              income={income}
+              members={members}
+              sources={sources}
+              bankAccounts={bankAccounts}
+            />
             <ReceivableStatusForm income={income} bankAccounts={bankAccounts} />
           </>
         ) : null}

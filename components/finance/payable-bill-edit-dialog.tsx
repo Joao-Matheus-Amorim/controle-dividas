@@ -6,15 +6,22 @@ import { useState } from "react";
 import { AppFormSheet } from "@/components/app/app-form-sheet";
 import { PayableBillForm } from "@/components/finance/payable-bill-form";
 import { Button } from "@/components/ui/button";
-import type { DbBankAccount, DbFamilyMember, DbPayableBill } from "@/lib/finance/types";
+import type {
+  DbBankAccount,
+  DbExpenseCategory,
+  DbFamilyMember,
+  DbPayableBill,
+} from "@/lib/finance/types";
 
 export function PayableBillEditDialog({
   bill,
   members,
+  categories,
   bankAccounts,
 }: {
   bill: DbPayableBill;
   members: DbFamilyMember[];
+  categories: DbExpenseCategory[];
   bankAccounts: DbBankAccount[];
 }) {
   const [open, setOpen] = useState(false);
@@ -40,6 +47,7 @@ export function PayableBillEditDialog({
     >
       <PayableBillForm
         members={members}
+        categories={categories}
         bankAccounts={bankAccounts}
         bill={bill}
         mode="edit"

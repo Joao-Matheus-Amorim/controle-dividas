@@ -412,6 +412,7 @@ Pendente conhecido:
 - [ ] Conta aparece no Dashboard.
 - [ ] Conta aparece nos Relatorios.
 - [ ] Permissao por responsavel e respeitada.
+- [ ] Categoria da conta a pagar vem de Configuracoes.
 
 - [ ] Editar conta a pagar completa.
 
@@ -423,6 +424,7 @@ Pendente conhecido:
 - [ ] Recebimento vencido aparece como atrasado.
 - [ ] Recebimento recebido aparece em Relatorios.
 - [ ] Permissao por recebedor e respeitada.
+- [ ] Origem do recebimento vem de Configuracoes.
 
 - [ ] Editar conta a receber completa.
 
@@ -441,6 +443,8 @@ Pendente conhecido:
 
 - [ ] Criar categoria.
 - [ ] Excluir categoria.
+- [ ] Criar origem de recebimento.
+- [ ] Excluir origem de recebimento.
 - [ ] Atualizar limite mensal.
 
 Pendentes conhecidos:

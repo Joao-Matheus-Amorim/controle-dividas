@@ -1,11 +1,16 @@
 import { FinanceCreateCard } from "@/components/finance/finance-create-card";
 import { ReceivableIncomeFormDialog } from "@/components/finance/receivable-income-form-dialog";
-import type { DbBankAccount, DbFamilyMember } from "@/lib/finance/types";
+import type {
+  DbBankAccount,
+  DbFamilyMember,
+  DbReceivableIncomeSource,
+} from "@/lib/finance/types";
 import { getOrgPathFromProtectedPath } from "@/lib/organizations/paths";
 
 interface ReceivableCreateSectionProps {
   canCreate: boolean;
   members: DbFamilyMember[];
+  sources: DbReceivableIncomeSource[];
   bankAccounts: DbBankAccount[];
   orgSlug?: string;
 }
@@ -13,6 +18,7 @@ interface ReceivableCreateSectionProps {
 export function ReceivableCreateSection({
   canCreate,
   members,
+  sources,
   bankAccounts,
   orgSlug,
 }: ReceivableCreateSectionProps) {
@@ -29,7 +35,12 @@ export function ReceivableCreateSection({
       memberCount={members.length}
       peopleHref={getOrgPathFromProtectedPath("/protected/pessoas", orgSlug)}
     >
-      <ReceivableIncomeFormDialog members={members} bankAccounts={bankAccounts} defaultMemberId={defaultMemberId} />
+      <ReceivableIncomeFormDialog
+        members={members}
+        sources={sources}
+        bankAccounts={bankAccounts}
+        defaultMemberId={defaultMemberId}
+      />
     </FinanceCreateCard>
   );
 }

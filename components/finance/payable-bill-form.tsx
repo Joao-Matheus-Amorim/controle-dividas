@@ -21,22 +21,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { DbBankAccount, DbFamilyMember, DbPayableBill, PayableBillFormState, PayableBillType } from "@/lib/finance/types";
+import type {
+  DbBankAccount,
+  DbExpenseCategory,
+  DbFamilyMember,
+  DbPayableBill,
+  PayableBillFormState,
+  PayableBillType,
+} from "@/lib/finance/types";
 
 const initialState: PayableBillFormState = {};
-
-const categories = [
-  "Aluguel",
-  "Escola",
-  "Internet",
-  "Energia",
-  "Agua",
-  "Mercado",
-  "Cartao",
-  "Transporte",
-  "Casa",
-  "Outros",
-];
 
 const customCategoryValue = "__custom_category__";
 
@@ -44,6 +38,7 @@ type FixedBillAudience = "family" | "person";
 
 type PayableBillFormProps = {
   members: DbFamilyMember[];
+  categories?: DbExpenseCategory[];
   bankAccounts?: DbBankAccount[];
   bill?: DbPayableBill;
   mode?: "create" | "edit";
@@ -53,6 +48,7 @@ type PayableBillFormProps = {
 
 export function PayableBillForm({
   members,
+  categories = [],
   bankAccounts = [],
   bill,
   mode = "create",
@@ -67,9 +63,10 @@ export function PayableBillForm({
   const isEditing = mode === "edit" && Boolean(bill);
   const initialMemberId = bill?.responsible_member_id ?? defaultMemberId ?? "";
   const [selectedMemberId, setSelectedMemberId] = useState(initialMemberId);
+  const categoryNames = categories.map((category) => category.name);
   const selectedCategory = bill?.category ?? "";
   const [categoryValue, setCategoryValue] = useState(
-    selectedCategory && !categories.includes(selectedCategory) ? customCategoryValue : selectedCategory,
+    selectedCategory && !categoryNames.includes(selectedCategory) ? customCategoryValue : selectedCategory,
   );
   const isCustomCategory = categoryValue === customCategoryValue;
   const isFixedBill = billType === "fixa";
@@ -183,16 +180,19 @@ export function PayableBillForm({
             name={isCustomCategory ? "category_preset" : "category"}
             value={categoryValue}
             onChange={(event) => setCategoryValue(event.target.value)}
+            required={!isCustomCategory}
             className={financeNativeSelectClass}
           >
             <option value="">Selecione</option>
-            {categories.map((category) => (
-              <option key={category} value={category}>
-                {category}
+            {categoryNames.map((categoryName) => (
+              <option key={categoryName} value={categoryName}>
+                {categoryName}
               </option>
             ))}
-            <option value={customCategoryValue}>Cadastrar nova categoria</option>
           </select>
+          <p className={financeHelperTextClass}>
+            Use as categorias definidas em Configuracoes para padronizar custos da org.
+          </p>
           {isCustomCategory ? (
             <>
               <Label className="sr-only" htmlFor={isEditing ? `category-custom-${bill?.id}` : "category-custom"}>
@@ -202,7 +202,7 @@ export function PayableBillForm({
                 id={isEditing ? `category-custom-${bill?.id}` : "category-custom"}
                 name="category"
                 placeholder="Digite a categoria"
-                defaultValue={selectedCategory && !categories.includes(selectedCategory) ? selectedCategory : ""}
+                defaultValue={selectedCategory && !categoryNames.includes(selectedCategory) ? selectedCategory : ""}
                 required
                 className={financeInputClass}
               />

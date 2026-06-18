@@ -3,7 +3,12 @@ import { PlusCircle, TrendingUp } from "lucide-react";
 
 import { AppEmptyState } from "@/components/app/app-empty-state";
 import { Button } from "@/components/ui/button";
-import type { DbBankAccount, DbFamilyMember, DbReceivableIncome } from "@/lib/finance/types";
+import type {
+  DbBankAccount,
+  DbFamilyMember,
+  DbReceivableIncome,
+  DbReceivableIncomeSource,
+} from "@/lib/finance/types";
 import { ReceivableListItem } from "./receivable-list-item";
 
 type ReceivableListIncome = DbReceivableIncome & { computed_status: string };
@@ -11,13 +16,22 @@ type ReceivableListIncome = DbReceivableIncome & { computed_status: string };
 interface ReceivableListProps {
   incomes: ReceivableListIncome[];
   members: DbFamilyMember[];
+  sources: DbReceivableIncomeSource[];
   bankAccounts: DbBankAccount[];
   canEdit: boolean;
   canDelete: boolean;
   canCreate: boolean;
 }
 
-export function ReceivableList({ incomes, members, bankAccounts, canEdit, canDelete, canCreate }: ReceivableListProps) {
+export function ReceivableList({
+  incomes,
+  members,
+  sources,
+  bankAccounts,
+  canEdit,
+  canDelete,
+  canCreate,
+}: ReceivableListProps) {
   return (
     <section className="space-y-3 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
       <div className="flex items-center justify-between">
@@ -48,6 +62,7 @@ export function ReceivableList({ incomes, members, bankAccounts, canEdit, canDel
             key={income.id}
             income={income}
             members={members}
+            sources={sources}
             bankAccounts={bankAccounts}
             canEdit={canEdit}
             canDelete={canDelete}
