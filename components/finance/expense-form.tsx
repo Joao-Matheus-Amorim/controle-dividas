@@ -87,11 +87,9 @@ export function ExpenseForm({
     }
   }, [onSuccess, state.success]);
 
-  useEffect(() => {
-    if (bankId && !memberBankAccounts.some((account) => account.id === bankId)) {
-      setBankId("");
-    }
-  }, [bankId, memberBankAccounts]);
+  const selectedBankId = memberBankAccounts.some((account) => account.id === bankId)
+    ? bankId
+    : "";
 
   function applyDraftSuggestion() {
     const suggestion = buildExpenseDraftSuggestion(
@@ -101,14 +99,14 @@ export function ExpenseForm({
       today,
     );
 
-    if (suggestion.categoryId) setCategoryId(suggestion.categoryId);
-    if (suggestion.expenseDate) setExpenseDate(suggestion.expenseDate);
-    if (suggestion.bankId) setBankId(suggestion.bankId);
-    if (suggestion.amount) setAmount(suggestion.amount);
-    if (suggestion.description) setDescription(suggestion.description);
-    if (suggestion.purchaseLocation) setPurchaseLocation(suggestion.purchaseLocation);
-    if (suggestion.paymentMethod) setPaymentMethod(suggestion.paymentMethod);
-    if (suggestion.notes) setNotes(suggestion.notes);
+    setCategoryId(suggestion.categoryId);
+    setExpenseDate(suggestion.expenseDate);
+    setBankId(suggestion.bankId);
+    setAmount(suggestion.amount);
+    setDescription(suggestion.description);
+    setPurchaseLocation(suggestion.purchaseLocation);
+    setPaymentMethod(suggestion.paymentMethod);
+    setNotes(suggestion.notes);
     setDraftApplied(true);
   }
 
@@ -169,7 +167,10 @@ export function ExpenseForm({
               id={isEditing ? `family_member_id-${expense?.id}` : "family_member_id"}
               name="family_member_id"
               defaultValue={initialMemberId}
-              onChange={(event) => setSelectedMemberId(event.target.value)}
+              onChange={(event) => {
+                setSelectedMemberId(event.target.value);
+                setBankId("");
+              }}
               required
               className={financeNativeSelectClass}
             >
@@ -296,7 +297,7 @@ export function ExpenseForm({
             <select
               id="bank_id"
               name="bank_id"
-              value={bankId}
+              value={selectedBankId}
               onChange={(event) => setBankId(event.target.value)}
               required
               className={financeNativeSelectClass}

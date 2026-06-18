@@ -47,4 +47,20 @@ describe("expense draft suggestion", () => {
     expect(draft.categoryId).toBe("cat-work");
     expect(draft.amount).toBe("20");
   });
+
+  it("does not infer stale optional fields when text has no matching terms", () => {
+    const draft = buildExpenseDraftSuggestion(
+      "Compra qualquer 12",
+      categories,
+      bankAccounts,
+      "2026-06-18",
+    );
+
+    expect(draft).toMatchObject({
+      categoryId: "",
+      bankId: "",
+      paymentMethod: "",
+      purchaseLocation: "",
+    });
+  });
 });

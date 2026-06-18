@@ -111,13 +111,12 @@ function parsePaymentMethod(text: string) {
 }
 
 function parsePurchaseLocation(text: string) {
-  const locationMatch = text.match(/\b(?:no|na|em)\s+([A-Za-z0-9&.' -]{2,40})/i);
+  const locationMatch = text.match(
+    /\b(?:no|na|em)\s+([A-Za-z0-9&.' -]+?)(?=\s+(?:por|no|na|com)\s+(?:r\$|eur|\d|cartao|pix|dinheiro|transferencia)|$)/i,
+  );
   const rawLocation = locationMatch?.[1]?.trim() ?? "";
 
-  return rawLocation
-    .replace(/\s+(?:de|do|da|por)\s+\d.*$/i, "")
-    .replace(/\s+(?:no|na|com)\s+(?:cartao|pix|dinheiro|transferencia).*$/i, "")
-    .trim();
+  return rawLocation.trim();
 }
 
 function findBankAccountId(text: string, bankAccounts: DbBankAccount[]) {
