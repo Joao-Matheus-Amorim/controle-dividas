@@ -218,6 +218,7 @@ function parseReceivableIncomeForm(formData: FormData) {
   const expectedDate = String(formData.get("expected_date") ?? "");
   const status = String(formData.get("status") ?? "previsto");
   const receivingBank = String(formData.get("receiving_bank") ?? "").trim();
+  const recordedTimezone = String(formData.get("recorded_timezone") ?? "").trim() || null;
   const notes = String(formData.get("notes") ?? "").trim();
 
   return {
@@ -229,6 +230,7 @@ function parseReceivableIncomeForm(formData: FormData) {
     expectedDate,
     status,
     receivingBank,
+    recordedTimezone,
     notes,
   };
 }
@@ -293,6 +295,8 @@ export async function createReceivableIncome(
   const supabase = await createClient();
   const profile = await getCurrentProfile();
   const { organization } = await requireOrganizationAccess();
+  const shouldCreateReceivedMovement = input.status === "recebido";
+  let receivedMovementBank: Record<string, unknown> | null = null;
 
   try {
     await assertReceiverMemberBelongsToOrganization(
@@ -300,15 +304,22 @@ export async function createReceivableIncome(
       input.receiverMemberId,
     );
     await assertCanAccessMember("CONTAS_A_RECEBER", "can_create", input.receiverMemberId);
+    if (shouldCreateReceivedMovement) {
+      await assertCanAccessMember("CONTAS_A_RECEBER", "can_edit", input.receiverMemberId);
+    }
     await assertReceivableSourceBelongsToOrganization(
       organization.id,
       input.source,
     );
-    await assertBankNameBelongsToReceiverMember(
+    receivedMovementBank = await assertBankNameBelongsToReceiverMember(
       organization.id,
       input.receivingBank,
       input.receiverMemberId,
     );
+
+    if (shouldCreateReceivedMovement && !receivedMovementBank?.id) {
+      throw new Error("Selecione um banco cadastrado para registrar o recebimento.");
+    }
   } catch (error) {
     return {
       error:
@@ -349,7 +360,7 @@ export async function createReceivableIncome(
     income_type: input.incomeType,
     amount: input.amount,
     expected_date: input.expectedDate,
-    status: input.status,
+    status: shouldCreateReceivedMovement ? "previsto" : input.status,
     receiving_bank: input.receivingBank || null,
     notes: input.notes || null,
   }).select("id").single();
@@ -358,17 +369,51 @@ export async function createReceivableIncome(
     return { error: error.message };
   }
 
+  const createdIncomeId = createdIncome?.id ? String(createdIncome.id) : null;
+
+  if (shouldCreateReceivedMovement && createdIncomeId && receivedMovementBank?.id) {
+    const { error: movementError } = await supabase.rpc("mark_receivable_income_received_with_movement", {
+      target_organization_id: organization.id,
+      target_receivable_income_id: createdIncomeId,
+      target_bank_id: String(receivedMovementBank.id),
+      target_profile_id: profile.id,
+      target_recorded_timezone: input.recordedTimezone,
+    });
+
+    if (movementError) {
+      return { error: movementError.message };
+    }
+  }
+
   await recordReceivableIncomeAuditEvent({
     organizationId: organization.id,
     action: "finance.receivable.create",
-    incomeId: createdIncome?.id ? String(createdIncome.id) : null,
+    incomeId: createdIncomeId,
     metadata: {
       receivable_created: true,
       receiver_member_id: input.receiverMemberId,
     },
   });
 
-  revalidateOrganizationPaths(["/protected/contas-a-receber", "/protected"], organization.slug);
+  if (shouldCreateReceivedMovement) {
+    await recordReceivableIncomeAuditEvent({
+      organizationId: organization.id,
+      action: "finance.receivable.status.update",
+      incomeId: createdIncomeId,
+      metadata: {
+        previous_status: "previsto",
+        next_status: "recebido",
+        receiver_member_id: input.receiverMemberId,
+      },
+    });
+  }
+
+  revalidateOrganizationPaths([
+    "/protected/contas-a-receber",
+    "/protected/movimentacoes",
+    "/protected/bancos",
+    "/protected",
+  ], organization.slug);
 
   return { success: "Conta a receber cadastrada com sucesso." };
 }
@@ -409,16 +454,27 @@ export async function updateReceivableIncome(
       );
     }
 
+    const statusChanged = String(income.status) !== input.status;
+    const transitionToReceived = String(income.status) !== "recebido" && input.status === "recebido";
+    let receivedMovementBank: Record<string, unknown> | null = null;
+
+    if (String(income.status) === "recebido" && input.status !== "recebido") {
+      return { error: "Recebimento ja possui movimentacao. Estorno sera tratado pelo fluxo de movimentacoes." };
+    }
+
     const existingReceivingBank = String(income.receiving_bank ?? "").trim();
-    if (input.receivingBank && (input.receivingBank !== existingReceivingBank || receiverMemberChanged)) {
-      await assertBankNameBelongsToReceiverMember(
+    if (input.receivingBank && (input.receivingBank !== existingReceivingBank || receiverMemberChanged || transitionToReceived)) {
+      receivedMovementBank = await assertBankNameBelongsToReceiverMember(
         organization.id,
         input.receivingBank,
         input.receiverMemberId,
       );
     }
 
-    const statusChanged = String(income.status) !== input.status;
+    if (transitionToReceived && !receivedMovementBank?.id) {
+      throw new Error("Selecione um banco cadastrado para registrar o recebimento.");
+    }
+
     const receivableStatusRateLimitInput = {
       ...receivableStatusRateLimit,
       actorKey: profile.id,
@@ -527,7 +583,7 @@ export async function updateReceivableIncome(
         income_type: input.incomeType,
         amount: input.amount,
         expected_date: input.expectedDate,
-        status: input.status,
+        status: transitionToReceived ? String(income.status) : input.status,
         receiving_bank: input.receivingBank || null,
         notes: input.notes || null,
         organization_id: organization.id,
@@ -541,6 +597,20 @@ export async function updateReceivableIncome(
 
     if (count !== 1) {
       return { error: "Recebimento nao encontrado." };
+    }
+
+    if (transitionToReceived && receivedMovementBank?.id) {
+      const { error: movementError } = await supabase.rpc("mark_receivable_income_received_with_movement", {
+        target_organization_id: organization.id,
+        target_receivable_income_id: id,
+        target_bank_id: String(receivedMovementBank.id),
+        target_profile_id: profile.id,
+        target_recorded_timezone: input.recordedTimezone,
+      });
+
+      if (movementError) {
+        return { error: movementError.message };
+      }
     }
 
     if (incomeChanged) {

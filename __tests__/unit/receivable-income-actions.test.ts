@@ -197,6 +197,7 @@ function makeSupabaseClient() {
         mockState.updatedPayloads.push({
           status: "recebido",
           organization_id: payload.target_organization_id,
+          recorded_timezone: payload.target_recorded_timezone,
           filters: {
             id: payload.target_receivable_income_id,
             organization_id: payload.target_organization_id,
@@ -364,6 +365,60 @@ describe("receivable income actions", () => {
         p_outcome: "success",
         p_metadata: {
           receivable_created: true,
+          receiver_member_id: "member-1",
+        },
+      }),
+    ]);
+  });
+
+  it("creates financial movement when a receivable income is created as received", async () => {
+    const { createReceivableIncome } = await import("@/app/protected/contas-a-receber/actions");
+
+    const result = await createReceivableIncome({}, createFormData({
+      receiver_member_id: "member-1",
+      source: "Freelance",
+      payment_origin: "Cliente ACME",
+      income_type: "variavel",
+      amount: "1500",
+      expected_date: "2026-06-10",
+      status: "recebido",
+      receiving_bank: "Banco A",
+      recorded_timezone: "Europe/Lisbon",
+      notes: "observacao local",
+    }));
+
+    expect(result).toEqual({ success: "Conta a receber cadastrada com sucesso." });
+    expect(mockState.insertedPayloads).toEqual([
+      expect.objectContaining({
+        source: "Freelance",
+        status: "previsto",
+        receiving_bank: "Banco A",
+      }),
+    ]);
+    expect(mockState.updatedPayloads).toEqual([
+      expect.objectContaining({
+        status: "recebido",
+        organization_id: "org-1",
+        recorded_timezone: "Europe/Lisbon",
+        filters: {
+          id: "income-created-1",
+          organization_id: "org-1",
+        },
+      }),
+    ]);
+    expect(mockState.auditEvents).toEqual([
+      expect.objectContaining({
+        p_action: "finance.receivable.create",
+        p_target_id: "income-created-1",
+        p_outcome: "success",
+      }),
+      expect.objectContaining({
+        p_action: "finance.receivable.status.update",
+        p_target_id: "income-created-1",
+        p_outcome: "success",
+        p_metadata: {
+          previous_status: "previsto",
+          next_status: "recebido",
           receiver_member_id: "member-1",
         },
       }),
@@ -546,6 +601,10 @@ describe("receivable income actions", () => {
 
   it("records status audit event when full receivable edit changes status", async () => {
     const { updateReceivableIncome } = await import("@/app/protected/contas-a-receber/actions");
+    mockState.incomeLookup = {
+      ...mockState.incomeLookup,
+      receiving_bank: "Banco A",
+    } as Record<string, unknown>;
 
     const result = await updateReceivableIncome({}, createFormData({
       id: "income-1",
@@ -555,6 +614,8 @@ describe("receivable income actions", () => {
       amount: "1800",
       expected_date: "2026-05-31",
       status: "recebido",
+      receiving_bank: "Banco A",
+      recorded_timezone: "Europe/Lisbon",
     }));
 
     expect(result).toEqual({ success: "Recebimento atualizado com sucesso." });
@@ -568,6 +629,15 @@ describe("receivable income actions", () => {
         targetKey: "income-1",
       },
     ]);
+    expect(lastUpdatePayload()).toEqual(expect.objectContaining({
+      status: "recebido",
+      organization_id: "org-1",
+      recorded_timezone: "Europe/Lisbon",
+      filters: {
+        id: "income-1",
+        organization_id: "org-1",
+      },
+    }));
     expect(mockState.auditEvents).toEqual([
       expect.objectContaining({
         p_organization_id: "org-1",
@@ -879,6 +949,10 @@ describe("receivable income actions", () => {
   it("does not update or audit full receivable status changes when the status rate limit blocks the action", async () => {
     const { updateReceivableIncome } = await import("@/app/protected/contas-a-receber/actions");
     mockState.rateLimitAllowed = false;
+    mockState.incomeLookup = {
+      ...mockState.incomeLookup,
+      receiving_bank: "Banco A",
+    } as Record<string, unknown>;
 
     const result = await updateReceivableIncome({}, createFormData({
       id: "income-1",
@@ -888,6 +962,7 @@ describe("receivable income actions", () => {
       amount: "1800",
       expected_date: "2026-05-31",
       status: "recebido",
+      receiving_bank: "Banco A",
     }));
 
     expect(result).toEqual({

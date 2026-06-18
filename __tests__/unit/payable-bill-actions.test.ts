@@ -188,6 +188,7 @@ function makeSupabaseClient() {
         mockState.updatedPayloads.push({
           status: "pago",
           organization_id: payload.target_organization_id,
+          recorded_timezone: payload.target_recorded_timezone,
           filters: {
             id: payload.target_payable_bill_id,
             organization_id: payload.target_organization_id,
@@ -382,6 +383,59 @@ describe("payable bill actions", () => {
         p_outcome: "success",
         p_metadata: {
           payable_created: true,
+          responsible_member_id: "member-1",
+        },
+      }),
+    ]);
+  });
+
+  it("creates financial movement when a payable bill is created as paid", async () => {
+    const { createPayableBill } = await import("@/app/protected/contas-a-pagar/actions");
+
+    const result = await createPayableBill({}, createFormData({
+      name: "Conta ja paga",
+      category: "Outros",
+      amount: "120.00",
+      due_date: "2026-05-20",
+      responsible_member_id: "member-1",
+      status: "pago",
+      bill_type: "avulsa",
+      bank_used: "Banco A",
+      recorded_timezone: "Europe/Lisbon",
+    }));
+
+    expect(result).toEqual({ success: "Conta avulsa cadastrada com sucesso." });
+    expect(mockState.insertedPayloads).toEqual([
+      expect.objectContaining({
+        name: "Conta ja paga",
+        status: "pendente",
+        bank_used: "Banco A",
+      }),
+    ]);
+    expect(mockState.updatedPayloads).toEqual([
+      expect.objectContaining({
+        status: "pago",
+        organization_id: "org-1",
+        recorded_timezone: "Europe/Lisbon",
+        filters: {
+          id: "bill-new",
+          organization_id: "org-1",
+        },
+      }),
+    ]);
+    expect(mockState.auditEvents).toEqual([
+      expect.objectContaining({
+        p_action: "finance.payable.create",
+        p_target_id: "bill-new",
+        p_outcome: "success",
+      }),
+      expect.objectContaining({
+        p_action: "finance.payable.status.update",
+        p_target_id: "bill-new",
+        p_outcome: "success",
+        p_metadata: {
+          previous_status: "pendente",
+          next_status: "pago",
           responsible_member_id: "member-1",
         },
       }),
@@ -626,6 +680,8 @@ describe("payable bill actions", () => {
       responsible_member_id: "member-1",
       status: "pago",
       bill_type: "avulsa",
+      bank_used: "Banco A",
+      recorded_timezone: "Europe/Lisbon",
     }));
 
     expect(result).toEqual({ success: "Conta atualizada com sucesso." });
@@ -665,6 +721,15 @@ describe("payable bill actions", () => {
         targetKey: "bill-1",
       },
     ]);
+    expect(lastUpdatePayload()).toEqual(expect.objectContaining({
+      status: "pago",
+      organization_id: "org-1",
+      recorded_timezone: "Europe/Lisbon",
+      filters: {
+        id: "bill-1",
+        organization_id: "org-1",
+      },
+    }));
     expect(mockState.auditEvents).toEqual([
       expect.objectContaining({
         p_organization_id: "org-1",
@@ -705,6 +770,7 @@ describe("payable bill actions", () => {
       responsible_member_id: "member-1",
       status: "pago",
       bill_type: "avulsa",
+      bank_used: "Banco A",
     }));
 
     expect(result).toEqual({
@@ -749,6 +815,7 @@ describe("payable bill actions", () => {
       responsible_member_id: "member-1",
       status: "pago",
       bill_type: "avulsa",
+      bank_used: "Banco A",
     }));
 
     expect(result).toEqual({
@@ -797,6 +864,7 @@ describe("payable bill actions", () => {
       responsible_member_id: "member-1",
       status: "pago",
       bill_type: "avulsa",
+      bank_used: "Banco A",
     }));
 
     expect(result).toEqual({

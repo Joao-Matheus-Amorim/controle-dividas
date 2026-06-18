@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 
 import { createPayableBill, updatePayableBill } from "@/app/protected/contas-a-pagar/actions";
 import { AppActionFeedback } from "@/components/app/app-action-feedback";
@@ -57,6 +57,7 @@ export function PayableBillForm({
 }: PayableBillFormProps) {
   const action = mode === "edit" ? updatePayableBill : createPayableBill;
   const [state, formAction, isPending] = useActionState(action, initialState);
+  const recordedTimezoneRef = useRef<HTMLInputElement>(null);
   const [billType, setBillType] = useState<PayableBillType>(bill?.bill_type ?? "avulsa");
   const [fixedBillAudience, setFixedBillAudience] = useState<FixedBillAudience>("family");
   const today = new Date().toISOString().slice(0, 10);
@@ -88,9 +89,16 @@ export function PayableBillForm({
     }
   }, [onSuccess, state.success]);
 
+  function captureRecordedTimezone() {
+    if (recordedTimezoneRef.current) {
+      recordedTimezoneRef.current.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    }
+  }
+
   return (
-    <form action={formAction} className={financeFormClass}>
+    <form action={formAction} onSubmit={captureRecordedTimezone} className={financeFormClass}>
       {bill ? <input type="hidden" name="id" value={bill.id} /> : null}
+      <input ref={recordedTimezoneRef} type="hidden" name="recorded_timezone" defaultValue="" />
 
       <div className={financeChoiceGroupClass}>
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/35">Tipo de conta</p>

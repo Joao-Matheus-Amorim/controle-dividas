@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { CalendarDays, CircleDollarSign, FileText, Landmark, UserRound, WalletCards } from "lucide-react";
 
 import { createReceivableIncome, updateReceivableIncome } from "@/app/protected/contas-a-receber/actions";
@@ -106,6 +106,7 @@ export function ReceivableIncomeForm({
 }: ReceivableIncomeFormProps) {
   const action = mode === "edit" ? updateReceivableIncome : createReceivableIncome;
   const [state, formAction, isPending] = useActionState(action, initialState);
+  const recordedTimezoneRef = useRef<HTMLInputElement>(null);
   const today = new Date().toISOString().slice(0, 10);
   const isEditing = mode === "edit" && Boolean(income);
   const initialMemberId = income?.receiver_member_id ?? defaultMemberId ?? "";
@@ -134,9 +135,16 @@ export function ReceivableIncomeForm({
     }
   }, [onSuccess, state.success]);
 
+  function captureRecordedTimezone() {
+    if (recordedTimezoneRef.current) {
+      recordedTimezoneRef.current.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    }
+  }
+
   return (
-    <form action={formAction} className={financeFormClass}>
+    <form action={formAction} onSubmit={captureRecordedTimezone} className={financeFormClass}>
       {income ? <input type="hidden" name="id" value={income.id} /> : null}
+      <input ref={recordedTimezoneRef} type="hidden" name="recorded_timezone" defaultValue="" />
 
       <FormSection
         icon={UserRound}

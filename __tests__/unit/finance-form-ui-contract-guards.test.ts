@@ -124,6 +124,8 @@ describe("finance form UI contract guards", () => {
     expect(source).toContain('name="status"');
     expect(source).toContain('name="bank_used"');
     expect(source).toContain('name="recurrence"');
+    expect(source).toContain('name="recorded_timezone"');
+    expect(source).toContain("captureRecordedTimezone");
     expect(source).toContain("disabled={billType === \"avulsa\"}");
   });
 
@@ -141,6 +143,8 @@ describe("finance form UI contract guards", () => {
     expect(source).toContain('name="expected_date"');
     expect(source).toContain('name="status"');
     expect(source).toContain('name="receiving_bank"');
+    expect(source).toContain('name="recorded_timezone"');
+    expect(source).toContain("captureRecordedTimezone");
     expect(source).toContain('name="notes"');
     expect(source).toContain('<SelectItem value="previsto">');
     expect(source).toContain('<SelectItem value="recebido">');
