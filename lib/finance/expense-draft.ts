@@ -85,6 +85,12 @@ function parseDraftDate(text: string, today: string) {
     return date.toISOString().slice(0, 10);
   }
 
+  if (normalizedText.includes("amanha")) {
+    const date = new Date(`${today}T00:00:00`);
+    date.setDate(date.getDate() + 1);
+    return date.toISOString().slice(0, 10);
+  }
+
   const dateMatch = text.match(/\b(\d{1,2})[/-](\d{1,2})(?:[/-](\d{2,4}))?\b/);
   if (!dateMatch?.[1] || !dateMatch?.[2]) {
     return today;
