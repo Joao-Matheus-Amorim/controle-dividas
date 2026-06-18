@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import { useActionState, useEffect, useRef, useState } from "react";
-import { CalendarDays, CircleDollarSign, FileText, Landmark, UserRound, WalletCards } from "lucide-react";
+import { CalendarDays, CircleDollarSign, FileText, Landmark, Sparkles, UserRound, WalletCards } from "lucide-react";
 
 import { createReceivableIncome, updateReceivableIncome } from "@/app/protected/contas-a-receber/actions";
 import { AppActionFeedback } from "@/components/app/app-action-feedback";
@@ -30,6 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { buildReceivableIncomeDraftSuggestion } from "@/lib/finance/receivable-draft";
 import type {
   DbBankAccount,
   DbFamilyMember,
@@ -41,6 +42,9 @@ import type {
 const initialState: ReceivableIncomeFormState = {};
 
 const customIncomeSourceValue = "__custom_income_source__";
+
+type ReceivableIncomeStatus = "previsto" | "recebido" | "atrasado";
+type ReceivableIncomeType = "fixa" | "variavel";
 
 const legacyIncomeSourceLabels: Record<string, string> = {
   Salario: "Salário",
@@ -94,6 +98,8 @@ export function ReceivableIncomeForm({
   const action = mode === "edit" ? updateReceivableIncome : createReceivableIncome;
   const [state, formAction, isPending] = useActionState(action, initialState);
   const recordedTimezoneRef = useRef<HTMLInputElement>(null);
+  const [draftPrompt, setDraftPrompt] = useState("");
+  const [draftApplied, setDraftApplied] = useState(false);
   const today = new Date().toISOString().slice(0, 10);
   const isEditing = mode === "edit" && Boolean(income);
   const initialMemberId = income?.receiver_member_id ?? defaultMemberId ?? "";
@@ -106,15 +112,26 @@ export function ReceivableIncomeForm({
   const [sourceValue, setSourceValue] = useState(
     selectedSource && !sourceNames.includes(selectedSource) ? customIncomeSourceValue : selectedSource,
   );
+  const [incomeType, setIncomeType] = useState<ReceivableIncomeType>(income?.income_type ?? "fixa");
+  const [paymentOrigin, setPaymentOrigin] = useState(income?.payment_origin ?? "");
+  const [amount, setAmount] = useState(income ? String(income.amount) : "");
+  const [expectedDate, setExpectedDate] = useState(income?.expected_date ?? today);
+  const [status, setStatus] = useState<ReceivableIncomeStatus>(income?.status ?? "previsto");
+  const [receivingBank, setReceivingBank] = useState(income?.receiving_bank ?? "");
+  const [notes, setNotes] = useState(income?.notes ?? "");
   const isCustomSource = sourceValue === customIncomeSourceValue;
   const memberBankAccounts = bankAccounts.filter(
     (account) => account.family_member_id === selectedMemberId,
   );
   const selectedReceivingBank = income?.receiving_bank ?? "";
+  const receivingBankBelongsToSelectedMember = memberBankAccounts.some((account) => account.bank_name === receivingBank);
   const keepsLegacyReceivingBank =
     isEditing &&
     selectedReceivingBank &&
     !memberBankAccounts.some((account) => account.bank_name === selectedReceivingBank);
+  const selectedReceivingBankValue = receivingBankBelongsToSelectedMember || keepsLegacyReceivingBank
+    ? receivingBank
+    : "";
 
   useEffect(() => {
     if (state.success) {
@@ -128,10 +145,66 @@ export function ReceivableIncomeForm({
     }
   }
 
+  function applyDraftSuggestion() {
+    const suggestion = buildReceivableIncomeDraftSuggestion(
+      draftPrompt,
+      sources,
+      memberBankAccounts,
+      today,
+    );
+
+    setSourceValue(suggestion.source);
+    setIncomeType(suggestion.incomeType);
+    setPaymentOrigin(suggestion.paymentOrigin);
+    setAmount(suggestion.amount);
+    setExpectedDate(suggestion.expectedDate);
+    setStatus(suggestion.status);
+    setReceivingBank(suggestion.receivingBank);
+    setNotes(suggestion.notes);
+    setDraftApplied(true);
+  }
+
   return (
     <form action={formAction} onSubmit={captureRecordedTimezone} className={financeFormClass}>
       {income ? <input type="hidden" name="id" value={income.id} /> : null}
       <input ref={recordedTimezoneRef} type="hidden" name="recorded_timezone" defaultValue="" />
+
+      {!isEditing ? (
+        <section className="rounded-[1.25rem] border border-white/10 bg-white/[0.035] p-3.5 sm:p-4">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/35">Rascunho assistido</p>
+              <p className="mt-1 text-sm text-white/45">Descreva o recebimento e revise os campos antes de cadastrar.</p>
+            </div>
+            {draftApplied ? (
+              <span className="rounded-full bg-[#8b72f8]/15 px-3 py-1 text-xs font-semibold text-[#c9bfff]">
+                rascunho aplicado
+              </span>
+            ) : null}
+          </div>
+          <div className="grid gap-3 md:grid-cols-[1fr_auto]">
+            <Input
+              value={draftPrompt}
+              onChange={(event) => {
+                setDraftPrompt(event.target.value);
+                setDraftApplied(false);
+              }}
+              placeholder="Ex: Recebi freelance do cliente X 500 no Itau hoje"
+              className={financeInputClass}
+            />
+            <Button
+              type="button"
+              variant="secondary"
+              className="h-11 rounded-2xl px-4"
+              onClick={applyDraftSuggestion}
+              disabled={!draftPrompt.trim()}
+            >
+              <Sparkles className="h-4 w-4" />
+              Sugerir
+            </Button>
+          </div>
+        </section>
+      ) : null}
 
       <FormSection
         icon={UserRound}
@@ -154,7 +227,10 @@ export function ReceivableIncomeForm({
                 id={isEditing ? `receiver_member_id-${income?.id}` : "receiver_member_id"}
                 name="receiver_member_id"
                 defaultValue={initialMemberId}
-                onChange={(event) => setSelectedMemberId(event.target.value)}
+                onChange={(event) => {
+                  setSelectedMemberId(event.target.value);
+                  setReceivingBank("");
+                }}
                 required
                 className={financeNativeSelectClass}
               >
@@ -218,7 +294,7 @@ export function ReceivableIncomeForm({
 
           <div className={financeFieldClass}>
             <Label htmlFor={isEditing ? `income_type-${income?.id}` : "income_type"}>Tipo de renda</Label>
-            <Select name="income_type" defaultValue={income?.income_type ?? "fixa"}>
+            <Select name="income_type" value={incomeType} onValueChange={(value) => setIncomeType(value as ReceivableIncomeType)}>
               <SelectTrigger id={isEditing ? `income_type-${income?.id}` : "income_type"} className={financeSelectTriggerClass}>
                 <SelectValue placeholder="Tipo de renda" />
               </SelectTrigger>
@@ -240,7 +316,8 @@ export function ReceivableIncomeForm({
               id={isEditing ? `payment_origin-${income?.id}` : "payment_origin"}
               name="payment_origin"
               placeholder="Ex: Empresa, cliente, pessoa ou plataforma"
-              defaultValue={income?.payment_origin ?? ""}
+              value={paymentOrigin}
+              onChange={(event) => setPaymentOrigin(event.target.value)}
               className={financeInputClass}
             />
             <p className={financeHelperTextClass}>
@@ -260,7 +337,8 @@ export function ReceivableIncomeForm({
                 step="0.01"
                 inputMode="decimal"
                 placeholder="1450.00"
-                defaultValue={income ? String(income.amount) : ""}
+                value={amount}
+                onChange={(event) => setAmount(event.target.value)}
                 required
                 className={`${financeInputClass} pl-10`}
               />
@@ -279,7 +357,9 @@ export function ReceivableIncomeForm({
             <FinanceDateField
               id={isEditing ? `expected_date-${income?.id}` : "expected_date"}
               name="expected_date"
-              defaultValue={income?.expected_date ?? today}
+              defaultValue={expectedDate}
+              value={expectedDate}
+              onValueChange={setExpectedDate}
               label="Data prevista"
               required
             />
@@ -287,7 +367,7 @@ export function ReceivableIncomeForm({
 
           <div className={financeFieldClass}>
             <Label htmlFor={isEditing ? `status-${income?.id}` : "status"}>Status</Label>
-            <Select name="status" defaultValue={income?.status ?? "previsto"}>
+            <Select name="status" value={status} onValueChange={(value) => setStatus(value as ReceivableIncomeStatus)}>
               <SelectTrigger id={isEditing ? `status-${income?.id}` : "status"} className={financeSelectTriggerClass}>
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
@@ -306,7 +386,8 @@ export function ReceivableIncomeForm({
               <select
                 id={isEditing ? `receiving_bank-${income?.id}` : "receiving_bank"}
                 name="receiving_bank"
-                defaultValue={income?.receiving_bank ?? ""}
+                value={selectedReceivingBankValue}
+                onChange={(event) => setReceivingBank(event.target.value)}
                 className={`${financeNativeSelectClass} pl-10`}
               >
                 <option value="">Selecione um banco cadastrado</option>
@@ -338,7 +419,8 @@ export function ReceivableIncomeForm({
             id={isEditing ? `notes-${income?.id}` : "notes"}
             name="notes"
             placeholder="Opcional"
-            defaultValue={income?.notes ?? ""}
+            value={notes}
+            onChange={(event) => setNotes(event.target.value)}
             className={financeInputClass}
           />
         </div>
