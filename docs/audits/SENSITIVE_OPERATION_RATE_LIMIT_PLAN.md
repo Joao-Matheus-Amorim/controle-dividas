@@ -29,6 +29,7 @@ Payable write rate limit runtime exists for `finance.payable.create` and `financ
 Receivable delete rate limit runtime exists for `finance.receivable.delete`.
 Receivable status rate limit runtime exists for `finance.receivable.status.update`.
 Receivable write rate limit runtime exists for `finance.receivable.create` and `finance.receivable.update`.
+Movement reversal rate limit runtime exists for `finance.movement.reverse`.
 Bank delete rate limit runtime exists for `finance.bank.delete`.
 Bank balance rate limit runtime exists for `finance.bank.balance.update`.
 Bank write rate limit runtime exists for `finance.bank.create` and `finance.bank.update`.
@@ -50,7 +51,7 @@ No billing webhook, subscription sync, or commercial enforcement change.
 No E2E change.
 ```
 
-Rate limiting is implemented only for billing checkout start attempts, billing portal start attempts, login password attempts, signup authorized email checks, signup submit attempts, auth confirm verify attempts, password reset requests, password update attempts, onboarding organization creation attempts, expense delete attempts, expense write attempts, payable delete attempts, payable status update attempts, payable write attempts, receivable delete attempts, receivable status update attempts, receivable write attempts, bank delete attempts, bank balance update attempts, bank write attempts, member limit update attempts, member status update attempts, member write attempts, category delete attempts, category write attempts, admin permission update attempts, admin user lifecycle attempts, and admin invitation create/revoke/resend/accept attempts.
+Rate limiting is implemented only for billing checkout start attempts, billing portal start attempts, login password attempts, signup authorized email checks, signup submit attempts, auth confirm verify attempts, password reset requests, password update attempts, onboarding organization creation attempts, expense delete attempts, expense write attempts, payable delete attempts, payable status update attempts, payable write attempts, receivable delete attempts, receivable status update attempts, receivable write attempts, movement reversal attempts, bank delete attempts, bank balance update attempts, bank write attempts, member limit update attempts, member status update attempts, member write attempts, category delete attempts, category write attempts, admin permission update attempts, admin user lifecycle attempts, and admin invitation create/revoke/resend/accept attempts.
 
 ## Control model
 
@@ -88,6 +89,7 @@ Initial limits should be grouped by risk:
 | Receivable delete | `finance.receivable.delete` | Authenticated, organization-scoped, permission-gated. |
 | Receivable status update | `finance.receivable.status.update` | Authenticated, organization-scoped, permission-gated. |
 | Receivable writes | `finance.receivable.create`, `finance.receivable.update` | Authenticated and organization-scoped; create is actor/organization-scoped, and update is target-scoped only when receivable fields change. |
+| Movement reversal | `finance.movement.reverse` | Authenticated, organization-scoped, target-scoped, permission-gated, and audited. |
 | Bank delete | `finance.bank.delete` | Authenticated, organization-scoped, permission-gated. |
 | Bank balance update | `finance.bank.balance.update` | Authenticated, organization-scoped, permission-gated. |
 | Bank writes | `finance.bank.create`, `finance.bank.update` | Authenticated and organization-scoped; create is actor/organization-scoped, and update is target-scoped only when non-balance bank fields change. |
@@ -101,7 +103,7 @@ Initial limits should be grouped by risk:
 | Admin invitations | `admin.invitation.create`, `admin.invitation.revoke`, `admin.invitation.resend`, `admin.invitation.accept` | Authenticated, organization-scoped for admin-issued changes and authenticated pending-invitation boundary for accept; create keys by hashed normalized email, revoke/resend by invitation id, accept by hashed raw token, never by raw token or raw email. |
 | Admin mutations | user create/update/deactivate, permission updates | Authenticated, organization-scoped, owner/admin only. |
 | Destructive finance actions | delete expense/payable/receivable/bank/category | Authenticated, organization-scoped, permission-gated. |
-| Status transitions | payable/receivable status updates | Authenticated, organization-scoped, lower initial risk than deletes. |
+| Status transitions and reversals | payable/receivable status updates and movement reversals | Authenticated, organization-scoped, lower initial risk than deletes but must stay server-gated because they affect balances. |
 
 The first runtime PR should cover one tier only.
 
@@ -143,7 +145,7 @@ Before implementation, choose and document one storage model:
 | External cache | Better for short windows, but needs operational dependency and env handling. |
 | Platform limiter | Acceptable only if limits can include actor and organization dimensions. |
 
-The first runtime limiter uses process-local memory to keep the rollout schema-free and reversible. It sweeps expired buckets before tracking new traffic so long-lived processes do not retain stale actor/organization/target entries forever. This is acceptable for the initial billing checkout, billing portal, login password, signup authorized email preflight, signup submit, auth confirm verify, password reset request, password update submit, onboarding organization create, expense delete, expense write, payable delete, payable status update, payable write, receivable delete, receivable status update, receivable write, bank delete, bank balance update, bank write, member limit update, member status update, member write, category delete, category write, admin permission update, admin user lifecycle, and admin invitation create/revoke/resend/accept boundaries because they are focused, server-side, and protected by `DISABLE_SENSITIVE_RATE_LIMITS=true` rollback. Additional broader or public-auth limits still need a durable/cache-backed storage decision before implementation.
+The first runtime limiter uses process-local memory to keep the rollout schema-free and reversible. It sweeps expired buckets before tracking new traffic so long-lived processes do not retain stale actor/organization/target entries forever. This is acceptable for the initial billing checkout, billing portal, login password, signup authorized email preflight, signup submit, auth confirm verify, password reset request, password update submit, onboarding organization create, expense delete, expense write, payable delete, payable status update, payable write, receivable delete, receivable status update, receivable write, movement reversal, bank delete, bank balance update, bank write, member limit update, member status update, member write, category delete, category write, admin permission update, admin user lifecycle, and admin invitation create/revoke/resend/accept boundaries because they are focused, server-side, and protected by `DISABLE_SENSITIVE_RATE_LIMITS=true` rollback. Additional broader or public-auth limits still need a durable/cache-backed storage decision before implementation.
 
 ## Sequencing
 

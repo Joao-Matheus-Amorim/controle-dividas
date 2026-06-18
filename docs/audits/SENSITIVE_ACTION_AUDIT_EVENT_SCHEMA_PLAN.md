@@ -37,7 +37,7 @@ No billing webhook, subscription sync, or commercial enforcement change.
 No E2E change.
 ```
 
-Audit event storage is versioned. Billing checkout, billing portal, admin permission, admin user, admin invitation create/revoke/resend/accept, payable bill, payable write, receivable income, receivable write, expense, expense write, category delete, category write, bank, bank write, member limit, member status, and member write audit logging are implemented. Other operation families remain pending.
+Audit event storage is versioned. Billing checkout, billing portal, admin permission, admin user, admin invitation create/revoke/resend/accept, payable bill, payable write, receivable income, receivable write, expense, expense write, movement reversal, category delete, category write, bank, bank write, member limit, member status, and member write audit logging are implemented. Other operation families remain pending.
 
 ## Event shape candidate
 
@@ -74,6 +74,7 @@ Initial operation keys should be stable strings, not translated UI labels:
 | Finance expense writes | `finance.expense.create`, `finance.expense.update` |
 | Finance payable writes | `finance.payable.create`, `finance.payable.update` |
 | Finance receivable writes | `finance.receivable.create`, `finance.receivable.update` |
+| Finance movement reversals | `finance.movement.reverse` |
 | Finance category writes | `finance.category.create`, `finance.category.update` |
 | Finance bank writes | `finance.bank.create`, `finance.bank.update` |
 | Finance status/balance/limit changes | `finance.payable.status.update`, `finance.receivable.status.update`, `finance.bank.balance.update`, `finance.member.limit.update`, `finance.member.status.update` |

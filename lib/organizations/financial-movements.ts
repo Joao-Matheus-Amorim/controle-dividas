@@ -44,6 +44,9 @@ const financialMovementSelect = [
   "expense_id",
   "created_by_profile_id",
   "notes",
+  "reversed_at",
+  "reversed_by_profile_id",
+  "reversal_reason",
   "created_at",
   "updated_at",
 ].join(", ");

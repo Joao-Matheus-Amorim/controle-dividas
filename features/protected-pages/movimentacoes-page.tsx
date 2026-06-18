@@ -41,10 +41,11 @@ export async function MovimentacoesPage({ searchParams, orgSlug }: Movimentacoes
 
     return typeMatches && directionMatches && memberMatches && bankMatches && fromMatches && toMatches;
   });
-  const totalInflow = filteredMovements
+  const activeFilteredMovements = filteredMovements.filter((movement) => !movement.reversed_at);
+  const totalInflow = activeFilteredMovements
     .filter((movement) => movement.direction === "inflow")
     .reduce((total, movement) => total + Number(movement.amount), 0);
-  const totalOutflow = filteredMovements
+  const totalOutflow = activeFilteredMovements
     .filter((movement) => movement.direction === "outflow")
     .reduce((total, movement) => total + Number(movement.amount), 0);
   const netTotal = totalInflow - totalOutflow;
@@ -58,7 +59,7 @@ export async function MovimentacoesPage({ searchParams, orgSlug }: Movimentacoes
         totalInflow={totalInflow}
         totalOutflow={totalOutflow}
         netTotal={netTotal}
-        movementCount={filteredMovements.length}
+        movementCount={activeFilteredMovements.length}
       />
 
       <MovementFilterBar

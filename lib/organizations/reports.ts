@@ -54,7 +54,7 @@ export async function getOrganizationReportsDashboardData(
     const fromMatches = !filters.dateFrom || movementDate >= filters.dateFrom;
     const toMatches = !filters.dateTo || movementDate <= filters.dateTo;
 
-    return memberMatches && fromMatches && toMatches;
+    return !movement.reversed_at && memberMatches && fromMatches && toMatches;
   });
 
   const scopedMembers = filters.memberId

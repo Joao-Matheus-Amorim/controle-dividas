@@ -114,6 +114,9 @@ export type DbFinancialMovement = {
   expense_id: string | null;
   created_by_profile_id: string | null;
   notes: string | null;
+  reversed_at: string | null;
+  reversed_by_profile_id: string | null;
+  reversal_reason: string | null;
   created_at: string;
   updated_at: string;
   family_members: Pick<DbFamilyMember, "id" | "name"> | null;
