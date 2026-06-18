@@ -96,6 +96,21 @@ function parsePaymentOrigin(text: string) {
   return originMatch?.[1]?.trim() ?? "";
 }
 
+function parseReceivableAmount(text: string) {
+  const amountMatches = Array.from(text.matchAll(/(?:r\$|eur)?\s*(\d{1,6}(?:[.,]\d{1,2})?)/gi))
+    .filter((match) => {
+      const start = match.index ?? 0;
+      const end = start + match[0].length;
+      const previousChar = text[start - 1] ?? "";
+      const nextChar = text[end] ?? "";
+
+      return previousChar !== "/" && previousChar !== "-" && nextChar !== "/" && nextChar !== "-";
+    });
+  const amountMatch = amountMatches[amountMatches.length - 1];
+
+  return amountMatch?.[1]?.replace(",", ".") ?? "";
+}
+
 export function buildReceivableIncomeDraftSuggestion(
   text: string,
   sources: DbReceivableIncomeSource[],
@@ -106,7 +121,7 @@ export function buildReceivableIncomeDraftSuggestion(
   const cleanText = text.trim().replace(/\s+/g, " ");
 
   return {
-    amount: baseDraft.amount,
+    amount: parseReceivableAmount(cleanText),
     expectedDate: baseDraft.expenseDate,
     incomeType: parseIncomeType(cleanText),
     notes: "Rascunho assistido; confira antes de cadastrar.",

@@ -46,4 +46,16 @@ describe("receivable income draft suggestion", () => {
     expect(draft.expectedDate).toBe("2026-06-19");
     expect(draft.receivingBank).toBe("Itau");
   });
+
+  it("keeps date digits out of the drafted amount", () => {
+    const draft = buildReceivableIncomeDraftSuggestion(
+      "Freelance do cliente X 500 em 20/06 no Itau",
+      sources,
+      bankAccounts,
+      "2026-06-18",
+    );
+
+    expect(draft.amount).toBe("500");
+    expect(draft.expectedDate).toBe("2026-06-20");
+  });
 });
