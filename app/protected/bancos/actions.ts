@@ -6,6 +6,7 @@ import {
   getCurrentProfile,
 } from "@/lib/finance/access-control";
 import { isSystemBankOption, isSystemCurrencyOption } from "@/lib/finance/bank-options";
+import { isFinancialMovementReferenceError } from "@/lib/finance/delete-guard-errors";
 import type { PermissionAction } from "@/lib/finance/permissions";
 import type { BankAccountFormState } from "@/lib/finance/types";
 import { revalidateOrganizationPaths } from "@/lib/organizations/revalidation";
@@ -579,9 +580,14 @@ export async function deleteBankAccount(
   formData: FormData,
 ): Promise<BankAccountActionState> {
   const id = String(formData.get("id") ?? "");
+  const confirmation = String(formData.get("confirm_delete") ?? "");
 
   if (!id) {
     return { error: "Banco nao encontrado." };
+  }
+
+  if (confirmation !== "confirmado") {
+    return { error: "Confirme a exclusao antes de continuar." };
   }
 
   try {
@@ -616,6 +622,10 @@ export async function deleteBankAccount(
       .eq("organization_id", organization.id);
 
     if (error) {
+      if (isFinancialMovementReferenceError(error)) {
+        return { error: "Banco com movimentacao financeira nao pode ser excluido sem estorno ou migracao." };
+      }
+
       return { error: error.message };
     }
 

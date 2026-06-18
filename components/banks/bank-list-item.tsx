@@ -41,7 +41,7 @@ export function BankListItem({ account, members, canEdit, canDelete }: BankListI
               <BankBalanceForm account={account} />
             </>
           ) : null}
-          {canDelete ? <BankDeleteForm accountId={account.id} /> : null}
+          {canDelete ? <BankDeleteForm account={account} /> : null}
         </div>
       ) : null}
     </div>

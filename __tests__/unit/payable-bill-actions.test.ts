@@ -45,7 +45,7 @@ const mockState = vi.hoisted(() => ({
   mutationCount: 1 as number | null,
   mutationError: null as { message: string } | null,
   deleteCount: 1 as number | null,
-  deleteError: null as { message: string } | null,
+  deleteError: null as { code?: string; message: string; details?: string } | null,
   accessError: null as Error | null,
   rateLimitAllowed: true,
   rateLimitAllowedByOperation: {} as Record<string, boolean>,
@@ -1002,6 +1002,25 @@ describe("payable bill actions", () => {
         },
       }),
     ]);
+  });
+
+  it("returns a product message when payable delete is blocked by movements", async () => {
+    const { deletePayableBill } = await import("@/app/protected/contas-a-pagar/actions");
+    mockState.deleteError = {
+      code: "23503",
+      message: "update or delete on table payable_bills violates foreign key constraint",
+      details: "Key is still referenced from table financial_movements.",
+    };
+
+    const result = await deletePayableBill({}, createFormData({
+      id: "bill-1",
+      confirm_delete: "confirmado",
+    }));
+
+    expect(result).toEqual({
+      error: "Conta com movimentacao financeira nao pode ser excluida sem estorno.",
+    });
+    expect(mockState.auditEvents).toHaveLength(0);
   });
 
   it("does not audit payable bill delete when no row was deleted", async () => {

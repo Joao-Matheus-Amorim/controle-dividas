@@ -57,4 +57,30 @@ describe("destructive delete dialog guards", () => {
     expect(source).not.toContain('} from "@/components/ui/sheet"');
     expect(source).not.toContain("<Sheet");
   });
+
+  it("keeps receivable delete confirmation as Dialog", () => {
+    const source = readSource("components/receivables/receivable-delete-form.tsx");
+
+    expect(source).toContain('} from "@/components/ui/dialog"');
+    expect(source).toContain("<Dialog");
+    expect(source).toContain("<DialogTrigger asChild>");
+    expect(source).toContain("<DialogContent");
+    expect(source).toContain('name="confirm_delete"');
+    expect(source).toContain("isConfirmed");
+    expect(source).toContain('type="checkbox"');
+    expect(source).toContain('type="button"');
+  });
+
+  it("keeps bank delete confirmation as Dialog", () => {
+    const source = readSource("components/banks/bank-delete-form.tsx");
+
+    expect(source).toContain('} from "@/components/ui/dialog"');
+    expect(source).toContain("<Dialog");
+    expect(source).toContain("<DialogTrigger asChild>");
+    expect(source).toContain("<DialogContent");
+    expect(source).toContain('name="confirm_delete"');
+    expect(source).toContain("isConfirmed");
+    expect(source).toContain('type="checkbox"');
+    expect(source).toContain('type="button"');
+  });
 });
