@@ -1,5 +1,6 @@
 "use client";
 
+import { Sparkles } from "lucide-react";
 import { useActionState, useEffect, useState } from "react";
 
 import { createExpense, updateExpense } from "@/app/protected/gastos/actions";
@@ -21,6 +22,7 @@ import {
   financeSubmitButtonClass,
 } from "@/components/finance/finance-form-ui";
 import { buildExpenseCategoryLabelMap } from "@/lib/finance/category-labels";
+import { buildExpenseDraftSuggestion } from "@/lib/finance/expense-draft";
 import type {
   DbBankAccount,
   DbExpense,
@@ -56,6 +58,16 @@ export function ExpenseForm({
   const isEditing = mode === "edit" && Boolean(expense);
   const initialMemberId = expense?.family_member_id ?? defaultMemberId ?? "";
   const [selectedMemberId, setSelectedMemberId] = useState(initialMemberId);
+  const [draftPrompt, setDraftPrompt] = useState("");
+  const [draftApplied, setDraftApplied] = useState(false);
+  const [categoryId, setCategoryId] = useState(expense?.category_id ?? "");
+  const [expenseDate, setExpenseDate] = useState(expense?.expense_date ?? today);
+  const [amount, setAmount] = useState(expense ? String(expense.amount) : "");
+  const [description, setDescription] = useState(expense?.description ?? "");
+  const [purchaseLocation, setPurchaseLocation] = useState(expense?.purchase_location ?? "");
+  const [paymentMethod, setPaymentMethod] = useState(expense?.payment_method ?? "");
+  const [bankId, setBankId] = useState("");
+  const [notes, setNotes] = useState(expense?.notes ?? "");
   const automaticMember = !isEditing && defaultMemberId
     ? members.find((member) => member.id === defaultMemberId) ?? null
     : null;
@@ -75,9 +87,69 @@ export function ExpenseForm({
     }
   }, [onSuccess, state.success]);
 
+  const selectedBankId = memberBankAccounts.some((account) => account.id === bankId)
+    ? bankId
+    : "";
+
+  function applyDraftSuggestion() {
+    const suggestion = buildExpenseDraftSuggestion(
+      draftPrompt,
+      categories,
+      memberBankAccounts,
+      today,
+    );
+
+    setCategoryId(suggestion.categoryId);
+    setExpenseDate(suggestion.expenseDate);
+    setBankId(suggestion.bankId);
+    setAmount(suggestion.amount);
+    setDescription(suggestion.description);
+    setPurchaseLocation(suggestion.purchaseLocation);
+    setPaymentMethod(suggestion.paymentMethod);
+    setNotes(suggestion.notes);
+    setDraftApplied(true);
+  }
+
   return (
     <form action={formAction} className={financeFormClass}>
       {expense ? <input type="hidden" name="id" value={expense.id} /> : null}
+
+      {!isEditing ? (
+        <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/35">Rascunho assistido</p>
+              <p className="mt-1 text-sm text-white/45">Descreva o gasto e revise os campos antes de cadastrar.</p>
+            </div>
+            {draftApplied ? (
+              <span className="rounded-full bg-[#8b72f8]/15 px-3 py-1 text-xs font-semibold text-[#c9bfff]">
+                rascunho aplicado
+              </span>
+            ) : null}
+          </div>
+          <div className="grid gap-3 md:grid-cols-[1fr_auto]">
+            <Input
+              value={draftPrompt}
+              onChange={(event) => {
+                setDraftPrompt(event.target.value);
+                setDraftApplied(false);
+              }}
+              placeholder="Ex: Comprei 2kg de carne no Carrefour por 23,50 no cartao ontem"
+              className={financeInputClass}
+            />
+            <Button
+              type="button"
+              variant="secondary"
+              className="h-11 rounded-2xl px-4"
+              onClick={applyDraftSuggestion}
+              disabled={!draftPrompt.trim()}
+            >
+              <Sparkles className="h-4 w-4" />
+              Sugerir
+            </Button>
+          </div>
+        </div>
+      ) : null}
 
       <div className={financeGridFourClass}>
         <div className={financeFieldClass}>
@@ -95,7 +167,10 @@ export function ExpenseForm({
               id={isEditing ? `family_member_id-${expense?.id}` : "family_member_id"}
               name="family_member_id"
               defaultValue={initialMemberId}
-              onChange={(event) => setSelectedMemberId(event.target.value)}
+              onChange={(event) => {
+                setSelectedMemberId(event.target.value);
+                setBankId("");
+              }}
               required
               className={financeNativeSelectClass}
             >
@@ -114,7 +189,8 @@ export function ExpenseForm({
           <select
             id={isEditing ? `category_id-${expense?.id}` : "category_id"}
             name="category_id"
-            defaultValue={expense?.category_id ?? ""}
+            value={categoryId}
+            onChange={(event) => setCategoryId(event.target.value)}
             className={financeNativeSelectClass}
           >
             <option value="">Sem categoria</option>
@@ -130,7 +206,9 @@ export function ExpenseForm({
           <FinanceDateField
             id={isEditing ? `expense_date-${expense?.id}` : "expense_date"}
             name="expense_date"
-            defaultValue={expense?.expense_date ?? today}
+            defaultValue={expenseDate}
+            value={expenseDate}
+            onValueChange={setExpenseDate}
             label="Data"
             required
           />
@@ -145,7 +223,8 @@ export function ExpenseForm({
             min="0.01"
             step="0.01"
             placeholder="3.50"
-            defaultValue={expense ? String(expense.amount) : ""}
+            value={amount}
+            onChange={(event) => setAmount(event.target.value)}
             required
             className={financeInputClass}
           />
@@ -159,7 +238,8 @@ export function ExpenseForm({
             id={isEditing ? `description-${expense?.id}` : "description"}
             name="description"
             placeholder="Ex: Cafe, mercado, passagem"
-            defaultValue={expense?.description ?? ""}
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
             required
             className={financeInputClass}
           />
@@ -171,7 +251,8 @@ export function ExpenseForm({
             id={isEditing ? `purchase_location-${expense?.id}` : "purchase_location"}
             name="purchase_location"
             placeholder="Ex: Cafeteria X"
-            defaultValue={expense?.purchase_location ?? ""}
+            value={purchaseLocation}
+            onChange={(event) => setPurchaseLocation(event.target.value)}
             className={financeInputClass}
           />
         </div>
@@ -184,7 +265,8 @@ export function ExpenseForm({
             id={isEditing ? `payment_method-${expense?.id}` : "payment_method"}
             name="payment_method"
             placeholder="Cartao, dinheiro, transferencia"
-            defaultValue={expense?.payment_method ?? ""}
+            value={paymentMethod}
+            onChange={(event) => setPaymentMethod(event.target.value)}
             className={financeInputClass}
           />
         </div>
@@ -215,6 +297,8 @@ export function ExpenseForm({
             <select
               id="bank_id"
               name="bank_id"
+              value={selectedBankId}
+              onChange={(event) => setBankId(event.target.value)}
               required
               className={financeNativeSelectClass}
             >
@@ -234,7 +318,8 @@ export function ExpenseForm({
             id={isEditing ? `notes-${expense?.id}` : "notes"}
             name="notes"
             placeholder="Opcional"
-            defaultValue={expense?.notes ?? ""}
+            value={notes}
+            onChange={(event) => setNotes(event.target.value)}
             className={financeInputClass}
           />
         </div>
