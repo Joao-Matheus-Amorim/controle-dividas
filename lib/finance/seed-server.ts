@@ -55,14 +55,15 @@ async function organizationAlreadyHasExpenseCategories(
 }
 
 export async function seedInitialFinanceDataForOwner(
-  supabase: SeedSupabaseClient,
+  supabase: unknown,
   ownerId: string,
   organizationId: string,
 ) {
+  const seedClient = supabase as SeedSupabaseClient;
   const memberRows = buildDefaultFamilyMemberSeedRows(ownerId, organizationId);
   if (memberRows.length > 0) {
     await assertSeedUpsertSucceeded(
-      supabase
+      seedClient
         .from("family_members")
         .upsert(memberRows, duplicateSafeSeedOptions),
     );
@@ -71,12 +72,12 @@ export async function seedInitialFinanceDataForOwner(
   const categoryRows = buildDefaultExpenseCategorySeedRows(ownerId, organizationId);
   if (categoryRows.length > 0) {
     const shouldSeedCategories = !(await organizationAlreadyHasExpenseCategories(
-      supabase,
+      seedClient,
       organizationId,
     ));
 
     if (shouldSeedCategories) {
-      const { error } = await supabase.from("expense_categories").insert(categoryRows);
+      const { error } = await seedClient.from("expense_categories").insert(categoryRows);
 
       if (error) {
         throw new Error(error.message);
