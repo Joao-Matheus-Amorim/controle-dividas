@@ -45,6 +45,12 @@ export type DbExpense = {
   expense_categories: Pick<DbExpenseCategory, "id" | "name"> | null;
 };
 
+export type ReversedMovementSummary = {
+  id: string;
+  reversed_at: string;
+  bank_name: string | null;
+};
+
 export type PayableBillType = "avulsa" | "fixa";
 
 export type DbPayableBill = {
@@ -62,6 +68,7 @@ export type DbPayableBill = {
   notes: string | null;
   created_at: string;
   family_members: Pick<DbFamilyMember, "id" | "name"> | null;
+  last_reversed_movement?: ReversedMovementSummary | null;
 };
 
 export type DbReceivableIncome = {
@@ -78,6 +85,7 @@ export type DbReceivableIncome = {
   notes: string | null;
   created_at: string;
   family_members: Pick<DbFamilyMember, "id" | "name"> | null;
+  last_reversed_movement?: ReversedMovementSummary | null;
 };
 
 export type DbBankAccount = {
