@@ -66,10 +66,10 @@ Exemplos de contas fixas:
 | Navegacao desktop | Implementado | Menu dinamico por permissao |
 | Navegacao mobile | Implementado | Bottom navigation dinamica por permissao |
 | Pessoas | Implementado | Cadastro, edicao basica e ativacao/desativacao de membro financeiro |
-| Gastos | Implementado parcial | Criacao e exclusao existem; edicao completa ainda pendente |
-| Contas a pagar | Implementado parcial | Criacao, status e exclusao existem; edicao completa e separacao fixa/avulsa ainda pendentes |
-| Contas a receber | Implementado parcial | Criacao, status e exclusao existem; edicao completa ainda pendente |
-| Bancos | Implementado parcial | Criacao, saldo e exclusao existem; edicao completa ainda pendente |
+| Gastos | Implementado | Criacao, edicao e exclusao existem; o fluxo de edicao fecha o sheet apos sucesso |
+| Contas a pagar | Implementado parcial | Criacao, edicao, status e exclusao existem; recorrencia personalizada ainda pendente |
+| Contas a receber | Implementado | Criacao, edicao, status e exclusao existem; o fluxo de edicao fecha o sheet apos sucesso |
+| Bancos | Implementado | Criacao, edicao, saldo e exclusao existem; o fluxo de edicao fecha o sheet apos sucesso |
 | Relatorios | Implementado parcial | Tela consolidada existe; filtros, graficos e exportacao ainda pendentes |
 | Configuracoes | Implementado parcial | Categorias e limites existem; edicao completa e configuracoes gerais ainda pendentes |
 | Admin | Implementado | Usuarios familiares e permissoes por modulo/acao/escopo |

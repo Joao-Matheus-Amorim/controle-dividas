@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { CalendarDays, CircleDollarSign, FileText, Landmark, UserRound, WalletCards } from "lucide-react";
 
 import { createReceivableIncome, updateReceivableIncome } from "@/app/protected/contas-a-receber/actions";
@@ -85,6 +85,7 @@ type ReceivableIncomeFormProps = {
   income?: DbReceivableIncome;
   mode?: "create" | "edit";
   defaultMemberId?: string;
+  onSuccess?: () => void;
 };
 
 export function ReceivableIncomeForm({
@@ -93,6 +94,7 @@ export function ReceivableIncomeForm({
   income,
   mode = "create",
   defaultMemberId,
+  onSuccess,
 }: ReceivableIncomeFormProps) {
   const action = mode === "edit" ? updateReceivableIncome : createReceivableIncome;
   const [state, formAction, isPending] = useActionState(action, initialState);
@@ -116,6 +118,12 @@ export function ReceivableIncomeForm({
     isEditing &&
     selectedReceivingBank &&
     !memberBankAccounts.some((account) => account.bank_name === selectedReceivingBank);
+
+  useEffect(() => {
+    if (state.success) {
+      onSuccess?.();
+    }
+  }, [onSuccess, state.success]);
 
   return (
     <form action={formAction} className={financeFormClass}>

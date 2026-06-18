@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 
 import { createExpense, updateExpense } from "@/app/protected/gastos/actions";
 import { AppActionFeedback } from "@/components/app/app-action-feedback";
@@ -38,6 +38,7 @@ type ExpenseFormProps = {
   expense?: DbExpense;
   mode?: "create" | "edit";
   defaultMemberId?: string;
+  onSuccess?: () => void;
 };
 
 export function ExpenseForm({
@@ -47,6 +48,7 @@ export function ExpenseForm({
   expense,
   mode = "create",
   defaultMemberId,
+  onSuccess,
 }: ExpenseFormProps) {
   const action = mode === "edit" ? updateExpense : createExpense;
   const [state, formAction, isPending] = useActionState(action, initialState);
@@ -66,6 +68,12 @@ export function ExpenseForm({
     selectedBankOrCard &&
     !memberBankAccounts.some((account) => account.bank_name === selectedBankOrCard);
   const categoryLabels = buildExpenseCategoryLabelMap(categories);
+
+  useEffect(() => {
+    if (state.success) {
+      onSuccess?.();
+    }
+  }, [onSuccess, state.success]);
 
   return (
     <form action={formAction} className={financeFormClass}>
