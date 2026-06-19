@@ -38,6 +38,7 @@ import { getCurrentPeriodContextLabel } from "@/lib/finance/period-context";
 import { getOrganizationBanksDashboardData } from "@/lib/organizations/banks";
 import { getOrganizationExpenseDashboardData } from "@/lib/organizations/expenses";
 import { getOrganizationPayableBillsDashboardData } from "@/lib/organizations/payables";
+import { getOrganizationFamilyMembers } from "@/lib/organizations/people";
 import { getOrganizationReceivableIncomesDashboardData } from "@/lib/organizations/receivables";
 import { getOrgPathFromProtectedPath } from "@/lib/organizations/paths";
 import { getCurrentOrganization } from "@/lib/organizations/server";
@@ -64,6 +65,7 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
     payableDataResult,
     receivableDataResult,
     bankDataResult,
+    peopleDataResult,
     periodContextLabelResult,
     currentOrganizationResult,
   ] = await Promise.allSettled([
@@ -72,6 +74,7 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
     getOrganizationPayableBillsDashboardData(orgSlug),
     getOrganizationReceivableIncomesDashboardData(orgSlug),
     getOrganizationBanksDashboardData(orgSlug),
+    getOrganizationFamilyMembers(orgSlug),
     getCurrentPeriodContextLabel(),
     getCurrentOrganization(orgSlug),
   ]);
@@ -141,6 +144,11 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
           totalBalance: 0,
           totalAccounts: 0,
         });
+
+  const peopleData =
+    peopleDataResult.status === "fulfilled"
+      ? peopleDataResult.value
+      : (logDashboardLoadError("people", peopleDataResult.reason), []);
 
   const periodContextLabel =
     periodContextLabelResult.status === "fulfilled"
@@ -228,11 +236,7 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
       : null,
   ].filter(Boolean) as DashboardQuickAction[];
 
-  const hasAccessibleMember =
-    expenseData.members.length > 0 ||
-    payableData.members.length > 0 ||
-    receivableData.members.length > 0 ||
-    bankData.members.length > 0;
+  const hasActivePerson = peopleData.some((member) => member.is_active);
 
   const readinessChecklistItems: DashboardReadinessChecklistItem[] = [
     canPeople
@@ -240,7 +244,7 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
           href: getOrgPathFromProtectedPath("/protected/pessoas", orgSlug),
           title: "Pessoa do owner",
           detail: "Cadastro base para vincular lancamentos.",
-          isComplete: hasAccessibleMember,
+          isComplete: hasActivePerson,
         }
       : null,
     canBanks

@@ -16,6 +16,7 @@ describe("dashboard owner readiness checklist guards", () => {
   it("keeps the owner operational checklist wired to the routed dashboard", () => {
     expect(dashboardPage).toContain("DashboardReadinessChecklist");
     expect(dashboardPage).toContain("readinessChecklistItems");
+    expect(dashboardPage).toContain("getOrganizationFamilyMembers");
     expect(dashboardPage).toContain('"/protected/pessoas"');
     expect(dashboardPage).toContain('"/protected/bancos"');
     expect(dashboardPage).toContain('"/protected/gastos"');
@@ -30,7 +31,8 @@ describe("dashboard owner readiness checklist guards", () => {
     expect(dashboardPage).toContain("payableData.bills.length > 0");
     expect(dashboardPage).toContain("receivableData.incomes.length > 0");
     expect(dashboardPage).toContain("bankData.accounts.length > 0");
-    expect(dashboardPage).toContain("hasAccessibleMember");
+    expect(dashboardPage).toContain("peopleData.some((member) => member.is_active)");
+    expect(dashboardPage).toContain("isComplete: hasActivePerson");
     expect(dashboardPage).not.toContain("getOrganizationReadiness");
   });
 
