@@ -16,6 +16,10 @@ import {
   type DashboardQuickAction,
 } from "@/components/dashboard/dashboard-quick-actions";
 import {
+  DashboardReadinessChecklist,
+  type DashboardReadinessChecklistItem,
+} from "@/components/dashboard/dashboard-readiness-checklist";
+import {
   DashboardSummarySection,
   type DashboardSummaryRow,
 } from "@/components/dashboard/dashboard-summary-section";
@@ -34,6 +38,7 @@ import { getCurrentPeriodContextLabel } from "@/lib/finance/period-context";
 import { getOrganizationBanksDashboardData } from "@/lib/organizations/banks";
 import { getOrganizationExpenseDashboardData } from "@/lib/organizations/expenses";
 import { getOrganizationPayableBillsDashboardData } from "@/lib/organizations/payables";
+import { getOrganizationFamilyMembers } from "@/lib/organizations/people";
 import { getOrganizationReceivableIncomesDashboardData } from "@/lib/organizations/receivables";
 import { getOrgPathFromProtectedPath } from "@/lib/organizations/paths";
 import { getCurrentOrganization } from "@/lib/organizations/server";
@@ -60,6 +65,7 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
     payableDataResult,
     receivableDataResult,
     bankDataResult,
+    peopleDataResult,
     periodContextLabelResult,
     currentOrganizationResult,
   ] = await Promise.allSettled([
@@ -68,6 +74,7 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
     getOrganizationPayableBillsDashboardData(orgSlug),
     getOrganizationReceivableIncomesDashboardData(orgSlug),
     getOrganizationBanksDashboardData(orgSlug),
+    getOrganizationFamilyMembers(orgSlug),
     getCurrentPeriodContextLabel(),
     getCurrentOrganization(orgSlug),
   ]);
@@ -137,6 +144,11 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
           totalBalance: 0,
           totalAccounts: 0,
         });
+
+  const peopleData =
+    peopleDataResult.status === "fulfilled"
+      ? peopleDataResult.value
+      : (logDashboardLoadError("people", peopleDataResult.reason), []);
 
   const periodContextLabel =
     periodContextLabelResult.status === "fulfilled"
@@ -224,6 +236,51 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
       : null,
   ].filter(Boolean) as DashboardQuickAction[];
 
+  const hasActivePerson = peopleData.some((member) => member.is_active);
+
+  const readinessChecklistItems: DashboardReadinessChecklistItem[] = [
+    canPeople
+      ? {
+          href: getOrgPathFromProtectedPath("/protected/pessoas", orgSlug),
+          title: "Pessoa do owner",
+          detail: "Cadastro base para vincular lancamentos.",
+          isComplete: hasActivePerson,
+        }
+      : null,
+    canBanks
+      ? {
+          href: getOrgPathFromProtectedPath("/protected/bancos", orgSlug),
+          title: "Banco",
+          detail: "Conta ou cartao para movimentar saldo.",
+          isComplete: bankData.accounts.length > 0,
+        }
+      : null,
+    canExpenses
+      ? {
+          href: getOrgPathFromProtectedPath("/protected/gastos", orgSlug),
+          title: "Gasto",
+          detail: "Primeira saida lancada no mes.",
+          isComplete: expenseData.expenses.length > 0,
+        }
+      : null,
+    canPayables
+      ? {
+          href: getOrgPathFromProtectedPath("/protected/contas-a-pagar", orgSlug),
+          title: "Conta a pagar",
+          detail: "Divida fixa ou avulsa cadastrada.",
+          isComplete: payableData.bills.length > 0,
+        }
+      : null,
+    canReceivables
+      ? {
+          href: getOrgPathFromProtectedPath("/protected/contas-a-receber", orgSlug),
+          title: "Conta a receber",
+          detail: "Entrada prevista ou recebida cadastrada.",
+          isComplete: receivableData.incomes.length > 0,
+        }
+      : null,
+  ].filter(Boolean) as DashboardReadinessChecklistItem[];
+
   const summaryRows: DashboardSummaryRow[] = [
     canExpenses
       ? {
@@ -294,6 +351,8 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
       />
 
       <DashboardQuickActions actions={quickActions} />
+
+      <DashboardReadinessChecklist items={readinessChecklistItems} />
 
       <DashboardSummarySection
         rows={summaryRows}
