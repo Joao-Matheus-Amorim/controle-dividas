@@ -2,6 +2,12 @@
 
 Base: `origin/main` at `e18135a` (`fix: align dashboard quick actions and org links (#832)`).
 
+> Status DocDoc: Snapshot historico
+> Reconciliado em: 2026-06-19.
+> Uso atual: evidencia do estado observado em 2026-06-01. Para estado atual,
+> usar `docs/VALIDACAO_TECNICA.md`, `docs/DOCUMENTATION_STATUS.md`,
+> `docs/SAAS_GAP_REGISTER.md` e migrations versionadas.
+
 Purpose: consolidate where the project is, what is actually closed, what remains open, and the safest next sequence without needing another broad scan before each small PR.
 
 ## Executive summary
@@ -22,7 +28,7 @@ The main risks are no longer "unknown architecture". The remaining risk is seque
 | --- | --- |
 | Main branch | `origin/main` at `e18135a`, includes #832 |
 | Open PR queue | none observed during audit |
-| Supabase migrations | `001` through `043` |
+| Supabase migrations | Snapshot `001` through `043`; reconciliado em 2026-06-19 para `001` through `067` nos docs vivos |
 | Docs | 147 markdown/sql documentation files under `docs/` |
 | Tests/fixtures | 217 files under `__tests__/` and `tests/` |
 | Runtime legacy organization fallback | 0 files in `app/`, `components/`, `lib/` matching `organizationOrLegacyFilter` or `organization_id.is.null` |
@@ -69,7 +75,7 @@ Closed enough for current operation:
 
 - CI validates required env for human PRs and `main`.
 - Dependabot PRs use non-secret placeholders where safe.
-- `vitest` is patched to `4.1.8` on `origin/main`.
+- `vitest` was patched to `4.1.8` on the audited snapshot; reconciliado em 2026-06-19 para `4.1.9` nos docs vivos.
 - Vercel project IDs are part of deploy secrets contract.
 - Supabase migrations deploy before Vercel production deploy.
 
@@ -99,7 +105,7 @@ Closed enough for operating with confidence:
 
 - DocDoc status headers exist across current docs.
 - high-risk root docs are marked with status/use/supersession notes.
-- `docs/VALIDACAO_TECNICA.md` is now the current operational contract and includes migrations `001` to `043`.
+- `docs/VALIDACAO_TECNICA.md` is the current operational contract and was reconciliado em 2026-06-19 to include migrations `001` to `067`.
 
 Residual risk:
 

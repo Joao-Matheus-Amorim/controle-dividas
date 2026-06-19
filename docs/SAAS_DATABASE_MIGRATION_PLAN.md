@@ -1,7 +1,7 @@
 # FamilyFinance SaaS - Plano de Migration Multi-tenant
 
 > Status DocDoc: Historico
-> Superado por: migrations `001` a `043`, `docs/VALIDACAO_TECNICA.md` e
+> Superado por: migrations `001` a `067`, `docs/VALIDACAO_TECNICA.md` e
 > `docs/DOCUMENTATION_STATUS.md`.
 > Uso atual: contexto historico do plano de migration; nao usar para escolher
 > novo numero de migration nem para afirmar estado atual do banco.

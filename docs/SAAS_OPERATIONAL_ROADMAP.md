@@ -6,6 +6,20 @@
 > `docs/SAAS_GAP_REGISTER.md` e o checklist ativo em `docs/audits/`.
 
 Atualizado em: 2026-06-08
+Reconciliado em: 2026-06-19
+
+Nota de reconciliacao 2026-06-19:
+
+- O codigo atual avancou de `043` para `067`.
+- O runtime agora inclui ledger financeiro, movimentacoes, estornos protegidos,
+  pagamentos/recebimentos atomicos, gastos pagos como saida, taxonomia inicial
+  de 20 categorias, origens de recebimento, rascunhos assistidos para gastos,
+  contas a pagar, contas a receber e bancos, e checklist operacional do owner
+  no dashboard.
+- A proxima frente de produto nao deve tratar os rascunhos assistidos como IA
+  completa. O gap real e definir o contrato de IA financeira antes de qualquer
+  modelo: intents permitidas, campos obrigatorios, opcoes existentes,
+  perguntas de dados faltantes, pessoa logada por padrao e save revisavel.
 
 ## 1. Objetivo
 
@@ -309,6 +323,21 @@ Resultado esperado:
 - migration e runtime em PRs separados.
 
 ## 4. Ordem recomendada dos proximos PRs
+
+0. **DocDoc do estado financeiro atual**
+   - Manter `VALIDACAO_TECNICA.md`, `SAAS_GAP_REGISTER.md`,
+     `DOCUMENTATION_STATUS.md` e este roadmap alinhados com migrations `067`.
+   - Registrar ledger, movimentacoes, estornos, taxonomia, rascunho assistido e
+     checklist do owner como estado real, nao plano futuro.
+
+0.1. **Contrato de IA financeira antes de modelo**
+   - Definir schema de intent para `gasto`, `conta_a_pagar`,
+     `conta_a_receber` e `banco`.
+   - Definir campos obrigatorios, opcoes permitidas e perguntas quando faltar
+     dado.
+   - Garantir que categorias venham das 20 categorias da org, bancos venham das
+     contas existentes, e pessoa padrao seja a pessoa vinculada ao usuario
+     logado quando nao-admin.
 
 1. **Confirmar E2E multi-org switch em ambiente dedicado quando necessario**
    - Configurar usuario dedicado.

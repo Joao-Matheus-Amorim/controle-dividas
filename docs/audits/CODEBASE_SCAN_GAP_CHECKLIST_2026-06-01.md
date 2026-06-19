@@ -2,6 +2,14 @@
 
 Data: 2026-06-01
 
+> Status DocDoc: Atual como checklist historico reconciliado.
+> Reconciliado em: 2026-06-19.
+> Uso atual: manter como checklist de gaps/dividas, mas considerar que o
+> estado real do codigo ja avancou ate a migration `067` e que ledger
+> financeiro, estornos, rascunhos assistidos, taxonomia inicial e checklist
+> operacional do owner ja existem no runtime. Para contrato operacional vigente,
+> cruzar com `docs/VALIDACAO_TECNICA.md` e `docs/SAAS_GAP_REGISTER.md`.
+
 ## Objetivo
 
 Este documento consolida a varredura tecnica, operacional e organizacional do projeto para orientar os proximos PRs sem depender de uma nova varredura completa a cada frente.
@@ -19,7 +27,7 @@ Uso esperado:
 - Multi-tenant em transicao com `organizations`, `organization_memberships`, `organization_id` e `owner_id`.
 - Rotas protegidas em `/protected` e rotas organization-aware em `/org/[orgSlug]`.
 - Deploy automatizado via GitHub Actions: migrations Supabase antes do deploy Vercel.
-- Migrations versionadas ate `043_restore_finance_relationships_and_rls_cleanup.sql`.
+- Migrations versionadas ate `067_self_scoped_finance_creates_rls.sql`.
 - RLS e guards bem documentados, mas parte da evidencia live ainda depende de gates manuais.
 - Front em evolucao paralela; evitar tocar em arquivos visuais enquanto houver trabalho ativo no dashboard.
 
@@ -65,7 +73,7 @@ Estimativa: 0,5 dia.
 
 ### P0.2 - Validar efeito da migration 043 em producao
 
-Status: em andamento
+Status: historico/parcialmente superado por migrations posteriores
 
 Problema:
 
@@ -94,6 +102,12 @@ Criterio de fechamento:
 - [ ] Rotas financeiras renderizam sem Server Components digest.
 
 Estimativa: 0,5 dia.
+
+Nota 2026-06-19:
+
+- O codigo ja avancou para migrations `044` a `067`;
+- os loaders organizacionais criticos continuam sem depender de embedded select para renderizar as rotas financeiras;
+- a confirmacao em banco alvo e o smoke pos-deploy continuam sendo evidencia operacional, nao mudanca de codigo.
 
 ### P0.3 - Preflight de orfaos para falha/retry da migration 043
 
@@ -470,18 +484,20 @@ Estimativa: 1 a 2 dias.
 
 ### P3.2 - Atualizar `VALIDACAO_TECNICA.md`
 
-Status: coberto por PR docs de atualizacao de `VALIDACAO_TECNICA.md`
+Status: reaberto para reconciliacao 2026-06-19
 
 Problema:
 
-O documento ainda fala de migrations ate `039`; o estado real ja chega a `043` e deploy automatizado.
+O documento foi atualizado ate `043`, mas o estado real ja chega a `067` e inclui convites admin, ledger financeiro, movimentacoes, estornos, taxonomia, rascunhos assistidos e creates financeiros self-scoped.
 
 Acao recomendada:
 
 - [x] Atualizar lista de migrations obrigatorias ate `043`.
+- [x] Atualizar lista de migrations obrigatorias ate `067`.
 - [x] Incluir `SUPABASE_DB_URL` como secret de deploy, nao env runtime do app.
 - [x] Incluir validacao de FKs restauradas.
 - [ ] Incluir pos-deploy smoke.
+- [x] Registrar rascunho assistido, ledger financeiro e taxonomia inicial no estado tecnico.
 
 Criterio de fechamento:
 

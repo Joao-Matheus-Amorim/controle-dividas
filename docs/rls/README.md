@@ -25,7 +25,7 @@ substituem:
 | `RLS_TEST_HARNESS.md` | Parcialmente superado | Contexto do desenho inicial do harness; validar contra os testes reais atuais. |
 | `RLS_FINANCE_TEST_PLAN.md` | Parcialmente superado | Matriz historica inicial; confirmar cobertura em tests e inventarios atuais. |
 | `RLS_ROLLOUT_AND_ROLLBACK.md` | Parcialmente superado | Estrategia historica de rollout; usar como contexto, nao como ordem atual. |
-| `LEGACY_ORGANIZATION_ID_HANDLING.md` | Parcialmente superado | Contexto do fallback legado; confirmar com migrations `030` a `043`. |
+| `LEGACY_ORGANIZATION_ID_HANDLING.md` | Parcialmente superado | Contexto do fallback legado; confirmar com migrations `030` a `067`. |
 | `ORGANIZATION_MEMBERSHIP_RLS_HELPERS.md` | Atual como contexto de helpers | Contexto dos helpers existentes; confirmar definicao nas migrations antes de alterar policies. |
 
 ## Regra operacional

@@ -37,6 +37,10 @@ Decisao arquitetural, mudanca de rota, boundary ou compatibilidade exige ADR ou 
 | Admin and permissions documentation reconciliation | Covered |
 | Supabase proxy and client boundary guards | Covered |
 | RLS fallback removal and legacy owner/family policy cleanup | Covered by migrations `030` to `039` |
+| Finance ledger for paid expenses, paid payables, received receivables and reversals | Covered by migrations `057` to `066` and protected movement UI |
+| Owner operational readiness checklist | Covered in the dashboard using real People, Banks, Expenses, Payables and Receivables data |
+| Initial finance taxonomy | Covered by the 20-category taxonomy and seeded organization paths |
+| Assisted finance drafts | Covered as review-only deterministic drafts for expenses, payables, receivables and banks |
 
 ## Open gaps
 
@@ -53,6 +57,7 @@ Decisao arquitetural, mudanca de rota, boundary ou compatibilidade exige ADR ou 
 | GAP-017 | Notifications | Notification scope contract exists in `docs/audits/NOTIFICATION_SCOPE_CONTRACT.md`, defining due-date/overdue alert candidates, in-app first delivery, external channel gates, opt-in rules, tenant scope, permission boundaries, deduplication, and rollback expectations. No notification runtime, UI, cron, schema, RLS, billing, or dependency change is implemented. | Use the contract before adding in-app alerts, email, push, notification preferences, jobs, or providers; update it when the first runtime implementation lands. |
 | GAP-018 | Dashboard visualization | Dashboard visualization contract exists in `docs/audits/DASHBOARD_VISUALIZATION_CONTRACT.md`, defining first insight candidates, server-side data rules, permission boundaries, textual fallbacks, mobile behavior, and charting dependency gates. No chart runtime, UI change, schema, RLS, billing, or dependency change is implemented. | Use the contract before adding dashboard charts or time-series; update it when the first runtime implementation lands. |
 | GAP-019 | Client state strategy | Client state strategy contract exists in `docs/audits/CLIENT_STATE_STRATEGY_CONTRACT.md`, covering local state, URL state, useActionState, useTransition, @tanstack/react-table, server data, and the boundary for any future store. No runtime, UI, schema, RLS, billing, or dependency change is implemented. | Use the contract before adding filters, pagination, optimistic updates, or a global store; update it when the first runtime implementation lands. |
+| GAP-020 | AI finance intake | The app currently has review-only deterministic assisted drafts for expenses, payable bills, receivable incomes and bank accounts. It does not yet call an AI model, does not have a shared intent schema, and does not enforce a model contract for required fields, allowed category/source/bank options, self-scoped member defaulting, or follow-up questions when information is missing. | Create a dedicated AI intake contract before model runtime: define allowed module intents, required fields, option catalogs, missing-field questions, member scope rules and review-only save boundaries. |
 
 GAP-015 public auth note: login rate limit runtime covers `auth.login.password` in `app/auth/login/actions.ts` using the normalized email as actor key and `public-auth` as organization key, with shared buckets for missing or malformed emails. This step has sem audit runtime because `record_audit_event` requires an authenticated organization member.
 
@@ -109,6 +114,8 @@ GAP-018 now has a dashboard visualization contract, but chart runtime remains fu
 GAP-016 now has an onboarding terminology contract and first runtime copy adoption, but route terminology remains future work until an ADR or decision record exists.
 
 GAP-017 now has a notification scope contract, but notification runtime, channels, preferences, jobs, and providers remain future work.
+
+GAP-020 tracks the difference between current assisted drafts and real AI intake. The current drafts are useful for owner testing, but any model-backed flow must be contracted before runtime so it cannot invent categories, people, banks, status values or write directly without user review.
 
 ## Boundaries
 

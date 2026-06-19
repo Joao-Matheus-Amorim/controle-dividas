@@ -108,8 +108,18 @@ describe("Operacao DocDoc documentation guards", () => {
 
   it("marks the central documentation sources with DocDoc status", () => {
     expect(validation).toContain("status docdoc: atual");
+    expect(validation).toContain("atualizado em: 2026-06-19");
+    expect(validation).toContain("next.js `16.2.9`");
+    expect(validation).toContain("react `19.2.7`");
+    expect(validation).toContain("supabase/migrations/067_self_scoped_finance_creates_rls.sql");
+    expect(validation).toContain("rascunho assistido");
+    expect(validation).toContain("ledger de movimentacoes");
     expect(gapRegister).toContain("status docdoc: atual");
+    expect(gapRegister).toContain("gap-020");
+    expect(gapRegister).toContain("ai finance intake");
     expect(roadmap).toContain("status docdoc: parcialmente superado");
+    expect(roadmap).toContain("reconciliado em: 2026-06-19");
+    expect(roadmap).toContain("contrato de ia financeira antes de modelo");
     expect(implementationStatus).toContain("status docdoc: parcialmente superado");
   });
 
@@ -132,7 +142,7 @@ describe("Operacao DocDoc documentation guards", () => {
     expect(authFlowAudit).toContain("estado vivo isolado");
 
     expect(financialRlsPlan).toContain("status docdoc: parcialmente superado/historico");
-    expect(financialRlsPlan).toContain("migrations `030` a `043`");
+    expect(statusMap).toContain("migrations `030` a `067`");
     expect(financialRlsPlan).toContain("nao usar como ordem");
     expect(financialRlsPlan).toContain("operacional atual");
 
@@ -144,7 +154,7 @@ describe("Operacao DocDoc documentation guards", () => {
     expect(liveMvpAudit).toContain("nao usar como contrato atual");
 
     expect(saasDatabaseMigrationPlan).toContain("status docdoc: historico");
-    expect(saasDatabaseMigrationPlan).toContain("migrations `001` a `043`");
+    expect(statusMap).toContain("migrations `001` a `067`");
     expect(saasDatabaseMigrationPlan).toContain("nao usar para escolher");
     expect(saasDatabaseMigrationPlan).toContain("novo numero de migration");
 

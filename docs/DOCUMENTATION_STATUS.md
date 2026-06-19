@@ -3,7 +3,7 @@
 > Status DocDoc: Atual
 > Uso atual: mapa vivo para reconciliar documentacao atrasada sem apagar
 > historico util.
-> Atualizado em: 2026-06-13.
+> Atualizado em: 2026-06-19.
 
 ## Objetivo
 
@@ -34,9 +34,9 @@ trabalho novo.
 | `docs/SAAS_OPERATIONAL_ROADMAP.md` | Parcialmente superado | Contexto consolidado de transicao SaaS. | Cruzar com `VALIDACAO_TECNICA.md` e `SAAS_GAP_REGISTER.md` antes de usar. |
 | `docs/SAAS_IMPLEMENTATION_STATUS.md` | Parcialmente superado | Historico da transicao multi-tenant inicial. | Nao usar como estado atual de migrations; usar `VALIDACAO_TECNICA.md`. |
 | `docs/SAAS_RLS_LIVE_STATUS.md` | Parcialmente superado | Contexto RLS/live gate. | Cruzar com migrations atuais e `VALIDACAO_TECNICA.md`. |
-| `docs/SAAS_DATABASE_MIGRATION_PLAN.md` | Historico | Plano de migracao SaaS. | Estado atual esta em migrations `001` a `043` e `VALIDACAO_TECNICA.md`. |
+| `docs/SAAS_DATABASE_MIGRATION_PLAN.md` | Historico | Plano de migracao SaaS. | Estado atual esta em migrations `001` a `067` e `VALIDACAO_TECNICA.md`. |
 | `docs/SAAS_MULTI_TENANT_STRATEGY.md` | Historico/estrategia | Contexto estrategico multi-tenant. | Nao usar como evidencias de implementacao atual. |
-| `docs/FINANCIAL_RLS_MULTI_TENANT_PLAN.md` | Historico | Plano de RLS financeiro. | Conferir estado real em migrations, RLS docs e live gates. |
+| `docs/FINANCIAL_RLS_MULTI_TENANT_PLAN.md` | Historico | Plano de RLS financeiro. | Conferir estado real em migrations `030` a `067`, RLS docs e live gates. |
 | `docs/MOBILE_STRATEGY.md` | Atual como estrategia | Decisao de canais web admin + app nativo futuro. | Nao significa que app nativo ja exista. |
 | `docs/MOBILE_FIRST_UX.md` | Atual como diretriz UX | Diretriz visual/UX mobile-first. | Nao substitui contratos de design system. |
 
@@ -61,7 +61,7 @@ arquivo raiz isolado.
 | `docs/ERROR_BOUNDARY_RETRY.md` | Historico/decisao pontual | Contexto da troca para `unstable_retry`. | Confirmar API vigente no Next antes de alterar. |
 | `docs/EXPENSE_EDIT_FEEDBACK.md` | Historico/implementacao pontual | Contexto de edicao/exclusao de gastos. | Conferir codigo atual antes de reabrir escopo. |
 | `docs/EXPENSE_LIST_OPTIMIZATION.md` | Historico/implementacao pontual | Contexto da otimizacao da lista de gastos. | Nao usar como estado completo da tela atual. |
-| `docs/FINANCIAL_RLS_MULTI_TENANT_PLAN.md` | Parcialmente superado/historico | Plano inicial de RLS financeiro multi-tenant. | Estado atual fica em migrations `030` a `043`, RLS docs e live gates. |
+| `docs/FINANCIAL_RLS_MULTI_TENANT_PLAN.md` | Parcialmente superado/historico | Plano inicial de RLS financeiro multi-tenant. | Estado atual fica em migrations `030` a `067`, RLS docs e live gates. |
 | `docs/FREE_APP_DISTRIBUTION.md` | Proposta/historico | Opcoes de distribuicao app/PWA. | Nao e contrato atual de deploy. |
 | `docs/INITIAL_ORGANIZATION_BACKFILL_PLAN.md` | Parcialmente superado/historico | Contexto de bootstrap/backfill inicial. | Confirmar migrations atuais e runbooks antes de operar. |
 | `docs/LIVE_FLOW_TESTS.md` | Historico/evidencia pontual | Cobertura adicionada em uma fase anterior. | CI atual e `docs/VALIDACAO_TECNICA.md` prevalecem. |
@@ -74,7 +74,7 @@ arquivo raiz isolado.
 | `docs/PERMISSION_AND_DASHBOARD_STRATEGY.md` | Parcialmente superado/estrategia | Contexto de permissoes e dashboard. | Confirmar runtime atual em access-control, RLS e docs atuais. |
 | `docs/PRODUCT_VISION.md` | Atual como visao de produto | Direcao SaaS-first e abandono do single-tenant como norte. | Nao substitui ADRs, gaps e validacao tecnica. |
 | `docs/README.md` | Atual | Entrada da documentacao. | Ler antes de documentos antigos. |
-| `docs/SAAS_DATABASE_MIGRATION_PLAN.md` | Historico | Plano antigo de migration SaaS. | Estado real esta em migrations `001` a `043`. |
+| `docs/SAAS_DATABASE_MIGRATION_PLAN.md` | Historico | Plano antigo de migration SaaS. | Estado real esta em migrations `001` a `067`. |
 | `docs/SAAS_GAP_REGISTER.md` | Atual | Registro vivo de gaps. | Atualizar apos cada PR que muda risco/estado. |
 | `docs/SAAS_IMPLEMENTATION_STATUS.md` | Parcialmente superado | Historico da transicao SaaS inicial. | `docs/VALIDACAO_TECNICA.md` prevalece para estado atual. |
 | `docs/SAAS_MULTI_TENANT_STRATEGY.md` | Historico/estrategia | Contexto estrategico da transicao multi-tenant. | Nao usar como evidencia operacional. |
@@ -200,7 +200,7 @@ arquivo raiz isolado.
 | `docs/rls/RLS_TEST_HARNESS.md` | Parcialmente superado | Contexto do desenho inicial do harness. | Confirmar tests reais atuais antes de usar. |
 | `docs/rls/RLS_FINANCE_TEST_PLAN.md` | Parcialmente superado | Matriz historica inicial de testes RLS. | Confirmar cobertura atual em tests/inventarios. |
 | `docs/rls/RLS_ROLLOUT_AND_ROLLBACK.md` | Parcialmente superado | Estrategia historica de rollout. | Nao usar como ordem atual isolada. |
-| `docs/rls/LEGACY_ORGANIZATION_ID_HANDLING.md` | Parcialmente superado | Contexto do fallback legado. | Confirmar migrations `030` a `043` e policies atuais. |
+| `docs/rls/LEGACY_ORGANIZATION_ID_HANDLING.md` | Parcialmente superado | Contexto do fallback legado. | Confirmar migrations `030` a `067` e policies atuais. |
 
 ## Roadmaps DocDoc
 

@@ -4,6 +4,7 @@
 > Uso atual: contrato operacional vigente para ambiente, stack, banco,
 > autenticacao, permissoes, modulos financeiros, testes, CI e deploy.
 > Supera: planos/status antigos quando houver conflito sobre o estado atual.
+> Atualizado em: 2026-06-19.
 
 Este documento registra a validacao tecnica viva do FamilyFinance no estado atual do codigo.
 
@@ -16,8 +17,8 @@ O projeto esta em fase de MVP Web/PWA funcional avancado.
 Ja existem no codigo:
 
 - Next.js App Router;
-- Next.js `16.2.6`;
-- React `19.2.6`;
+- Next.js `16.2.9`;
+- React `19.2.7`;
 - TypeScript;
 - Tailwind CSS;
 - Supabase Auth;
@@ -43,14 +44,18 @@ Ja existem no codigo:
 - Contas a pagar;
 - Contas a receber;
 - Bancos;
+- Movimentacoes financeiras;
 - Relatorios;
 - Configuracoes;
+- rascunho assistido para gastos, contas a pagar, contas a receber e bancos;
+- taxonomia inicial de 20 categorias financeiras;
+- ledger de movimentacoes para gastos, pagamentos, recebimentos e estornos;
 - migrations Supabase organizadas;
 - testes unitarios;
 - testes de integracao com MSW;
 - PWA manifest;
 - deploy de producao automatizado apos CI verde na `main`, com fallback manual via `.github/workflows/deploy.yml`, aplicando backend Supabase e frontend Vercel.
-- CI com `npm audit --audit-level=moderate`, Vitest `4.1.8`, lint, typecheck, testes e build.
+- CI com `npm audit --audit-level=moderate`, Vitest `4.1.9`, lint, typecheck, testes e build.
 - Dependabot semanal para npm e GitHub Actions, com `open-pull-requests-limit` baixo para evitar excesso de PRs automaticas e com major updates ignorados para entrarem apenas em PR dedicado.
 - CodeQL para analise estatica de JavaScript/TypeScript em PR, push na `main`, agenda semanal e disparo manual.
 - PRs do Dependabot usam placeholders nao-secretos de Supabase apenas para validacao de dependencia na CI; secrets reais continuam obrigatorias para PRs humanos, push na `main` e deploy.
@@ -178,7 +183,7 @@ Regras do smoke pos-deploy:
 
 ## Migrations obrigatorias
 
-O historico versionado atual vai de `001` ate `043`. Em operacao normal, o deploy automatizado aplica esta cadeia com `supabase db push` usando `SUPABASE_DB_URL`.
+O historico versionado atual vai de `001` ate `067`. Em operacao normal, o deploy automatizado aplica esta cadeia com `supabase db push` usando `SUPABASE_DB_URL`.
 
 Se for necessario aplicar manualmente, execute no Supabase SQL Editor nesta ordem, sem pular arquivos:
 
@@ -226,6 +231,30 @@ supabase/migrations/040_audit_events_schema.sql
 supabase/migrations/041_audit_events_write_boundary.sql
 supabase/migrations/042_audit_events_retention_cleanup.sql
 supabase/migrations/043_restore_finance_relationships_and_rls_cleanup.sql
+supabase/migrations/044_admin_invitations_schema.sql
+supabase/migrations/045_accept_admin_invitation_rpc.sql
+supabase/migrations/046_admin_invitation_expiry_cleanup.sql
+supabase/migrations/047_accept_admin_invitation_profile_creation.sql
+supabase/migrations/048_expense_categories_organization_write_rls.sql
+supabase/migrations/049_family_members_organization_write_rls.sql
+supabase/migrations/050_family_members_legacy_owner_write_constraint.sql
+supabase/migrations/051_banks_organization_write_rls.sql
+supabase/migrations/052_expenses_organization_write_rls.sql
+supabase/migrations/053_payable_bills_organization_write_rls.sql
+supabase/migrations/054_receivable_incomes_organization_write_rls.sql
+supabase/migrations/055_revoke_anon_select_sensitive_tables.sql
+supabase/migrations/056_receivable_incomes_payment_origin.sql
+supabase/migrations/057_financial_movements_ledger_base.sql
+supabase/migrations/058_atomic_financial_status_movements.sql
+supabase/migrations/059_bank_balance_from_financial_movements.sql
+supabase/migrations/060_idempotent_status_movement_recovery.sql
+supabase/migrations/061_expense_financial_movements.sql
+supabase/migrations/062_expense_category_subcategories.sql
+supabase/migrations/063_guarded_family_member_delete.sql
+supabase/migrations/064_receivable_income_sources_catalog.sql
+supabase/migrations/065_financial_movement_reversals.sql
+supabase/migrations/066_harden_financial_movement_reversal_boundary.sql
+supabase/migrations/067_self_scoped_finance_creates_rls.sql
 ```
 
 ### Validacao esperada apos migrations
@@ -242,6 +271,9 @@ banks
 profiles
 user_module_permissions
 user_feature_permissions
+financial_movements
+receivable_income_sources
+organization_invitations
 ```
 
 Tambem deve possuir:
@@ -250,7 +282,11 @@ Tambem deve possuir:
 - policies organization-aware por membership ativa;
 - policies antigas owner/family removidas pela migration `039`;
 - audit events criados pelas migrations `040` a `042`;
+- convites admin versionados pelas migrations `044` a `047`;
 - FKs financeiras restauradas e validadas pela migration `043`;
+- write RLS financeiro reforcado pelas migrations `048` a `054`;
+- anon select revogado em tabelas sensiveis pela migration `055`;
+- origem de recebimento, ledger financeiro, recuperacao idempotente, movimentacoes de gastos, subcategorias, delete protegido de pessoas, estornos e creates self-scoped versionados pelas migrations `056` a `067`;
 - constraints contra duplicacao de membros/categorias seedadas;
 - coluna `scope` em `user_module_permissions`;
 - coluna `allowed_member_ids` em `user_module_permissions`;
@@ -321,7 +357,7 @@ npm run test:run
 - [ ] Migration 002 executada.
 - [ ] Migration 003 executada.
 - [ ] Migration 004 executada.
-- [ ] Migrations 005 a 043 executadas ou aplicadas por deploy automatizado.
+- [ ] Migrations 005 a 067 executadas ou aplicadas por deploy automatizado.
 - [ ] Tabelas financeiras existem.
 - [ ] Tabelas de permissao existem.
 - [ ] RLS esta ativo.
@@ -395,7 +431,9 @@ Pendente conhecido:
 ### 8. Gastos
 
 - [ ] Criar gasto.
+- [ ] Criar gasto com rascunho assistido revisavel.
 - [ ] Excluir gasto.
+- [ ] Estornar movimentacao financeira quando aplicavel.
 - [ ] Gasto reduz limite disponivel.
 - [ ] Gasto aparece por pessoa.
 - [ ] Gasto aparece por categoria.
@@ -406,7 +444,10 @@ Pendente conhecido:
 ### 9. Contas a pagar
 
 - [ ] Criar conta a pagar.
+- [ ] Criar conta a pagar com rascunho assistido revisavel.
 - [ ] Alterar status.
+- [ ] Criar movimentacao automaticamente quando a conta ja nasce paga ou quando e marcada como paga.
+- [ ] Estornar pagamento em Movimentacoes quando necessario.
 - [ ] Excluir conta.
 - [ ] Conta vencida aparece como atrasada.
 - [ ] Conta aparece no Dashboard.
@@ -419,7 +460,10 @@ Pendente conhecido:
 ### 10. Contas a receber
 
 - [ ] Criar conta a receber/renda.
+- [ ] Criar conta a receber com rascunho assistido revisavel.
 - [ ] Alterar status.
+- [ ] Criar movimentacao automaticamente quando a entrada ja nasce recebida ou quando e marcada como recebida.
+- [ ] Estornar recebimento em Movimentacoes quando necessario.
 - [ ] Excluir recebimento.
 - [ ] Recebimento vencido aparece como atrasado.
 - [ ] Recebimento recebido aparece em Relatorios.
@@ -431,6 +475,7 @@ Pendente conhecido:
 ### 11. Bancos
 
 - [ ] Criar conta bancaria.
+- [ ] Criar conta bancaria com rascunho assistido revisavel.
 - [ ] Atualizar saldo.
 - [ ] Excluir banco.
 - [ ] Saldo aparece no Dashboard.
@@ -442,6 +487,7 @@ Pendente conhecido:
 ### 12. Configuracoes
 
 - [ ] Criar categoria.
+- [ ] Seed inicial cria 20 categorias financeiras padrao por organizacao.
 - [ ] Excluir categoria.
 - [ ] Criar origem de recebimento.
 - [ ] Excluir origem de recebimento.
@@ -450,6 +496,7 @@ Pendente conhecido:
 Pendentes conhecidos:
 
 - editar categoria;
+- contrato final da IA para usar apenas opcoes existentes;
 - configuracao de moeda;
 - configuracao de periodo;
 - configuracoes gerais da familia.

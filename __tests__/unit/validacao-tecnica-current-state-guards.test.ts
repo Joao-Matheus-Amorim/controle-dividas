@@ -13,20 +13,24 @@ describe("validacao tecnica current state guards", () => {
 
   it("keeps deployment and dependency validation aligned with current CI", () => {
     expect(validation).toContain("npm audit --audit-level=moderate");
-    expect(validation).toContain("vitest `4.1.8`");
+    expect(validation).toContain("vitest `4.1.9`");
     expect(validation).toContain("npm run typecheck");
     expect(validation).toContain("supabase_db_url");
     expect(validation).toContain("vercel_org_id");
     expect(validation).toContain("vercel_project_id");
   });
 
-  it("tracks the full migration history through the finance relationship restore", () => {
+  it("tracks the full migration history through the finance owner operational ledger state", () => {
     expect(validation).toContain("001_family_finance_schema.sql");
     expect(validation).toContain("039_drop_legacy_owner_family_policies.sql");
     expect(validation).toContain("040_audit_events_schema.sql");
     expect(validation).toContain("041_audit_events_write_boundary.sql");
     expect(validation).toContain("042_audit_events_retention_cleanup.sql");
     expect(validation).toContain("043_restore_finance_relationships_and_rls_cleanup.sql");
+    expect(validation).toContain("057_financial_movements_ledger_base.sql");
+    expect(validation).toContain("065_financial_movement_reversals.sql");
+    expect(validation).toContain("066_harden_financial_movement_reversal_boundary.sql");
+    expect(validation).toContain("067_self_scoped_finance_creates_rls.sql");
     expect(validation).not.toContain("...");
   });
 
@@ -42,9 +46,11 @@ describe("validacao tecnica current state guards", () => {
   });
 
   it("marks the operational checklist item as covered by this validation update", () => {
-    expect(checklist).toContain("status: coberto por pr docs de atualizacao de `validacao_tecnica.md`");
+    expect(checklist).toContain("status: reaberto para reconciliacao 2026-06-19");
     expect(checklist).toContain("[x] atualizar lista de migrations obrigatorias ate `043`");
+    expect(checklist).toContain("[x] atualizar lista de migrations obrigatorias ate `067`");
     expect(checklist).toContain("[x] incluir `supabase_db_url` como secret de deploy");
     expect(checklist).toContain("[x] incluir validacao de fks restauradas");
+    expect(checklist).toContain("[x] registrar rascunho assistido, ledger financeiro e taxonomia inicial");
   });
 });

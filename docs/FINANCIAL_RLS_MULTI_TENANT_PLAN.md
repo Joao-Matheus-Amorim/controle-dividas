@@ -1,7 +1,7 @@
 # Financial RLS Multi-Tenant Plan
 
 > Status DocDoc: Parcialmente superado/historico
-> Superado por: migrations `030` a `043`, `docs/rls/README.md`,
+> Superado por: migrations `030` a `067`, `docs/rls/README.md`,
 > `docs/VALIDACAO_TECNICA.md` e live gates atuais.
 > Uso atual: contexto do plano inicial de RLS financeiro; nao usar como ordem
 > operacional atual sem conferir migrations e policies reais.
