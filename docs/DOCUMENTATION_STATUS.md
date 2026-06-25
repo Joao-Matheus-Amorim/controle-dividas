@@ -133,6 +133,7 @@ arquivo raiz isolado.
 | `docs/audits/ADMIN_INVITATION_BOOTSTRAP_CONTRACT.md` | Atual como contrato com schema/preflight e runtime de bootstrap final | `044_admin_invitations_schema.sql` versiona schema/preflight; criar, revogar, reenvio, aceite/linking, UI e cron de expiracao ja estao versionados. | `ADMIN_EMAIL` nao e mais gate runtime nesses helpers; Owner_id retirement segue pendente. |
 | `docs/audits/ADMIN_INVITATION_DELIVERY_UI_CONTRACT.md` | Atual como contrato com delivery adapter, UI de aceite e cron de expiracao | Contrato para delivery server-only, UI de convite admin e cron protegido. | Usar antes de trocar provider ou tela `/auth/convite`. |
 | `docs/audits/AI_FINANCE_INTAKE_CONTRACT.md` | Atual como contrato vigente da IA financeira | Contrato para intents, campos obrigatorios, catalogos permitidos, pessoa logada por padrao, fronteira server-only review-only e UI review-only. | Nao e evidencia de modelo, provider, endpoint, schema, RLS ou salvamento automatico. |
+| `docs/audits/AI_FINANCE_PROVIDER_ENDPOINT_CONTRACT.md` | Atual como contrato pre-runtime da IA financeira | Contrato para provider/endpoint futuro com fail-closed, env server-only, rate limit, audit agregado e rollback. | Nao implementa provider, endpoint, chave de API, modelo, schema, RLS ou salvamento automatico. |
 | `docs/audits/SENSITIVE_OPERATION_CONTROLS_CONTRACT.md` | Atual | Contrato vigente do GAP-015. | Cruzar com `SAAS_GAP_REGISTER.md`. |
 | `docs/audits/SENSITIVE_OPERATION_RATE_LIMIT_PLAN.md` | Atual como plano/registro | Plano do runtime de rate limit. | O contrato central define a leitura consolidada. |
 | `docs/audits/SENSITIVE_ACTION_AUDIT_EVENT_SCHEMA_PLAN.md` | Atual como plano/registro | Plano de audit events e write boundary. | Confirmar migrations atuais antes de operar. |
@@ -168,6 +169,7 @@ arquivo raiz isolado.
 | `docs/audits/ONBOARDING_TERMINOLOGY_CONTRACT.md` | Atual | Contrato vigente do GAP-016 para linguagem e UX do onboarding. | Runtime de copy inicial implementado; nao altera rota. |
 | `docs/audits/NOTIFICATION_SCOPE_CONTRACT.md` | Atual | Contrato vigente do GAP-017 para alertas, canais e opt-in. | Nao implementa runtime, UI, cron, schema ou dependencia. |
 | `docs/audits/AI_FINANCE_INTAKE_CONTRACT.md` | Atual | Contrato vigente do GAP-020 para IA financeira, com fronteiras server-only e UI review-only. | Nao implementa modelo, endpoint, provider, schema, RLS ou salvamento automatico. |
+| `docs/audits/AI_FINANCE_PROVIDER_ENDPOINT_CONTRACT.md` | Atual | Contrato pre-runtime do GAP-020 para provider/endpoint da IA financeira. | Usar antes de qualquer dependencia, env, rota ou chamada real de modelo. |
 
 ## PM DocDoc
 
