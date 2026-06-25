@@ -79,6 +79,25 @@ export function isSystemBankOption(value: string): value is SystemBankOption {
   return systemBankOptions.includes(value as SystemBankOption);
 }
 
+export const systemBankAccountTypeOptions = [
+  "Conta a ordem",
+  "Conta corrente",
+  "Conta digital",
+  "Conta pagamento",
+  "Conta salario",
+  "Poupanca",
+  "Investimentos",
+  "Cartao de credito",
+  "Cartao de debito",
+  "Cartao pre-pago",
+  "Beneficio refeicao",
+  "Carteira digital",
+  "Dinheiro",
+  "Outros",
+] as const;
+
+export type SystemBankAccountTypeOption = (typeof systemBankAccountTypeOptions)[number];
+
 export const systemCurrencyOptions = [
   "EUR",
   "BRL",

@@ -30,6 +30,7 @@ import {
 import {
   isSystemBankOption,
   isSystemCurrencyOption,
+  systemBankAccountTypeOptions,
   systemBankOptions,
   systemCurrencyOptions,
 } from "@/lib/finance/bank-options";
@@ -39,22 +40,7 @@ import type { BankAccountFormState, DbBankAccount, DbFamilyMember } from "@/lib/
 const initialState: BankAccountFormState = {};
 const emptyAccountTypeValue = "__none";
 
-const accountTypes = [
-  "Conta a ordem",
-  "Conta corrente",
-  "Conta digital",
-  "Conta pagamento",
-  "Conta salario",
-  "Poupanca",
-  "Investimentos",
-  "Cartao de credito",
-  "Cartao de debito",
-  "Cartao pre-pago",
-  "Beneficio refeicao",
-  "Carteira digital",
-  "Dinheiro",
-  "Outros",
-];
+const accountTypes = systemBankAccountTypeOptions;
 
 type BankAccountFormProps = {
   members: DbFamilyMember[];
