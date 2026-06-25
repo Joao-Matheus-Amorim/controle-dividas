@@ -14,6 +14,8 @@ const catalogs: AiFinanceIntakeCatalogs = {
     { id: "bank-1", name: "Itau", familyMemberId: "member-1" },
     { id: "bank-2", name: "Wise", familyMemberId: "member-2" },
   ],
+  bankNames: ["Itau", "Wise"],
+  accountTypes: ["Conta digital", "Conta corrente"],
   currencies: ["EUR", "BRL", "USD"],
 };
 
@@ -125,6 +127,21 @@ describe("AI finance intake schema", () => {
     expect(validBank.ok).toBe(true);
     expect(invalidCurrency.ok).toBe(false);
     expect(invalidCurrency.errors).toContain("currency must be an ISO 4217 token");
+  });
+
+  it("rejects bank names and account types outside controlled catalogs", () => {
+    const result = validateAiFinanceIntakeDraft({
+      intent: "banco",
+      memberId: "member-1",
+      bankName: "Banco inventado",
+      accountType: "Tipo inventado",
+      currentBalance: 10,
+      currency: "EUR",
+    }, catalogs);
+
+    expect(result.ok).toBe(false);
+    expect(result.errors).toContain("bankName is not in the allowed bank catalog");
+    expect(result.errors).toContain("accountType is not in the allowed account type catalog");
   });
 
   it("rejects unknown intents before any model runtime can save data", () => {

@@ -21,6 +21,8 @@ export type AiFinanceIntakeCatalogs = {
   expenseCategories: AiFinanceCatalogOption[];
   receivableSources: AiFinanceCatalogOption[];
   bankAccounts: AiFinanceBankCatalogOption[];
+  bankNames?: string[];
+  accountTypes?: string[];
   currencies?: string[];
 };
 
@@ -297,6 +299,22 @@ function validateBankDraft(
   addCatalogId(draft.memberId, "memberId", catalogs.members, missingFields, errors);
   addRequiredString(draft.bankName, "bankName", missingFields, errors);
   addRequiredString(draft.accountType, "accountType", missingFields, errors);
+
+  if (
+    isNonEmptyString(draft.bankName) &&
+    catalogs.bankNames?.length &&
+    !catalogs.bankNames.includes(draft.bankName)
+  ) {
+    errors.push("bankName is not in the allowed bank catalog");
+  }
+
+  if (
+    isNonEmptyString(draft.accountType) &&
+    catalogs.accountTypes?.length &&
+    !catalogs.accountTypes.includes(draft.accountType)
+  ) {
+    errors.push("accountType is not in the allowed account type catalog");
+  }
 
   if (draft.currentBalance === undefined || draft.currentBalance === null) {
     missingFields.push("currentBalance");
