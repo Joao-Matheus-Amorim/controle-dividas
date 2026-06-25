@@ -49,4 +49,14 @@ describe("AI finance intake runtime boundary guards", () => {
     expect(gapRegister).toContain("review-only");
     expect(roadmap).toContain("lib/finance/ai-finance-intake-runtime.ts");
   });
+
+  it("keeps focused behavior coverage for the runtime boundary", () => {
+    const behaviorTest = read("__tests__/unit/ai-finance-intake-runtime.test.ts");
+
+    expect(behaviorTest).toContain("buildAiFinanceReviewOnlyBoundary");
+    expect(behaviorTest).toContain('provider).toBe("none")');
+    expect(behaviorTest).toContain("canAutoSave).toBe(false)");
+    expect(behaviorTest).toContain("directSaveAction).toBeNull()");
+    expect(behaviorTest).toContain("memberId is not in the active organization catalog");
+  });
 });
