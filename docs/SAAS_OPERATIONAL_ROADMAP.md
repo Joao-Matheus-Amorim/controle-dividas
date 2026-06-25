@@ -308,7 +308,34 @@ Resultado esperado:
 - plano de rollback;
 - migration e runtime em PRs separados.
 
+### GAP-020 - IA financeira
+
+O app possui rascunhos assistidos deterministas para ajudar no preenchimento,
+mas isso ainda nao e IA com modelo.
+
+Contrato vigente:
+
+- `docs/audits/AI_FINANCE_INTAKE_CONTRACT.md`.
+
+Resultado esperado antes do primeiro runtime com modelo:
+
+- definir schema estruturado para intents `gasto`, `conta_a_pagar`,
+  `conta_a_receber` e `banco`;
+- enviar para o modelo apenas catalogos permitidos da organizacao ativa;
+- validar no servidor todos os ids retornados;
+- usar a pessoa vinculada ao usuario logado como padrao para nao-admin;
+- permitir admin/owner escolher outra pessoa apenas quando ela existir na org;
+- perguntar quando faltar categoria, origem, banco, valor, data, status ou
+  pessoa obrigatoria;
+- manter o resultado como rascunho revisavel, sem salvamento automatico.
+
 ## 4. Ordem recomendada dos proximos PRs
+
+0. **Contrato de IA financeira antes de modelo**
+   - Usar `docs/audits/AI_FINANCE_INTAKE_CONTRACT.md`.
+   - Nao escolher provider, criar endpoint, adicionar chave de API ou salvar
+     automaticamente antes do schema estruturado e dos catalogos por org.
+   - Garantir que a IA so use categorias, origens, bancos e pessoas existentes.
 
 1. **Confirmar E2E multi-org switch em ambiente dedicado quando necessario**
    - Configurar usuario dedicado.
