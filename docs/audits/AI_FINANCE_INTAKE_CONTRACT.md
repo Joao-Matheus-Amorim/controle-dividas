@@ -1,7 +1,8 @@
 # AI Finance Intake Contract
 
 > Status DocDoc: Atual
-> Uso atual: contrato pre-runtime para a futura IA financeira.
+> Uso atual: contrato vigente para a futura IA financeira.
+> Inclui fronteira server-only review-only antes de provider/modelo.
 > Este documento nao e evidencia de modelo, endpoint, provider, prompt runtime,
 > schema novo, RLS novo ou salvamento automatico.
 
@@ -41,9 +42,13 @@ Varredura em 2026-06-25:
   intent a partir da organizacao ativa, dos membros acessiveis para `can_create`
   e das listas controladas de banco, tipo de conta e moeda; isso nao chama
   modelo, endpoint ou Server Action.
+- `lib/finance/ai-finance-intake-runtime.ts` monta a fronteira server-only
+  review-only: carrega catalogos reais, valida o rascunho estruturado, retorna
+  provider: `none`, `canAutoSave: false` e `directSaveAction: null`, sem chamar
+  modelo, endpoint ou Server Action de criacao.
 
 Isso esta pronto para continuar como rascunho assistido deterministico. Ainda
-nao esta pronto para runtime com modelo.
+nao esta pronto para provider, endpoint ou chamada de modelo.
 
 ## Intents permitidas
 
@@ -254,6 +259,8 @@ Antes de chamar qualquer modelo:
   resposta estruturada;
 - passar catalogos reais da organizacao ativa via
   `lib/finance/ai-finance-intake-catalogs.ts`;
+- passar todo rascunho por `lib/finance/ai-finance-intake-runtime.ts` antes de
+  preencher UI ou expor qualquer futura chamada de modelo;
 - validar todo id retornado no servidor;
 - aplicar as mesmas permissoes e RLS ja existentes;
 - manter rate limit e audit para a acao final de salvar;
