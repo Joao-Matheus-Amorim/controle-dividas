@@ -22,7 +22,8 @@ describe("AI finance intake contract guards", () => {
 
   it("documents AI finance intake as a pre-runtime contract", () => {
     expect(contract).toContain("status docdoc: atual");
-    expect(contract).toContain("contrato pre-runtime");
+    expect(contract).toContain("contrato vigente");
+    expect(contract).toContain("fronteira server-only review-only");
     expect(contract).toContain("nao e evidencia de modelo");
     expect(contract).toContain("endpoint");
     expect(contract).toContain("provider");
@@ -37,10 +38,11 @@ describe("AI finance intake contract guards", () => {
     expect(contract).toContain("lib/finance/bank-draft.ts");
     expect(contract).toContain("lib/finance/ai-finance-intake-schema.ts");
     expect(contract).toContain("lib/finance/ai-finance-intake-catalogs.ts");
+    expect(contract).toContain("lib/finance/ai-finance-intake-runtime.ts");
     expect(contract).toContain("components/finance/expense-form.tsx");
     expect(contract).toContain("formaction");
     expect(contract).toContain("review-only");
-    expect(compactContract).toContain("ainda nao esta pronto para runtime com modelo");
+    expect(compactContract).toContain("ainda nao esta pronto para provider, endpoint ou chamada de modelo");
   });
 
   it("limits model intents to the finance create surfaces", () => {
@@ -83,11 +85,13 @@ describe("AI finance intake contract guards", () => {
     expect(gapRegister).toContain("docs/audits/ai_finance_intake_contract.md");
     expect(gapRegister).toContain("lib/finance/ai-finance-intake-schema.ts");
     expect(gapRegister).toContain("lib/finance/ai-finance-intake-catalogs.ts");
+    expect(gapRegister).toContain("lib/finance/ai-finance-intake-runtime.ts");
     expect(auditsReadme).toContain("ai_finance_intake_contract.md");
     expect(statusMap).toContain("ai_finance_intake_contract.md");
     expect(roadmap).toContain("gap-020 - ia financeira");
     expect(roadmap).toContain("lib/finance/ai-finance-intake-schema.ts");
     expect(roadmap).toContain("lib/finance/ai-finance-intake-catalogs.ts");
+    expect(roadmap).toContain("lib/finance/ai-finance-intake-runtime.ts");
   });
 
   it("keeps this contract PR free of AI provider runtime dependencies", () => {

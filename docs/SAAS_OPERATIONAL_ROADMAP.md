@@ -325,6 +325,10 @@ Resultado esperado antes do primeiro runtime com modelo:
 - catalogos server-side iniciais versionados em
   `lib/finance/ai-finance-intake-catalogs.ts`, por intent e permissoes de
   criacao, com nomes de banco, tipos de conta e moedas controladas;
+- fronteira server-only review-only versionada em
+  `lib/finance/ai-finance-intake-runtime.ts`, validando rascunhos contra
+  catalogos reais e retornando provider `none`, `canAutoSave: false` e
+  `directSaveAction: null`;
 - validar no servidor todos os ids retornados;
 - usar a pessoa vinculada ao usuario logado como padrao para nao-admin;
 - permitir admin/owner escolher outra pessoa apenas quando ela existir na org;
