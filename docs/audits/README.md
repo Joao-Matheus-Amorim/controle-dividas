@@ -32,6 +32,7 @@ historica ate reconciliar o status.
 | `ONBOARDING_TERMINOLOGY_CONTRACT.md` | Contrato vigente do GAP-016 para linguagem do onboarding e adocao inicial de copy runtime. |
 | `NOTIFICATION_SCOPE_CONTRACT.md` | Contrato vigente do GAP-017 para alertas, canais e opt-in antes de notificacoes runtime. |
 | `AI_FINANCE_INTAKE_CONTRACT.md` | Contrato vigente do GAP-020 para IA financeira, com fronteiras server-only e UI review-only antes de modelo, provider, endpoint ou salvamento automatico. |
+| `AI_FINANCE_PROVIDER_ENDPOINT_CONTRACT.md` | Contrato pre-runtime do GAP-020 para provider/endpoint futuro, fail-closed, rate limit, audit e rollback antes de modelo real. |
 | `SENSITIVE_OPERATION_CONTROLS_CONTRACT.md` | Contrato vigente do GAP-015 para rate limit, audit runtime e retention. |
 | `SENSITIVE_OPERATION_RATE_LIMIT_PLAN.md` | Plano/registro do runtime de rate limit; cruzar com o contrato central antes de abrir novo PR. |
 | `SENSITIVE_ACTION_AUDIT_EVENT_SCHEMA_PLAN.md` | Plano/contrato do schema e write boundary de audit events. |

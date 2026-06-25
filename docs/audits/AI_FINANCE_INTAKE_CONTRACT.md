@@ -5,6 +5,8 @@
 > Inclui fronteira server-only review-only antes de provider/modelo.
 > Este documento nao e evidencia de modelo, endpoint, provider, prompt runtime,
 > schema novo, RLS novo ou salvamento automatico.
+> Provider/endpoint futuro deve seguir
+> `docs/audits/AI_FINANCE_PROVIDER_ENDPOINT_CONTRACT.md`.
 
 ## Objetivo
 
@@ -270,6 +272,8 @@ Antes de chamar qualquer modelo:
 - aplicar as mesmas permissoes e RLS ja existentes;
 - manter rate limit e audit para a acao final de salvar;
 - registrar guard para impedir salvamento direto sem revisao.
+- seguir `docs/audits/AI_FINANCE_PROVIDER_ENDPOINT_CONTRACT.md` antes de
+  escolher provider, criar endpoint ou adicionar chave de API.
 
 ## Fora de escopo deste contrato
 

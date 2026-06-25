@@ -316,6 +316,7 @@ mas isso ainda nao e IA com modelo.
 Contrato vigente:
 
 - `docs/audits/AI_FINANCE_INTAKE_CONTRACT.md`.
+- `docs/audits/AI_FINANCE_PROVIDER_ENDPOINT_CONTRACT.md`.
 
 Resultado esperado antes do primeiro runtime com modelo:
 
@@ -332,6 +333,10 @@ Resultado esperado antes do primeiro runtime com modelo:
 - fronteira de UI review-only versionada em
   `components/finance/assisted-draft-review-boundary.tsx`, usada pelos quatro
   formularios financeiros de criacao sem `formAction` ou submit direto;
+- contrato pre-runtime de provider/endpoint versionado em
+  `docs/audits/AI_FINANCE_PROVIDER_ENDPOINT_CONTRACT.md`, exigindo
+  fail-closed, env server-only, rate limit, audit agregado e rollback antes de
+  modelo real;
 - validar no servidor todos os ids retornados;
 - usar a pessoa vinculada ao usuario logado como padrao para nao-admin;
 - permitir admin/owner escolher outra pessoa apenas quando ela existir na org;
@@ -343,6 +348,8 @@ Resultado esperado antes do primeiro runtime com modelo:
 
 0. **Contrato de IA financeira antes de modelo**
    - Usar `docs/audits/AI_FINANCE_INTAKE_CONTRACT.md`.
+   - Usar `docs/audits/AI_FINANCE_PROVIDER_ENDPOINT_CONTRACT.md` antes de
+     provider/endpoint runtime.
    - Nao escolher provider, criar endpoint, adicionar chave de API ou salvar
      automaticamente antes da boundary server-side e da UI review-only.
    - Garantir que a IA so use categorias, origens, bancos e pessoas existentes.
