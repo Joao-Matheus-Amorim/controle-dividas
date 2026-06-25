@@ -26,6 +26,9 @@ Varredura em 2026-06-25:
   `components/finance/receivable-income-form.tsx` e
   `components/finance/bank-account-form.tsx` aplicam sugestoes apenas via botao
   `type="button"` e mantem o envio real no `formAction` do formulario;
+- `components/finance/assisted-draft-review-boundary.tsx` centraliza a UI
+  review-only dos rascunhos assistidos, sem `formAction`, sem `type="submit"`
+  e sem chamada para Server Actions de criacao;
 - `__tests__/unit/finance-assisted-draft-contract-guards.test.ts` guarda que os
   rascunhos continuam review-only e fora dos caminhos de Server Action;
 - as categorias, origens, bancos e pessoas usados nas telas de criacao saem de
@@ -261,6 +264,8 @@ Antes de chamar qualquer modelo:
   `lib/finance/ai-finance-intake-catalogs.ts`;
 - passar todo rascunho por `lib/finance/ai-finance-intake-runtime.ts` antes de
   preencher UI ou expor qualquer futura chamada de modelo;
+- manter a exibicao inicial em
+  `components/finance/assisted-draft-review-boundary.tsx`, sem submit direto;
 - validar todo id retornado no servidor;
 - aplicar as mesmas permissoes e RLS ja existentes;
 - manter rate limit e audit para a acao final de salvar;

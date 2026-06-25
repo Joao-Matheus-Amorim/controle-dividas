@@ -329,6 +329,9 @@ Resultado esperado antes do primeiro runtime com modelo:
   `lib/finance/ai-finance-intake-runtime.ts`, validando rascunhos contra
   catalogos reais e retornando provider `none`, `canAutoSave: false` e
   `directSaveAction: null`;
+- fronteira de UI review-only versionada em
+  `components/finance/assisted-draft-review-boundary.tsx`, usada pelos quatro
+  formularios financeiros de criacao sem `formAction` ou submit direto;
 - validar no servidor todos os ids retornados;
 - usar a pessoa vinculada ao usuario logado como padrao para nao-admin;
 - permitir admin/owner escolher outra pessoa apenas quando ela existir na org;

@@ -16,6 +16,8 @@ const assistedDraftForms = [
   "components/finance/bank-account-form.tsx",
 ];
 
+const assistedDraftReviewBoundary = "components/finance/assisted-draft-review-boundary.tsx";
+
 const draftHelpers = [
   "lib/finance/expense-draft.ts",
   "lib/finance/payable-draft.ts",
@@ -25,14 +27,21 @@ const draftHelpers = [
 
 describe("finance assisted draft contract guards", () => {
   it("keeps assisted drafts review-only and available only on create forms", () => {
+    const boundary = readSource(assistedDraftReviewBoundary);
+
+    expect(boundary).toContain("Rascunho assistido");
+    expect(boundary).toContain('type="button"');
+    expect(boundary).toContain("onClick={onSuggest}");
+    expect(boundary).toContain("disabled={!value.trim()}");
+    expect(boundary).toContain("rascunho aplicado");
+    expect(boundary).not.toContain("formAction");
+    expect(boundary).not.toContain('type="submit"');
+
     for (const formPath of assistedDraftForms) {
       const source = readSource(formPath);
 
-      expect(source).toContain("Rascunho assistido");
+      expect(source).toContain("AssistedDraftReviewBoundary");
       expect(source).toContain("!isEditing ? (");
-      expect(source).toContain('type="button"');
-      expect(source).toContain("onClick={applyDraftSuggestion}");
-      expect(source).toContain("disabled={!draftPrompt.trim()}");
       expect(source).toContain("setDraftApplied(true)");
     }
   });
@@ -51,6 +60,17 @@ describe("finance assisted draft contract guards", () => {
       expect(applyDraftBody).not.toContain("createReceivableIncome");
       expect(applyDraftBody).not.toContain("createBankAccount");
     }
+  });
+
+  it("keeps the shared review boundary disconnected from server writes", () => {
+    const boundary = readSource(assistedDraftReviewBoundary);
+
+    expect(boundary).not.toContain("createExpense");
+    expect(boundary).not.toContain("createPayableBill");
+    expect(boundary).not.toContain("createReceivableIncome");
+    expect(boundary).not.toContain("createBankAccount");
+    expect(boundary).not.toContain("useActionState");
+    expect(boundary).not.toContain("action=");
   });
 
   it("keeps all draft helpers on the shared parser and review note", () => {

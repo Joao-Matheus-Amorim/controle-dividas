@@ -2,10 +2,11 @@
 
 import type { ReactNode } from "react";
 import { useActionState, useEffect, useRef, useState } from "react";
-import { CalendarDays, CircleDollarSign, FileText, Landmark, Sparkles, UserRound, WalletCards } from "lucide-react";
+import { CalendarDays, CircleDollarSign, FileText, Landmark, UserRound, WalletCards } from "lucide-react";
 
 import { createReceivableIncome, updateReceivableIncome } from "@/app/protected/contas-a-receber/actions";
 import { AppActionFeedback } from "@/components/app/app-action-feedback";
+import { AssistedDraftReviewBoundary } from "@/components/finance/assisted-draft-review-boundary";
 import { FinanceDateField } from "@/components/finance/finance-date-field";
 import {
   financeAutomaticMemberClass,
@@ -170,40 +171,17 @@ export function ReceivableIncomeForm({
       <input ref={recordedTimezoneRef} type="hidden" name="recorded_timezone" defaultValue="" />
 
       {!isEditing ? (
-        <section className="rounded-[1.25rem] border border-white/10 bg-white/[0.035] p-3.5 sm:p-4">
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/35">Rascunho assistido</p>
-              <p className="mt-1 text-sm text-white/45">Descreva o recebimento e revise os campos antes de cadastrar.</p>
-            </div>
-            {draftApplied ? (
-              <span className="rounded-full bg-[#8b72f8]/15 px-3 py-1 text-xs font-semibold text-[#c9bfff]">
-                rascunho aplicado
-              </span>
-            ) : null}
-          </div>
-          <div className="grid gap-3 md:grid-cols-[1fr_auto]">
-            <Input
-              value={draftPrompt}
-              onChange={(event) => {
-                setDraftPrompt(event.target.value);
-                setDraftApplied(false);
-              }}
-              placeholder="Ex: Recebi freelance do cliente X 500 no Itau hoje"
-              className={financeInputClass}
-            />
-            <Button
-              type="button"
-              variant="secondary"
-              className="h-11 rounded-2xl px-4"
-              onClick={applyDraftSuggestion}
-              disabled={!draftPrompt.trim()}
-            >
-              <Sparkles className="h-4 w-4" />
-              Sugerir
-            </Button>
-          </div>
-        </section>
+        <AssistedDraftReviewBoundary
+          value={draftPrompt}
+          applied={draftApplied}
+          description="Descreva o recebimento e revise os campos antes de cadastrar."
+          placeholder="Ex: Recebi freelance do cliente X 500 no Itau hoje"
+          onValueChange={(value) => {
+            setDraftPrompt(value);
+            setDraftApplied(false);
+          }}
+          onSuggest={applyDraftSuggestion}
+        />
       ) : null}
 
       <FormSection
