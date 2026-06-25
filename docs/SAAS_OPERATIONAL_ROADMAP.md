@@ -319,8 +319,9 @@ Contrato vigente:
 
 Resultado esperado antes do primeiro runtime com modelo:
 
-- definir schema estruturado para intents `gasto`, `conta_a_pagar`,
-  `conta_a_receber` e `banco`;
+- schema estruturado inicial versionado em
+  `lib/finance/ai-finance-intake-schema.ts` para intents `gasto`,
+  `conta_a_pagar`, `conta_a_receber` e `banco`;
 - enviar para o modelo apenas catalogos permitidos da organizacao ativa;
 - validar no servidor todos os ids retornados;
 - usar a pessoa vinculada ao usuario logado como padrao para nao-admin;
@@ -334,7 +335,7 @@ Resultado esperado antes do primeiro runtime com modelo:
 0. **Contrato de IA financeira antes de modelo**
    - Usar `docs/audits/AI_FINANCE_INTAKE_CONTRACT.md`.
    - Nao escolher provider, criar endpoint, adicionar chave de API ou salvar
-     automaticamente antes do schema estruturado e dos catalogos por org.
+     automaticamente antes dos catalogos por org e da boundary server-side.
    - Garantir que a IA so use categorias, origens, bancos e pessoas existentes.
 
 1. **Confirmar E2E multi-org switch em ambiente dedicado quando necessario**

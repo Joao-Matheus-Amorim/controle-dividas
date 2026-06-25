@@ -34,6 +34,9 @@ Varredura em 2026-06-25:
   `app/protected/contas-a-receber/actions.ts` e
   `app/protected/bancos/actions.ts` ainda fazem a validacao final de membro,
   categoria, origem, banco, permissao e `organization_id` antes de gravar.
+- `lib/finance/ai-finance-intake-schema.ts` define as intents permitidas, o
+  shape estruturado de rascunho e a validacao contra catalogos recebidos da
+  organizacao ativa; isso nao chama modelo, endpoint ou Server Action.
 
 Isso esta pronto para continuar como rascunho assistido deterministico. Ainda
 nao esta pronto para runtime com modelo.
@@ -243,7 +246,8 @@ banco antes ou escolher uma conta existente?
 
 Antes de chamar qualquer modelo:
 
-- definir schema de resposta estruturada;
+- usar `lib/finance/ai-finance-intake-schema.ts` como contrato inicial de
+  resposta estruturada;
 - passar catalogos reais da organizacao ativa;
 - validar todo id retornado no servidor;
 - aplicar as mesmas permissoes e RLS ja existentes;
