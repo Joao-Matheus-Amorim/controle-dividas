@@ -36,6 +36,7 @@ describe("AI finance intake contract guards", () => {
     expect(contract).toContain("lib/finance/receivable-draft.ts");
     expect(contract).toContain("lib/finance/bank-draft.ts");
     expect(contract).toContain("lib/finance/ai-finance-intake-schema.ts");
+    expect(contract).toContain("lib/finance/ai-finance-intake-catalogs.ts");
     expect(contract).toContain("components/finance/expense-form.tsx");
     expect(contract).toContain("formaction");
     expect(contract).toContain("review-only");
@@ -81,10 +82,12 @@ describe("AI finance intake contract guards", () => {
     expect(gapRegister).toContain("ai finance intake");
     expect(gapRegister).toContain("docs/audits/ai_finance_intake_contract.md");
     expect(gapRegister).toContain("lib/finance/ai-finance-intake-schema.ts");
+    expect(gapRegister).toContain("lib/finance/ai-finance-intake-catalogs.ts");
     expect(auditsReadme).toContain("ai_finance_intake_contract.md");
     expect(statusMap).toContain("ai_finance_intake_contract.md");
     expect(roadmap).toContain("gap-020 - ia financeira");
     expect(roadmap).toContain("lib/finance/ai-finance-intake-schema.ts");
+    expect(roadmap).toContain("lib/finance/ai-finance-intake-catalogs.ts");
   });
 
   it("keeps this contract PR free of AI provider runtime dependencies", () => {

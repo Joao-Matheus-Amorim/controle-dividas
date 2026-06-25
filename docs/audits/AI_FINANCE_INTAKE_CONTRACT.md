@@ -37,6 +37,10 @@ Varredura em 2026-06-25:
 - `lib/finance/ai-finance-intake-schema.ts` define as intents permitidas, o
   shape estruturado de rascunho e a validacao contra catalogos recebidos da
   organizacao ativa; isso nao chama modelo, endpoint ou Server Action.
+- `lib/finance/ai-finance-intake-catalogs.ts` monta catalogos server-side por
+  intent a partir da organizacao ativa, dos membros acessiveis para `can_create`
+  e das listas controladas de banco, tipo de conta e moeda; isso nao chama
+  modelo, endpoint ou Server Action.
 
 Isso esta pronto para continuar como rascunho assistido deterministico. Ainda
 nao esta pronto para runtime com modelo.
@@ -248,7 +252,8 @@ Antes de chamar qualquer modelo:
 
 - usar `lib/finance/ai-finance-intake-schema.ts` como contrato inicial de
   resposta estruturada;
-- passar catalogos reais da organizacao ativa;
+- passar catalogos reais da organizacao ativa via
+  `lib/finance/ai-finance-intake-catalogs.ts`;
 - validar todo id retornado no servidor;
 - aplicar as mesmas permissoes e RLS ja existentes;
 - manter rate limit e audit para a acao final de salvar;
