@@ -1,10 +1,10 @@
 "use client";
 
-import { Sparkles } from "lucide-react";
 import { useActionState, useEffect, useState } from "react";
 
 import { createExpense, updateExpense } from "@/app/protected/gastos/actions";
 import { AppActionFeedback } from "@/components/app/app-action-feedback";
+import { AssistedDraftReviewBoundary } from "@/components/finance/assisted-draft-review-boundary";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -115,40 +115,17 @@ export function ExpenseForm({
       {expense ? <input type="hidden" name="id" value={expense.id} /> : null}
 
       {!isEditing ? (
-        <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/35">Rascunho assistido</p>
-              <p className="mt-1 text-sm text-white/45">Descreva o gasto e revise os campos antes de cadastrar.</p>
-            </div>
-            {draftApplied ? (
-              <span className="rounded-full bg-[#8b72f8]/15 px-3 py-1 text-xs font-semibold text-[#c9bfff]">
-                rascunho aplicado
-              </span>
-            ) : null}
-          </div>
-          <div className="grid gap-3 md:grid-cols-[1fr_auto]">
-            <Input
-              value={draftPrompt}
-              onChange={(event) => {
-                setDraftPrompt(event.target.value);
-                setDraftApplied(false);
-              }}
-              placeholder="Ex: Comprei 2kg de carne no Carrefour por 23,50 no cartao ontem"
-              className={financeInputClass}
-            />
-            <Button
-              type="button"
-              variant="secondary"
-              className="h-11 rounded-2xl px-4"
-              onClick={applyDraftSuggestion}
-              disabled={!draftPrompt.trim()}
-            >
-              <Sparkles className="h-4 w-4" />
-              Sugerir
-            </Button>
-          </div>
-        </div>
+        <AssistedDraftReviewBoundary
+          value={draftPrompt}
+          applied={draftApplied}
+          description="Descreva o gasto e revise os campos antes de cadastrar."
+          placeholder="Ex: Comprei 2kg de carne no Carrefour por 23,50 no cartao ontem"
+          onValueChange={(value) => {
+            setDraftPrompt(value);
+            setDraftApplied(false);
+          }}
+          onSuggest={applyDraftSuggestion}
+        />
       ) : null}
 
       <div className={financeGridFourClass}>
