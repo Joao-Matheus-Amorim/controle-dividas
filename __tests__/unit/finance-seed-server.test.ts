@@ -74,13 +74,21 @@ describe("finance seed server", () => {
     ]);
   });
 
-  it("does not insert default categories when the organization already has categories", async () => {
-    const existingName = buildDefaultExpenseCategorySeedRows("owner-123", "org-123")[0]?.name ?? "Receitas";
+  it("completes missing default categories when the organization already has a partial root set", async () => {
+    const ownerId = "owner-123";
+    const organizationId = "org-123";
+    const allRows = buildDefaultExpenseCategorySeedRows(ownerId, organizationId);
+    const existingName = allRows[0]?.name ?? "Receitas";
     const { client, insertCalls } = createSeedClient({}, [existingName]);
 
-    await expect(seedInitialFinanceDataForOwner(client, "owner-123", "org-123")).resolves.toBeUndefined();
+    await expect(seedInitialFinanceDataForOwner(client, ownerId, organizationId)).resolves.toBeUndefined();
 
-    expect(insertCalls).toEqual([]);
+    expect(insertCalls).toEqual([
+      {
+        table: "expense_categories",
+        rows: allRows.slice(1),
+      },
+    ]);
   });
 
   it("tolerates concurrent initial category seeding when another request wins the insert race", async () => {

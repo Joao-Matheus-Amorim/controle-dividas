@@ -162,21 +162,6 @@ export function renderDashboardSummaryVisualFixturePage() {
         text-transform: uppercase;
       }
 
-      .bar {
-        height: 8px;
-        margin-top: 20px;
-        overflow: hidden;
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.1);
-      }
-
-      .bar-fill {
-        height: 100%;
-        width: ${hero.usedPercent}%;
-        border-radius: inherit;
-        background: #8b72f8;
-      }
-
       .metrics {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -395,28 +380,30 @@ export function renderDashboardSummaryVisualFixturePage() {
       <section class="hero">
         <div class="hero-top">
           <div>
-            <p class="eyebrow">Disponivel</p>
-            <p class="hero-value">${compactCurrency(hero.remainingMonthlyLimit)}</p>
+            <p class="eyebrow">Entradas x saidas</p>
+            <p class="hero-value">${compactCurrency(hero.projectedNetFlow)}</p>
+            <p class="lead" style="margin:10px 0 0;max-width:none;font-size:13px;">
+              Entradas previstas ${compactCurrency(hero.totalReceivableIncomes)} contra saídas de ${compactCurrency(hero.totalExpenses + hero.totalOpenDebts)}.
+            </p>
           </div>
-          <div class="badge">saudavel</div>
+          <div class="badge">${hero.positiveProjectedNetFlow ? "folego" : "atencao"}</div>
         </div>
-        <div class="bar"><div class="bar-fill"></div></div>
         <div class="metrics">
           <div class="metric">
-            <p class="metric-label">Gasto</p>
+            <p class="metric-label">Entradas</p>
+            <p class="metric-value" style="color:#1de9b2">${compactCurrency(hero.totalReceivableIncomes)}</p>
+          </div>
+          <div class="metric">
+            <p class="metric-label">Saidas</p>
             <p class="metric-value">${compactCurrency(hero.totalExpenses)}</p>
           </div>
           <div class="metric">
-            <p class="metric-label">Limite</p>
-            <p class="metric-value">${compactCurrency(hero.totalMonthlyLimit)}</p>
-          </div>
-          <div class="metric">
-            <p class="metric-label">Dividas</p>
+            <p class="metric-label">Em aberto</p>
             <p class="metric-value" style="color:#f7b84b">${compactCurrency(hero.totalOpenDebts)}</p>
           </div>
           <div class="metric">
-            <p class="metric-label">Receber</p>
-            <p class="metric-value" style="color:#1de9b2">${compactCurrency(hero.totalReceivableIncomes)}</p>
+            <p class="metric-label">Saldo projetado</p>
+            <p class="metric-value" style="color:${hero.positiveProjectedNetFlow ? "#1de9b2" : "#f0506e"}">${compactCurrency(hero.projectedNetFlow)}</p>
           </div>
         </div>
       </section>
