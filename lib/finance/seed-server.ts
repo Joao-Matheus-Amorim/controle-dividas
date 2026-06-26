@@ -10,8 +10,12 @@ const duplicateSafeSeedOptions = {
 
 type SeedUpsertResult = PromiseLike<{ error: { message: string } | null }>;
 type SeedInsertError = { code?: string; message: string };
-type SeedSelectResult = PromiseLike<{
-  count: number | null;
+type SeedExpenseCategoryRow = {
+  name: string;
+  parent_category_id: string | null;
+};
+type SeedSelectCategoriesResult = PromiseLike<{
+  data: SeedExpenseCategoryRow[] | null;
   error: { message: string } | null;
 }>;
 
@@ -21,11 +25,13 @@ type SeedSupabaseClient = {
   };
   from(table: "expense_categories"): {
     insert(rows: unknown[]): PromiseLike<{ error: SeedInsertError | null }>;
-    select(
-      columns: string,
-      options: { count: "exact"; head: true },
-    ): {
-      eq(column: "organization_id", value: string): SeedSelectResult;
+    select(columns: "name,parent_category_id"): {
+      eq(column: "organization_id", value: string): {
+        is(
+          column: "parent_category_id",
+          value: null,
+        ): SeedSelectCategoriesResult;
+      };
     };
   };
 };
@@ -38,20 +44,29 @@ async function assertSeedUpsertSucceeded(upsert: SeedUpsertResult) {
   }
 }
 
-async function organizationAlreadyHasExpenseCategories(
+function normalizeSeedCategoryName(name: string) {
+  return name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
+}
+
+async function getExistingRootCategoryNames(
   supabase: SeedSupabaseClient,
   organizationId: string,
 ) {
-  const { count, error } = await supabase
+  const { data, error } = await supabase
     .from("expense_categories")
-    .select("id", { count: "exact", head: true })
-    .eq("organization_id", organizationId);
+    .select("name,parent_category_id")
+    .eq("organization_id", organizationId)
+    .is("parent_category_id", null);
 
   if (error) {
     throw new Error(error.message);
   }
 
-  return Number(count ?? 0) > 0;
+  return new Set((data ?? []).map((row) => normalizeSeedCategoryName(row.name)));
 }
 
 export async function seedInitialFinanceDataForOwner(
@@ -71,26 +86,36 @@ export async function seedInitialFinanceDataForOwner(
 
   const categoryRows = buildDefaultExpenseCategorySeedRows(ownerId, organizationId);
   if (categoryRows.length > 0) {
-    const shouldSeedCategories = !(await organizationAlreadyHasExpenseCategories(
+    const existingRootCategoryNames = await getExistingRootCategoryNames(
       seedClient,
       organizationId,
-    ));
+    );
+    const missingCategoryRows = categoryRows.filter(
+      (row) => !existingRootCategoryNames.has(normalizeSeedCategoryName(row.name)),
+    );
 
-    if (shouldSeedCategories) {
-      const { error } = await seedClient.from("expense_categories").insert(categoryRows);
+    if (missingCategoryRows.length === 0) {
+      return;
+    }
 
-      if (error) {
-        const categoriesWereSeededConcurrently = await organizationAlreadyHasExpenseCategories(
+    const { error } = await seedClient.from("expense_categories").insert(missingCategoryRows);
+
+    if (error) {
+      if (error.code === "23505") {
+        const rootCategoryNamesAfterConflict = await getExistingRootCategoryNames(
           seedClient,
           organizationId,
         );
+        const missingRowsAfterConflict = categoryRows.filter(
+          (row) => !rootCategoryNamesAfterConflict.has(normalizeSeedCategoryName(row.name)),
+        );
 
-        if (error.code === "23505" && categoriesWereSeededConcurrently) {
+        if (missingRowsAfterConflict.length === 0) {
           return;
         }
-
-        throw new Error(error.message);
       }
+
+      throw new Error(error.message);
     }
   }
 }

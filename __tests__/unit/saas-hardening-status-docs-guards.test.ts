@@ -66,9 +66,10 @@ describe("SaaS hardening status docs", () => {
     expect(liveStatus).toContain("environment validation outcome: passed");
     expect(liveStatus).toContain("test step outcome: success");
     expect(liveStatus).toContain("artifact: rls-live-gate-evidence-26913026310-5");
-    expect(roadmap).toContain("fechado-004 - rls live gate com evidencia de ci");
-    expect(roadmap).toContain("rls-live-gate-evidence-26913026310-5");
-    expect(gapRegister).toContain("rls live gate is green in run `26913026310`");
+    expect(liveStatus).toContain("foram removidos em 2026-06-26");
+    expect(roadmap).toContain("fechado-004 - evidencia historica do antigo rls live gate");
+    expect(roadmap).toContain("arquivado em 2026-06-26");
+    expect(gapRegister).toContain("historical record after the dedicated environment was removed on 2026-06-26");
   });
 
   it("keeps the hardening plan explicit about completed profiles hardening", () => {
@@ -86,9 +87,8 @@ describe("SaaS hardening status docs", () => {
     expect(roadmap).toContain("fechado-001 - limpeza de policies antigas versionada");
     expect(roadmap).toContain("039_drop_legacy_owner_family_policies.sql");
     expect(roadmap).toContain("rls live gate");
-    expect(roadmap).toContain("github step summary");
-    expect(roadmap).toContain("rls-live-gate-evidence-*");
-    expect(roadmap).toContain("execucao real verde");
+    expect(roadmap).toContain("evidencia historica");
+    expect(roadmap).toContain("arquivado em 2026-06-26");
     expect(roadmap).toContain("e2e multi-org switch");
     expect(roadmap).toContain("fechado-003 - rotas por `orgslug`");
     expect(roadmap).toContain("wrappers `app/org/[orgslug]`");

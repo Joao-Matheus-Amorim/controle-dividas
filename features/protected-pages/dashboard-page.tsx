@@ -16,6 +16,10 @@ import {
   type DashboardQuickAction,
 } from "@/components/dashboard/dashboard-quick-actions";
 import {
+  DashboardAdminFocus,
+  type DashboardAdminFocusItem,
+} from "@/components/dashboard/dashboard-admin-focus";
+import {
   DashboardReadinessChecklist,
   type DashboardReadinessChecklistItem,
 } from "@/components/dashboard/dashboard-readiness-checklist";
@@ -172,13 +176,15 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
   const totalMonthlyLimit = canExpenses
     ? expenseData.memberSummaries.reduce((total, member) => total + Number(member.monthly_limit), 0)
     : 0;
-  const remainingMonthlyLimit = totalMonthlyLimit - (canExpenses ? expenseData.totalExpenses : 0);
   const totalOpenDebts = canPayables ? payableData.totalPending + payableData.totalOverdue : 0;
   const totalReceivableIncomes = canReceivables ? receivableData.totalExpected + receivableData.totalOverdue : 0;
   const usedPercent = totalMonthlyLimit > 0
     ? Math.min((expenseData.totalExpenses / totalMonthlyLimit) * 100, 100)
     : 0;
-  const healthyMonth = remainingMonthlyLimit >= 0;
+  const totalOutgoingFlow = expenseData.totalExpenses + totalOpenDebts;
+  const projectedNetFlow = totalReceivableIncomes - totalOutgoingFlow;
+  const positiveProjectedNetFlow = projectedNetFlow >= 0;
+  const hasCashflowView = canExpenses || canPayables || canReceivables;
 
   const categorySummaries = canExpenses
     ? (() => {
@@ -198,7 +204,19 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
     : [];
 
   const upcomingBills = canPayables
-    ? payableData.bills.filter((bill) => bill.computed_status !== "pago").slice(0, 4)
+    ? payableData.bills
+        .filter((bill) => bill.computed_status !== "pago")
+        .sort((left, right) => {
+          const leftPriority = left.computed_status === "atrasado" ? 0 : 1;
+          const rightPriority = right.computed_status === "atrasado" ? 0 : 1;
+
+          if (leftPriority !== rightPriority) {
+            return leftPriority - rightPriority;
+          }
+
+          return Number(right.amount) - Number(left.amount);
+        })
+        .slice(0, 4)
     : [];
 
   const quickActions: DashboardQuickAction[] = [
@@ -281,6 +299,58 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
       : null,
   ].filter(Boolean) as DashboardReadinessChecklistItem[];
 
+  const incompleteReadinessItems = readinessChecklistItems.filter((item) => !item.isComplete);
+  const overLimitMembers = canExpenses
+    ? expenseData.memberSummaries.filter((member) => member.remaining < 0)
+    : [];
+
+  const adminFocusItems: DashboardAdminFocusItem[] = [
+    canPayables && payableData.overdueCount > 0
+      ? {
+          title: "Contas atrasadas",
+          detail: `${payableData.overdueCount} item(ns) em atraso somando ${compactCurrency(payableData.totalOverdue)}.`,
+          href: getOrgPathFromProtectedPath("/protected/contas-a-pagar", orgSlug),
+          tone: "danger",
+        }
+      : null,
+    canExpenses && overLimitMembers.length > 0
+      ? {
+          title: "Limites estourados",
+          detail: `${overLimitMembers.length} pessoa(s) ja passaram do limite do mes.`,
+          href: getOrgPathFromProtectedPath("/protected/gastos", orgSlug),
+          tone: "warning",
+        }
+      : null,
+    incompleteReadinessItems.length > 0
+      ? {
+          title: "Base ainda incompleta",
+          detail: `${incompleteReadinessItems.length} etapa(s) de cadastro ainda faltam para operar melhor.`,
+          href: incompleteReadinessItems[0]?.href,
+          tone: "warning",
+        }
+      : null,
+    canReceivables && receivableData.overdueCount > 0
+      ? {
+          title: "Recebimentos atrasados",
+          detail: `${receivableData.overdueCount} entrada(s) seguem sem receber.`,
+          href: getOrgPathFromProtectedPath("/protected/contas-a-receber", orgSlug),
+          tone: "warning",
+        }
+      : null,
+    !(
+      (canPayables && payableData.overdueCount > 0) ||
+      (canExpenses && overLimitMembers.length > 0) ||
+      incompleteReadinessItems.length > 0 ||
+      (canReceivables && receivableData.overdueCount > 0)
+    )
+      ? {
+          title: "Operacao em dia",
+          detail: "Sem atraso relevante, sem limite estourado e com base principal cadastrada.",
+          tone: "success",
+        }
+      : null,
+  ].filter(Boolean) as DashboardAdminFocusItem[];
+
   const summaryRows: DashboardSummaryRow[] = [
     canExpenses
       ? {
@@ -337,15 +407,13 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
       {isLimitedDashboard ? <DashboardLimitedNotice /> : null}
 
       <DashboardHeroSummary
-        canExpenses={canExpenses}
+        hasCashflowView={hasCashflowView}
         visibleModuleCount={visibleModuleKeys.length}
-        remainingMonthlyLimit={remainingMonthlyLimit}
-        totalMonthlyLimit={totalMonthlyLimit}
         totalExpenses={expenseData.totalExpenses}
         totalOpenDebts={totalOpenDebts}
         totalReceivableIncomes={totalReceivableIncomes}
-        usedPercent={usedPercent}
-        healthyMonth={healthyMonth}
+        projectedNetFlow={projectedNetFlow}
+        positiveProjectedNetFlow={positiveProjectedNetFlow}
         canPayables={canPayables}
         canReceivables={canReceivables}
       />
@@ -368,6 +436,8 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
         fixedCount={payableData.fixedCount}
         totalFixed={payableData.totalFixed}
       />
+
+      <DashboardAdminFocus items={adminFocusItems} />
 
       <DashboardFamilySummary
         canExpenses={canExpenses}

@@ -4,6 +4,8 @@
 > Uso atual: contexto consolidado da transicao SaaS ate a data da ultima
 > revisao. Para estado operacional vigente, usar `docs/VALIDACAO_TECNICA.md`,
 > `docs/SAAS_GAP_REGISTER.md` e o checklist ativo em `docs/audits/`.
+> Observacao: o workflow/manual de `RLS Live Gate` descrito aqui foi arquivado
+> em 2026-06-26, junto com o ambiente dedicado de teste.
 
 Atualizado em: 2026-06-08
 
@@ -45,7 +47,6 @@ Fontes cruzadas nesta revisao:
 - `docs/audits/ADMIN_INVITATION_DELIVERY_UI_CONTRACT.md`
 - `docs/runbooks/BILLING_STRIPE_TEST_ACCOUNT_RUNBOOK.md`
 - `docs/rls/RLS_LIVE_GATE.md`
-- `.github/workflows/rls-live-gate.yml`
 
 ## 2. Estado real confirmado
 
@@ -130,7 +131,7 @@ A limpeza final de policies antigas owner/family foi versionada em:
 - O contrato do GAP-016 esta documentado em `docs/audits/ONBOARDING_TERMINOLOGY_CONTRACT.md`; a primeira adocao de copy runtime usa `espaco financeiro`, `responsavel principal` e `identificador do link` em `app/onboarding/organizacao/page.tsx`, `app/onboarding/organizacao/actions.ts` e `components/onboarding/organization-onboarding-form.tsx`, sem mudar rota, layout, schema, RLS, billing ou dependencias.
 - O contrato do GAP-017 esta documentado em `docs/audits/NOTIFICATION_SCOPE_CONTRACT.md`, definindo alertas de vencimento/atraso, canal in-app primeiro, gates para email/push, opt-in, tenant scope, permissoes, deduplicacao e rollback antes de qualquer runtime de notificacao.
 - O contrato do GAP-019 esta documentado em `docs/audits/CLIENT_STATE_STRATEGY_CONTRACT.md`, definindo quando usar estado local, URL state, useActionState, useTransition, @tanstack/react-table, server data e quando bloquear store global futura ate existir ADR/contrato dedicado.
-- RLS Live Gate existe em `.github/workflows/rls-live-gate.yml` e possui evidencia verde de CI dedicada no run `26913026310`, attempt `5`, artifact `rls-live-gate-evidence-26913026310-5`, SHA `40093ab24559f064da59d46f5c88b48dc1b65d2c`.
+- O antigo RLS Live Gate teve evidencia verde de CI dedicada no run `26913026310`, attempt `5`, artifact `rls-live-gate-evidence-26913026310-5`, SHA `40093ab24559f064da59d46f5c88b48dc1b65d2c`, mas esse fluxo foi arquivado em 2026-06-26.
 
 ## 3. Estado de fechamento e gaps reais antes de declarar 100% coerente
 
@@ -151,9 +152,9 @@ Resultado atual:
 - Supabase vivo validado recebeu a limpeza manual e o RLS gated focado passou depois do alinhamento;
 - ambientes que nao receberam a limpeza manual ainda precisam aplicar a migration `039`.
 
-### FECHADO-004 - RLS Live Gate com evidencia de CI
+### FECHADO-004 - Evidencia historica do antigo RLS Live Gate
 
-O workflow foi executado com sucesso no GitHub Actions contra ambiente Supabase dedicado.
+O workflow foi executado com sucesso no GitHub Actions contra um ambiente Supabase dedicado que existia na epoca.
 
 Evidencia registrada:
 
@@ -163,8 +164,7 @@ Evidencia registrada:
 - SHA: `40093ab24559f064da59d46f5c88b48dc1b65d2c`;
 - resultado: environment validation `passed` e test step `success`.
 
-O workflow continua publicando artifacts no padrao `rls-live-gate-evidence-*`
-e GitHub Step Summary para runs futuros.
+Esse workflow nao faz mais parte da operacao atual. O artifact permanece apenas como registro historico.
 
 ### FECHADO-002 - Contrato E2E de troca de organizacao ativa
 
@@ -424,7 +424,7 @@ Resultado esperado antes do primeiro runtime com modelo:
 
 - Nao remover `owner_id` no mesmo PR da limpeza de policies.
 - Nao misturar billing com `orgSlug`.
-- Nao rodar RLS Live Gate contra producao real.
+- Nao tratar o antigo RLS Live Gate como fluxo operacional atual.
 - Nao criar tests data-changing sem cleanup.
 - Nao declarar GAP-015 como implementado apenas por contrato documental.
 - Nao tratar documentos PMBOK historicos como fonte mais atual que `README.md`, `docs/SAAS_RLS_LIVE_STATUS.md`, este roadmap e `docs/audits/CURRENT_RLS_POLICIES_INVENTORY.md`.

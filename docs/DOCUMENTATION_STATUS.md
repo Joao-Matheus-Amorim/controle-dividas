@@ -33,7 +33,7 @@ trabalho novo.
 | `docs/audits/CODEBASE_SCAN_GAP_CHECKLIST_2026-06-01.md` | Atual | Checklist de execucao tecnica. | Usar para ticagem de gaps/dividas. |
 | `docs/SAAS_OPERATIONAL_ROADMAP.md` | Parcialmente superado | Contexto consolidado de transicao SaaS. | Cruzar com `VALIDACAO_TECNICA.md` e `SAAS_GAP_REGISTER.md` antes de usar. |
 | `docs/SAAS_IMPLEMENTATION_STATUS.md` | Parcialmente superado | Historico da transicao multi-tenant inicial. | Nao usar como estado atual de migrations; usar `VALIDACAO_TECNICA.md`. |
-| `docs/SAAS_RLS_LIVE_STATUS.md` | Parcialmente superado | Contexto RLS/live gate. | Cruzar com migrations atuais e `VALIDACAO_TECNICA.md`. |
+| `docs/SAAS_RLS_LIVE_STATUS.md` | Parcialmente superado/historico | Registro de evidencias e contexto RLS de uma fase anterior. | O workflow/manual dedicado foi arquivado em 2026-06-26; usar `VALIDACAO_TECNICA.md` como estado operacional atual. |
 | `docs/SAAS_DATABASE_MIGRATION_PLAN.md` | Historico | Plano de migracao SaaS. | Estado atual esta em migrations `001` a `043` e `VALIDACAO_TECNICA.md`. |
 | `docs/SAAS_MULTI_TENANT_STRATEGY.md` | Historico/estrategia | Contexto estrategico multi-tenant. | Nao usar como evidencias de implementacao atual. |
 | `docs/FINANCIAL_RLS_MULTI_TENANT_PLAN.md` | Historico | Plano de RLS financeiro. | Conferir estado real em migrations, RLS docs e live gates. |
@@ -61,7 +61,7 @@ arquivo raiz isolado.
 | `docs/ERROR_BOUNDARY_RETRY.md` | Historico/decisao pontual | Contexto da troca para `unstable_retry`. | Confirmar API vigente no Next antes de alterar. |
 | `docs/EXPENSE_EDIT_FEEDBACK.md` | Historico/implementacao pontual | Contexto de edicao/exclusao de gastos. | Conferir codigo atual antes de reabrir escopo. |
 | `docs/EXPENSE_LIST_OPTIMIZATION.md` | Historico/implementacao pontual | Contexto da otimizacao da lista de gastos. | Nao usar como estado completo da tela atual. |
-| `docs/FINANCIAL_RLS_MULTI_TENANT_PLAN.md` | Parcialmente superado/historico | Plano inicial de RLS financeiro multi-tenant. | Estado atual fica em migrations `030` a `043`, RLS docs e live gates. |
+| `docs/FINANCIAL_RLS_MULTI_TENANT_PLAN.md` | Parcialmente superado/historico | Plano inicial de RLS financeiro multi-tenant. | Estado atual fica em migrations, inventario de policies e `VALIDACAO_TECNICA.md`. |
 | `docs/FREE_APP_DISTRIBUTION.md` | Proposta/historico | Opcoes de distribuicao app/PWA. | Nao e contrato atual de deploy. |
 | `docs/INITIAL_ORGANIZATION_BACKFILL_PLAN.md` | Parcialmente superado/historico | Contexto de bootstrap/backfill inicial. | Confirmar migrations atuais e runbooks antes de operar. |
 | `docs/LIVE_FLOW_TESTS.md` | Historico/evidencia pontual | Cobertura adicionada em uma fase anterior. | CI atual e `docs/VALIDACAO_TECNICA.md` prevalecem. |
@@ -79,7 +79,7 @@ arquivo raiz isolado.
 | `docs/SAAS_IMPLEMENTATION_STATUS.md` | Parcialmente superado | Historico da transicao SaaS inicial. | `docs/VALIDACAO_TECNICA.md` prevalece para estado atual. |
 | `docs/SAAS_MULTI_TENANT_STRATEGY.md` | Historico/estrategia | Contexto estrategico da transicao multi-tenant. | Nao usar como evidencia operacional. |
 | `docs/SAAS_OPERATIONAL_ROADMAP.md` | Parcialmente superado | Contexto consolidado de transicao SaaS. | Cruzar com gap register e validacao tecnica. |
-| `docs/SAAS_RLS_LIVE_STATUS.md` | Parcialmente superado | Contexto RLS/live gate. | Confirmar migrations/policies atuais antes de operar. |
+| `docs/SAAS_RLS_LIVE_STATUS.md` | Parcialmente superado/historico | Contexto RLS e evidencia antiga. | O ambiente dedicado foi removido em 2026-06-26; nao usar como instrucao operacional atual. |
 | `docs/TESTING_STRATEGY.md` | Parcialmente superado/estrategia | Contexto de estrategia de testes. | CI atual e guards vivos prevalecem. |
 | `docs/UI_STATES.md` | Atual como convencao UX | Padrao de loading/vazio/erro/sucesso. | Conferir componentes atuais antes de refatorar. |
 | `docs/VALIDACAO_TECNICA.md` | Atual | Contrato operacional vigente. | Fonte principal para stack, CI, deploy, Supabase e gates. |
@@ -94,7 +94,7 @@ arquivo raiz isolado.
 | `docs/design/` | Atual com indice | Usar `docs/design/README.md` como entrada. Design docs orientam direcao visual, mas nao provam implementacao atual. |
 | `docs/e2e/` | Atual com indice | Usar `docs/e2e/README.md` como entrada para contratos E2E. Roadmaps nao substituem specs, CI ou evidencia gated. |
 | `docs/pm/` | Historico/PM com indice atual | Usar `docs/pm/README.md` como entrada. Contexto de gestao, nao contrato tecnico atual. |
-| `docs/rls/` | Misto com indice atual | Usar `docs/rls/README.md` como entrada. Live Gate segue operacional; planos antigos precisam ser cruzados com migrations e testes atuais. |
+| `docs/rls/` | Misto com indice atual | Usar `docs/rls/README.md` como entrada. O Live Gate virou historico; planos antigos precisam ser cruzados com migrations e testes atuais. |
 | `docs/roadmaps/` | Misto com indice atual | Usar `docs/roadmaps/README.md` como entrada. Roadmaps orientam sequencia, mas nao provam implementacao. |
 | `docs/runbooks/` | Misto com indice atual | Usar `docs/runbooks/README.md` antes de executar runbooks antigos. Stripe evidence segue atual; hardening/fallback runbooks sao majoritariamente historicos. |
 | `docs/sql/` | Atual com indice | Usar `docs/sql/README.md` como entrada. Queries sao ferramentas operacionais, nao autorizacao automatica para executar SQL. |
@@ -200,7 +200,7 @@ arquivo raiz isolado.
 | Documento | Status DocDoc | Uso seguro | Observacao |
 | --- | --- | --- | --- |
 | `docs/rls/README.md` | Atual | Indice vivo dos documentos RLS. | Ler antes de alterar RLS ou interpretar planos antigos. |
-| `docs/rls/RLS_LIVE_GATE.md` | Atual como runbook/gate operacional | Workflow manual dedicado para validar RLS real. | Evidencia so existe apos run real bem-sucedido. |
+| `docs/rls/RLS_LIVE_GATE.md` | Historico | Registro do workflow manual dedicado que existiu para validar RLS real. | O workflow foi arquivado em 2026-06-26; manter apenas como trilha de evidencia antiga. |
 | `docs/rls/ORGANIZATION_MEMBERSHIP_RLS_HELPERS.md` | Atual como contexto de helpers | Contexto dos helpers de membership. | Confirmar definicao real nas migrations e banco alvo. |
 | `docs/rls/RLS_TEST_HARNESS.md` | Parcialmente superado | Contexto do desenho inicial do harness. | Confirmar tests reais atuais antes de usar. |
 | `docs/rls/RLS_FINANCE_TEST_PLAN.md` | Parcialmente superado | Matriz historica inicial de testes RLS. | Confirmar cobertura atual em tests/inventarios. |

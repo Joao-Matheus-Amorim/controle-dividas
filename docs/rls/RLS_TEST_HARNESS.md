@@ -2,7 +2,7 @@
 
 Issue: #164
 
-> Status DocDoc: Parcialmente superado
+> Status DocDoc: Parcialmente superado/historico
 > Uso seguro: contexto do desenho inicial do harness de testes RLS.
 > Superado por / observacao: confirmar implementacao atual em
 > `__tests__/integration/rls`, workflows e `docs/VALIDACAO_TECNICA.md`.

@@ -1,10 +1,11 @@
 # SaaS RLS Live Status
 
-> Status DocDoc: Parcialmente superado
+> Status DocDoc: Parcialmente superado/historico
 > Superado por: migrations atuais, `docs/rls/README.md`,
 > `docs/VALIDACAO_TECNICA.md` e evidencia de live gate mais recente.
-> Uso atual: contexto RLS/live gate; nao usar isoladamente para afirmar estado
-> atual de policies ou prova viva de isolamento.
+> Uso atual: contexto RLS e registro de evidencias anteriores; nao usar isoladamente para afirmar estado atual de policies ou prova viva de isolamento.
+> Observacao: o ambiente dedicado de teste RLS e o workflow manual associado
+> foram removidos em 2026-06-26.
 
 Issue: #224
 
@@ -205,7 +206,7 @@ Ja existem testes RLS gated versionados no repositorio para:
 - `user_feature_permissions`;
 - `admin-multi-org`.
 
-Os testes RLS gated versionados rodam somente quando o ambiente dedicado esta configurado:
+Historicamente, os testes RLS gated versionados rodavam somente quando o ambiente dedicado estava configurado:
 
 ```txt
 RUN_RLS_TESTS=true
@@ -218,7 +219,7 @@ RLS_TEST_USER_B_EMAIL
 RLS_TEST_USER_B_PASSWORD
 ```
 
-No CI comum, sem `RUN_RLS_TESTS=true`, as suites reais ficam desativadas para nao tocar Supabase externo.
+No estado atual do repo, esse ambiente dedicado nao e mais mantido. As suites seguem versionadas como harness opcional/local, mas nao fazem parte da operacao atual.
 
 ## 7. Playwright/E2E versionado
 
@@ -298,8 +299,8 @@ Observacoes do gate:
 
 ### Evidencia operacional de 2026-06-03
 
-O RLS Live Gate dedicado foi executado com sucesso no GitHub Actions contra
-ambiente Supabase de teste isolado.
+O antigo RLS Live Gate dedicado foi executado com sucesso no GitHub Actions contra
+um ambiente Supabase de teste isolado que existia naquela data.
 
 ```txt
 Workflow: RLS Live Gate
@@ -342,7 +343,7 @@ Ordem segura:
 
 1. manter CI comum verde com lint, typecheck, build e testes;
 2. executar E2E especifico para troca de organizacao ativa com usuario multi-org dedicado;
-3. rodar E2E dedicado para rotas por `orgSlug` seguindo ADR 0007 quando o ambiente dedicado estiver configurado;
+3. rodar E2E dedicado para rotas por `orgSlug` seguindo ADR 0007 quando existir ambiente isolado para isso;
 4. billing apenas depois de isolamento/UX estarem maduros;
 5. planejar GAP-015 por issues separadas antes de runtime de rate limiting ou retention;
 6. remocao de `owner_id` apenas em gate futuro apos schema/read-path final e rollback.

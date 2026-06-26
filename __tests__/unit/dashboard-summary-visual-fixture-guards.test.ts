@@ -104,8 +104,8 @@ describe("dashboard summary visual snapshot fixture", () => {
     expect(dashboardSummaryVisualSnapshotFixture.header.periodContextLabel).toBe("Maio de 2026");
     expect(dashboardSummaryVisualSnapshotFixture.header.heading).toBe("Visão do mês");
     expect(dashboardSummaryVisualSnapshotFixture.header.canAdmin).toBe(true);
-    expect(dashboardSummaryVisualSnapshotFixture.hero.usedPercent).toBe(34);
-    expect(dashboardSummaryVisualSnapshotFixture.hero.healthyMonth).toBe(true);
+    expect(dashboardSummaryVisualSnapshotFixture.hero.projectedNetFlow).toBe(1033.2);
+    expect(dashboardSummaryVisualSnapshotFixture.hero.positiveProjectedNetFlow).toBe(true);
     expect(dashboardSummaryVisualSnapshotFixture.summaryRows.map((row) => row.key)).toEqual([
       "expenses",
       "payables",

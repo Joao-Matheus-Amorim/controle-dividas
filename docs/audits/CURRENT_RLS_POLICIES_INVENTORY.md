@@ -6,7 +6,7 @@ Issue: #548
 
 Este documento inventaria o estado atual das policies RLS relevantes para a fase SaaS multi-tenant do FamilyFinance.
 
-Ele e um documento de auditoria e planejamento. O estado vivo resumido fica em `docs/SAAS_RLS_LIVE_STATUS.md`, e a ordem de proximos passos fica em `docs/SAAS_OPERATIONAL_ROADMAP.md`.
+Ele e um documento de auditoria e planejamento. O estado operacional vivo fica em `docs/VALIDACAO_TECNICA.md`, o contexto historico de evidencias RLS fica em `docs/SAAS_RLS_LIVE_STATUS.md`, e a ordem de proximos passos fica em `docs/SAAS_OPERATIONAL_ROADMAP.md`.
 
 ## 2. Fontes revisadas
 
@@ -186,7 +186,7 @@ Qualquer mudanca em `organization_memberships` deve preservar helpers nao recurs
 ## 7. Recomendacao de proximo passo
 
 1. Aplicar a migration `039_drop_legacy_owner_family_policies.sql` em todo ambiente que ainda nao recebeu a limpeza manual equivalente.
-2. Executar RLS Live Gate em CI dedicado quando vars/secrets estiverem configurados.
+2. Se voltar a existir ambiente isolado para isso, recriar um gate equivalente antes de depender de evidencia nova de RLS em ambiente dedicado.
 3. Implementar rotas por `orgSlug` seguindo ADR 0007, com `/protected` como compatibilidade.
 4. Billing apenas depois de isolamento e UX multi-org estarem maduros.
 5. Remover `owner_id` apenas em gate futuro com preflight, rollback e evidencia.
