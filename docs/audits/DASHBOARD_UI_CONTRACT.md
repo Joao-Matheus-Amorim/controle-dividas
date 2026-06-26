@@ -26,11 +26,12 @@ O dashboard deve manter:
 
 - heading principal `Visão do mês`;
 - aviso limitado quando o usuario nao possui todos os modulos;
-- resumo hero com leitura de limite, gastos, dividas e valores a receber conforme permissao;
-- hero compacto com `Saldo do mês`, status curto e indicadores numericos;
+- resumo hero com leitura de entradas, saídas, contas em aberto e saldo projetado conforme permissao;
+- hero compacto com `Entradas x saídas`, status curto e indicadores numericos;
 - acoes rapidas usando `getOrgPathFromProtectedPath` para preservar `orgSlug`;
 - acoes rapidas com o mesmo tratamento primario de app para todos os atalhos;
 - resumo financeiro em carrossel compacto, com setas e cards laterais menores/opacos;
+- bloco de `Atencao do admin` priorizando atrasos, base incompleta, estouro de limite e recebimentos travados;
 - contas e dividas;
 - proximos vencimentos;
 - categorias;

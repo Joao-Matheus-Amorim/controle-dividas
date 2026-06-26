@@ -34,7 +34,7 @@ export function DashboardHeader({
           Visão do mês
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          {isLimitedDashboard ? "Visão limitada por permissão." : "Resumo financeiro familiar."}
+          {isLimitedDashboard ? "Visão limitada por permissão." : "Pendências, caixa e ações mais importantes do dia."}
         </p>
       </div>
       {canAdmin ? (

@@ -23,6 +23,17 @@ interface DashboardFamilySummaryProps {
 export function DashboardFamilySummary({ canExpenses, canPeople, members, orgSlug }: DashboardFamilySummaryProps) {
   if (!canExpenses || members.length === 0) return null;
 
+  const prioritizedMembers = [...members].sort((left, right) => {
+    const leftExceeded = left.remaining < 0 ? 1 : 0;
+    const rightExceeded = right.remaining < 0 ? 1 : 0;
+
+    if (leftExceeded !== rightExceeded) {
+      return rightExceeded - leftExceeded;
+    }
+
+    return right.usedPercent - left.usedPercent;
+  });
+
   return (
     <section className="space-y-3">
       <div className="flex items-center justify-between gap-3">
@@ -41,7 +52,7 @@ export function DashboardFamilySummary({ canExpenses, canPeople, members, orgSlu
       </div>
 
       <AppCard className="space-y-2">
-        {members.map((member) => {
+        {prioritizedMembers.map((member) => {
           const memberUsedPercent = Math.min(Math.max(member.usedPercent, 0), 100);
           const exceeded = member.remaining < 0;
 

@@ -12,14 +12,17 @@ function createSeedClient(
   results: Partial<
     Record<"family_members" | "expense_categories", { error: SeedMockError | null }>
   > = {},
-  existingExpenseCategoryCounts: number | number[] = 0,
+  existingRootCategoryNames: string[] | string[][] = [],
 ) {
   const upsertCalls: Array<{ table: string; rows: unknown[]; options: unknown }> = [];
   const insertCalls: Array<{ table: string; rows: unknown[] }> = [];
-  const categoryCounts = Array.isArray(existingExpenseCategoryCounts)
-    ? [...existingExpenseCategoryCounts]
-    : [existingExpenseCategoryCounts];
-  const nextCategoryCount = () => categoryCounts.shift() ?? categoryCounts[categoryCounts.length - 1] ?? 0;
+  const rootCategoryNames = Array.isArray(existingRootCategoryNames)
+    && existingRootCategoryNames.every((item) => typeof item === "string")
+      ? [existingRootCategoryNames]
+      : Array.isArray(existingRootCategoryNames)
+        ? [...(existingRootCategoryNames as string[][])]
+        : [[]];
+  const nextRootCategoryNames = () => rootCategoryNames.shift() ?? rootCategoryNames[rootCategoryNames.length - 1] ?? [];
   const from = vi.fn((table: "family_members" | "expense_categories") => ({
     upsert: vi.fn(async (rows: unknown[], options: unknown) => {
       upsertCalls.push({ table, rows, options });
@@ -29,12 +32,23 @@ function createSeedClient(
       insertCalls.push({ table, rows });
       return results[table] ?? { error: null };
     }),
-    select: vi.fn(() => ({
-      eq: vi.fn(async () => ({
-        count: nextCategoryCount(),
-        error: null,
-      })),
-    })),
+    select: vi.fn((columns: string) => {
+      if (columns === "name,parent_category_id") {
+        return {
+          eq: vi.fn(() => ({
+            is: vi.fn(async () => ({
+              data: nextRootCategoryNames().map((name) => ({
+                name,
+                parent_category_id: null,
+              })),
+              error: null,
+            })),
+          })),
+        };
+      }
+
+      throw new Error(`Unexpected select signature: ${columns}`);
+    }),
   }));
 
   return { client: { from }, from, upsertCalls, insertCalls };
@@ -61,7 +75,8 @@ describe("finance seed server", () => {
   });
 
   it("does not insert default categories when the organization already has categories", async () => {
-    const { client, insertCalls } = createSeedClient({}, 1);
+    const existingName = buildDefaultExpenseCategorySeedRows("owner-123", "org-123")[0]?.name ?? "Receitas";
+    const { client, insertCalls } = createSeedClient({}, [existingName]);
 
     await expect(seedInitialFinanceDataForOwner(client, "owner-123", "org-123")).resolves.toBeUndefined();
 
@@ -69,12 +84,30 @@ describe("finance seed server", () => {
   });
 
   it("tolerates concurrent initial category seeding when another request wins the insert race", async () => {
+    const defaultNames = buildDefaultExpenseCategorySeedRows("owner-123", "org-123").map((row) => row.name);
     const { client, insertCalls } = createSeedClient({
       expense_categories: { error: { code: "23505", message: "duplicate key value violates unique constraint" } },
-    }, [0, 20]);
+    }, [[], defaultNames]);
 
     await expect(seedInitialFinanceDataForOwner(client, "owner-123", "org-123")).resolves.toBeUndefined();
 
     expect(insertCalls).toHaveLength(1);
+  });
+
+  it("inserts only missing root categories when the organization is partially seeded", async () => {
+    const ownerId = "owner-123";
+    const organizationId = "org-123";
+    const allRows = buildDefaultExpenseCategorySeedRows(ownerId, organizationId);
+    const existingNames = allRows.slice(0, 3).map((row) => row.name);
+    const { client, insertCalls } = createSeedClient({}, existingNames);
+
+    await expect(seedInitialFinanceDataForOwner(client, ownerId, organizationId)).resolves.toBeUndefined();
+
+    expect(insertCalls).toEqual([
+      {
+        table: "expense_categories",
+        rows: allRows.slice(3),
+      },
+    ]);
   });
 });

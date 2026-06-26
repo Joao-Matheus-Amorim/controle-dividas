@@ -105,8 +105,8 @@ describe("dashboard UI contract guards", () => {
 
   it("keeps the critical dashboard summary blocks stable", () => {
     expect(hero).toContain("DashboardHeroSummary");
-    expect(hero).toContain("Saldo do mês");
-    expect(hero).toContain("compactCurrency(remainingMonthlyLimit)");
+    expect(hero).toContain("Entradas x saídas");
+    expect(hero).toContain("compactCurrency(projectedNetFlow)");
     expect(hero).toContain("totalOpenDebts");
     expect(hero).toContain("totalReceivableIncomes");
 
