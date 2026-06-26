@@ -36,7 +36,6 @@ type FeaturePermission = {
   is_enabled: boolean;
 };
 
-// FIX 2: Custom error class to separate service and presentation layers
 class DuplicateAuthorizedEmailError extends Error {
   constructor() {
     super("duplicate_authorized_email");
@@ -105,7 +104,6 @@ async function getProfileByAuthorizedEmail(email: string | null) {
   const profiles = (data ?? []) as CurrentProfile[];
 
   if (profiles.length > 1) {
-    // Lança o erro tipado em vez de usar string
     throw new DuplicateAuthorizedEmailError();
   }
 
@@ -126,7 +124,6 @@ export async function getCurrentProfile() {
   try {
     authorizedProfile = await getProfileByAuthorizedEmail(user.email);
   } catch (error) {
-    // Captura limpa do erro tipado, mantendo a tradução apenas na camada de UI/Roteamento
     if (error instanceof DuplicateAuthorizedEmailError) {
       redirect(
         "/auth/error?error=Este email esta autorizado em mais de uma organizacao. Fale com o Admin familiar para corrigir o acesso.",
@@ -364,7 +361,6 @@ export async function getAccessibleMemberIds(
     return [];
   }
 
-  // Admins e Owners veem todos os ativos
   if (["owner", "admin"].includes(membership.role)) {
     return getAllActiveMemberIds(organization.id);
   }
@@ -381,12 +377,10 @@ export async function getAccessibleMemberIds(
     return [];
   }
 
-  // FIX 3 aplicado: Verifica se o membro vinculado está ativo antes de permitir 'can_create'
   if (action === "can_create") {
     return getOwnActiveMemberId(profile.linked_family_member_id, organization.id);
   }
 
-  // FIX 4: Switch case limpo para delegar a complexidade
   switch (permission.scope) {
     case "family":
       return getAllActiveMemberIds(organization.id);
