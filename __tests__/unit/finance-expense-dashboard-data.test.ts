@@ -118,13 +118,8 @@ describe("expense dashboard aggregation", () => {
 
     const result = await getExpenseDashboardData();
 
-    expect(mocks.seedInitialFinanceDataForOwner).toHaveBeenCalledTimes(2);
-    expect(mocks.seedInitialFinanceDataForOwner).toHaveBeenCalledWith(
-      expect.anything(),
-      organizationOwnerId,
-      organizationId,
-    );
-    expect(mocks.requireOrganizationAccess).toHaveBeenCalledTimes(3);
+    expect(mocks.seedInitialFinanceDataForOwner).not.toHaveBeenCalled();
+    expect(mocks.requireOrganizationAccess).toHaveBeenCalledTimes(1);
     expect(mocks.getCurrentProfile).not.toHaveBeenCalled();
     expect(mocks.getAccessibleMemberIds).toHaveBeenCalledWith("GASTOS", "can_view");
     expect(mocks.getFamilyMembersByOwner).toHaveBeenCalledWith(organizationOwnerId, organizationId);
@@ -155,7 +150,7 @@ describe("expense dashboard aggregation", () => {
     ]);
   });
 
-  it("reads legacy members and categories with the same organization owner used by seeding", async () => {
+  it("reads legacy members and categories with the active organization owner without seeding", async () => {
     const members = [{ id: "member-visible", owner_id: organizationOwnerId, is_active: true }];
     const categories = [{ id: "category-1", owner_id: organizationOwnerId, name: "Mercado" }];
 
@@ -165,11 +160,8 @@ describe("expense dashboard aggregation", () => {
     await expect(getFamilyMembers()).resolves.toBe(members);
     await expect(getExpenseCategories()).resolves.toBe(categories);
 
-    expect(mocks.seedInitialFinanceDataForOwner).toHaveBeenCalledWith(
-      expect.anything(),
-      organizationOwnerId,
-      organizationId,
-    );
+    expect(mocks.seedInitialFinanceDataForOwner).not.toHaveBeenCalled();
+    expect(mocks.requireOrganizationAccess).toHaveBeenCalledTimes(2);
     expect(mocks.getFamilyMembersByOwner).toHaveBeenCalledWith(organizationOwnerId, organizationId);
     expect(mocks.getExpenseCategoriesByOwner).toHaveBeenCalledWith(organizationOwnerId, organizationId);
     expect(mocks.getFamilyMembersByOwner).not.toHaveBeenCalledWith(ownerId);

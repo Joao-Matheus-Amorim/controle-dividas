@@ -154,13 +154,8 @@ describe("payable dashboard aggregation", () => {
 
     const result = await getPayableBillsDashboardData();
 
-    expect(mocks.seedInitialFinanceDataForOwner).toHaveBeenCalledTimes(2);
-    expect(mocks.seedInitialFinanceDataForOwner).toHaveBeenCalledWith(
-      expect.anything(),
-      organizationOwnerId,
-      organizationId,
-    );
-    expect(mocks.requireOrganizationAccess).toHaveBeenCalledTimes(3);
+    expect(mocks.seedInitialFinanceDataForOwner).not.toHaveBeenCalled();
+    expect(mocks.requireOrganizationAccess).toHaveBeenCalledTimes(1);
     expect(mocks.getCurrentProfile).not.toHaveBeenCalled();
     expect(mocks.getAccessibleMemberIds).toHaveBeenCalledWith("CONTAS_A_PAGAR", "can_view");
     expect(mocks.getFamilyMembersByOwner).toHaveBeenCalledWith(organizationOwnerId, organizationId);
