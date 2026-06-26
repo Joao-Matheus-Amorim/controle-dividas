@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-
 import { linkAuthUserToFamilyProfile } from "@/lib/finance/profile-linking";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -37,6 +36,14 @@ type FeaturePermission = {
   is_enabled: boolean;
 };
 
+// FIX 2: Custom error class to separate service and presentation layers
+class DuplicateAuthorizedEmailError extends Error {
+  constructor() {
+    super("duplicate_authorized_email");
+    this.name = "DuplicateAuthorizedEmailError";
+  }
+}
+
 async function getCurrentUser() {
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getClaims();
@@ -61,7 +68,9 @@ async function getProfileByAuthUserId(authUserId: string) {
 
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, owner_id, organization_id, auth_user_id, linked_family_member_id, name, email, role, is_active")
+    .select(
+      "id, owner_id, organization_id, auth_user_id, linked_family_member_id, name, email, role, is_active",
+    )
     .eq("auth_user_id", authUserId)
     .maybeSingle();
 
@@ -83,7 +92,9 @@ async function getProfileByAuthorizedEmail(email: string | null) {
 
   const { data, error } = await adminSupabase
     .from("profiles")
-    .select("id, owner_id, organization_id, auth_user_id, linked_family_member_id, name, email, role, is_active")
+    .select(
+      "id, owner_id, organization_id, auth_user_id, linked_family_member_id, name, email, role, is_active",
+    )
     .ilike("email", normalizedEmail)
     .limit(2);
 
@@ -94,7 +105,8 @@ async function getProfileByAuthorizedEmail(email: string | null) {
   const profiles = (data ?? []) as CurrentProfile[];
 
   if (profiles.length > 1) {
-    throw new Error("duplicate_authorized_email");
+    // Lança o erro tipado em vez de usar string
+    throw new DuplicateAuthorizedEmailError();
   }
 
   return profiles[0] ?? null;
@@ -114,10 +126,12 @@ export async function getCurrentProfile() {
   try {
     authorizedProfile = await getProfileByAuthorizedEmail(user.email);
   } catch (error) {
-    if (error instanceof Error && error.message === "duplicate_authorized_email") {
-      redirect("/auth/error?error=Este email esta autorizado em mais de uma organizacao. Fale com o Admin familiar para corrigir o acesso.");
+    // Captura limpa do erro tipado, mantendo a tradução apenas na camada de UI/Roteamento
+    if (error instanceof DuplicateAuthorizedEmailError) {
+      redirect(
+        "/auth/error?error=Este email esta autorizado em mais de uma organizacao. Fale com o Admin familiar para corrigir o acesso.",
+      );
     }
-
     throw error;
   }
 
@@ -156,7 +170,9 @@ export async function getCurrentOrganizationProfile(orgSlug?: string) {
 
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, owner_id, organization_id, auth_user_id, linked_family_member_id, name, email, role, is_active")
+    .select(
+      "id, owner_id, organization_id, auth_user_id, linked_family_member_id, name, email, role, is_active",
+    )
     .eq("auth_user_id", user.id)
     .eq("organization_id", organization.id)
     .maybeSingle();
@@ -184,6 +200,26 @@ async function getAllActiveMemberIds(organizationId: string) {
   return (data ?? []).map((member) => String(member.id));
 }
 
+async function getOwnActiveMemberId(
+  linkedFamilyMemberId: string | null,
+  organizationId: string,
+): Promise<string[]> {
+  if (!linkedFamilyMemberId) return [];
+
+  const activeIds = await getAllActiveMemberIds(organizationId);
+  return activeIds.includes(linkedFamilyMemberId) ? [linkedFamilyMemberId] : [];
+}
+
+async function getSelectedActiveMemberIds(
+  allowedIds: string[] | null,
+  organizationId: string,
+): Promise<string[]> {
+  if (!allowedIds || allowedIds.length === 0) return [];
+
+  const activeIds = await getAllActiveMemberIds(organizationId);
+  return allowedIds.filter((id) => activeIds.includes(id));
+}
+
 export async function getModulePermission(
   profileId: string,
   module: FinanceModuleKey,
@@ -194,7 +230,9 @@ export async function getModulePermission(
 
   const { data, error } = await adminSupabase
     .from("user_module_permissions")
-    .select("profile_id, organization_id, module, can_view, can_create, can_edit, can_delete, scope, allowed_member_ids")
+    .select(
+      "profile_id, organization_id, module, can_view, can_create, can_edit, can_delete, scope, allowed_member_ids",
+    )
     .eq("profile_id", profileId)
     .eq("module", module)
     .eq("organization_id", organizationId)
@@ -272,7 +310,10 @@ export async function canViewModule(module: FinanceModuleKey, orgSlug?: string) 
   return Boolean(permission?.can_view);
 }
 
-export async function getVisibleModuleKeys(modules: FinanceModuleKey[], orgSlug?: string) {
+export async function getVisibleModuleKeys(
+  modules: FinanceModuleKey[],
+  orgSlug?: string,
+) {
   const { organization, membership } = await requireOrganizationAccess(orgSlug);
 
   if (!membership.is_active) {
@@ -300,9 +341,14 @@ export async function getVisibleModuleKeys(modules: FinanceModuleKey[], orgSlug?
     throw new Error(error.message);
   }
 
-  const permissions = (data ?? []) as Pick<ModulePermission, "module" | "can_view" | "organization_id">[];
+  const permissions = (data ?? []) as Pick<
+    ModulePermission,
+    "module" | "can_view" | "organization_id"
+  >[];
   return modules.filter((module) => {
-    const scopedPermission = permissions.find((permission) => permission.module === module);
+    const scopedPermission = permissions.find(
+      (permission) => permission.module === module,
+    );
     return Boolean(scopedPermission?.can_view);
   });
 }
@@ -318,6 +364,7 @@ export async function getAccessibleMemberIds(
     return [];
   }
 
+  // Admins e Owners veem todos os ativos
   if (["owner", "admin"].includes(membership.role)) {
     return getAllActiveMemberIds(organization.id);
   }
@@ -334,20 +381,21 @@ export async function getAccessibleMemberIds(
     return [];
   }
 
+  // FIX 3 aplicado: Verifica se o membro vinculado está ativo antes de permitir 'can_create'
   if (action === "can_create") {
-    return profile.linked_family_member_id ? [profile.linked_family_member_id] : [];
+    return getOwnActiveMemberId(profile.linked_family_member_id, organization.id);
   }
 
-  if (permission.scope === "family") {
-    return getAllActiveMemberIds(organization.id);
+  // FIX 4: Switch case limpo para delegar a complexidade
+  switch (permission.scope) {
+    case "family":
+      return getAllActiveMemberIds(organization.id);
+    case "selected":
+      return getSelectedActiveMemberIds(permission.allowed_member_ids, organization.id);
+    case "own":
+    default:
+      return getOwnActiveMemberId(profile.linked_family_member_id, organization.id);
   }
-
-  if (permission.scope === "selected") {
-    const activeMemberIds = await getAllActiveMemberIds(organization.id);
-    return (permission.allowed_member_ids ?? []).filter((memberId) => activeMemberIds.includes(memberId));
-  }
-
-  return profile.linked_family_member_id ? [profile.linked_family_member_id] : [];
 }
 
 export async function assertCanAccessMember(

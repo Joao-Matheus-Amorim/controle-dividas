@@ -51,6 +51,9 @@ Varredura em 2026-06-25:
   review-only: carrega catalogos reais, valida o rascunho estruturado, retorna
   provider: `none`, `canAutoSave: false` e `directSaveAction: null`, sem chamar
   modelo, endpoint ou Server Action de criacao.
+- `lib/finance/ai-finance-provider-config.ts` monta a fronteira de configuracao
+  fail-closed do provider futuro, desligada por padrao e sem dependencia de
+  modelo.
 
 Isso esta pronto para continuar como rascunho assistido deterministico. Ainda
 nao esta pronto para provider, endpoint ou chamada de modelo.
@@ -274,6 +277,8 @@ Antes de chamar qualquer modelo:
 - registrar guard para impedir salvamento direto sem revisao.
 - seguir `docs/audits/AI_FINANCE_PROVIDER_ENDPOINT_CONTRACT.md` antes de
   escolher provider, criar endpoint ou adicionar chave de API.
+- manter `lib/finance/ai-finance-provider-config.ts` desligado por padrao ate
+  existir PR dedicado de runtime.
 
 ## Fora de escopo deste contrato
 

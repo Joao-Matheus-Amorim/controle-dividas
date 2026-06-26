@@ -337,6 +337,9 @@ Resultado esperado antes do primeiro runtime com modelo:
   `docs/audits/AI_FINANCE_PROVIDER_ENDPOINT_CONTRACT.md`, exigindo
   fail-closed, env server-only, rate limit, audit agregado e rollback antes de
   modelo real;
+- fronteira de configuracao provider versionada em
+  `lib/finance/ai-finance-provider-config.ts`, desligada por padrao via
+  `ENABLE_AI_FINANCE_PROVIDER` e sem dependencia de provider;
 - validar no servidor todos os ids retornados;
 - usar a pessoa vinculada ao usuario logado como padrao para nao-admin;
 - permitir admin/owner escolher outra pessoa apenas quando ela existir na org;
@@ -350,6 +353,8 @@ Resultado esperado antes do primeiro runtime com modelo:
    - Usar `docs/audits/AI_FINANCE_INTAKE_CONTRACT.md`.
    - Usar `docs/audits/AI_FINANCE_PROVIDER_ENDPOINT_CONTRACT.md` antes de
      provider/endpoint runtime.
+   - Manter `lib/finance/ai-finance-provider-config.ts` fail-closed e
+     desativado por padrao ate PR dedicado de runtime.
    - Nao escolher provider, criar endpoint, adicionar chave de API ou salvar
      automaticamente antes da boundary server-side e da UI review-only.
    - Garantir que a IA so use categorias, origens, bancos e pessoas existentes.
