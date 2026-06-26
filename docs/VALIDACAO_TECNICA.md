@@ -503,14 +503,14 @@ Cobrem:
 - usuario comum vendo apenas dados proprios;
 - usuario selected vendo membros liberados;
 - Admin vendo todos os gastos.
-- suites RLS gated quando `RUN_RLS_TESTS=true` e variaveis de banco de teste estao configuradas.
+- suites RLS gated opcionais mantidas no repositorio como harness/local-only; o ambiente dedicado de teste RLS foi removido em 2026-06-26 e nao faz parte do fluxo operacional atual.
 
 ## Debitos tecnicos conhecidos
 
 - `lib/finance/calculations.ts` ainda mistura funcoes puras com calculos baseados em fixtures.
 - Alguns documentos estrategicos ainda podem listar como planejado recursos que ja estao implementados.
 - Alguns documentos historicos ainda podem citar `/protected` como unica rota protegida; a fonte viva atual e ADR 0007 + `docs/SAAS_OPERATIONAL_ROADMAP.md`.
-- Evidencia live de RLS ainda depende de gate manual.
+- A evidencia antiga de RLS live permanece como historico; o gate manual dedicado foi arquivado em 2026-06-26.
 - Evidencia real Stripe checkout/portal ainda depende de conta e credenciais Stripe de teste.
 - Edicoes completas de algumas entidades ainda faltam.
 - `user_feature_permissions` existe, mas UI completa ainda precisa evoluir.

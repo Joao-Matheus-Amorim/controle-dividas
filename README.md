@@ -34,7 +34,7 @@ ADRs:
 
 Status/roadmap vivos:
 
-- `docs/SAAS_RLS_LIVE_STATUS.md`
+- `docs/VALIDACAO_TECNICA.md`
 - `docs/SAAS_OPERATIONAL_ROADMAP.md`
 - `docs/audits/CURRENT_RLS_POLICIES_INVENTORY.md`
 
@@ -129,13 +129,17 @@ Observacao operacional: a migration `019_initial_organization_onboarding_rpc.sql
 
 ## Testes RLS gated
 
-As suites RLS reais ficam desligadas no fluxo comum. Para gates locais comuns, manter:
+As suites RLS reais continuam desligadas no fluxo comum. Para o dia a dia, manter:
 
 ```powershell
 $env:RUN_RLS_TESTS = "false"
 ```
 
-Para validar RLS real em Supabase dedicado, configurar:
+Em 2026-06-26, o ambiente dedicado de teste RLS foi removido e o workflow manual correspondente foi arquivado. Hoje, o repo nao depende de um banco RLS separado para operacao normal.
+
+Se no futuro for necessario recriar um ambiente isolado so para esse fim, usar `docs/rls/RLS_TEST_HARNESS.md` apenas como referencia historica de desenho, nao como runbook operacional vigente.
+
+As suites em `__tests__/integration/rls/*.rls.test.ts` permanecem versionadas como harness opcional/local, mas as variaveis abaixo nao fazem parte do fluxo ativo atual:
 
 ```txt
 RUN_RLS_TESTS=true
@@ -148,7 +152,7 @@ RLS_TEST_USER_B_EMAIL
 RLS_TEST_USER_B_PASSWORD
 ```
 
-Detalhes de ambiente e variaveis RLS ficam em `docs/SAAS_RLS_LIVE_STATUS.md` e `docs/rls/RLS_TEST_HARNESS.md`.
+O estado vivo de testes e validacao fica em `docs/VALIDACAO_TECNICA.md`. O contexto antigo do harness permanece em `docs/rls/RLS_TEST_HARNESS.md`.
 
 ## Playwright E2E
 

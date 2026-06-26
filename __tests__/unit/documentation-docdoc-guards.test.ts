@@ -264,8 +264,8 @@ describe("Operacao DocDoc documentation guards", () => {
     expect(rlsReadme).toContain("status docdoc: atual");
     expect(rlsReadme).toContain("nao use documentos rls para afirmar que isolamento esta provado");
     expect(rlsReadme).toContain("rls live gate");
-    expect(rlsLiveGate).toContain("status docdoc: atual como runbook/gate operacional");
-    expect(rlsLiveGate).toContain("registrar evidencia apenas apos run");
+    expect(rlsLiveGate).toContain("status docdoc: historico");
+    expect(rlsLiveGate).toContain("arquivados em 2026-06-26");
 
     expect(statusMap).toContain("docs/rls/readme.md");
     expect(statusMap).toContain("docs/rls/rls_live_gate.md");

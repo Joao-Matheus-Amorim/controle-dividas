@@ -5,7 +5,7 @@ Este documento descreve a arquitetura tecnica atual do FamilyFinance e mostra co
 Documentos de estado vivo:
 
 - `README.md`
-- `docs/SAAS_RLS_LIVE_STATUS.md`
+- `docs/VALIDACAO_TECNICA.md`
 - `docs/SAAS_OPERATIONAL_ROADMAP.md`
 - `docs/audits/CURRENT_RLS_POLICIES_INVENTORY.md`
 
@@ -332,11 +332,7 @@ npm run test:e2e
 
 RLS real e E2E autenticado/data-changing sao gated por variaveis explicitas.
 
-Workflow manual de RLS real:
-
-```txt
-.github/workflows/rls-live-gate.yml
-```
+O antigo workflow manual de RLS real foi arquivado em 2026-06-26 junto com o ambiente dedicado de teste.
 
 ## Pontos de atencao
 
@@ -369,7 +365,7 @@ Workflow manual de RLS real:
 
 Curto prazo:
 
-- configurar e rodar RLS Live Gate em CI dedicado;
+- manter a arquitetura RLS alinhada com migrations e guards locais, sem depender de um CI dedicado de RLS;
 - confirmar E2E gated de troca de organizacao ativa quando houver ambiente dedicado;
 - rodar cobertura E2E dedicada para `/org/[orgSlug]` em ambiente dedicado e registrar evidencia verde.
 

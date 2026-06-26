@@ -2,11 +2,11 @@
 
 Issue: #580
 
-> Status DocDoc: Atual como runbook/gate operacional
-> Uso atual: contrato do workflow manual dedicado para validar RLS real contra
-> ambiente Supabase de teste.
-> Observacao: nao e evidencia por si so; registrar evidencia apenas apos run
-> real bem-sucedido no GitHub Actions.
+> Status DocDoc: Historico
+> Uso atual: registro do workflow manual dedicado que existiu para validar RLS
+> real contra ambiente Supabase de teste.
+> Observacao: o workflow e o ambiente dedicado foram arquivados em 2026-06-26;
+> manter este documento apenas como trilha de evidencia e contexto historico.
 
 ## Purpose
 

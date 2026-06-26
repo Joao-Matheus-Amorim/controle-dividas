@@ -25,7 +25,7 @@
 | Design system atual | `docs/design/VISUAL_TOKENS_AND_COMPONENT_CONVENTIONS.md` e `docs/design/redesign-2026-ink-copper-ivory.md` |
 | Mobile e canais | `docs/MOBILE_STRATEGY.md` e `docs/MOBILE_FIRST_UX.md` |
 | Billing | `docs/audits/BILLING_*`, `docs/runbooks/BILLING_STRIPE_TEST_ACCOUNT_RUNBOOK.md` e `docs/adr/0008-billing-plan-contract-before-stripe.md` |
-| RLS e Supabase | `docs/SAAS_RLS_LIVE_STATUS.md`, `docs/rls/*`, `docs/audits/CURRENT_RLS_POLICIES_INVENTORY.md` |
+| RLS e Supabase | `docs/VALIDACAO_TECNICA.md`, `docs/rls/*`, `docs/audits/CURRENT_RLS_POLICIES_INVENTORY.md` |
 | Historico de PM/escopo | `docs/pm/*` |
 
 ## Como tratar documento antigo
