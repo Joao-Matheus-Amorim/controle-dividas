@@ -91,8 +91,17 @@ describe("finance server facade boundary", () => {
   });
 
   it("seeds legacy owner data from the active organization owner", () => {
+    expect(serverSource).toContain("seedInitialFinanceData(orgSlug?: string)");
+    expect(serverSource).toContain("requireOrganizationAccess(orgSlug)");
     expect(serverSource).toContain("organization.owner_auth_user_id");
     expect(serverSource).toContain("seedInitialFinanceDataForOwner(");
     expect(serverSource).not.toContain("await seedInitialFinanceDataForOwner(supabase, ownerId, organization.id)");
+  });
+
+  it("does not seed repeatedly from read facade helpers", () => {
+    for (const exportName of expectedPublicAsyncExports.filter((name) => name !== "seedInitialFinanceData")) {
+      const functionBody = serverSource.match(new RegExp(`export async function ${exportName}[^]*?\\n}`))?.[0] ?? "";
+      expect(functionBody).not.toContain("seedInitialFinanceData(");
+    }
   });
 });

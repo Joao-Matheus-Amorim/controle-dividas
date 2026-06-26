@@ -24,10 +24,11 @@ export type {
   ReceivableIncomeFormState,
 } from "@/lib/finance/types";
 
-export async function seedInitialFinanceData() {
+export async function seedInitialFinanceData(orgSlug?: string) {
   const supabase = await createClient();
-  const { organization } = await requireOrganizationAccess();
+  const { organization } = await requireOrganizationAccess(orgSlug);
 
+  // Seed data only once during onboarding or login
   await seedInitialFinanceDataForOwner(
     supabase,
     organization.owner_auth_user_id,
@@ -36,8 +37,6 @@ export async function seedInitialFinanceData() {
 }
 
 export async function getFamilyMembers() {
-  await seedInitialFinanceData();
-
   const { organization } = await requireOrganizationAccess();
   return getFamilyMembersByOwner(organization.owner_auth_user_id, organization.id);
 }
@@ -48,23 +47,18 @@ export async function getActiveFamilyMembers() {
 }
 
 export async function getExpenseCategories() {
-  await seedInitialFinanceData();
-
   const { organization } = await requireOrganizationAccess();
   return getExpenseCategoriesByOwner(organization.owner_auth_user_id, organization.id);
 }
 
 export async function getExpenses() {
-  await seedInitialFinanceData();
-
   return getExpensesForCurrentProfile();
 }
 
 export async function getExpenseDashboardData() {
-  await seedInitialFinanceData();
-
   const { organization } = await requireOrganizationAccess();
   const accessibleMemberIds = await getAccessibleMemberIds("GASTOS", "can_view");
+
   const [allMembers, categories, expenses] = await Promise.all([
     getFamilyMembersByOwner(organization.owner_auth_user_id, organization.id),
     getExpenseCategoriesByOwner(organization.owner_auth_user_id, organization.id),
@@ -80,16 +74,13 @@ export async function getExpenseDashboardData() {
 }
 
 export async function getPayableBills() {
-  await seedInitialFinanceData();
-
   return getPayableBillsForCurrentProfile();
 }
 
 export async function getPayableBillsDashboardData() {
-  await seedInitialFinanceData();
-
   const { organization } = await requireOrganizationAccess();
   const accessibleMemberIds = await getAccessibleMemberIds("CONTAS_A_PAGAR", "can_view");
+
   const [allMembers, bills] = await Promise.all([
     getFamilyMembersByOwner(organization.owner_auth_user_id, organization.id),
     getPayableBills(),
@@ -103,16 +94,13 @@ export async function getPayableBillsDashboardData() {
 }
 
 export async function getReceivableIncomes() {
-  await seedInitialFinanceData();
-
   return getReceivableIncomesForCurrentProfile();
 }
 
 export async function getReceivableIncomesDashboardData() {
-  await seedInitialFinanceData();
-
   const { organization } = await requireOrganizationAccess();
   const accessibleMemberIds = await getAccessibleMemberIds("CONTAS_A_RECEBER", "can_view");
+
   const [allMembers, incomes] = await Promise.all([
     getFamilyMembersByOwner(organization.owner_auth_user_id, organization.id),
     getReceivableIncomes(),

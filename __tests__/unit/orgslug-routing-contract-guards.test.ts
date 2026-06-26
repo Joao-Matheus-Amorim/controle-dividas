@@ -40,6 +40,7 @@ describe("orgSlug routing contract", () => {
 
   it("keeps implementation sequenced through runtime route creation", () => {
     const revalidation = read("lib/organizations/revalidation.ts");
+    const orgLayout = read("app/org/[orgSlug]/layout.tsx");
 
     expect(adr).toContain("criar helpers centralizados");
     expect(adr).toContain("criar a primeira rota `/org/[orgslug]`");
@@ -58,6 +59,8 @@ describe("orgSlug routing contract", () => {
     expect(read("tests/e2e/orgslug-authenticated-gated.spec.ts")).toContain("voce nao tem acesso a esta organizacao.");
     expect(read("tests/e2e/orgslug-authenticated-gated.spec.ts")).toContain("visao do mes");
     expect(read("tests/e2e/orgslug-authenticated-gated.spec.ts")).not.toContain("visa£o do maªs");
+    expect(orgLayout).toContain("requireorganizationaccess(orgslug)");
+    expect(orgLayout).toContain("seedinitialfinancedata(orgslug)");
     expect(revalidation).toContain("revalidateorganizationpaths");
     expect(revalidation).toContain("getorgpathfromprotectedpath");
     expect(revalidation).toContain("revalidatepath(orgpath)");

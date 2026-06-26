@@ -148,13 +148,8 @@ describe("receivable dashboard aggregation", () => {
 
     const result = await getReceivableIncomesDashboardData();
 
-    expect(mocks.seedInitialFinanceDataForOwner).toHaveBeenCalledTimes(2);
-    expect(mocks.seedInitialFinanceDataForOwner).toHaveBeenCalledWith(
-      expect.anything(),
-      organizationOwnerId,
-      organizationId,
-    );
-    expect(mocks.requireOrganizationAccess).toHaveBeenCalledTimes(3);
+    expect(mocks.seedInitialFinanceDataForOwner).not.toHaveBeenCalled();
+    expect(mocks.requireOrganizationAccess).toHaveBeenCalledTimes(1);
     expect(mocks.getCurrentProfile).not.toHaveBeenCalled();
     expect(mocks.getAccessibleMemberIds).toHaveBeenCalledWith("CONTAS_A_RECEBER", "can_view");
     expect(mocks.getFamilyMembersByOwner).toHaveBeenCalledWith(organizationOwnerId, organizationId);

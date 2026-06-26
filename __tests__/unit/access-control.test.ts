@@ -223,6 +223,7 @@ describe("access-control RBAC", () => {
     mockState.membershipRole = "member";
     mockState.membershipIsActive = true;
     mockState.familyMembers = [
+      { id: "member-own", owner_id: "owner-1", organization_id: "org-1", is_active: true },
       { id: "member-1", owner_id: "owner-1", organization_id: "org-1", is_active: true },
       { id: "member-2", owner_id: "owner-1", organization_id: "org-1", is_active: true },
       { id: "member-3", owner_id: "owner-1", organization_id: "org-1", is_active: true },
@@ -305,6 +306,25 @@ describe("access-control RBAC", () => {
     });
 
     await expect(getAccessibleMemberIds("GASTOS", "can_create")).resolves.toEqual(["member-own"]);
+  });
+
+  it("blocks non-admin create access when the linked member is inactive", async () => {
+    const { getAccessibleMemberIds } = await import("@/lib/finance/access-control");
+
+    mockState.familyMembers = [
+      { id: "member-own", owner_id: "owner-1", organization_id: "org-1", is_active: false },
+      { id: "member-2", owner_id: "owner-1", organization_id: "org-1", is_active: true },
+    ];
+    setPermission({ action: "can_create", scope: "family" });
+
+    await expect(getAccessibleMemberIds("GASTOS", "can_create")).resolves.toEqual([]);
+    expect(mockState.queryLog).toContainEqual({
+      table: "family_members",
+      op: "eq",
+      key: "is_active",
+      value: true,
+    });
+    expectNoLegacyRuntimePermissionFallback();
   });
 
   it.each<PermissionAction>(["can_view", "can_create", "can_edit", "can_delete"])(

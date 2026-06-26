@@ -32,6 +32,22 @@ Antes de implementar endpoint ou provider:
 
 O provider deve ser escolhido em PR dedicado e documentado antes de runtime.
 
+Estado atual:
+
+- `lib/finance/ai-finance-provider-config.ts` define a fronteira de
+  configuracao provider para runtime server-side futuro.
+- O helper nao usa `import "server-only"` para manter compatibilidade com
+  Vitest/Vite nos testes unitarios.
+- `ENABLE_AI_FINANCE_PROVIDER` controla se o provider futuro esta habilitado.
+- Quando `ENABLE_AI_FINANCE_PROVIDER` estiver desativado, o app permanece
+  funcional sem dependencia de env vars de IA.
+- Quando `ENABLE_AI_FINANCE_PROVIDER=true`, o helper exige:
+  - `AI_FINANCE_PROVIDER`;
+  - `AI_FINANCE_MODEL`;
+  - `AI_FINANCE_PROVIDER_API_KEY`.
+- Em runtime parecido com producao (`NODE_ENV=production` ou
+  `APP_ENV=production`), faltas de env vars obrigatorias disparam fail-fast.
+
 Regras obrigatorias:
 
 - nenhuma dependencia de provider pode entrar sem guard de dependencia;

@@ -130,7 +130,8 @@ describe("finance beta UX contract guards", () => {
     }
 
     expect(accessControl).toContain('if (action === "can_create")');
-    expect(accessControl).toContain("profile.linked_family_member_id ? [profile.linked_family_member_id] : []");
+    expect(accessControl).toContain("getOwnActiveMemberId(profile.linked_family_member_id, organization.id)");
+    expect(accessControl).toContain('.eq("is_active", true)');
   });
 
   it("keeps the shared form sheet responsive for mobile and desktop admin use", () => {
