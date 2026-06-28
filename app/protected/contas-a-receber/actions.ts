@@ -101,7 +101,7 @@ async function assertCanManageReceivableIncome(
 
   const { data: income, error } = await supabase
     .from("receivable_incomes")
-    .select("id, owner_id, receiver_member_id, source, payment_origin, income_type, amount, expected_date, status, receiving_bank, notes")
+    .select("id, owner_id, receiver_member_id, source, payment_origin, income_type, amount, currency, expected_date, status, receiving_bank, notes")
     .eq("id", incomeId)
     .eq("organization_id", organization.id)
     .maybeSingle();
@@ -168,7 +168,7 @@ async function assertBankNameBelongsToReceiverMember(
   const supabase = await createClient();
   const { data: banks, error } = await supabase
     .from("banks")
-    .select("id")
+    .select("id, currency")
     .eq("bank_name", bankName)
     .eq("family_member_id", receiverMemberId)
     .eq("organization_id", organizationId)
@@ -215,6 +215,7 @@ function parseReceivableIncomeForm(formData: FormData) {
   const paymentOrigin = String(formData.get("payment_origin") ?? "").trim();
   const incomeType = String(formData.get("income_type") ?? "fixa");
   const amount = Number(formData.get("amount") ?? 0);
+  const currency = String(formData.get("currency") ?? "EUR").trim().toUpperCase() || "EUR";
   const expectedDate = String(formData.get("expected_date") ?? "");
   const status = String(formData.get("status") ?? "previsto");
   const receivingBank = String(formData.get("receiving_bank") ?? "").trim();
@@ -227,6 +228,7 @@ function parseReceivableIncomeForm(formData: FormData) {
     paymentOrigin,
     incomeType,
     amount,
+    currency,
     expectedDate,
     status,
     receivingBank,
@@ -254,6 +256,10 @@ function validateReceivableIncomeInput(
     return { error: "Informe um valor valido." };
   }
 
+  if (!/^[A-Z]{3}$/.test(input.currency)) {
+    return { error: "Informe uma moeda valida." };
+  }
+
   if (!input.expectedDate) {
     return { error: "Informe a data prevista." };
   }
@@ -275,6 +281,7 @@ function hasReceivableIncomeWriteChanges(
     String(income.payment_origin ?? "").trim() !== input.paymentOrigin ||
     String(income.income_type ?? "fixa") !== input.incomeType ||
     Number(income.amount ?? 0) !== input.amount ||
+    String(income.currency ?? "EUR") !== input.currency ||
     String(income.expected_date ?? "") !== input.expectedDate ||
     String(income.receiving_bank ?? "").trim() !== input.receivingBank ||
     String(income.notes ?? "").trim() !== input.notes
@@ -320,6 +327,13 @@ export async function createReceivableIncome(
     if (shouldCreateReceivedMovement && !receivedMovementBank?.id) {
       throw new Error("Selecione um banco cadastrado para registrar o recebimento.");
     }
+
+    if (
+      shouldCreateReceivedMovement &&
+      String(receivedMovementBank?.currency ?? "").trim().toUpperCase() !== input.currency
+    ) {
+      throw new Error("O banco do recebimento precisa usar a mesma moeda da entrada.");
+    }
   } catch (error) {
     return {
       error:
@@ -359,6 +373,7 @@ export async function createReceivableIncome(
     payment_origin: input.paymentOrigin || null,
     income_type: input.incomeType,
     amount: input.amount,
+    currency: input.currency,
     expected_date: input.expectedDate,
     status: shouldCreateReceivedMovement ? "previsto" : input.status,
     receiving_bank: input.receivingBank || null,
@@ -475,6 +490,13 @@ export async function updateReceivableIncome(
       throw new Error("Selecione um banco cadastrado para registrar o recebimento.");
     }
 
+    if (
+      transitionToReceived &&
+      String(receivedMovementBank?.currency ?? "").trim().toUpperCase() !== input.currency
+    ) {
+      throw new Error("O banco do recebimento precisa usar a mesma moeda da entrada.");
+    }
+
     const receivableStatusRateLimitInput = {
       ...receivableStatusRateLimit,
       actorKey: profile.id,
@@ -582,6 +604,7 @@ export async function updateReceivableIncome(
         payment_origin: input.paymentOrigin || null,
         income_type: input.incomeType,
         amount: input.amount,
+        currency: input.currency,
         expected_date: input.expectedDate,
         status: transitionToReceived ? String(income.status) : input.status,
         receiving_bank: input.receivingBank || null,

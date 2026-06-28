@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 
 import { recordAuditEvent } from "@/lib/audit/events";
 import { getCurrentProfile } from "@/lib/finance/access-control";
+import { isSystemCurrencyOption } from "@/lib/finance/bank-options";
 import {
   familyMemberLimitRateLimit,
   recordFamilyMemberLimitAuditEvent,
@@ -55,6 +56,12 @@ const receivableSourceCreateRateLimit = {
 
 const receivableSourceUpdateRateLimit = {
   operationKey: "finance.receivable_source.update",
+  limit: 10,
+  windowMs: 10 * 60 * 1000,
+};
+
+const organizationCurrencyRateLimit = {
+  operationKey: "organization.display_currency.update",
   limit: 10,
   windowMs: 10 * 60 * 1000,
 };
@@ -134,6 +141,25 @@ async function recordReceivableSourceAuditEvent({
     action,
     targetType: "receivable_income_source",
     targetId: sourceId,
+    outcome,
+    metadata,
+  });
+}
+
+async function recordOrganizationCurrencyAuditEvent({
+  organizationId,
+  outcome = "success",
+  metadata,
+}: {
+  organizationId: string;
+  outcome?: "success" | "denied";
+  metadata?: Record<string, string | number | boolean | null>;
+}) {
+  await recordAuditEvent({
+    organizationId,
+    action: "organization.display_currency.update",
+    targetType: "organization",
+    targetId: organizationId,
     outcome,
     metadata,
   });
@@ -812,4 +838,81 @@ export async function updateFamilyMemberLimitWithState(
 
 export async function updateFamilyMemberLimitFormAction(formData: FormData): Promise<void> {
   await updateFamilyMemberLimit(formData);
+}
+
+export async function updateOrganizationDisplayCurrency(
+  _prevState: SettingsActionState,
+  formData: FormData,
+): Promise<SettingsActionState> {
+  const displayCurrency = String(formData.get("display_currency") ?? "")
+    .trim()
+    .toUpperCase();
+
+  if (!isSystemCurrencyOption(displayCurrency)) {
+    return { error: "Selecione uma moeda valida da lista." };
+  }
+
+  const supabase = await createClient();
+  const profile = await getCurrentProfile();
+  const { organization } = await requireOrganizationAdmin();
+
+  if (String(organization.display_currency ?? "EUR").trim().toUpperCase() === displayCurrency) {
+    return { success: "Moeda padrao atualizada com sucesso." };
+  }
+
+  const rateLimit = checkSensitiveOperationRateLimit({
+    ...organizationCurrencyRateLimit,
+    actorKey: profile.id,
+    organizationId: organization.id,
+    targetKey: organization.id,
+  });
+
+  if (!rateLimit.allowed) {
+    await recordOrganizationCurrencyAuditEvent({
+      organizationId: organization.id,
+      outcome: "denied",
+      metadata: {
+        status: "rate_limited",
+        display_currency: displayCurrency,
+      },
+    });
+
+    return { error: "Muitas tentativas de alteracao de moeda. Tente novamente em alguns minutos." };
+  }
+
+  const { error, count } = await supabase
+    .from("organizations")
+    .update({
+      display_currency: displayCurrency,
+    }, { count: "exact" })
+    .eq("id", organization.id);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  if (count !== 1) {
+    return { error: "Organizacao nao encontrada." };
+  }
+
+  await recordOrganizationCurrencyAuditEvent({
+    organizationId: organization.id,
+    metadata: {
+      display_currency: displayCurrency,
+    },
+  });
+
+  revalidateOrganizationPaths(
+    [
+      "/protected/configuracoes",
+      "/protected/gastos",
+      "/protected/contas-a-pagar",
+      "/protected/contas-a-receber",
+      "/protected/relatorios",
+      "/protected",
+    ],
+    organization.slug,
+  );
+
+  return { success: "Moeda padrao atualizada com sucesso." };
 }

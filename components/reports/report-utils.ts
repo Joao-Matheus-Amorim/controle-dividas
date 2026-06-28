@@ -1,1 +1,1 @@
-export { compactCurrency, formatDate, initials } from "@/lib/finance/formatting";
+export { compactCurrency, compactCurrencyForCode, formatDate, initials } from "@/lib/finance/formatting";

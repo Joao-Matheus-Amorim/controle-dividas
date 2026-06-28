@@ -37,6 +37,7 @@ const mockState = vi.hoisted(() => ({
     organization_id: "org-1",
     family_member_id: "member-1",
     bank_name: "Wise",
+    currency: "BRL",
   } as Record<string, unknown> | null,
   accessError: null as Error | null,
 }));
@@ -216,6 +217,7 @@ describe("payable bill edit action", () => {
       organization_id: "org-1",
       family_member_id: "member-1",
       bank_name: "Wise",
+      currency: "BRL",
     };
     mockState.accessError = null;
   });
@@ -234,6 +236,7 @@ describe("payable bill edit action", () => {
       bill_type: "fixa",
       recurrence: "mensal",
       bank_used: "Wise",
+      currency: "BRL",
       recorded_timezone: "Europe/Lisbon",
       notes: "Pago antecipado",
     }));

@@ -101,7 +101,7 @@ async function assertCanManagePayableBill(
 
   const { data: bill, error } = await supabase
     .from("payable_bills")
-    .select("id, owner_id, responsible_member_id, name, category, amount, due_date, status, bill_type, bank_used, recurrence, notes")
+    .select("id, owner_id, responsible_member_id, name, category, amount, currency, due_date, status, bill_type, bank_used, recurrence, notes")
     .eq("id", billId)
     .eq("organization_id", organization.id)
     .maybeSingle();
@@ -168,7 +168,7 @@ async function assertBankNameBelongsToResponsibleMember(
   const supabase = await createClient();
   const { data: banks, error } = await supabase
     .from("banks")
-    .select("id")
+    .select("id, currency")
     .eq("bank_name", bankName)
     .eq("family_member_id", responsibleMemberId)
     .eq("organization_id", organizationId)
@@ -213,6 +213,7 @@ function parsePayableBillForm(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   const category = String(formData.get("category") ?? "").trim();
   const amount = Number(formData.get("amount") ?? 0);
+  const currency = String(formData.get("currency") ?? "EUR").trim().toUpperCase() || "EUR";
   const dueDate = String(formData.get("due_date") ?? "");
   const responsibleMemberId = String(formData.get("responsible_member_id") ?? "");
   const status = String(formData.get("status") ?? "pendente");
@@ -229,6 +230,7 @@ function parsePayableBillForm(formData: FormData) {
     name,
     category,
     amount,
+    currency,
     dueDate,
     responsibleMemberId,
     status,
@@ -257,6 +259,10 @@ function validatePayableBillInput(input: ReturnType<typeof parsePayableBillForm>
     return { error: "Informe um valor valido." };
   }
 
+  if (!/^[A-Z]{3}$/.test(input.currency)) {
+    return { error: "Informe uma moeda valida." };
+  }
+
   if (!input.dueDate) {
     return { error: "Informe a data de vencimento." };
   }
@@ -276,6 +282,7 @@ function hasPayableBillWriteChanges(
     String(bill.name ?? "").trim() !== input.name ||
     String(bill.category ?? "").trim() !== input.category ||
     Number(bill.amount ?? 0) !== input.amount ||
+    String(bill.currency ?? "EUR") !== input.currency ||
     String(bill.due_date ?? "") !== input.dueDate ||
     String(bill.responsible_member_id ?? "") !== input.responsibleMemberId ||
     String(bill.bill_type ?? "avulsa") !== input.billType ||
@@ -324,6 +331,13 @@ export async function createPayableBill(
     if (shouldCreatePaidMovement && !paidMovementBank?.id) {
       throw new Error("Selecione um banco cadastrado para registrar o pagamento.");
     }
+
+    if (
+      shouldCreatePaidMovement &&
+      String(paidMovementBank?.currency ?? "").trim().toUpperCase() !== input.currency
+    ) {
+      throw new Error("O banco do pagamento precisa usar a mesma moeda da conta.");
+    }
   } catch (error) {
     return {
       error:
@@ -361,6 +375,7 @@ export async function createPayableBill(
     name: input.name,
     category: input.category || null,
     amount: input.amount,
+    currency: input.currency,
     due_date: input.dueDate,
     responsible_member_id: input.responsibleMemberId,
     status: shouldCreatePaidMovement ? "pendente" : input.status,
@@ -485,6 +500,13 @@ export async function updatePayableBill(
       throw new Error("Selecione um banco cadastrado para registrar o pagamento.");
     }
 
+    if (
+      transitionToPaid &&
+      String(paidMovementBank?.currency ?? "").trim().toUpperCase() !== input.currency
+    ) {
+      throw new Error("O banco do pagamento precisa usar a mesma moeda da conta.");
+    }
+
     const payableStatusRateLimitInput = {
       ...payableStatusRateLimit,
       actorKey: profile.id,
@@ -591,6 +613,7 @@ export async function updatePayableBill(
           name: input.name,
           category: input.category || null,
           amount: input.amount,
+          currency: input.currency,
           due_date: input.dueDate,
           responsible_member_id: input.responsibleMemberId,
           status: transitionToPaid ? String(bill.status) : input.status,

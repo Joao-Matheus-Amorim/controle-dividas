@@ -35,6 +35,7 @@ function normalizeOrganization(row: OrganizationRow): Organization {
     slug: row.slug,
     name: row.name,
     owner_auth_user_id: row.owner_auth_user_id,
+    display_currency: String((row as { display_currency?: string | null }).display_currency ?? "EUR"),
     plan: normalizeBillingPlanKey(row.plan),
     status: row.status,
     trial_ends_at: row.trial_ends_at,
@@ -130,7 +131,7 @@ export async function getUserOrganizations(): Promise<OrganizationContext[]> {
 
   const { data: organizations, error: organizationsError } = await supabase
     .from("organizations")
-    .select("id, slug, name, owner_auth_user_id, plan, status, trial_ends_at, stripe_customer_id, created_at, updated_at")
+    .select("id, slug, name, owner_auth_user_id, display_currency, plan, status, trial_ends_at, stripe_customer_id, created_at, updated_at")
     .in("id", organizationIds);
 
   if (organizationsError) {

@@ -1,7 +1,7 @@
 import { type BadgeProps } from "@/components/ui/badge";
-import { compactCurrency } from "@/lib/finance/formatting";
+import { compactCurrency, compactCurrencyForCode } from "@/lib/finance/formatting";
 
-export { compactCurrency };
+export { compactCurrency, compactCurrencyForCode };
 
 export type StatusFilter = "todos" | "pendente" | "atrasado" | "pago";
 export type TypeFilter = "todas" | "avulsa" | "fixa";

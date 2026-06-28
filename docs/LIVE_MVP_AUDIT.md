@@ -71,7 +71,7 @@ Exemplos de contas fixas:
 | Contas a receber | Implementado | Criacao, edicao, status e exclusao existem; origens de recebimento vem de Configuracoes |
 | Bancos | Implementado | Criacao, edicao, saldo e exclusao existem; o fluxo de edicao fecha o sheet apos sucesso |
 | Relatorios | Implementado parcial | Tela consolidada existe; filtros, graficos e exportacao ainda pendentes |
-| Configuracoes | Implementado parcial | Categorias de custos, origens de recebimento e limites existem; moeda, periodo e configuracoes gerais ainda pendentes |
+| Configuracoes | Implementado parcial | Categorias de custos, origens de recebimento, limites e moeda de visualizacao da organizacao existem; periodo e configuracoes gerais ainda pendentes |
 | Admin | Implementado | Usuarios familiares e permissoes por modulo/acao/escopo |
 | Testes | Implementado parcial | Ja existem testes de calculos, permissoes e dashboard queries |
 | PWA | Implementado | Manifest e estrategia mobile-first |

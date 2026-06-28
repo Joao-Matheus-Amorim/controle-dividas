@@ -123,7 +123,7 @@ async function assertCanManageExpense(
 
   const { data: expense, error } = await supabase
     .from("expenses")
-    .select("id, owner_id, family_member_id, bank_or_card")
+    .select("id, owner_id, family_member_id, currency, bank_or_card")
     .eq("id", expenseId)
     .eq("organization_id", organization.id)
     .maybeSingle();
@@ -186,6 +186,7 @@ function parseExpenseForm(formData: FormData) {
   const description = String(formData.get("description") ?? "").trim();
   const purchaseLocation = String(formData.get("purchase_location") ?? "").trim();
   const amount = Number(formData.get("amount") ?? 0);
+  const currency = String(formData.get("currency") ?? "EUR").trim().toUpperCase() || "EUR";
   const paymentMethod = String(formData.get("payment_method") ?? "").trim();
   const bankOrCard = String(formData.get("bank_or_card") ?? "").trim();
   const bankId = String(formData.get("bank_id") ?? "");
@@ -198,6 +199,7 @@ function parseExpenseForm(formData: FormData) {
     description,
     purchaseLocation,
     amount,
+    currency,
     paymentMethod,
     bankOrCard,
     bankId,
@@ -222,6 +224,10 @@ function validateExpenseInput(
 
   if (Number.isNaN(input.amount) || input.amount <= 0) {
     return { error: "Informe um valor valido para o gasto." };
+  }
+
+  if (!/^[A-Z]{3}$/.test(input.currency)) {
+    return { error: "Informe uma moeda valida para o gasto." };
   }
 
   return null;
@@ -405,6 +411,7 @@ export async function updateExpense(
           description: input.description,
           purchase_location: input.purchaseLocation || null,
           amount: input.amount,
+          currency: input.currency,
           payment_method: input.paymentMethod || null,
           bank_or_card: input.bankOrCard || null,
           notes: input.notes || null,

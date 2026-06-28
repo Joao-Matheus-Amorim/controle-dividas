@@ -37,6 +37,7 @@ export type DbExpense = {
   description: string;
   purchase_location: string | null;
   amount: number;
+  currency: string;
   payment_method: string | null;
   bank_or_card: string | null;
   notes: string | null;
@@ -59,6 +60,7 @@ export type DbPayableBill = {
   name: string;
   category: string | null;
   amount: number;
+  currency: string;
   due_date: string;
   responsible_member_id: string | null;
   status: "pago" | "pendente" | "atrasado";
@@ -79,6 +81,7 @@ export type DbReceivableIncome = {
   payment_origin: string | null;
   income_type: "fixa" | "variavel";
   amount: number;
+  currency: string;
   expected_date: string;
   status: "previsto" | "recebido" | "atrasado";
   receiving_bank: string | null;

@@ -23,6 +23,7 @@ import {
 } from "@/components/finance/finance-form-ui";
 import { buildExpenseCategoryLabelMap } from "@/lib/finance/category-labels";
 import { buildExpenseDraftSuggestion } from "@/lib/finance/expense-draft";
+import { systemCurrencyOptions } from "@/lib/finance/bank-options";
 import type {
   DbBankAccount,
   DbExpense,
@@ -90,6 +91,9 @@ export function ExpenseForm({
   const selectedBankId = memberBankAccounts.some((account) => account.id === bankId)
     ? bankId
     : "";
+  const selectedExpenseCurrency = isEditing
+    ? String(expense?.currency ?? "EUR")
+    : (memberBankAccounts.find((account) => account.id === selectedBankId)?.currency ?? "EUR");
 
   function applyDraftSuggestion() {
     const suggestion = buildExpenseDraftSuggestion(
@@ -113,6 +117,7 @@ export function ExpenseForm({
   return (
     <form action={formAction} className={financeFormClass}>
       {expense ? <input type="hidden" name="id" value={expense.id} /> : null}
+      <input type="hidden" name="currency" value={selectedExpenseCurrency} />
 
       {!isEditing ? (
         <AssistedDraftReviewBoundary
@@ -192,7 +197,9 @@ export function ExpenseForm({
         </div>
 
         <div className={financeFieldClass}>
-          <Label htmlFor={isEditing ? `amount-${expense?.id}` : "amount"}>Valor em euro</Label>
+          <Label htmlFor={isEditing ? `amount-${expense?.id}` : "amount"}>
+            {isEditing ? `Valor em ${selectedExpenseCurrency}` : "Valor"}
+          </Label>
           <Input
             id={isEditing ? `amount-${expense?.id}` : "amount"}
             name="amount"
@@ -205,6 +212,22 @@ export function ExpenseForm({
             required
             className={financeInputClass}
           />
+        </div>
+
+        <div className={financeFieldClass}>
+          <Label htmlFor={isEditing ? `currency-preview-${expense?.id}` : "currency-preview"}>Moeda</Label>
+          <select
+            id={isEditing ? `currency-preview-${expense?.id}` : "currency-preview"}
+            value={selectedExpenseCurrency}
+            disabled
+            className={financeNativeSelectClass}
+          >
+            {systemCurrencyOptions.map((currencyOption) => (
+              <option key={currencyOption} value={currencyOption}>
+                {currencyOption}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 

@@ -2,7 +2,6 @@ import { ReceiptText, Users, WalletCards, CalendarClock, AlertTriangle, Repeat2 
 
 import { AppCard, AppSectionTitle } from "@/components/app/app-card";
 import { DashboardSummaryCarousel } from "./dashboard-summary-carousel";
-import { compactCurrency } from "./dashboard-utils";
 
 export type DashboardSummaryRow = {
   label: string;
@@ -19,13 +18,13 @@ interface DashboardSummarySectionProps {
   canExpenses: boolean;
   usedPercent: number;
   pendingCount: number;
-  totalPending: number;
+  totalPendingLabel: string;
   overdueCount: number;
-  totalOverdue: number;
+  totalOverdueLabel: string;
   oneOffCount: number;
-  totalOneOff: number;
+  totalOneOffLabel: string;
   fixedCount: number;
-  totalFixed: number;
+  totalFixedLabel: string;
 }
 
 export function DashboardSummarySection({
@@ -34,13 +33,13 @@ export function DashboardSummarySection({
   canExpenses,
   usedPercent,
   pendingCount,
-  totalPending,
+  totalPendingLabel,
   overdueCount,
-  totalOverdue,
+  totalOverdueLabel,
   oneOffCount,
-  totalOneOff,
+  totalOneOffLabel,
   fixedCount,
-  totalFixed,
+  totalFixedLabel,
 }: DashboardSummarySectionProps) {
   if (rows.length === 0) {
     return null;
@@ -64,7 +63,7 @@ export function DashboardSummarySection({
         <AppCard padding="sm" className="space-y-3">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <AppSectionTitle>Contas e dividas</AppSectionTitle>
+              <AppSectionTitle>Contas e dívidas</AppSectionTitle>
               <p className="mt-1 text-xs text-muted-foreground">Pendências do mês</p>
             </div>
             <WalletCards className="h-4 w-4 text-ff-subtle-foreground" />
@@ -74,22 +73,22 @@ export function DashboardSummarySection({
             <div className="rounded-2xl border border-border bg-ff-bg-soft p-3">
               <CalendarClock className="h-4 w-4 text-ff-warning" />
               <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-ff-subtle-foreground">Pendentes</p>
-              <p className="mt-1 text-sm font-black text-foreground">{pendingCount} · {compactCurrency(totalPending)}</p>
+              <p className="mt-1 text-sm font-black text-foreground">{pendingCount} · {totalPendingLabel}</p>
             </div>
             <div className="rounded-2xl border border-border bg-ff-bg-soft p-3">
               <AlertTriangle className="h-4 w-4 text-ff-destructive" />
               <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-ff-subtle-foreground">Atrasadas</p>
-              <p className="mt-1 text-sm font-black text-foreground">{overdueCount} · {compactCurrency(totalOverdue)}</p>
+              <p className="mt-1 text-sm font-black text-foreground">{overdueCount} · {totalOverdueLabel}</p>
             </div>
             <div className="rounded-2xl border border-border bg-ff-bg-soft p-3">
               <WalletCards className="h-4 w-4 text-primary" />
               <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-ff-subtle-foreground">Avulsas</p>
-              <p className="mt-1 text-sm font-black text-foreground">{oneOffCount} · {compactCurrency(totalOneOff)}</p>
+              <p className="mt-1 text-sm font-black text-foreground">{oneOffCount} · {totalOneOffLabel}</p>
             </div>
             <div className="rounded-2xl border border-border bg-ff-bg-soft p-3">
               <Repeat2 className="h-4 w-4 text-primary" />
               <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-ff-subtle-foreground">Fixas</p>
-              <p className="mt-1 text-sm font-black text-foreground">{fixedCount} · {compactCurrency(totalFixed)}</p>
+              <p className="mt-1 text-sm font-black text-foreground">{fixedCount} · {totalFixedLabel}</p>
             </div>
           </div>
         </AppCard>

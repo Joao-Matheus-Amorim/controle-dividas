@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { buildPayableBillDraftSuggestion } from "@/lib/finance/payable-draft";
+import { systemCurrencyOptions } from "@/lib/finance/bank-options";
 import type {
   DbBankAccount,
   DbExpenseCategory,
@@ -76,6 +77,7 @@ export function PayableBillForm({
   );
   const [name, setName] = useState(bill?.name ?? "");
   const [amount, setAmount] = useState(bill ? String(bill.amount) : "");
+  const [currency, setCurrency] = useState(bill?.currency ?? "EUR");
   const [dueDate, setDueDate] = useState(bill?.due_date ?? today);
   const [status, setStatus] = useState<PayableBillStatus>(bill?.status ?? "pendente");
   const [bankUsed, setBankUsed] = useState(bill?.bank_used ?? "");
@@ -122,6 +124,7 @@ export function PayableBillForm({
     setCategoryValue(suggestion.category);
     setName(suggestion.name);
     setAmount(suggestion.amount);
+    setCurrency(memberBankAccounts.find((account) => account.bank_name === suggestion.bankUsed)?.currency ?? currency);
     setDueDate(suggestion.dueDate);
     setStatus(suggestion.status);
     setBankUsed(suggestion.bankUsed);
@@ -268,7 +271,7 @@ export function PayableBillForm({
         </div>
 
         <div className={financeFieldClass}>
-          <Label htmlFor={isEditing ? `amount-${bill?.id}` : "amount"}>Valor em euro</Label>
+          <Label htmlFor={isEditing ? `amount-${bill?.id}` : "amount"}>Valor</Label>
           <Input
             id={isEditing ? `amount-${bill?.id}` : "amount"}
             name="amount"
@@ -281,6 +284,23 @@ export function PayableBillForm({
             required
             className={financeInputClass}
           />
+        </div>
+
+        <div className={financeFieldClass}>
+          <Label htmlFor={isEditing ? `currency-${bill?.id}` : "currency"}>Moeda</Label>
+          <select
+            id={isEditing ? `currency-${bill?.id}` : "currency"}
+            name="currency"
+            value={currency}
+            onChange={(event) => setCurrency(event.target.value)}
+            className={financeNativeSelectClass}
+          >
+            {systemCurrencyOptions.map((currencyOption) => (
+              <option key={currencyOption} value={currencyOption}>
+                {currencyOption}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className={financeFieldClass}>
@@ -359,7 +379,14 @@ export function PayableBillForm({
             id={isEditing ? `bank_used-${bill?.id}` : "bank_used"}
             name="bank_used"
             value={selectedBankUsedValue}
-            onChange={(event) => setBankUsed(event.target.value)}
+            onChange={(event) => {
+              const nextBankUsed = event.target.value;
+              setBankUsed(nextBankUsed);
+              const matchedAccount = memberBankAccounts.find((account) => account.bank_name === nextBankUsed);
+              if (matchedAccount?.currency) {
+                setCurrency(matchedAccount.currency);
+              }
+            }}
             className={financeNativeSelectClass}
           >
             <option value="">Selecione um banco cadastrado</option>

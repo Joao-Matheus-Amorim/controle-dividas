@@ -295,6 +295,7 @@ begin
     description,
     purchase_location,
     amount,
+    currency,
     payment_method,
     bank_or_card,
     notes
@@ -308,6 +309,7 @@ begin
     target_description,
     nullif(trim(target_purchase_location), ''),
     target_amount,
+    target_bank.currency,
     nullif(trim(target_payment_method), ''),
     target_bank.bank_name,
     nullif(trim(target_notes), '')

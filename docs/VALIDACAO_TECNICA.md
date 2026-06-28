@@ -36,6 +36,8 @@ Ja existem no codigo:
 - escopo `own`, `selected` e `family`;
 - `allowed_member_ids` por permissao;
 - `user_feature_permissions` no banco e nos tipos;
+- moeda por membro, banco, gasto, conta a pagar e conta a receber;
+- moeda padrao de visualizacao por organizacao;
 - Dashboard contextual por permissao;
 - menu desktop/mobile dinamico por permissao;
 - Pessoas;
@@ -178,7 +180,7 @@ Regras do smoke pos-deploy:
 
 ## Migrations obrigatorias
 
-O historico versionado atual vai de `001` ate `043`. Em operacao normal, o deploy automatizado aplica esta cadeia com `supabase db push` usando `SUPABASE_DB_URL`.
+O historico versionado atual vai de `001` ate `071`. Em operacao normal, o deploy automatizado aplica esta cadeia com `supabase db push` usando `SUPABASE_DB_URL`.
 
 Se for necessario aplicar manualmente, execute no Supabase SQL Editor nesta ordem, sem pular arquivos:
 
@@ -321,7 +323,7 @@ npm run test:run
 - [ ] Migration 002 executada.
 - [ ] Migration 003 executada.
 - [ ] Migration 004 executada.
-- [ ] Migrations 005 a 043 executadas ou aplicadas por deploy automatizado.
+- [ ] Migrations 005 a 071 executadas ou aplicadas por deploy automatizado.
 - [ ] Tabelas financeiras existem.
 - [ ] Tabelas de permissao existem.
 - [ ] RLS esta ativo.
@@ -450,7 +452,6 @@ Pendente conhecido:
 Pendentes conhecidos:
 
 - editar categoria;
-- configuracao de moeda;
 - configuracao de periodo;
 - configuracoes gerais da familia.
 

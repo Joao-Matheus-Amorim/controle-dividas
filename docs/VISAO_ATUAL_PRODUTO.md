@@ -359,7 +359,7 @@ Fluxo esperado:
 - criar categoria;
 - editar categoria;
 - excluir categoria quando seguro;
-- configurar moeda no futuro;
+- configurar moeda principal da organizacao e respeitar moeda por cadastro;
 - configurar periodo padrao no futuro;
 - configurar preferencias do espaco financeiro no futuro.
 

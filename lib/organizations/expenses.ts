@@ -1,4 +1,5 @@
 import { getAccessibleMemberIds } from "@/lib/finance/access-control";
+import { convertCurrencyAmount } from "@/lib/finance/exchange-rates";
 import type { DbExpense, DbExpenseCategory, DbFamilyMember } from "@/lib/finance/types";
 import { getOrganizationExpenseCategories } from "@/lib/organizations/categories";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
@@ -65,7 +66,7 @@ export async function getOrganizationExpenses(orgSlug?: string) {
   const { data, error } = await supabase
     .from("expenses")
     .select(
-      "id, owner_id, family_member_id, category_id, expense_date, description, purchase_location, amount, payment_method, bank_or_card, notes, created_at",
+      "id, owner_id, family_member_id, category_id, expense_date, description, purchase_location, amount, currency, payment_method, bank_or_card, notes, created_at",
     )
     .eq("organization_id", organization.id)
     .in("family_member_id", scopedMemberIds)
@@ -103,23 +104,40 @@ export async function getOrganizationExpenseDashboardData(orgSlug?: string) {
 
   const members = allMembers.filter((member) => member.is_active);
 
-  const memberSummaries = members.map((member) => {
-    const spent = expenses
-      .filter((expense) => expense.family_member_id === member.id)
-      .reduce((total, expense) => total + Number(expense.amount), 0);
+  const memberSummaries = await Promise.all(
+    members.map(async (member) => {
+      const memberExpenses = expenses.filter((expense) => expense.family_member_id === member.id);
+      let spent = 0;
+      let conversionIncomplete = false;
 
-    const monthlyLimit = Number(member.monthly_limit);
-    const remaining = monthlyLimit - spent;
-    const usedPercent = monthlyLimit > 0 ? (spent / monthlyLimit) * 100 : 0;
+      for (const expense of memberExpenses) {
+        const converted = await convertCurrencyAmount(
+          Number(expense.amount),
+          expense.currency,
+          member.currency,
+        );
 
-    return {
-      ...member,
-      spent,
-      remaining,
-      usedPercent,
-      exceeded: remaining < 0,
-    };
-  });
+        if (converted !== null) {
+          spent += converted;
+        } else {
+          conversionIncomplete = true;
+        }
+      }
+
+      const monthlyLimit = Number(member.monthly_limit);
+      const remaining = monthlyLimit - spent;
+      const usedPercent = monthlyLimit > 0 ? (spent / monthlyLimit) * 100 : 0;
+
+      return {
+        ...member,
+        spent,
+        remaining,
+        usedPercent,
+        exceeded: remaining < 0,
+        conversionIncomplete,
+      };
+    }),
+  );
 
   return {
     members,
