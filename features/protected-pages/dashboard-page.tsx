@@ -34,9 +34,14 @@ import {
   DashboardIncomeSummary,
   DashboardUpcomingBills,
 } from "@/components/dashboard/dashboard-detail-sections";
-import { compactCurrency } from "@/components/dashboard/dashboard-utils";
+import { compactCurrencyForCode } from "@/components/dashboard/dashboard-utils";
 import { getVisibleModuleKeys } from "@/lib/finance/access-control";
 import { buildExpenseCategoryLabelMap } from "@/lib/finance/category-labels";
+import {
+  formatGroupedCurrencyTotals,
+  summarizeAmountsInCurrency,
+  type MoneyAmount,
+} from "@/lib/finance/currency-summary";
 import type { FinanceModuleKey } from "@/lib/finance/permissions";
 import { getCurrentPeriodContextLabel } from "@/lib/finance/period-context";
 import { getOrganizationBanksDashboardData } from "@/lib/organizations/banks";
@@ -185,21 +190,128 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
   const projectedNetFlow = totalReceivableIncomes - totalOutgoingFlow;
   const positiveProjectedNetFlow = projectedNetFlow >= 0;
   const hasCashflowView = canExpenses || canPayables || canReceivables;
+  const displayCurrency = currentOrganization?.display_currency ?? "EUR";
+
+  const expenseAmounts: MoneyAmount[] = canExpenses
+    ? expenseData.expenses.map((expense) => ({
+        amount: Number(expense.amount),
+        currency: expense.currency,
+      }))
+    : [];
+  const openDebtAmounts: MoneyAmount[] = canPayables
+    ? payableData.bills
+        .filter((bill) => bill.computed_status !== "pago")
+        .map((bill) => ({
+          amount: Number(bill.amount),
+          currency: bill.currency,
+        }))
+    : [];
+  const receivableAmounts: MoneyAmount[] = canReceivables
+    ? receivableData.incomes
+        .filter((income) => income.computed_status !== "recebido")
+        .map((income) => ({
+          amount: Number(income.amount),
+          currency: income.currency,
+        }))
+    : [];
+  const bankAmounts: MoneyAmount[] = canBanks
+    ? bankData.accounts.map((account) => ({
+        amount: Number(account.current_balance),
+        currency: account.currency,
+      }))
+    : [];
+
+  const [
+    convertedExpenses,
+    convertedOpenDebts,
+    convertedReceivables,
+    convertedBanks,
+  ] = await Promise.all([
+    summarizeAmountsInCurrency(expenseAmounts, displayCurrency),
+    summarizeAmountsInCurrency(openDebtAmounts, displayCurrency),
+    summarizeAmountsInCurrency(receivableAmounts, displayCurrency),
+    summarizeAmountsInCurrency(bankAmounts, displayCurrency),
+  ]);
+
+  const totalExpensesLabel = convertedExpenses.complete
+    ? compactCurrencyForCode(convertedExpenses.total, displayCurrency)
+    : formatGroupedCurrencyTotals(expenseAmounts);
+  const totalOpenDebtsLabel = convertedOpenDebts.complete
+    ? compactCurrencyForCode(convertedOpenDebts.total, displayCurrency)
+    : formatGroupedCurrencyTotals(openDebtAmounts);
+  const totalReceivableIncomesLabel = convertedReceivables.complete
+    ? compactCurrencyForCode(convertedReceivables.total, displayCurrency)
+    : formatGroupedCurrencyTotals(receivableAmounts);
+  const totalBankBalanceLabel = convertedBanks.complete
+    ? compactCurrencyForCode(convertedBanks.total, displayCurrency)
+    : formatGroupedCurrencyTotals(bankAmounts);
+  const projectedNetFlowDisplayTotal = convertedReceivables.complete && convertedExpenses.complete && convertedOpenDebts.complete
+    ? convertedReceivables.total - (convertedExpenses.total + convertedOpenDebts.total)
+    : null;
+  const projectedNetFlowLabel = projectedNetFlowDisplayTotal !== null
+    ? compactCurrencyForCode(projectedNetFlowDisplayTotal, displayCurrency)
+    : `${totalReceivableIncomesLabel} x ${totalExpensesLabel}`;
+  const positiveProjectedNetFlowDisplay = projectedNetFlowDisplayTotal !== null
+    ? projectedNetFlowDisplayTotal >= 0
+    : positiveProjectedNetFlow;
+  const monthlyFlowLabel = `${totalReceivableIncomesLabel} de entradas contra ${totalExpensesLabel} de saídas`;
+  const pendingBillsLabel = formatGroupedCurrencyTotals(
+    payableData.bills
+      .filter((bill) => bill.computed_status === "pendente")
+      .map((bill) => ({ amount: Number(bill.amount), currency: bill.currency })),
+  );
+  const overdueBillsLabel = formatGroupedCurrencyTotals(
+    payableData.bills
+      .filter((bill) => bill.computed_status === "atrasado")
+      .map((bill) => ({ amount: Number(bill.amount), currency: bill.currency })),
+  );
+  const oneOffBillsLabel = formatGroupedCurrencyTotals(
+    payableData.bills
+      .filter((bill) => bill.bill_type === "avulsa")
+      .map((bill) => ({ amount: Number(bill.amount), currency: bill.currency })),
+  );
+  const fixedBillsLabel = formatGroupedCurrencyTotals(
+    payableData.bills
+      .filter((bill) => bill.bill_type === "fixa")
+      .map((bill) => ({ amount: Number(bill.amount), currency: bill.currency })),
+  );
 
   const categorySummaries = canExpenses
-    ? (() => {
+    ? await (async () => {
         const categoryLabels = buildExpenseCategoryLabelMap(expenseData.categories);
+        const totals = await Promise.all(
+          expenseData.categories.map(async (category) => {
+            const categoryExpenses = expenseData.expenses.filter((expense) => expense.category_id === category.id);
+            const convertedCategory = await summarizeAmountsInCurrency(
+              categoryExpenses.map((expense) => ({
+                amount: Number(expense.amount),
+                currency: expense.currency,
+              })),
+              displayCurrency,
+            );
 
-        return expenseData.categories
-        .map((category) => {
-          const total = expenseData.expenses
-            .filter((expense) => expense.category_id === category.id)
-            .reduce((sum, expense) => sum + Number(expense.amount), 0);
+            return {
+              id: category.id,
+              name: categoryLabels.get(category.id) ?? category.name,
+              total: convertedCategory.total,
+              currency: displayCurrency,
+              totalLabel: convertedCategory.complete
+                ? compactCurrencyForCode(convertedCategory.total, displayCurrency)
+                : formatGroupedCurrencyTotals(
+                  categoryExpenses.map((expense) => ({
+                    amount: Number(expense.amount),
+                    currency: expense.currency,
+                  })),
+                ),
+              conversionIncomplete: !convertedCategory.complete,
+              expenseCount: categoryExpenses.length,
+            };
+          }),
+        );
 
-          return { id: category.id, name: categoryLabels.get(category.id) ?? category.name, total };
-        })
-        .filter((category) => category.total > 0)
-        .sort((a, b) => b.total - a.total);
+        return totals
+          .filter((category) => category.expenseCount > 0)
+          .sort((a, b) => b.total - a.total);
       })()
     : [];
 
@@ -308,7 +420,11 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
     canPayables && payableData.overdueCount > 0
       ? {
           title: "Contas atrasadas",
-          detail: `${payableData.overdueCount} item(ns) em atraso somando ${compactCurrency(payableData.totalOverdue)}.`,
+          detail: `${payableData.overdueCount} item(ns) em atraso somando ${formatGroupedCurrencyTotals(
+            payableData.bills
+              .filter((bill) => bill.computed_status === "atrasado")
+              .map((bill) => ({ amount: Number(bill.amount), currency: bill.currency })),
+          )}.`,
           href: getOrgPathFromProtectedPath("/protected/contas-a-pagar", orgSlug),
           tone: "danger",
         }
@@ -356,7 +472,7 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
       ? {
           label: "Gastos do mês",
           detail: "Saídas lançadas",
-          value: compactCurrency(expenseData.totalExpenses),
+          value: totalExpensesLabel,
           iconKey: "expenses",
           color: "rgb(var(--ff-destructive))",
           bg: "bg-ff-destructive-soft",
@@ -366,7 +482,7 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
       ? {
           label: "Contas e dividas em aberto",
           detail: "Pendentes e atrasadas",
-          value: compactCurrency(totalOpenDebts),
+          value: totalOpenDebtsLabel,
           iconKey: "payables",
           color: "rgb(var(--ff-warning))",
           bg: "bg-ff-warning-soft",
@@ -376,7 +492,7 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
       ? {
           label: "Saldo em bancos",
           detail: "Contas cadastradas",
-          value: compactCurrency(bankData.totalBalance),
+          value: totalBankBalanceLabel,
           iconKey: "banks",
           color: "rgb(var(--ff-success))",
           bg: "bg-ff-success-soft",
@@ -386,7 +502,7 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
       ? {
           label: "Valores a receber",
           detail: "Entradas previstas",
-          value: compactCurrency(totalReceivableIncomes),
+          value: totalReceivableIncomesLabel,
           iconKey: "receivables",
           color: "rgb(var(--ff-success))",
           bg: "bg-ff-success-soft",
@@ -409,11 +525,13 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
       <DashboardHeroSummary
         hasCashflowView={hasCashflowView}
         visibleModuleCount={visibleModuleKeys.length}
-        totalExpenses={expenseData.totalExpenses}
-        totalOpenDebts={totalOpenDebts}
-        totalReceivableIncomes={totalReceivableIncomes}
-        projectedNetFlow={projectedNetFlow}
-        positiveProjectedNetFlow={positiveProjectedNetFlow}
+        totalExpensesLabel={totalExpensesLabel}
+        totalOpenDebtsLabel={totalOpenDebtsLabel}
+        totalReceivableIncomesLabel={totalReceivableIncomesLabel}
+        projectedNetFlowLabel={projectedNetFlowLabel}
+        monthlyFlowLabel={monthlyFlowLabel}
+        displayCurrency={displayCurrency}
+        positiveProjectedNetFlow={positiveProjectedNetFlowDisplay}
         canPayables={canPayables}
         canReceivables={canReceivables}
       />
@@ -428,13 +546,13 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
         canExpenses={canExpenses}
         usedPercent={usedPercent}
         pendingCount={payableData.pendingCount}
-        totalPending={payableData.totalPending}
+        totalPendingLabel={pendingBillsLabel}
         overdueCount={payableData.overdueCount}
-        totalOverdue={payableData.totalOverdue}
+        totalOverdueLabel={overdueBillsLabel}
         oneOffCount={payableData.oneOffCount}
-        totalOneOff={payableData.totalOneOff}
+        totalOneOffLabel={oneOffBillsLabel}
         fixedCount={payableData.fixedCount}
-        totalFixed={payableData.totalFixed}
+        totalFixedLabel={fixedBillsLabel}
       />
 
       <DashboardAdminFocus items={adminFocusItems} />

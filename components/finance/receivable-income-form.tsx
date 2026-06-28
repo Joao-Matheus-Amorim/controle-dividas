@@ -32,6 +32,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { buildReceivableIncomeDraftSuggestion } from "@/lib/finance/receivable-draft";
+import { systemCurrencyOptions } from "@/lib/finance/bank-options";
 import type {
   DbBankAccount,
   DbFamilyMember,
@@ -116,6 +117,7 @@ export function ReceivableIncomeForm({
   const [incomeType, setIncomeType] = useState<ReceivableIncomeType>(income?.income_type ?? "fixa");
   const [paymentOrigin, setPaymentOrigin] = useState(income?.payment_origin ?? "");
   const [amount, setAmount] = useState(income ? String(income.amount) : "");
+  const [currency, setCurrency] = useState(income?.currency ?? "EUR");
   const [expectedDate, setExpectedDate] = useState(income?.expected_date ?? today);
   const [status, setStatus] = useState<ReceivableIncomeStatus>(income?.status ?? "previsto");
   const [receivingBank, setReceivingBank] = useState(income?.receiving_bank ?? "");
@@ -158,6 +160,7 @@ export function ReceivableIncomeForm({
     setIncomeType(suggestion.incomeType);
     setPaymentOrigin(suggestion.paymentOrigin);
     setAmount(suggestion.amount);
+    setCurrency(memberBankAccounts.find((account) => account.bank_name === suggestion.receivingBank)?.currency ?? currency);
     setExpectedDate(suggestion.expectedDate);
     setStatus(suggestion.status);
     setReceivingBank(suggestion.receivingBank);
@@ -304,7 +307,7 @@ export function ReceivableIncomeForm({
           </div>
 
           <div className={financeFieldClass}>
-            <Label htmlFor={isEditing ? `amount-${income?.id}` : "amount"}>Valor em euro</Label>
+            <Label htmlFor={isEditing ? `amount-${income?.id}` : "amount"}>Valor</Label>
             <div className="relative">
               <CircleDollarSign className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/28" aria-hidden="true" />
               <Input
@@ -321,6 +324,23 @@ export function ReceivableIncomeForm({
                 className={`${financeInputClass} pl-10`}
               />
             </div>
+          </div>
+
+          <div className={financeFieldClass}>
+            <Label htmlFor={isEditing ? `currency-${income?.id}` : "currency"}>Moeda</Label>
+            <select
+              id={isEditing ? `currency-${income?.id}` : "currency"}
+              name="currency"
+              value={currency}
+              onChange={(event) => setCurrency(event.target.value)}
+              className={financeNativeSelectClass}
+            >
+              {systemCurrencyOptions.map((currencyOption) => (
+                <option key={currencyOption} value={currencyOption}>
+                  {currencyOption}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
       </FormSection>
@@ -365,7 +385,14 @@ export function ReceivableIncomeForm({
                 id={isEditing ? `receiving_bank-${income?.id}` : "receiving_bank"}
                 name="receiving_bank"
                 value={selectedReceivingBankValue}
-                onChange={(event) => setReceivingBank(event.target.value)}
+                onChange={(event) => {
+                  const nextReceivingBank = event.target.value;
+                  setReceivingBank(nextReceivingBank);
+                  const matchedAccount = memberBankAccounts.find((account) => account.bank_name === nextReceivingBank);
+                  if (matchedAccount?.currency) {
+                    setCurrency(matchedAccount.currency);
+                  }
+                }}
                 className={`${financeNativeSelectClass} pl-10`}
               >
                 <option value="">Selecione um banco cadastrado</option>

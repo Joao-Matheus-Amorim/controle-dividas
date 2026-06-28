@@ -401,6 +401,7 @@ describe("payable bill actions", () => {
       status: "pago",
       bill_type: "avulsa",
       bank_used: "Banco A",
+      currency: "BRL",
       recorded_timezone: "Europe/Lisbon",
     }));
 
@@ -681,6 +682,7 @@ describe("payable bill actions", () => {
       status: "pago",
       bill_type: "avulsa",
       bank_used: "Banco A",
+      currency: "BRL",
       recorded_timezone: "Europe/Lisbon",
     }));
 
@@ -771,6 +773,7 @@ describe("payable bill actions", () => {
       status: "pago",
       bill_type: "avulsa",
       bank_used: "Banco A",
+      currency: "BRL",
     }));
 
     expect(result).toEqual({
@@ -816,6 +819,7 @@ describe("payable bill actions", () => {
       status: "pago",
       bill_type: "avulsa",
       bank_used: "Banco A",
+      currency: "BRL",
     }));
 
     expect(result).toEqual({
@@ -865,6 +869,7 @@ describe("payable bill actions", () => {
       status: "pago",
       bill_type: "avulsa",
       bank_used: "Banco A",
+      currency: "BRL",
     }));
 
     expect(result).toEqual({

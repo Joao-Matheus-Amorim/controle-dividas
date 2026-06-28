@@ -106,7 +106,7 @@ describe("dashboard UI contract guards", () => {
   it("keeps the critical dashboard summary blocks stable", () => {
     expect(hero).toContain("DashboardHeroSummary");
     expect(hero).toContain("Entradas x saídas");
-    expect(hero).toContain("compactCurrency(projectedNetFlow)");
+    expect(hero).toContain("projectedNetFlowLabel");
     expect(hero).toContain("totalOpenDebts");
     expect(hero).toContain("totalReceivableIncomes");
 
@@ -118,7 +118,7 @@ describe("dashboard UI contract guards", () => {
     expect(summary).toContain("DashboardSummarySection");
     expect(summary).toContain("DashboardSummaryCarousel");
     expect(summary).toContain("Resumo financeiro");
-    expect(summary).toContain("Contas e dividas");
+    expect(summary).toContain("Contas e dívidas");
     expect(summary).toContain("Uso do limite");
     expect(summaryCarousel).toContain("\"use client\"");
     expect(summaryCarousel).toContain("activeIndex");

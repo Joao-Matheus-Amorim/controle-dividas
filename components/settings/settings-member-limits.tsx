@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import type { DbFamilyMember } from "@/lib/finance/types";
 import { SettingsMemberLimitForm } from "./settings-member-limit-form";
-import { compactCurrency } from "./settings-utils";
+import { compactCurrencyForCode } from "./settings-utils";
 
 interface SettingsMemberLimitsProps {
   members: DbFamilyMember[];
@@ -25,7 +25,9 @@ export function SettingsMemberLimits({
               <p className="text-sm font-semibold text-white">{member.name}</p>
               <Badge variant={member.is_active ? "secondary" : "outline"}>{member.is_active ? "Ativo" : "Inativo"}</Badge>
             </div>
-            <p className="mt-1 text-xs text-white/35">Limite atual: {compactCurrency(Number(member.monthly_limit))}</p>
+            <p className="mt-1 text-xs text-white/35">
+              Limite atual: {compactCurrencyForCode(Number(member.monthly_limit), String(member.currency ?? "EUR"))}
+            </p>
           </div>
 
           {canManagePeople ? (

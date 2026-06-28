@@ -26,6 +26,7 @@ function createBill(overrides: Partial<DbPayableBill>): DbPayableBill {
     name: "Bill",
     category: "Casa",
     amount: 100,
+    currency: "BRL",
     due_date: "2999-01-01",
     responsible_member_id: "member-1",
     status: "pendente",

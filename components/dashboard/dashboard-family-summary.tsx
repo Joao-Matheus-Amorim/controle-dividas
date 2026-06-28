@@ -2,15 +2,17 @@ import Link from "next/link";
 
 import { AppCard, AppSectionTitle } from "@/components/app/app-card";
 import { getOrgPathFromProtectedPath } from "@/lib/organizations/paths";
-import { compactCurrency, initials } from "./dashboard-utils";
+import { compactCurrencyForCode, initials } from "./dashboard-utils";
 
 type MemberSummary = {
   id: string;
   name: string;
   monthly_limit: number;
+  currency: string;
   spent: number;
   remaining: number;
   usedPercent: number;
+  conversionIncomplete?: boolean;
 };
 
 interface DashboardFamilySummaryProps {
@@ -65,13 +67,15 @@ export function DashboardFamilySummary({ canExpenses, canPeople, members, orgSlu
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-3">
                     <p className="truncate text-sm font-semibold text-foreground">{member.name}</p>
-                    <p className={exceeded ? "shrink-0 text-sm font-bold text-ff-destructive" : "shrink-0 text-sm font-bold text-ff-success"}>{compactCurrency(member.remaining)}</p>
+                    <p className={exceeded ? "shrink-0 text-sm font-bold text-ff-destructive" : "shrink-0 text-sm font-bold text-ff-success"}>
+                      {member.conversionIncomplete ? "Parcial: " : ""}{compactCurrencyForCode(member.remaining, member.currency)}
+                    </p>
                   </div>
                   <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
                     <div className={exceeded ? "h-full rounded-full bg-ff-destructive" : "h-full rounded-full bg-primary"} style={{ width: memberUsedPercent + "%" }} />
                   </div>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    {compactCurrency(member.spent)} usados de {compactCurrency(Number(member.monthly_limit))}
+                    {member.conversionIncomplete ? "Conversao parcial: " : ""}{compactCurrencyForCode(member.spent, member.currency)} usados de {compactCurrencyForCode(Number(member.monthly_limit), member.currency)}
                   </p>
                 </div>
               </div>

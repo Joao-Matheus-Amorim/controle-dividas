@@ -7,6 +7,7 @@ export interface Organization {
   slug: string;
   name: string;
   owner_auth_user_id: string;
+  display_currency: string;
   plan: BillingPlanKey;
   status: string;
   trial_ends_at: string | null;

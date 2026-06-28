@@ -383,6 +383,7 @@ describe("receivable income actions", () => {
       expected_date: "2026-06-10",
       status: "recebido",
       receiving_bank: "Banco A",
+      currency: "BRL",
       recorded_timezone: "Europe/Lisbon",
       notes: "observacao local",
     }));
@@ -571,6 +572,7 @@ describe("receivable income actions", () => {
       id: "income-1",
       status: "recebido",
       bank_id: "bank-1",
+      currency: "BRL",
     }));
 
     expect(result).toEqual({
@@ -615,6 +617,7 @@ describe("receivable income actions", () => {
       expected_date: "2026-05-31",
       status: "recebido",
       receiving_bank: "Banco A",
+      currency: "BRL",
       recorded_timezone: "Europe/Lisbon",
     }));
 
@@ -622,6 +625,32 @@ describe("receivable income actions", () => {
     expect(mockState.rateLimitChecks).toEqual([
       {
         operationKey: "finance.receivable.status.update",
+        limit: 10,
+        windowMs: 10 * 60 * 1000,
+        actorKey: "profile-1",
+        organizationId: "org-1",
+        targetKey: "income-1",
+        consume: false,
+      },
+      {
+        operationKey: "finance.receivable.update",
+        limit: 10,
+        windowMs: 10 * 60 * 1000,
+        actorKey: "profile-1",
+        organizationId: "org-1",
+        targetKey: "income-1",
+        consume: false,
+      },
+      {
+        operationKey: "finance.receivable.status.update",
+        limit: 10,
+        windowMs: 10 * 60 * 1000,
+        actorKey: "profile-1",
+        organizationId: "org-1",
+        targetKey: "income-1",
+      },
+      {
+        operationKey: "finance.receivable.update",
         limit: 10,
         windowMs: 10 * 60 * 1000,
         actorKey: "profile-1",
@@ -639,6 +668,17 @@ describe("receivable income actions", () => {
       },
     }));
     expect(mockState.auditEvents).toEqual([
+      expect.objectContaining({
+        p_organization_id: "org-1",
+        p_action: "finance.receivable.update",
+        p_target_type: "receivable_income",
+        p_target_id: "income-1",
+        p_outcome: "success",
+        p_metadata: {
+          receivable_changed: true,
+          receiver_member_id: "member-1",
+        },
+      }),
       expect.objectContaining({
         p_organization_id: "org-1",
         p_action: "finance.receivable.status.update",
@@ -718,6 +758,7 @@ describe("receivable income actions", () => {
       expected_date: "2026-06-30",
       status: "recebido",
       receiving_bank: "Banco B",
+      currency: "BRL",
     }));
 
     expect(result).toEqual({ success: "Recebimento atualizado com sucesso." });
@@ -839,6 +880,7 @@ describe("receivable income actions", () => {
       expected_date: "2026-06-30",
       status: "recebido",
       receiving_bank: "Banco B",
+      currency: "BRL",
     }));
 
     expect(result).toEqual({
@@ -887,6 +929,7 @@ describe("receivable income actions", () => {
       expected_date: "2026-06-30",
       status: "recebido",
       receiving_bank: "Banco B",
+      currency: "BRL",
     }));
 
     expect(result).toEqual({
@@ -963,6 +1006,7 @@ describe("receivable income actions", () => {
       expected_date: "2026-05-31",
       status: "recebido",
       receiving_bank: "Banco A",
+      currency: "BRL",
     }));
 
     expect(result).toEqual({

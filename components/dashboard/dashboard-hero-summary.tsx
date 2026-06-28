@@ -1,12 +1,12 @@
-import { compactCurrency } from "./dashboard-utils";
-
 interface DashboardHeroSummaryProps {
   hasCashflowView: boolean;
   visibleModuleCount: number;
-  totalExpenses: number;
-  totalOpenDebts: number;
-  totalReceivableIncomes: number;
-  projectedNetFlow: number;
+  totalExpensesLabel: string;
+  totalOpenDebtsLabel: string;
+  totalReceivableIncomesLabel: string;
+  projectedNetFlowLabel: string;
+  monthlyFlowLabel: string;
+  displayCurrency: string;
   positiveProjectedNetFlow: boolean;
   canPayables: boolean;
   canReceivables: boolean;
@@ -15,10 +15,12 @@ interface DashboardHeroSummaryProps {
 export function DashboardHeroSummary({
   hasCashflowView,
   visibleModuleCount,
-  totalExpenses,
-  totalOpenDebts,
-  totalReceivableIncomes,
-  projectedNetFlow,
+  totalExpensesLabel,
+  totalOpenDebtsLabel,
+  totalReceivableIncomesLabel,
+  projectedNetFlowLabel,
+  monthlyFlowLabel,
+  displayCurrency,
   positiveProjectedNetFlow,
   canPayables,
   canReceivables,
@@ -34,11 +36,11 @@ export function DashboardHeroSummary({
               {hasCashflowView ? "Entradas x saídas" : "Resumo liberado"}
             </p>
             <p className="mt-1 truncate text-3xl font-black text-foreground md:text-5xl">
-              {hasCashflowView ? compactCurrency(projectedNetFlow) : `${visibleModuleCount} módulos`}
+              {hasCashflowView ? projectedNetFlowLabel : `${visibleModuleCount} módulos`}
             </p>
             <p className="mt-2 text-sm text-muted-foreground">
               {hasCashflowView
-                ? `Entradas previstas ${compactCurrency(totalReceivableIncomes)} contra saídas de ${compactCurrency(totalExpenses + totalOpenDebts)}.`
+                ? `Relação do mês em ${displayCurrency}: ${monthlyFlowLabel}.`
                 : "Resumo dos módulos liberados para este acesso."}
             </p>
           </div>
@@ -59,20 +61,20 @@ export function DashboardHeroSummary({
           <div className="min-w-0 rounded-2xl border border-border bg-ff-bg-soft p-3">
             <p className="text-[10px] font-bold uppercase tracking-wider text-ff-subtle-foreground">Entradas</p>
             <p className="mt-1 truncate text-sm font-black text-ff-success">
-              {compactCurrency(totalReceivableIncomes)}
+              {totalReceivableIncomesLabel}
             </p>
           </div>
           <div className="min-w-0 rounded-2xl border border-border bg-ff-bg-soft p-3">
             <p className="text-[10px] font-bold uppercase tracking-wider text-ff-subtle-foreground">Saídas</p>
             <p className="mt-1 truncate text-sm font-black text-foreground">
-              {compactCurrency(totalExpenses)}
+              {totalExpensesLabel}
             </p>
           </div>
           {canPayables ? (
             <div className="min-w-0 rounded-2xl border border-border bg-ff-bg-soft p-3">
               <p className="text-[10px] font-bold uppercase tracking-wider text-ff-subtle-foreground">Em aberto</p>
               <p className="mt-1 truncate text-sm font-black text-ff-warning">
-                {compactCurrency(totalOpenDebts)}
+                {totalOpenDebtsLabel}
               </p>
             </div>
           ) : null}
@@ -88,7 +90,7 @@ export function DashboardHeroSummary({
                     : "mt-1 truncate text-sm font-black text-ff-destructive"
                 }
               >
-                {compactCurrency(projectedNetFlow)}
+                {projectedNetFlowLabel}
               </p>
             </div>
           ) : null}

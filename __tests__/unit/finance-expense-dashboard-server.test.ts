@@ -29,6 +29,7 @@ function createExpense(overrides: Partial<DbExpense>): DbExpense {
     description: "Expense",
     purchase_location: null,
     amount: 100,
+    currency: "BRL",
     payment_method: null,
     bank_or_card: null,
     notes: null,

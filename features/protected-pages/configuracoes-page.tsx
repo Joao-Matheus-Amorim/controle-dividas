@@ -3,9 +3,17 @@ import { SettingsBillingPlanStatus } from "@/components/settings/settings-billin
 import { SettingsCategories } from "@/components/settings/settings-categories";
 import { SettingsHeroSummary } from "@/components/settings/settings-hero-summary";
 import { SettingsMemberLimits } from "@/components/settings/settings-member-limits";
+import { SettingsOrganizationCurrency } from "@/components/settings/settings-organization-currency";
 import { SettingsPageHeader } from "@/components/settings/settings-page-header";
 import { SettingsReceivableIncomeSources } from "@/components/settings/settings-receivable-income-sources";
 import { SettingsSummaryCards } from "@/components/settings/settings-summary-cards";
+import {
+  getSettingsCurrencies,
+  getSettingsCurrencyHelper,
+  getSettingsCurrencyLabel,
+  getSettingsTotalLimitHelper,
+  getSettingsTotalLimitLabel,
+} from "@/components/settings/settings-utils";
 import { getStripeConfigurationBoundary } from "@/lib/billing/stripe-config";
 import { getOrganizationExpenseCategories } from "@/lib/organizations/categories";
 import { getOrganizationReceivableIncomeSources } from "@/lib/organizations/receivable-income-sources";
@@ -33,24 +41,30 @@ export async function ConfiguracoesPage({
   const canManageBilling = ["owner", "admin"].includes(organization.membership.role);
   const canManageCategories = ["owner", "admin"].includes(organization.membership.role);
   const canManagePeople = ["owner", "admin"].includes(organization.membership.role);
-
-  const totalLimit = members.reduce(
-    (total, member) => total + Number(member.monthly_limit),
-    0,
-  );
+  const canManageCurrency = ["owner", "admin"].includes(organization.membership.role);
+  const currencies = getSettingsCurrencies(members);
+  const totalLimitLabel = getSettingsTotalLimitLabel(members);
+  const totalLimitHelper = getSettingsTotalLimitHelper(members);
+  const currencyLabel = getSettingsCurrencyLabel(currencies);
+  const currencyHelper = getSettingsCurrencyHelper(currencies);
 
   return (
     <div className="app-container">
       <SettingsPageHeader />
 
       <SettingsHeroSummary
-        totalLimit={totalLimit}
+        totalLimitLabel={totalLimitLabel}
+        totalLimitHelper={totalLimitHelper}
         categoryCount={categories.length}
+        currencyLabel={currencyLabel}
       />
 
       <SettingsSummaryCards
-        totalLimit={totalLimit}
+        totalLimitLabel={totalLimitLabel}
+        totalLimitHelper={totalLimitHelper}
         categoryCount={categories.length}
+        currencyLabel={currencyLabel}
+        currencyHelper={currencyHelper}
       />
 
       {organization ? (
@@ -68,6 +82,11 @@ export async function ConfiguracoesPage({
           orgSlug={orgSlug}
         />
       ) : null}
+
+      <SettingsOrganizationCurrency
+        currentCurrency={organization.organization.display_currency}
+        canManageCurrency={canManageCurrency}
+      />
 
       <SettingsMemberLimits members={members} canManagePeople={canManagePeople} />
 

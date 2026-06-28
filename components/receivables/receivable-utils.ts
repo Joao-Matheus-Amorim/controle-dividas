@@ -1,7 +1,7 @@
 import { type BadgeProps } from "@/components/ui/badge";
-import { compactCurrency } from "@/lib/finance/formatting";
+import { compactCurrency, compactCurrencyForCode } from "@/lib/finance/formatting";
 
-export { compactCurrency };
+export { compactCurrency, compactCurrencyForCode };
 
 export function statusVariant(status: string): BadgeProps["variant"] {
   if (status === "recebido") return "secondary";

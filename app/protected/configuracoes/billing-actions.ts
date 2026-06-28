@@ -118,7 +118,7 @@ export async function startBillingCheckout(
       status: "rate_limited",
     });
 
-    redirectToSettings(orgSlug, "rate_limited");
+    return redirectToSettings(orgSlug, "rate_limited");
   }
 
   const customerEmail = await getCurrentUserEmail();
@@ -138,7 +138,7 @@ export async function startBillingCheckout(
       status: "session_created",
     });
 
-    redirect(session.url);
+    return redirect(session.url);
   }
 
   await recordBillingCheckoutAuditEvent({
@@ -150,7 +150,7 @@ export async function startBillingCheckout(
     missingPriceEnvVar: session.missingPriceEnvVar,
   });
 
-  redirectToSettings(orgSlug, session.reason);
+  return redirectToSettings(orgSlug, session.reason);
 }
 
 export async function startBillingPortal(orgSlug?: string): Promise<void> {
@@ -169,7 +169,7 @@ export async function startBillingPortal(orgSlug?: string): Promise<void> {
       status: "rate_limited",
     });
 
-    redirectToPortalStatus(orgSlug, "rate_limited");
+    return redirectToPortalStatus(orgSlug, "rate_limited");
   }
 
   const session = await createStripeBillingPortalSession({
@@ -185,7 +185,7 @@ export async function startBillingPortal(orgSlug?: string): Promise<void> {
       status: "session_created",
     });
 
-    redirect(session.url);
+    return redirect(session.url);
   }
 
   await recordBillingPortalAuditEvent({
@@ -195,5 +195,5 @@ export async function startBillingPortal(orgSlug?: string): Promise<void> {
     status: session.reason,
   });
 
-  redirectToPortalStatus(orgSlug, session.reason);
+  return redirectToPortalStatus(orgSlug, session.reason);
 }

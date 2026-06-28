@@ -1,14 +1,15 @@
 import { AlertTriangle, Banknote, CalendarClock, CreditCard, TrendingDown, TrendingUp } from "lucide-react";
 
 import { AppCard, AppSectionTitle } from "@/components/app/app-card";
-import { compactCurrency } from "./dashboard-utils";
+import { compactCurrencyForCode } from "./dashboard-utils";
 
-type CategorySummary = { id: string; name: string; total: number };
+type CategorySummary = { id: string; name: string; total: number; currency: string; totalLabel?: string; conversionIncomplete?: boolean };
 type BillSummary = {
   id: string;
   name: string;
   category: string | null;
   amount: number;
+  currency: string;
   bill_type: "avulsa" | "fixa";
   computed_status: string;
   family_members: { name: string } | null;
@@ -18,6 +19,7 @@ type BankAccountSummary = {
   bank_name: string;
   account_type: string | null;
   current_balance: number;
+  currency: string;
   family_members: { name: string } | null;
 };
 type IncomeSummary = {
@@ -25,6 +27,7 @@ type IncomeSummary = {
   source: string;
   income_type: "fixa" | "variavel";
   amount: number;
+  currency: string;
   family_members: { name: string } | null;
 };
 
@@ -59,7 +62,7 @@ export function DashboardUpcomingBills({ canPayables, bills }: { canPayables: bo
                 <p className="mt-0.5 truncate text-xs text-muted-foreground">{bill.category || "Sem categoria"} · {bill.family_members?.name || "Sem responsável"}</p>
               </div>
               <div className="shrink-0 text-right">
-                <p className="text-sm font-bold text-foreground">{compactCurrency(Number(bill.amount))}</p>
+                <p className="text-sm font-bold text-foreground">{compactCurrencyForCode(Number(bill.amount), bill.currency)}</p>
                 <p className={bill.computed_status === "atrasado" ? "text-[10px] font-bold uppercase tracking-wider text-ff-destructive" : "text-[10px] font-bold uppercase tracking-wider text-ff-warning"}>{bill.computed_status}</p>
               </div>
             </div>
@@ -92,7 +95,10 @@ export function DashboardCategorySummary({ canExpenses, categories }: { canExpen
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-ff-sm bg-muted text-xs font-bold text-ff-subtle-foreground">{index + 1}</div>
                 <p className="min-w-0 truncate text-sm font-semibold text-foreground">{category.name}</p>
               </div>
-              <p className="shrink-0 text-sm font-bold text-foreground">{compactCurrency(category.total)}</p>
+              <div className="shrink-0 text-right">
+                <p className="text-sm font-bold text-foreground">{category.totalLabel ?? compactCurrencyForCode(category.total, category.currency)}</p>
+                {category.conversionIncomplete ? <p className="text-[10px] font-bold uppercase tracking-wider text-ff-warning">conversao parcial</p> : null}
+              </div>
             </div>
           ))}
         </div>
@@ -123,7 +129,7 @@ export function DashboardBankSummary({ canBanks, accounts }: { canBanks: boolean
                 <p className="truncate text-sm font-semibold text-foreground">{account.bank_name}</p>
                 <p className="mt-0.5 truncate text-xs text-muted-foreground">{account.family_members?.name || "Sem pessoa"} · {account.account_type || "Conta"}</p>
               </div>
-              <p className="shrink-0 text-sm font-bold text-ff-success">{compactCurrency(Number(account.current_balance))}</p>
+              <p className="shrink-0 text-sm font-bold text-ff-success">{compactCurrencyForCode(Number(account.current_balance), account.currency)}</p>
             </div>
           ))}
         </div>
@@ -157,7 +163,7 @@ export function DashboardIncomeSummary({ canReceivables, incomes }: { canReceiva
                 <p className="truncate text-sm font-semibold text-foreground">{income.source}</p>
                 <p className="mt-0.5 truncate text-xs text-muted-foreground">{income.family_members?.name || "Sem pessoa"} · {income.income_type}</p>
               </div>
-              <p className="shrink-0 text-sm font-bold text-ff-success">{compactCurrency(Number(income.amount))}</p>
+              <p className="shrink-0 text-sm font-bold text-ff-success">{compactCurrencyForCode(Number(income.amount), income.currency)}</p>
             </div>
           ))}
         </div>

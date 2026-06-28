@@ -154,6 +154,9 @@ describe("legacy organization fallback removal readiness", () => {
   it("keeps settings action paths scoped to active organization equality", () => {
     const source = readSource("app/protected/configuracoes/actions.ts");
     const pageSource = readSource("features/protected-pages/configuracoes-page.tsx");
+    const heroSummarySource = readSource("components/settings/settings-hero-summary.tsx");
+    const summaryCardsSource = readSource("components/settings/settings-summary-cards.tsx");
+    const utilsSource = readSource("components/settings/settings-utils.ts");
     const memberLimitsSource = readSource("components/settings/settings-member-limits.tsx");
     const categoryCreate = getFunctionSource(source, "createexpensecategory", "updateexpensecategory");
     const categoryUpdate = getFunctionSource(source, "updateexpensecategory", "deleteexpensecategory");
@@ -172,8 +175,17 @@ describe("legacy organization fallback removal readiness", () => {
     expect(memberLimitUpdate).not.toContain('.eq("owner_id"');
     expect(pageSource).toContain("const canmanagepeople");
     expect(pageSource).toContain("canmanagepeople={canmanagepeople}");
+    expect(pageSource).toContain("getsettingscurrencies");
+    expect(pageSource).toContain("getsettingstotallimitlabel");
+    expect(pageSource).toContain("currencylabel");
+    expect(heroSummarySource).toContain("totallimitlabel");
+    expect(heroSummarySource).toContain("currencylabel");
+    expect(summaryCardsSource).toContain("currencylabel");
+    expect(summaryCardsSource).not.toContain('value="eur"');
+    expect(utilsSource).toContain("moedas mistas");
     expect(memberLimitsSource).toContain("canmanagepeople = false");
     expect(memberLimitsSource).toContain("canmanagepeople ? (");
+    expect(memberLimitsSource).toContain("compactcurrencyforcode");
     expect(source).not.toContain("organizationorlegacyfilter");
     expect(source).not.toContain("organization_id.is.null");
   });

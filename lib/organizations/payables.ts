@@ -112,7 +112,7 @@ export async function getOrganizationPayableBills(orgSlug?: string) {
   const { data, error } = await supabase
     .from("payable_bills")
     .select(
-      "id, owner_id, name, category, amount, due_date, responsible_member_id, status, bill_type, bank_used, recurrence, notes, created_at",
+      "id, owner_id, name, category, amount, currency, due_date, responsible_member_id, status, bill_type, bank_used, recurrence, notes, created_at",
     )
     .eq("organization_id", organization.id)
     .in("responsible_member_id", accessibleMemberIds)

@@ -54,7 +54,7 @@ Futuro        -> fora do MVP atual
 | RF-031 | Filtros avancados de relatorios | Media | Planejado |
 | RF-032 | Exportacao de relatorios | Media | Planejado |
 | RF-033 | Configuracoes basicas | Alta | Implementado |
-| RF-034 | Configuracao de moeda | Media | Planejado |
+| RF-034 | Configuracao de moeda | Media | Implementado parcial |
 | RF-035 | Configuracao de periodo financeiro | Media | Planejado |
 
 ## Requisitos de Admin familiar

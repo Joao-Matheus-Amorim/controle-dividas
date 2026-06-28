@@ -334,6 +334,7 @@ describe("expense write audit runtime actions", () => {
           description: "Mercado mensal",
           purchase_location: "Padaria",
           amount: 45.9,
+          currency: "EUR",
           payment_method: "pix",
           bank_or_card: "Conta principal",
           notes: "Compra semanal",
