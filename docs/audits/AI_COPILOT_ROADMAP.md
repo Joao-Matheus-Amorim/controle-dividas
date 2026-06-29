@@ -38,6 +38,7 @@ O produto-alvo e um Copiloto Financeiro Review-Only:
 | Classificador de intencao | Implementado em PR | `lib/finance/ai-finance-intent-classifier.ts` |
 | Rascunho universal review-only | Implementado em PR | `lib/finance/ai-finance-universal-draft.ts` |
 | Perguntas financeiras read-only | Expandido em PR | `getCategorySpendingSummary`, `getMemberLimitsSummary` em `lib/ai/tools/finance-tools.ts` |
+| Insights no dashboard | Implementado em PR | `lib/finance/dashboard-insights.ts`, `components/dashboard/dashboard-ai-insights.tsx` |
 | Provider/modelo real | Nao implementado | Pendente AI-07 |
 | Salvamento automatico | Nao implementado e proibido | Invariante de seguranca |
 
@@ -78,9 +79,9 @@ Fluxo esperado quando a feature estiver completa:
 | AI-01 | Reconciliacao documental | Alinhar GAP-020, DocDoc e contratos com `/api/ai` read-only existente | Concluido | Este PR |
 | AI-02 | Command Bar IA | Definir e implementar UI inicial "O que aconteceu?" | Concluido | PR #968 |
 | AI-03 | Classificador de intencao | Detectar gasto, conta a pagar, recebivel, banco, pergunta ou recusa | Concluido | PR #969 |
-| AI-04 | Rascunho universal | Unificar rascunhos review-only para as quatro intents financeiras | Em revisao | `lib/finance/ai-finance-universal-draft.ts`, `__tests__/unit/ai-finance-universal-draft.test.ts` |
-| AI-05 | Perguntas financeiras read-only | Expandir consultas seguras sobre dashboard, vencimentos, categorias e limites | Em revisao | `lib/ai/tools/finance-tools.ts`, `__tests__/unit/ai-readonly-tools-guards.test.ts` |
-| AI-06 | Insights no dashboard | Exibir resumo inteligente do mes e alertas contextuais | Planejado | - |
+| AI-04 | Rascunho universal | Unificar rascunhos review-only para as quatro intents financeiras | Concluido | PR #970 |
+| AI-05 | Perguntas financeiras read-only | Expandir consultas seguras sobre dashboard, vencimentos, categorias e limites | Concluido | PR #970 |
+| AI-06 | Insights no dashboard | Exibir resumo inteligente do mes e alertas contextuais | Em revisao | `lib/finance/dashboard-insights.ts`, `components/dashboard/dashboard-ai-insights.tsx`, `__tests__/unit/dashboard-ai-insights.test.ts` |
 | AI-07 | Provider/modelo real | Integrar modelo externo fail-closed, com rate limit, audit e rollback | Bloqueado | Decisao de provider e gates |
 | AI-08 | Historico/memoria | Avaliar historico seguro de interacoes sem vazamento de dados sensiveis | Futuro | - |
 | AI-09 | Acoes assistidas | Preparar acoes como marcar pago/abrir filtros, sempre com confirmacao forte | Futuro | - |
@@ -126,6 +127,7 @@ Um bloco so pode sair de `Planejado` ou `Em andamento` para `Concluido` quando:
 | 2026-06-28 | AI-02 | Implementacao inicial da command bar global "O que aconteceu?" em modo seguro, sem provider, sem endpoint novo e sem salvamento | Este PR |
 | 2026-06-28 | AI-03 | Implementacao do classificador deterministico local para gasto, conta a pagar, conta a receber, banco, pergunta e recusa, sem provider e sem salvamento | Este PR |
 | 2026-06-28 | AI-04/AI-05 | Rascunho universal review-only e expansao de perguntas financeiras read-only sem provider, sem endpoint model-backed e sem salvamento | Este PR |
+| 2026-06-28 | AI-06 | Insights deterministicos no dashboard usando dados ja permitidos, sem provider, sem endpoint novo e sem salvamento | Este PR |
 
 ## 10. Fora De Escopo Por Enquanto
 
