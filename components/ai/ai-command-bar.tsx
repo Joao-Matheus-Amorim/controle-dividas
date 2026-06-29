@@ -1,16 +1,25 @@
 "use client";
 
 import * as React from "react";
-import { Sparkles, Loader2 } from "lucide-react";
-import { getAiFinanceClassifierIntentLabel } from "@/lib/finance/ai-finance-intent-classifier";
-import { buildAiFinanceUniversalDraft } from "@/lib/finance/ai-finance-universal-draft";
+import { Sparkles, Loader2, ExternalLink, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+
+const INTENT_ROUTES: Record<string, string> = {
+  gasto: "gastos",
+  conta_a_pagar: "contas-a-pagar",
+  conta_a_receber: "contas-a-receber",
+  banco: "bancos",
+};
+
+const SESSION_KEY = "ai_draft";
 
 export interface AICommandBarProps {
   className?: string;
   placeholder?: string;
   disabled?: boolean;
   organizationId?: string | null;
+  orgSlug?: string;
 }
 
 export function AICommandBar({
@@ -18,14 +27,42 @@ export function AICommandBar({
   placeholder = "O que aconteceu?",
   disabled = false,
   organizationId,
+  orgSlug,
 }: AICommandBarProps) {
+  const router = useRouter();
   const [input, setInput] = React.useState("");
   const [message, setMessage] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(false);
+  const [draft, setDraft] = React.useState<{ intent: string; data: Record<string, unknown> } | null>(null);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setInput(event.target.value);
     setMessage(null);
+  };
+
+  const handleOpenForm = () => {
+    if (!draft || !orgSlug) return;
+
+    const route = INTENT_ROUTES[draft.intent];
+    if (!route) return;
+
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify(draft));
+    router.push(`/org/${orgSlug}/${route}`);
+  };
+
+  const handleClearConversation = async () => {
+    if (!organizationId) return;
+    try {
+      await fetch("/api/ai/chat/clear", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ organization_id: organizationId }),
+      });
+    } catch {
+      // Silently fail — clear is a best-effort UX action
+    }
+    setMessage(null);
+    setDraft(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -35,37 +72,38 @@ export function AICommandBar({
     const text = input.trim();
     setInput("");
     setLoading(true);
+    setDraft(null);
 
-    const draftResult = buildAiFinanceUniversalDraft({
-      text,
-      today: new Date().toISOString().slice(0, 10),
-    });
-    const { intent } = draftResult.classification;
-    const intentLabel = getAiFinanceClassifierIntentLabel(intent);
+    if (!organizationId) {
+      setMessage("Organizacao nao encontrada. Nada foi salvo.");
+      setLoading(false);
+      return;
+    }
 
-    if (intent === "pergunta" && organizationId) {
-      try {
-        const response = await fetch("/api/ai/chat", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text, organization_id: organizationId }),
-        });
+    try {
+      const response = await fetch("/api/ai/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, organization_id: organizationId }),
+      });
 
-        if (!response.ok) {
-          const err = await response.json().catch(() => ({ error: "Erro de comunicacao" }));
-          setMessage(`Detectei ${intentLabel}. ${err.error ?? "Nao foi possivel processar."}`);
-        } else {
-          const data = await response.json();
-          setMessage(data.result?.content ?? `Detectei ${intentLabel}. Nada foi salvo.`);
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({ error: "Erro de comunicacao" }));
+        setMessage(err.error ?? "Nao foi possivel processar.");
+      } else {
+        const data = await response.json();
+        const content = data.result?.content ?? "Nada foi salvo.";
+        setMessage(content);
+
+        if (data.result?.draft && data.result?.draftReady) {
+          setDraft({
+            intent: data.result.classification.intent,
+            data: data.result.draft,
+          });
         }
-      } catch {
-        setMessage(`Detectei ${intentLabel}. Erro de rede ao consultar o assistente.`);
       }
-    } else {
-      const missing = draftResult.missingFields.length > 0
-        ? ` Campos faltantes: ${draftResult.missingFields.join(", ")}.`
-        : "";
-      setMessage(`Detectei ${intentLabel}. Nada foi salvo.${missing}`);
+    } catch {
+      setMessage("Erro de rede ao consultar o assistente.");
     }
 
     setLoading(false);
@@ -100,9 +138,29 @@ export function AICommandBar({
         </button>
       </div>
       {message ? (
-        <p className="px-4 text-xs text-muted-foreground" role="status" aria-live="polite">
-          {message}
-        </p>
+        <div className="flex flex-wrap items-center gap-2 px-4">
+          <p className="text-xs text-muted-foreground" role="status" aria-live="polite">
+            {message}
+          </p>
+          {draft ? (
+            <button
+              type="button"
+              onClick={handleOpenForm}
+              className="inline-flex items-center gap-1 rounded-full bg-ff-primary-soft px-3 py-1 text-xs font-medium text-primary transition hover:bg-primary hover:text-primary-foreground"
+            >
+              <ExternalLink className="h-3 w-3" />
+              Abrir formulario
+            </button>
+          ) : null}
+          <button
+            type="button"
+            onClick={handleClearConversation}
+            className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium text-muted-foreground transition hover:text-foreground"
+          >
+            <Trash2 className="h-3 w-3" />
+            Limpar conversa
+          </button>
+        </div>
       ) : null}
     </form>
   );

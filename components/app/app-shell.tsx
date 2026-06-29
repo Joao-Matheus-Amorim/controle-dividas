@@ -141,6 +141,7 @@ export async function AppShell({ children, orgSlug }: AppShellProps) {
               <AICommandBar
                 disabled={!currentOrganization}
                 organizationId={currentOrganization?.id ?? null}
+                orgSlug={orgSlug}
               />
             </div>
           )}

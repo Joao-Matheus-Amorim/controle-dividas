@@ -198,7 +198,7 @@ describe("finance beta UX contract guards", () => {
   it("keeps bank account type selection synchronized with submitted data", () => {
     const bankForm = readSource("components/finance/bank-account-form.tsx");
 
-    expect(bankForm).toContain("useState(account?.account_type ?? emptyAccountTypeValue)");
+    expect(bankForm).toContain("account?.account_type ?? (draftData?.accountType as string) ?? emptyAccountTypeValue");
     expect(bankForm).toContain("value={accountTypeValue}");
     expect(bankForm).toContain("onValueChange={setAccountTypeValue}");
     expect(bankForm).toContain('name="account_type_select"');

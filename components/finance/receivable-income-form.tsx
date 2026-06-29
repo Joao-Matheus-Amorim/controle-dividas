@@ -85,6 +85,7 @@ type ReceivableIncomeFormProps = {
   income?: DbReceivableIncome;
   mode?: "create" | "edit";
   defaultMemberId?: string;
+  draftData?: Record<string, unknown>;
   onSuccess?: () => void;
 };
 
@@ -95,6 +96,7 @@ export function ReceivableIncomeForm({
   income,
   mode = "create",
   defaultMemberId,
+  draftData,
   onSuccess,
 }: ReceivableIncomeFormProps) {
   const action = mode === "edit" ? updateReceivableIncome : createReceivableIncome;
@@ -104,7 +106,7 @@ export function ReceivableIncomeForm({
   const [draftApplied, setDraftApplied] = useState(false);
   const today = new Date().toISOString().slice(0, 10);
   const isEditing = mode === "edit" && Boolean(income);
-  const initialMemberId = income?.receiver_member_id ?? defaultMemberId ?? "";
+  const initialMemberId = income?.receiver_member_id ?? defaultMemberId ?? (draftData?.memberId as string) ?? "";
   const [selectedMemberId, setSelectedMemberId] = useState(initialMemberId);
   const sourceNames = sources.map((source) => source.name);
   const automaticMember = !isEditing && defaultMemberId
@@ -114,14 +116,24 @@ export function ReceivableIncomeForm({
   const [sourceValue, setSourceValue] = useState(
     selectedSource && !sourceNames.includes(selectedSource) ? customIncomeSourceValue : selectedSource,
   );
-  const [incomeType, setIncomeType] = useState<ReceivableIncomeType>(income?.income_type ?? "fixa");
-  const [paymentOrigin, setPaymentOrigin] = useState(income?.payment_origin ?? "");
-  const [amount, setAmount] = useState(income ? String(income.amount) : "");
+  const [incomeType, setIncomeType] = useState<ReceivableIncomeType>(
+    income?.income_type ?? ((draftData?.incomeType as ReceivableIncomeType) ?? "fixa"),
+  );
+  const [paymentOrigin, setPaymentOrigin] = useState(
+    income?.payment_origin ?? (draftData?.paymentOrigin as string) ?? "",
+  );
+  const [amount, setAmount] = useState(
+    income ? String(income.amount) : (draftData?.amount ? String(draftData.amount) : ""),
+  );
   const [currency, setCurrency] = useState(income?.currency ?? "EUR");
-  const [expectedDate, setExpectedDate] = useState(income?.expected_date ?? today);
-  const [status, setStatus] = useState<ReceivableIncomeStatus>(income?.status ?? "previsto");
+  const [expectedDate, setExpectedDate] = useState(
+    income?.expected_date ?? (draftData?.expectedDate as string) ?? today,
+  );
+  const [status, setStatus] = useState<ReceivableIncomeStatus>(
+    (income?.status ?? (draftData?.status as ReceivableIncomeStatus)) ?? "previsto",
+  );
   const [receivingBank, setReceivingBank] = useState(income?.receiving_bank ?? "");
-  const [notes, setNotes] = useState(income?.notes ?? "");
+  const [notes, setNotes] = useState(income?.notes ?? (draftData?.notes as string) ?? "");
   const isCustomSource = sourceValue === customIncomeSourceValue;
   const memberBankAccounts = bankAccounts.filter(
     (account) => account.family_member_id === selectedMemberId,

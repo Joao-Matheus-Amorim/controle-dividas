@@ -47,6 +47,7 @@ type BankAccountFormProps = {
   account?: DbBankAccount;
   mode?: "create" | "edit";
   defaultMemberId?: string;
+  draftData?: Record<string, unknown>;
   onSuccess?: () => void;
 };
 
@@ -55,6 +56,7 @@ export function BankAccountForm({
   account,
   mode = "create",
   defaultMemberId,
+  draftData,
   onSuccess,
 }: BankAccountFormProps) {
   const action = mode === "edit" ? updateBankAccount : createBankAccount;
@@ -62,16 +64,20 @@ export function BankAccountForm({
   const isEditing = mode === "edit" && Boolean(account);
   const [draftPrompt, setDraftPrompt] = useState("");
   const [draftApplied, setDraftApplied] = useState(false);
-  const [accountTypeValue, setAccountTypeValue] = useState(account?.account_type ?? emptyAccountTypeValue);
-  const selectedBankName = account?.bank_name ?? "";
+  const [accountTypeValue, setAccountTypeValue] = useState(
+    account?.account_type ?? (draftData?.accountType as string) ?? emptyAccountTypeValue,
+  );
+  const selectedBankName = account?.bank_name ?? (draftData?.bankName as string) ?? "";
   const [bankName, setBankName] = useState(selectedBankName);
   const legacyBankName = selectedBankName && !isSystemBankOption(selectedBankName)
     ? selectedBankName
     : null;
-  const selectedCurrency = account?.currency ?? "EUR";
+  const selectedCurrency = account?.currency ?? (draftData?.currency as string) ?? "EUR";
   const [currency, setCurrency] = useState(selectedCurrency);
-  const [currentBalance, setCurrentBalance] = useState(account ? String(account.current_balance) : "");
-  const [notes, setNotes] = useState(account?.notes ?? "");
+  const [currentBalance, setCurrentBalance] = useState(
+    account ? String(account.current_balance) : (draftData?.currentBalance ? String(draftData.currentBalance) : ""),
+  );
+  const [notes, setNotes] = useState(account?.notes ?? (draftData?.notes as string) ?? "");
   const legacyCurrency = selectedCurrency && !isSystemCurrencyOption(selectedCurrency)
     ? selectedCurrency
     : null;
