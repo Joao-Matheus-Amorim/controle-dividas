@@ -43,7 +43,7 @@ describe("AI finance intake contract guards", () => {
     expect(contract).toContain("components/finance/expense-form.tsx");
     expect(contract).toContain("formaction");
     expect(contract).toContain("review-only");
-    expect(compactContract).toContain("ainda nao esta pronto para provider, endpoint ou chamada de modelo");
+    expect(compactContract).toContain("ainda nao esta pronto para provider, endpoint model-backed de rascunho ou chamada de modelo");
   });
 
   it("limits model intents to the finance create surfaces", () => {
