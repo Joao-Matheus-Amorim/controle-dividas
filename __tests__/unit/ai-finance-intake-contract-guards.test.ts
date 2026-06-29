@@ -39,6 +39,7 @@ describe("AI finance intake contract guards", () => {
     expect(contract).toContain("lib/finance/ai-finance-intake-schema.ts");
     expect(contract).toContain("lib/finance/ai-finance-intake-catalogs.ts");
     expect(contract).toContain("lib/finance/ai-finance-intake-runtime.ts");
+    expect(contract).toContain("lib/finance/ai-finance-intent-classifier.ts");
     expect(contract).toContain("components/finance/assisted-draft-review-boundary.tsx");
     expect(contract).toContain("components/finance/expense-form.tsx");
     expect(contract).toContain("formaction");
@@ -51,6 +52,8 @@ describe("AI finance intake contract guards", () => {
     expect(contract).toContain("conta_a_pagar");
     expect(contract).toContain("conta_a_receber");
     expect(contract).toContain("banco");
+    expect(contract).toContain("pergunta");
+    expect(contract).toContain("recusa");
     expect(contract).toContain("qualquer pedido fora dessas intents");
   });
 

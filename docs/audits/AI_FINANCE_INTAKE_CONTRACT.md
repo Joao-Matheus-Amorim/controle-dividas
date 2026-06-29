@@ -52,6 +52,10 @@ Varredura em 2026-06-25:
   review-only: carrega catalogos reais, valida o rascunho estruturado, retorna
   provider: `none`, `canAutoSave: false` e `directSaveAction: null`, sem chamar
   modelo, endpoint ou Server Action de criacao.
+- `lib/finance/ai-finance-intent-classifier.ts` classifica texto localmente de
+  forma deterministica entre `gasto`, `conta_a_pagar`, `conta_a_receber`,
+  `banco`, `pergunta` e `recusa`; isso nao chama modelo, endpoint, catalogos ou
+  Server Action de criacao.
 - `lib/finance/ai-finance-provider-config.ts` monta a fronteira de configuracao
   fail-closed do provider futuro, desligada por padrao e sem dependencia de
   modelo.
@@ -77,6 +81,10 @@ banco
 
 Qualquer pedido fora dessas intents deve virar pergunta de esclarecimento ou
 recusa controlada no proprio fluxo.
+
+O classificador deterministico pre-provider pode retornar tambem `pergunta` ou
+`recusa` para manter seguranca antes de qualquer rascunho universal. Esses dois
+resultados nao sao rascunhos salvaveis e nao podem chamar Server Action.
 
 ## Regra de salvamento
 
