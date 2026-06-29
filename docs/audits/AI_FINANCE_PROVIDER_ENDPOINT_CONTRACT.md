@@ -18,9 +18,9 @@ revisaveis. A chamada ao modelo nao pode salvar dados, chamar Server Actions de
 criacao ou inventar ids fora dos catalogos da organizacao ativa.
 
 Estado runtime separado: `/api/ai` existe hoje como endpoint read-only inicial
-para consultas financeiras guardadas (`getDashboardSummary`, `getUpcomingBills`).
-Esse endpoint nao chama modelo, nao gera rascunho com provider e nao autoriza
-direct save.
+para consultas financeiras guardadas (`getDashboardSummary`, `getUpcomingBills`,
+`getCategorySpendingSummary`, `getMemberLimitsSummary`). Esse endpoint nao chama
+modelo, nao gera rascunho com provider e nao autoriza direct save.
 
 ## Pre-condicoes obrigatorias
 

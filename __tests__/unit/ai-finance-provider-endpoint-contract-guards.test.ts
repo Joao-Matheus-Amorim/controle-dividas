@@ -25,6 +25,8 @@ describe("AI finance provider endpoint contract guards", () => {
     expect(contract).toContain("status docdoc: atual");
     expect(contract).toContain("contrato pre-runtime");
     expect(contract).toContain("endpoint read-only inicial");
+    expect(contract).toContain("getcategoryspendingsummary");
+    expect(contract).toContain("getmemberlimitssummary");
     expect(contract).toContain("endpoint model-backed futuro");
     expect(contract).toContain("model-backed de geracao de rascunho");
     expect(contract).toContain("roadmap vivo da feature completa");

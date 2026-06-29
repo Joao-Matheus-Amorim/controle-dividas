@@ -56,12 +56,17 @@ Varredura em 2026-06-25:
   forma deterministica entre `gasto`, `conta_a_pagar`, `conta_a_receber`,
   `banco`, `pergunta` e `recusa`; isso nao chama modelo, endpoint, catalogos ou
   Server Action de criacao.
+- `lib/finance/ai-finance-universal-draft.ts` monta rascunhos universais
+  review-only para `gasto`, `conta_a_pagar`, `conta_a_receber` e `banco` usando
+  parsers deterministicos existentes; retorna campos faltantes e preserva
+  `canAutoSave: false` e `directSaveAction: null`.
 - `lib/finance/ai-finance-provider-config.ts` monta a fronteira de configuracao
   fail-closed do provider futuro, desligada por padrao e sem dependencia de
   modelo.
 - `app/api/ai/route.ts` existe como endpoint inicial read-only separado do
   intake de rascunhos. Hoje ele expoe apenas `getDashboardSummary` e
-  `getUpcomingBills`, usa guards de permissao, registra auditoria em
+  `getUpcomingBills`, `getCategorySpendingSummary` e
+  `getMemberLimitsSummary`, usa guards de permissao, registra auditoria em
   `ai_actions` e nao chama Server Actions de escrita.
 
 Isso esta pronto para continuar como rascunho assistido deterministico. Ainda
@@ -96,6 +101,10 @@ O resultado da IA deve ser sempre review-only:
 - nunca chamar `createExpense`, `createPayableBill`, `createReceivableIncome`
   ou `createBankAccount` diretamente a partir do modelo;
 - nunca inventar ids de pessoa, categoria, banco ou origem.
+
+O rascunho universal pode preencher apenas valores extraidos do texto ou ids
+vindos de catalogos passados explicitamente pelo caller. Quando catalogos nao
+existirem no contexto local, o campo deve ficar faltante para revisao humana.
 
 ## Escopo de pessoa
 

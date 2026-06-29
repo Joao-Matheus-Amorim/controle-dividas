@@ -2,10 +2,8 @@
 
 import * as React from "react";
 import { Sparkles } from "lucide-react";
-import {
-  classifyAiFinanceIntent,
-  getAiFinanceClassifierIntentLabel,
-} from "@/lib/finance/ai-finance-intent-classifier";
+import { getAiFinanceClassifierIntentLabel } from "@/lib/finance/ai-finance-intent-classifier";
+import { buildAiFinanceUniversalDraft } from "@/lib/finance/ai-finance-universal-draft";
 import { cn } from "@/lib/utils";
 
 export interface AICommandBarProps {
@@ -31,10 +29,16 @@ export function AICommandBar({
     e.preventDefault();
     if (!input.trim() || disabled) return;
 
-    const classification = classifyAiFinanceIntent(input);
-    const label = getAiFinanceClassifierIntentLabel(classification.intent);
+    const boundary = buildAiFinanceUniversalDraft({
+      text: input,
+      today: new Date().toISOString().slice(0, 10),
+    });
+    const label = getAiFinanceClassifierIntentLabel(boundary.classification.intent);
+    const missing = boundary.missingFields.length > 0
+      ? ` Campos faltantes: ${boundary.missingFields.join(", ")}.`
+      : "";
 
-    setMessage(`Detectei ${label}. Nada foi salvo; revise antes de qualquer gravacao.`);
+    setMessage(`Detectei ${label}. Nada foi salvo.${missing}`);
     setInput("");
   };
 

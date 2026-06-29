@@ -1,4 +1,9 @@
-const AUTO_APPROVED_ACTIONS = ['getDashboardSummary', 'getUpcomingBills'];
+const AUTO_APPROVED_ACTIONS = [
+  'getDashboardSummary',
+  'getUpcomingBills',
+  'getCategorySpendingSummary',
+  'getMemberLimitsSummary',
+];
 
 export async function confirmIfNeeded(
   action: string,
