@@ -7,7 +7,11 @@ import { createAiProvider } from "@/lib/ai/provider";
 import { checkRateLimit } from "@/lib/ai/rate-limiter";
 import { getCurrentOrganizationProfile } from "@/lib/finance/access-control";
 import { classifyAiFinanceIntent, getAiFinanceClassifierIntentLabel, type AiFinanceClassifierIntent } from "@/lib/finance/ai-finance-intent-classifier";
-import { buildAiFinanceUniversalDraft } from "@/lib/finance/ai-finance-universal-draft";
+import { buildAiFinanceUniversalDraft, type AiFinanceUniversalDraftCatalogs } from "@/lib/finance/ai-finance-universal-draft";
+import { getOrganizationExpenseCategories } from "@/lib/organizations/categories";
+import { getOrganizationReceivableIncomeSources } from "@/lib/organizations/receivable-income-sources";
+import { getOrganizationBankAccountsForMembers } from "@/lib/organizations/banks";
+import type { DbBankAccount, DbExpenseCategory, DbFamilyMember, DbReceivableIncomeSource } from "@/lib/finance/types";
 import {
   getOrCreateConversation,
   addMessage,
@@ -60,11 +64,41 @@ function getFriendlyNames(fields: string[]): string[] {
   return fields.map((f) => friendlyFieldNames[f] || f);
 }
 
+function buildCatalogContext(catalogs?: AiFinanceUniversalDraftCatalogs): string[] {
+  const lines: string[] = [];
+  if (!catalogs) return lines;
+
+  if (catalogs.members && catalogs.members.length > 0) {
+    const names = catalogs.members.map((m) => m.name).join(", ");
+    lines.push(`Membros da familia cadastrados: ${names}.`);
+  }
+
+  if (catalogs.expenseCategories && catalogs.expenseCategories.length > 0) {
+    const names = catalogs.expenseCategories.map((c) => c.name).join(", ");
+    lines.push(`Categorias de gasto: ${names}.`);
+  }
+
+  if (catalogs.receivableSources && catalogs.receivableSources.length > 0) {
+    const names = catalogs.receivableSources.map((s) => s.name).join(", ");
+    lines.push(`Origens de receita: ${names}.`);
+  }
+
+  if (catalogs.bankAccounts && catalogs.bankAccounts.length > 0) {
+    const names = catalogs.bankAccounts
+      .map((b) => (b.account_type ? `${b.bank_name} (${b.account_type})` : b.bank_name))
+      .join(", ");
+    lines.push(`Contas bancarias: ${names}.`);
+  }
+
+  return lines;
+}
+
 function buildSystemPrompt(
   intent: AiFinanceClassifierIntent,
   collectedData: Record<string, unknown>,
   missingFields: string[],
   isComplete: boolean,
+  catalogs?: AiFinanceUniversalDraftCatalogs,
 ): string {
   const intentLabel = getAiFinanceClassifierIntentLabel(intent);
   const lines: string[] = [
@@ -76,6 +110,9 @@ function buildSystemPrompt(
     "",
     `Intencao do usuario: ${intentLabel}.`,
   ];
+
+  const catalogLines = buildCatalogContext(catalogs);
+  lines.push(...catalogLines);
 
   if (intent === "pergunta") {
     lines.push("O usuario fez uma pergunta financeira. Responda com base no contexto fornecido.");
@@ -187,6 +224,38 @@ export async function POST(request: NextRequest) {
       .map((m) => m.content)
       .join(". ");
 
+    const { data: rawMembers } = await supabase
+      .from("family_members")
+      .select("id, owner_id, name, role, monthly_limit, currency, is_active, created_at")
+      .eq("organization_id", organization_id)
+      .eq("is_active", true);
+    const members = (rawMembers ?? []) as DbFamilyMember[];
+
+    let expenseCategories: DbExpenseCategory[] = [];
+    let receivableSources: DbReceivableIncomeSource[] = [];
+    let bankAccounts: DbBankAccount[] = [];
+
+    if (classification.intent !== "pergunta") {
+      [expenseCategories, receivableSources, bankAccounts] = await Promise.all([
+        classification.intent === "gasto" || classification.intent === "conta_a_pagar"
+          ? getOrganizationExpenseCategories()
+          : Promise.resolve([]),
+        classification.intent === "conta_a_receber"
+          ? getOrganizationReceivableIncomeSources()
+          : Promise.resolve([]),
+        classification.intent !== "banco"
+          ? getOrganizationBankAccountsForMembers(members)
+          : Promise.resolve([]),
+      ]);
+    }
+
+    const catalogs: AiFinanceUniversalDraftCatalogs = {
+      members,
+      expenseCategories,
+      receivableSources,
+      bankAccounts,
+    };
+
     let draftData: Record<string, unknown> = {};
     let missingFields: string[] = [];
     let isComplete = false;
@@ -194,7 +263,8 @@ export async function POST(request: NextRequest) {
 
     if (classification.intent !== "pergunta") {
       draftData = { ...conv.collectedData };
-      const draftResult = buildAiFinanceUniversalDraft({ text: allUserTexts, today });
+
+      const draftResult = buildAiFinanceUniversalDraft({ text: allUserTexts, today, catalogs });
       if (
         draftResult.draft &&
         (draftResult.classification.intent === classification.intent ||
@@ -229,6 +299,7 @@ export async function POST(request: NextRequest) {
       draftData,
       missingFields,
       isComplete,
+      catalogs,
     );
 
     const historyMessages = conv.messages

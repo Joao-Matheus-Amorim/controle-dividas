@@ -38,7 +38,7 @@ export function DashboardAiInsights({ insights }: { insights: DashboardInsight[]
       <div className="flex items-center justify-between gap-3">
         <div>
           <AppSectionTitle>Insights do copiloto</AppSectionTitle>
-          <p className="mt-1 text-sm text-muted-foreground">Leitura deterministica, sem provider e sem salvamento</p>
+          <p className="mt-1 text-sm text-muted-foreground">Analise contextual do copiloto com IA (fallback deterministico)</p>
         </div>
         <Sparkles className="h-4 w-4 text-primary" />
       </div>

@@ -38,7 +38,7 @@ O produto-alvo e um Copiloto Financeiro Review-Only:
 | Classificador de intencao | Implementado em PR | `lib/finance/ai-finance-intent-classifier.ts` |
 | Rascunho universal review-only | Implementado em PR | `lib/finance/ai-finance-universal-draft.ts` |
 | Perguntas financeiras read-only | Expandido em PR | `getCategorySpendingSummary`, `getMemberLimitsSummary` em `lib/ai/tools/finance-tools.ts` |
-| Insights no dashboard | Implementado em PR | `lib/finance/dashboard-insights.ts`, `components/dashboard/dashboard-ai-insights.tsx` |
+| Insights no dashboard | Implementado em PR (provider-backed com fallback deterministico) | `lib/finance/dashboard-insights.ts`, `lib/ai/dashboard-insights-provider.ts`, `components/dashboard/dashboard-ai-insights.tsx` |
 | Provider/modelo real | Implementado em PR (OpenRouter via fetch, sem SDK) | `lib/ai/provider/`, `app/api/ai/chat/`, `lib/ai/rate-limiter.ts` |
 | Salvamento automatico | Nao implementado e proibido | Invariante de seguranca |
 
@@ -83,8 +83,11 @@ Fluxo esperado quando a feature estiver completa:
 | AI-05 | Perguntas financeiras read-only | Expandir consultas seguras sobre dashboard, vencimentos, categorias e limites | Concluido | PR #970 |
 | AI-06 | Insights no dashboard | Exibir resumo inteligente do mes e alertas contextuais | Concluido | PR #971 |
 | AI-07 | Provider/modelo real | Integrar modelo externo fail-closed, com rate limit, audit e rollback | Concluido | PR #972 |
-| AI-08 | Historico/memoria | Manter contexto curto de conversa por organizacao/perfil, com limpeza manual e sem persistencia duravel de prompt bruto | Concluido | PR #977 |
-| AI-09 | Acoes assistidas | Abrir formularios financeiros com rascunho revisavel a partir do copiloto, sem salvamento automatico | Concluido | PR #977 |
+| AI-08 | Historico/memoria | Conversa com contexto, persistida em Supabase com retencao 24h | Concluido | PR #977, PR #979 |
+| AI-09 | Acoes assistidas | Draft prontos abrem formulario pre-preenchido com dados coletados | Concluido | PR #977 |
+| AI-10 | Catalogos no draft builder | Resolver memberId, categoryId, bankId, sourceId via catalogos reais da org no chat endpoint | Concluido | PR atual |
+| AI-11 | System prompt enriquecido com catalogo | Chat endpoint inclui nomes de membros, categorias, origens e contas no system prompt | Concluido | PR atual |
+| AI-12 | Dashboard insights com provider | Insights no dashboard gerados pelo provider OpenRouter com fallback deterministico, rate limit e config boundary | Concluido | PR atual |
 
 ## 6. Criterio De Conclusao Por Bloco
 
@@ -118,6 +121,9 @@ Um bloco so pode sair de `Planejado` ou `Em andamento` para `Concluido` quando:
 5. AI-05: expandir `/api/ai` para perguntas financeiras read-only.
 6. AI-06: adicionar insights textuais no dashboard.
 7. AI-07: escolher provider/modelo e implementar chamada real fail-closed com rate limit, audit e rollback.
+8. AI-08/AI-09: conversa com memoria e acoes assistidas.
+9. AI-10/AI-11: catalogos no draft builder e system prompt enriquecido.
+10. AI-12: dashboard insights com provider e fallback deterministico.
 
 ## 9. Historico De Atualizacoes
 
@@ -130,7 +136,10 @@ Um bloco so pode sair de `Planejado` ou `Em andamento` para `Concluido` quando:
 | 2026-06-28 | AI-06 | Insights deterministicos no dashboard usando dados ja permitidos, sem provider, sem endpoint novo e sem salvamento | PR #971 |
 | 2026-06-28 | AI-07 | Provider OpenRouter com estrutura para OpenAI, rate limit in-memory, auditoria, endpoint `/api/ai/chat` e command bar conectada ao provider | PR #972 |
 | 2026-06-28 | AI-07 (hotfix) | Restaurar default model para `openai/gpt-4o-mini` | PR #973 |
-| 2026-06-29 | AI-08/AI-09 | Memoria curta in-memory por organizacao/perfil, limpeza manual de conversa, rascunho retornado pelo chat e abertura de formularios com dados revisaveis via `sessionStorage` | PR #977 |
+| 2026-06-29 | AI-08/AI-09 | Conversa com memoria, acoes assistidas, persistencia curta no Supabase | PR #977, PR #979 |
+| 2026-06-29 | AI-10 | Catalogos da org passados ao draft builder no chat endpoint; memberId resolvido | PR atual |
+| 2026-06-29 | AI-11 | System prompt enriquecido com nomes de membros, categorias, origens e contas bancarias | PR atual |
+| 2026-06-29 | AI-12 | Dashboard insights com provider: gerador com fallback deterministico, rate limit e config boundary | PR atual |
 
 ## 10. Fora De Escopo Por Enquanto
 
