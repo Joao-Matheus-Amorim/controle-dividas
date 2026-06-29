@@ -36,7 +36,7 @@ describe("AI provider guards", () => {
     expect(openrouterSource).toContain("fetch(");
     expect(openrouterSource).toContain("openrouter.ai");
     expect(openrouterSource).not.toContain("@ai-sdk");
-    expect(openrouterSource).toContain("google/gemini-pro");
+    expect(openrouterSource).toContain("openai/gpt-4o-mini");
   });
 
   it("uses the config boundary in the factory for fail-closed behavior", () => {
