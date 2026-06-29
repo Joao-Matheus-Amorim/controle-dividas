@@ -11,6 +11,7 @@ import {
   DashboardLimitedNotice,
 } from "@/components/dashboard/dashboard-header";
 import { DashboardHeroSummary } from "@/components/dashboard/dashboard-hero-summary";
+import { DashboardAiInsights } from "@/components/dashboard/dashboard-ai-insights";
 import {
   DashboardQuickActions,
   type DashboardQuickAction,
@@ -42,6 +43,7 @@ import {
   summarizeAmountsInCurrency,
   type MoneyAmount,
 } from "@/lib/finance/currency-summary";
+import { buildDashboardInsights } from "@/lib/finance/dashboard-insights";
 import type { FinanceModuleKey } from "@/lib/finance/permissions";
 import { getCurrentPeriodContextLabel } from "@/lib/finance/period-context";
 import { getOrganizationBanksDashboardData } from "@/lib/organizations/banks";
@@ -509,6 +511,23 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
         }
       : null,
   ].filter(Boolean) as DashboardSummaryRow[];
+  const dashboardInsights = buildDashboardInsights({
+    hasCashflowView,
+    positiveProjectedNetFlow: positiveProjectedNetFlowDisplay,
+    projectedNetFlowLabel,
+    monthlyFlowLabel,
+    canExpenses,
+    canPayables,
+    canReceivables,
+    usedPercent,
+    overdueBillCount: payableData.overdueCount,
+    overdueBillsLabel,
+    pendingBillCount: payableData.pendingCount,
+    topCategoryName: categorySummaries[0]?.name,
+    topCategoryTotalLabel: categorySummaries[0]?.totalLabel,
+    receivableOverdueCount: receivableData.overdueCount,
+    incompleteSetupCount: incompleteReadinessItems.length,
+  });
 
   return (
     <div className="app-container">
@@ -537,6 +556,8 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
       />
 
       <DashboardQuickActions actions={quickActions} />
+
+      <DashboardAiInsights insights={dashboardInsights} />
 
       <DashboardReadinessChecklist items={readinessChecklistItems} />
 
