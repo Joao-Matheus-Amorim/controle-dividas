@@ -1,10 +1,12 @@
 # AI Finance Provider Endpoint Contract
 
 > Status DocDoc: Atual
-> Uso atual: contrato pre-runtime para o futuro provider/endpoint da IA
-> financeira.
-> Este documento nao e evidencia de provider, modelo, endpoint runtime, chave de
-> API, prompt runtime, schema novo, RLS novo ou salvamento automatico.
+> Uso atual: contrato pre-runtime para o futuro provider/modelo e para endpoint
+> model-backed de geracao de rascunho da IA financeira.
+> `/api/ai` ja existe como endpoint read-only inicial, mas isso nao e evidencia
+> de provider, modelo, chave de API, prompt runtime, schema novo, RLS novo ou
+> salvamento automatico.
+> Roadmap vivo da feature completa: `docs/audits/AI_COPILOT_ROADMAP.md`.
 
 ## Objetivo
 
@@ -14,6 +16,11 @@ GAP-020.
 O primeiro runtime com provider deve continuar produzindo apenas rascunhos
 revisaveis. A chamada ao modelo nao pode salvar dados, chamar Server Actions de
 criacao ou inventar ids fora dos catalogos da organizacao ativa.
+
+Estado runtime separado: `/api/ai` existe hoje como endpoint read-only inicial
+para consultas financeiras guardadas (`getDashboardSummary`, `getUpcomingBills`).
+Esse endpoint nao chama modelo, nao gera rascunho com provider e nao autoriza
+direct save.
 
 ## Pre-condicoes obrigatorias
 
@@ -65,9 +72,11 @@ Qualquer variavel de ambiente futura deve ter:
 - rollback;
 - teste/guard de ausencia de vazamento para client bundle.
 
-## Endpoint futuro
+## Endpoint model-backed futuro
 
-O endpoint futuro deve ser dedicado a gerar rascunho revisavel.
+O endpoint model-backed futuro deve ser dedicado a gerar rascunho revisavel.
+Ele nao substitui o endpoint read-only inicial enquanto nao houver provider,
+rate limit dedicado, audit agregado sem prompt bruto e rollback server-side.
 
 Regras obrigatorias:
 

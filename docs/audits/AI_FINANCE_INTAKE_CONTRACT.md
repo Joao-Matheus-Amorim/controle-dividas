@@ -7,6 +7,7 @@
 > schema novo, RLS novo ou salvamento automatico.
 > Provider/endpoint futuro deve seguir
 > `docs/audits/AI_FINANCE_PROVIDER_ENDPOINT_CONTRACT.md`.
+> Roadmap vivo da feature completa: `docs/audits/AI_COPILOT_ROADMAP.md`.
 
 ## Objetivo
 
@@ -54,9 +55,14 @@ Varredura em 2026-06-25:
 - `lib/finance/ai-finance-provider-config.ts` monta a fronteira de configuracao
   fail-closed do provider futuro, desligada por padrao e sem dependencia de
   modelo.
+- `app/api/ai/route.ts` existe como endpoint inicial read-only separado do
+  intake de rascunhos. Hoje ele expoe apenas `getDashboardSummary` e
+  `getUpcomingBills`, usa guards de permissao, registra auditoria em
+  `ai_actions` e nao chama Server Actions de escrita.
 
 Isso esta pronto para continuar como rascunho assistido deterministico. Ainda
-nao esta pronto para provider, endpoint ou chamada de modelo.
+nao esta pronto para provider, endpoint model-backed de rascunho ou chamada de
+modelo.
 
 ## Intents permitidas
 

@@ -132,8 +132,9 @@ arquivo raiz isolado.
 | `docs/audits/ADMIN_ACCESS_CONTROL_OWNER_ID_RETIREMENT_CONTRACT.md` | Atual como contrato com read/write/access-control admin organization-first | Contrato para retirar `owner_id` de Admin/access-control. | Consumidores restantes de `owner_id` seguem pendentes. |
 | `docs/audits/ADMIN_INVITATION_BOOTSTRAP_CONTRACT.md` | Atual como contrato com schema/preflight e runtime de bootstrap final | `044_admin_invitations_schema.sql` versiona schema/preflight; criar, revogar, reenvio, aceite/linking, UI e cron de expiracao ja estao versionados. | `ADMIN_EMAIL` nao e mais gate runtime nesses helpers; Owner_id retirement segue pendente. |
 | `docs/audits/ADMIN_INVITATION_DELIVERY_UI_CONTRACT.md` | Atual como contrato com delivery adapter, UI de aceite e cron de expiracao | Contrato para delivery server-only, UI de convite admin e cron protegido. | Usar antes de trocar provider ou tela `/auth/convite`. |
-| `docs/audits/AI_FINANCE_INTAKE_CONTRACT.md` | Atual como contrato vigente da IA financeira | Contrato para intents, campos obrigatorios, catalogos permitidos, pessoa logada por padrao, fronteira server-only review-only e UI review-only. | Nao e evidencia de modelo, provider, endpoint, schema, RLS ou salvamento automatico. |
-| `docs/audits/AI_FINANCE_PROVIDER_ENDPOINT_CONTRACT.md` | Atual como contrato pre-runtime da IA financeira | Contrato para provider/endpoint futuro com fail-closed, env server-only, rate limit, audit agregado e rollback. | Nao implementa provider, endpoint, chave de API, modelo, schema, RLS ou salvamento automatico. |
+| `docs/audits/AI_FINANCE_INTAKE_CONTRACT.md` | Atual como contrato vigente da IA financeira | Contrato para intents, campos obrigatorios, catalogos permitidos, pessoa logada por padrao, fronteira server-only review-only e UI review-only. | `/api/ai` read-only inicial existe, mas este contrato nao e evidencia de provider, modelo, schema, RLS novo ou salvamento automatico. |
+| `docs/audits/AI_FINANCE_PROVIDER_ENDPOINT_CONTRACT.md` | Atual como contrato pre-runtime da IA financeira | Contrato para provider/modelo e endpoint model-backed futuro com fail-closed, env server-only, rate limit, audit agregado e rollback. | `/api/ai` read-only inicial existe; provider, chave de API, modelo, prompt runtime e salvamento automatico seguem fora. |
+| `docs/audits/AI_COPILOT_ROADMAP.md` | Atual como roadmap vivo da feature de IA | Fonte para acompanhar blocos AI-00 a AI-09, estado atual, proximas frentes, criterios de conclusao e historico de PRs. | Deve ser atualizado por todo PR que conclui, reduz ou altera blocos da IA. |
 | `lib/finance/ai-finance-provider-config.ts` | Atual como boundary pre-runtime da IA financeira | Fronteira de configuracao fail-closed para provider futuro, desligada por padrao. | Nao escolhe provider, nao chama modelo e nao adiciona dependencia. |
 | `docs/audits/SENSITIVE_OPERATION_CONTROLS_CONTRACT.md` | Atual | Contrato vigente do GAP-015. | Cruzar com `SAAS_GAP_REGISTER.md`. |
 | `docs/audits/SENSITIVE_OPERATION_RATE_LIMIT_PLAN.md` | Atual como plano/registro | Plano do runtime de rate limit. | O contrato central define a leitura consolidada. |
@@ -169,8 +170,9 @@ arquivo raiz isolado.
 | --- | --- | --- | --- |
 | `docs/audits/ONBOARDING_TERMINOLOGY_CONTRACT.md` | Atual | Contrato vigente do GAP-016 para linguagem e UX do onboarding. | Runtime de copy inicial implementado; nao altera rota. |
 | `docs/audits/NOTIFICATION_SCOPE_CONTRACT.md` | Atual | Contrato vigente do GAP-017 para alertas, canais e opt-in. | Nao implementa runtime, UI, cron, schema ou dependencia. |
-| `docs/audits/AI_FINANCE_INTAKE_CONTRACT.md` | Atual | Contrato vigente do GAP-020 para IA financeira, com fronteiras server-only e UI review-only. | Nao implementa modelo, endpoint, provider, schema, RLS ou salvamento automatico. |
-| `docs/audits/AI_FINANCE_PROVIDER_ENDPOINT_CONTRACT.md` | Atual | Contrato pre-runtime do GAP-020 para provider/endpoint da IA financeira. | Usar antes de qualquer dependencia, env, rota ou chamada real de modelo. |
+| `docs/audits/AI_FINANCE_INTAKE_CONTRACT.md` | Atual | Contrato vigente do GAP-020 para IA financeira, com fronteiras server-only e UI review-only. | `/api/ai` read-only inicial existe; modelo, provider, schema novo e salvamento automatico seguem fora. |
+| `docs/audits/AI_FINANCE_PROVIDER_ENDPOINT_CONTRACT.md` | Atual | Contrato pre-runtime do GAP-020 para provider/modelo e endpoint model-backed da IA financeira. | Usar antes de qualquer dependencia, env ou chamada real de modelo. |
+| `docs/audits/AI_COPILOT_ROADMAP.md` | Atual | Roadmap vivo do GAP-020 para visualizar estado, blocos, criterios de aceite e pendencias da IA. | Atualizar no mesmo PR de qualquer entrega AI-00 a AI-09. |
 
 ## PM DocDoc
 
