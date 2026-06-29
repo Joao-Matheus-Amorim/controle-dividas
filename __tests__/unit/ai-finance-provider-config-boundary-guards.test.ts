@@ -19,9 +19,11 @@ describe("AI finance provider configuration boundary guards", () => {
   it("keeps the provider configuration boundary explicit and test-compatible", () => {
     expect(helper).not.toContain('import "server-only"');
     expect(helper).toContain("enable_ai_finance_provider");
-    expect(helper).toContain("ai_finance_provider");
-    expect(helper).toContain("ai_finance_model");
-    expect(helper).toContain("ai_finance_provider_api_key");
+    expect(helper).toContain("ai_provider");
+    expect(helper).toContain("ai_api_key");
+    expect(helper).toContain("ai_model");
+    expect(helper).toContain("openrouter_api_key");
+    expect(helper).toContain("openrouter_model");
     expect(helper).toContain("shouldfailfastformissingruntimeenv");
   });
 

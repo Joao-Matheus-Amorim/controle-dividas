@@ -21,28 +21,29 @@ describe("AI finance provider endpoint contract guards", () => {
   const roadmap = read("docs/SAAS_OPERATIONAL_ROADMAP.md");
   const packageJson = read("package.json");
 
-  it("documents provider and endpoint work as pre-runtime only", () => {
+  it("documents provider and endpoint runtime implementation", () => {
     expect(contract).toContain("status docdoc: atual");
-    expect(contract).toContain("contrato pre-runtime");
+    expect(contract).toContain("provider runtime implementado");
     expect(contract).toContain("endpoint read-only inicial");
     expect(contract).toContain("getcategoryspendingsummary");
     expect(contract).toContain("getmemberlimitssummary");
-    expect(contract).toContain("endpoint model-backed futuro");
-    expect(contract).toContain("model-backed de geracao de rascunho");
+    expect(contract).toContain("endpoint model-backed");
+    expect(contract).toContain("classifyaifinanceintent");
     expect(contract).toContain("roadmap vivo da feature completa");
     expect(contract).toContain("chave de api");
     expect(contract).toContain("salvamento automatico");
   });
 
-  it("requires the existing review-only server and UI boundaries first", () => {
+  it("requires the existing review-only server and UI boundaries maintained", () => {
     expect(contract).toContain("lib/finance/ai-finance-intake-runtime.ts");
     expect(contract).toContain("components/finance/assisted-draft-review-boundary.tsx");
     expect(contract).toContain("docs/audits/ai_finance_intake_contract.md");
-    expect(compactContract).toContain("resposta `review_only`");
-    expect(compactContract).toContain("sem `formaction`, sem `type=\"submit\"`");
+    expect(contract).toContain("lib/ai/provider/");
+    expect(contract).toContain("lib/ai/rate-limiter.ts");
+    expect(contract).toContain("/api/ai/chat");
   });
 
-  it("keeps future provider runtime fail-closed and server-only", () => {
+  it("keeps provider runtime fail-closed and server-only", () => {
     expect(contract).toContain("falhar fechado");
     expect(contract).toContain("apenas no servidor");
     expect(contract).toContain("nenhuma chave pode ser lida no client");
@@ -50,19 +51,18 @@ describe("AI finance provider endpoint contract guards", () => {
     expect(contract).toContain("guard de dependencia");
   });
 
-  it("blocks direct save behavior from any future endpoint", () => {
-    expect(contract).toContain("buildaifinancereviewonlyboundary");
+  it("blocks direct save behavior from the model-backed endpoint", () => {
     expect(contract).toContain("createreceivableincome");
     expect(contract).toContain("createbankaccount");
-    expect(contract).toContain("nunca retornar `canautosave: true`");
-    expect(contract).toContain("`directsaveaction` diferente de `null`");
+    expect(contract).toContain("nunca retorna dados que permitam salvamento direto");
+    expect(contract).toContain("salvamento automatico");
   });
 
-  it("requires rate limit and audit without raw prompt retention", () => {
+  it("implements rate limit and audit without raw prompt retention", () => {
     expect(contract).toContain("rate limit dedicado");
-    expect(contract).toContain("actor, organizacao e target");
+    expect(contract).toContain("20 requisicoes por minuto");
     expect(contract).toContain("sem prompt bruto");
-    expect(contract).toContain("erro para limite excedido");
+    expect(contract).toContain("retryafterms");
   });
 
   it("registers the provider endpoint contract in living docs", () => {
