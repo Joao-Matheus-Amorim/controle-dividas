@@ -81,7 +81,7 @@ describe("finance form UI contract guards", () => {
 
       expect(source).toContain("useState");
       expect(source).toContain("open={open}");
-      expect(source).toContain("onOpenChange={setOpen}");
+      expect(source).toContain("onOpenChange={");
       expect(source).toContain("function handleSuccess()");
       expect(source).toContain("setOpen(false)");
       expect(source).toContain("setFormKey");

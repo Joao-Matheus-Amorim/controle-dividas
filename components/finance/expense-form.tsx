@@ -41,6 +41,7 @@ type ExpenseFormProps = {
   expense?: DbExpense;
   mode?: "create" | "edit";
   defaultMemberId?: string;
+  draftData?: Record<string, unknown>;
   onSuccess?: () => void;
 };
 
@@ -51,24 +52,41 @@ export function ExpenseForm({
   expense,
   mode = "create",
   defaultMemberId,
+  draftData,
   onSuccess,
 }: ExpenseFormProps) {
   const action = mode === "edit" ? updateExpense : createExpense;
   const [state, formAction, isPending] = useActionState(action, initialState);
   const today = new Date().toISOString().slice(0, 10);
   const isEditing = mode === "edit" && Boolean(expense);
-  const initialMemberId = expense?.family_member_id ?? defaultMemberId ?? "";
+  const initialMemberId = expense?.family_member_id ?? defaultMemberId ?? (draftData?.memberId as string) ?? "";
   const [selectedMemberId, setSelectedMemberId] = useState(initialMemberId);
   const [draftPrompt, setDraftPrompt] = useState("");
   const [draftApplied, setDraftApplied] = useState(false);
-  const [categoryId, setCategoryId] = useState(expense?.category_id ?? "");
-  const [expenseDate, setExpenseDate] = useState(expense?.expense_date ?? today);
-  const [amount, setAmount] = useState(expense ? String(expense.amount) : "");
-  const [description, setDescription] = useState(expense?.description ?? "");
-  const [purchaseLocation, setPurchaseLocation] = useState(expense?.purchase_location ?? "");
-  const [paymentMethod, setPaymentMethod] = useState(expense?.payment_method ?? "");
-  const [bankId, setBankId] = useState("");
-  const [notes, setNotes] = useState(expense?.notes ?? "");
+  const [categoryId, setCategoryId] = useState(
+    expense?.category_id ?? (draftData?.categoryId as string) ?? "",
+  );
+  const [expenseDate, setExpenseDate] = useState(
+    expense?.expense_date ?? (draftData?.date as string) ?? today,
+  );
+  const [amount, setAmount] = useState(
+    expense ? String(expense.amount) : (draftData?.amount ? String(draftData.amount) : ""),
+  );
+  const [description, setDescription] = useState(
+    expense?.description ?? (draftData?.description as string) ?? "",
+  );
+  const [purchaseLocation, setPurchaseLocation] = useState(
+    expense?.purchase_location ?? (draftData?.purchaseLocation as string) ?? "",
+  );
+  const [paymentMethod, setPaymentMethod] = useState(
+    expense?.payment_method ?? (draftData?.paymentMethod as string) ?? "",
+  );
+  const [bankId, setBankId] = useState(
+    (draftData?.bankId as string) ?? "",
+  );
+  const [notes, setNotes] = useState(
+    expense?.notes ?? (draftData?.notes as string) ?? "",
+  );
   const automaticMember = !isEditing && defaultMemberId
     ? members.find((member) => member.id === defaultMemberId) ?? null
     : null;

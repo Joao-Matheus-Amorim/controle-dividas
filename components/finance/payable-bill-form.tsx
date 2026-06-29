@@ -47,6 +47,7 @@ type PayableBillFormProps = {
   bill?: DbPayableBill;
   mode?: "create" | "edit";
   defaultMemberId?: string;
+  draftData?: Record<string, unknown>;
   onSuccess?: () => void;
 };
 
@@ -57,31 +58,40 @@ export function PayableBillForm({
   bill,
   mode = "create",
   defaultMemberId,
+  draftData,
   onSuccess,
 }: PayableBillFormProps) {
   const action = mode === "edit" ? updatePayableBill : createPayableBill;
   const [state, formAction, isPending] = useActionState(action, initialState);
   const recordedTimezoneRef = useRef<HTMLInputElement>(null);
-  const [billType, setBillType] = useState<PayableBillType>(bill?.bill_type ?? "avulsa");
   const [fixedBillAudience, setFixedBillAudience] = useState<FixedBillAudience>("family");
   const [draftPrompt, setDraftPrompt] = useState("");
   const [draftApplied, setDraftApplied] = useState(false);
   const today = new Date().toISOString().slice(0, 10);
   const isEditing = mode === "edit" && Boolean(bill);
-  const initialMemberId = bill?.responsible_member_id ?? defaultMemberId ?? "";
+  const initialMemberId = bill?.responsible_member_id ?? defaultMemberId ?? (draftData?.memberId as string) ?? "";
   const [selectedMemberId, setSelectedMemberId] = useState(initialMemberId);
   const categoryNames = categories.map((category) => category.name);
   const selectedCategory = bill?.category ?? "";
   const [categoryValue, setCategoryValue] = useState(
     selectedCategory && !categoryNames.includes(selectedCategory) ? customCategoryValue : selectedCategory,
   );
-  const [name, setName] = useState(bill?.name ?? "");
-  const [amount, setAmount] = useState(bill ? String(bill.amount) : "");
+  const [name, setName] = useState(bill?.name ?? (draftData?.name as string) ?? "");
+  const [amount, setAmount] = useState(
+    bill ? String(bill.amount) : (draftData?.amount ? String(draftData.amount) : ""),
+  );
   const [currency, setCurrency] = useState(bill?.currency ?? "EUR");
-  const [dueDate, setDueDate] = useState(bill?.due_date ?? today);
-  const [status, setStatus] = useState<PayableBillStatus>(bill?.status ?? "pendente");
+  const [dueDate, setDueDate] = useState(
+    bill?.due_date ?? (draftData?.dueDate as string) ?? today,
+  );
+  const [status, setStatus] = useState<PayableBillStatus>(
+    (bill?.status ?? (draftData?.status as PayableBillStatus)) ?? "pendente",
+  );
+  const [billType, setBillType] = useState<PayableBillType>(
+    bill?.bill_type ?? ((draftData?.billType as PayableBillType) ?? "avulsa"),
+  );
   const [bankUsed, setBankUsed] = useState(bill?.bank_used ?? "");
-  const [notes, setNotes] = useState(bill?.notes ?? "");
+  const [notes, setNotes] = useState(bill?.notes ?? (draftData?.notes as string) ?? "");
   const isCustomCategory = categoryValue === customCategoryValue;
   const isFixedBill = billType === "fixa";
   const automaticMember = !isEditing && defaultMemberId

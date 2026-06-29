@@ -60,11 +60,13 @@ describe("AI provider guards", () => {
     expect(chatRouteSource).toContain("checkRateLimit");
     expect(chatRouteSource).toContain("createAiProvider");
     expect(chatRouteSource).toContain("auditLog");
+    expect(chatRouteSource).toContain("getOrCreateConversation");
+    expect(chatRouteSource).toContain("buildAiFinanceUniversalDraft");
     expect(chatRouteSource).not.toContain("createExpense");
     expect(chatRouteSource).not.toContain("createPayableBill");
   });
 
-  it("connects the command bar to the provider only for pergunta intents", () => {
+  it("connects the command bar to the chat endpoint for all intents", () => {
     expect(commandBarSource).toContain("/api/ai/chat");
     expect(commandBarSource).toContain("organizationId");
     expect(commandBarSource).toContain("Loader2");

@@ -7,6 +7,24 @@ import { AppFormSheet } from "@/components/app/app-form-sheet";
 import { ExpenseForm } from "@/components/finance/expense-form";
 import type { DbBankAccount, DbExpenseCategory, DbFamilyMember } from "@/lib/finance/types";
 
+const SESSION_KEY = "ai_draft";
+
+function readAiDraft(): Record<string, unknown> | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = sessionStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed.intent === "gasto") {
+      sessionStorage.removeItem(SESSION_KEY);
+      return parsed.data ?? null;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 export function ExpenseFormDialog({
   members,
   categories,
@@ -18,10 +36,12 @@ export function ExpenseFormDialog({
   bankAccounts: DbBankAccount[];
   defaultMemberId?: string;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(() => !!readAiDraft());
   const [formKey, setFormKey] = useState(0);
+  const [draftData, setDraftData] = useState<Record<string, unknown> | null>(() => readAiDraft());
 
   function handleSuccess() {
+    setDraftData(null);
     setOpen(false);
     setFormKey((current) => current + 1);
   }
@@ -29,7 +49,10 @@ export function ExpenseFormDialog({
   return (
     <AppFormSheet
       open={open}
-      onOpenChange={setOpen}
+      onOpenChange={(next) => {
+        if (!next) setDraftData(null);
+        setOpen(next);
+      }}
       title="Novo gasto"
       description="Cadastre um lançamento financeiro da família."
       triggerLabel="Novo gasto"
@@ -41,6 +64,7 @@ export function ExpenseFormDialog({
         categories={categories}
         bankAccounts={bankAccounts}
         defaultMemberId={defaultMemberId}
+        draftData={draftData ?? undefined}
         onSuccess={handleSuccess}
       />
     </AppFormSheet>

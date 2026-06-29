@@ -82,7 +82,7 @@ Fluxo esperado quando a feature estiver completa:
 | AI-04 | Rascunho universal | Unificar rascunhos review-only para as quatro intents financeiras | Concluido | PR #970 |
 | AI-05 | Perguntas financeiras read-only | Expandir consultas seguras sobre dashboard, vencimentos, categorias e limites | Concluido | PR #970 |
 | AI-06 | Insights no dashboard | Exibir resumo inteligente do mes e alertas contextuais | Concluido | PR #971 |
-| AI-07 | Provider/modelo real | Integrar modelo externo fail-closed, com rate limit, audit e rollback | Em revisao | `lib/ai/provider/`, `lib/ai/rate-limiter.ts`, `app/api/ai/chat/route.ts`, `__tests__/unit/ai-provider-guards.test.ts` |
+| AI-07 | Provider/modelo real | Integrar modelo externo fail-closed, com rate limit, audit e rollback | Concluido | PR #972 |
 | AI-08 | Historico/memoria | Avaliar historico seguro de interacoes sem vazamento de dados sensiveis | Futuro | - |
 | AI-09 | Acoes assistidas | Preparar acoes como marcar pago/abrir filtros, sempre com confirmacao forte | Futuro | - |
 
@@ -128,7 +128,8 @@ Um bloco so pode sair de `Planejado` ou `Em andamento` para `Concluido` quando:
 | 2026-06-28 | AI-03 | Implementacao do classificador deterministico local para gasto, conta a pagar, conta a receber, banco, pergunta e recusa, sem provider e sem salvamento | Este PR |
 | 2026-06-28 | AI-04/AI-05 | Rascunho universal review-only e expansao de perguntas financeiras read-only sem provider, sem endpoint model-backed e sem salvamento | Este PR |
 | 2026-06-28 | AI-06 | Insights deterministicos no dashboard usando dados ja permitidos, sem provider, sem endpoint novo e sem salvamento | PR #971 |
-| 2026-06-28 | AI-07 | Provider OpenRouter com estrutura para OpenAI, rate limit in-memory, auditoria, endpoint `/api/ai/chat` e command bar conectada ao provider | Este PR |
+| 2026-06-28 | AI-07 | Provider OpenRouter com estrutura para OpenAI, rate limit in-memory, auditoria, endpoint `/api/ai/chat` e command bar conectada ao provider | PR #972 |
+| 2026-06-28 | AI-07 (hotfix) | Restaurar default model para `openai/gpt-4o-mini` | PR #973 |
 
 ## 10. Fora De Escopo Por Enquanto
 
