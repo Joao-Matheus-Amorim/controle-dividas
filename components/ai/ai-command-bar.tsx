@@ -2,6 +2,10 @@
 
 import * as React from "react";
 import { Sparkles } from "lucide-react";
+import {
+  classifyAiFinanceIntent,
+  getAiFinanceClassifierIntentLabel,
+} from "@/lib/finance/ai-finance-intent-classifier";
 import { cn } from "@/lib/utils";
 
 export interface AICommandBarProps {
@@ -27,7 +31,10 @@ export function AICommandBar({
     e.preventDefault();
     if (!input.trim() || disabled) return;
 
-    setMessage("Copiloto em modo seguro: nada foi salvo. A classificacao vem no proximo bloco.");
+    const classification = classifyAiFinanceIntent(input);
+    const label = getAiFinanceClassifierIntentLabel(classification.intent);
+
+    setMessage(`Detectei ${label}. Nada foi salvo; revise antes de qualquer gravacao.`);
     setInput("");
   };
 
