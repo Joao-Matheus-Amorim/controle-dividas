@@ -1,9 +1,9 @@
 import { shouldFailFastForMissingRuntimeEnv } from "@/lib/utils";
 
 const AI_FINANCE_PROVIDER_REQUIRED_ENV_VARS = [
-  "AI_FINANCE_PROVIDER",
-  "AI_FINANCE_MODEL",
-  "AI_FINANCE_PROVIDER_API_KEY",
+  "AI_PROVIDER",
+  "AI_API_KEY",
+  "AI_MODEL",
 ] as const;
 
 export type AiFinanceProviderRequiredEnvVar =
@@ -15,8 +15,22 @@ export type AiFinanceProviderConfigurationBoundary = {
   missingEnvVars: AiFinanceProviderRequiredEnvVar[];
 };
 
-function readEnvValue(name: AiFinanceProviderRequiredEnvVar) {
+function readEnvValue(name: string) {
   return process.env[name]?.trim() ?? "";
+}
+
+function hasAnyApiKey(): boolean {
+  return (
+    readEnvValue("AI_API_KEY").length > 0 ||
+    readEnvValue("OPENROUTER_API_KEY").length > 0
+  );
+}
+
+function hasAnyModel(): boolean {
+  return (
+    readEnvValue("AI_MODEL").length > 0 ||
+    readEnvValue("OPENROUTER_MODEL").length > 0
+  );
 }
 
 export function isAiFinanceProviderEnabled() {
@@ -24,7 +38,21 @@ export function isAiFinanceProviderEnabled() {
 }
 
 export function getMissingAiFinanceProviderEnvVars() {
-  return AI_FINANCE_PROVIDER_REQUIRED_ENV_VARS.filter((name) => readEnvValue(name).length === 0);
+  const missing: AiFinanceProviderRequiredEnvVar[] = [];
+
+  if (!readEnvValue("AI_PROVIDER")) {
+    missing.push("AI_PROVIDER");
+  }
+
+  if (!hasAnyApiKey()) {
+    missing.push("AI_API_KEY");
+  }
+
+  if (!hasAnyModel()) {
+    missing.push("AI_MODEL");
+  }
+
+  return missing;
 }
 
 export function getAiFinanceProviderConfigurationBoundary(): AiFinanceProviderConfigurationBoundary {
