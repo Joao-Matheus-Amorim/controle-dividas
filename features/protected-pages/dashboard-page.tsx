@@ -43,7 +43,7 @@ import {
   summarizeAmountsInCurrency,
   type MoneyAmount,
 } from "@/lib/finance/currency-summary";
-import { buildDashboardInsights } from "@/lib/finance/dashboard-insights";
+import { generateDashboardInsights, type GenerateDashboardInsightsContext } from "@/lib/ai/dashboard-insights-provider";
 import type { FinanceModuleKey } from "@/lib/finance/permissions";
 import { getCurrentPeriodContextLabel } from "@/lib/finance/period-context";
 import { getOrganizationBanksDashboardData } from "@/lib/organizations/banks";
@@ -511,7 +511,14 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
         }
       : null,
   ].filter(Boolean) as DashboardSummaryRow[];
-  const dashboardInsights = buildDashboardInsights({
+  const insightsContext: GenerateDashboardInsightsContext = {
+    memberNames: peopleData.map((m) => m.name).filter(Boolean),
+    categoryNames: canExpenses ? expenseData.categories.map((c) => c.name).filter(Boolean) : [],
+    displayCurrency,
+    periodLabel: periodContextLabel,
+    totalBankBalanceLabel: canBanks ? totalBankBalanceLabel : undefined,
+  };
+  const dashboardInsights = await generateDashboardInsights({
     hasCashflowView,
     positiveProjectedNetFlow: positiveProjectedNetFlowDisplay,
     projectedNetFlowLabel,
@@ -527,7 +534,7 @@ export async function DashboardPage({ orgSlug }: DashboardPageProps = {}) {
     topCategoryTotalLabel: categorySummaries[0]?.totalLabel,
     receivableOverdueCount: receivableData.overdueCount,
     incompleteSetupCount: incompleteReadinessItems.length,
-  });
+  }, insightsContext);
 
   return (
     <div className="app-container">

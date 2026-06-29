@@ -7,9 +7,11 @@ import {
 import type { AiFinanceIntent, AiFinanceIntakeDraft } from "@/lib/finance/ai-finance-intake-schema";
 import { buildPayableBillDraftSuggestion } from "@/lib/finance/payable-draft";
 import { buildReceivableIncomeDraftSuggestion } from "@/lib/finance/receivable-draft";
-import type { DbBankAccount, DbExpenseCategory, DbReceivableIncomeSource } from "@/lib/finance/types";
+import { normalizeFinanceDraftText } from "@/lib/finance/finance-draft-utils";
+import type { DbBankAccount, DbExpenseCategory, DbFamilyMember, DbReceivableIncomeSource } from "@/lib/finance/types";
 
 export type AiFinanceUniversalDraftCatalogs = {
+  members?: DbFamilyMember[];
   expenseCategories?: DbExpenseCategory[];
   receivableSources?: DbReceivableIncomeSource[];
   bankAccounts?: DbBankAccount[];
@@ -67,6 +69,17 @@ function findBankIdByName(name: string, bankAccounts: DbBankAccount[]) {
   return bankAccounts.find((account) => account.bank_name === name)?.id;
 }
 
+function findMemberIdByName(text: string, members: DbFamilyMember[]): string | undefined {
+  const normalizedText = normalizeFinanceDraftText(text);
+  for (const member of members) {
+    const memberName = normalizeFinanceDraftText(member.name);
+    if (memberName.length >= 1 && normalizedText.includes(memberName)) {
+      return member.id;
+    }
+  }
+  return undefined;
+}
+
 function buildBlockedBoundary(
   classification: AiFinanceIntentClassification,
   nextStep: string,
@@ -106,15 +119,18 @@ export function buildAiFinanceUniversalDraft({
     );
   }
 
+  const members = catalogs.members ?? [];
   const expenseCategories = catalogs.expenseCategories ?? [];
   const receivableSources = catalogs.receivableSources ?? [];
   const bankAccounts = catalogs.bankAccounts ?? [];
+  const memberId = findMemberIdByName(text, members);
   let draft: AiFinanceIntakeDraft;
 
   if (classification.intent === "gasto") {
     const suggestion = buildExpenseDraftSuggestion(text, expenseCategories, bankAccounts, today);
     draft = {
       intent: "gasto",
+      memberId,
       amount: toNumber(suggestion.amount),
       categoryId: suggestion.categoryId || undefined,
       date: suggestion.expenseDate || undefined,
@@ -128,6 +144,7 @@ export function buildAiFinanceUniversalDraft({
     const suggestion = buildPayableBillDraftSuggestion(text, expenseCategories, bankAccounts, today);
     draft = {
       intent: "conta_a_pagar",
+      memberId,
       amount: toNumber(suggestion.amount),
       categoryId: findCategoryIdByName(suggestion.category, expenseCategories),
       dueDate: suggestion.dueDate || undefined,
@@ -141,6 +158,7 @@ export function buildAiFinanceUniversalDraft({
     const suggestion = buildReceivableIncomeDraftSuggestion(text, receivableSources, bankAccounts, today);
     draft = {
       intent: "conta_a_receber",
+      memberId,
       amount: toNumber(suggestion.amount),
       expectedDate: suggestion.expectedDate || undefined,
       incomeType: suggestion.incomeType,
@@ -154,6 +172,7 @@ export function buildAiFinanceUniversalDraft({
     const suggestion = buildBankAccountDraftSuggestion(text);
     draft = {
       intent: "banco",
+      memberId,
       accountType: suggestion.accountType || undefined,
       bankName: suggestion.bankName || undefined,
       currentBalance: toNumber(suggestion.currentBalance),
