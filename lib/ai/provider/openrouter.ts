@@ -21,7 +21,7 @@ function getModel(): string {
   return (
     process.env.AI_MODEL?.trim() ||
     process.env.OPENROUTER_MODEL?.trim() ||
-    "google/gemini-pro"
+    "openai/gpt-4o-mini"
   );
 }
 
