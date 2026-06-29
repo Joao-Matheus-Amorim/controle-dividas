@@ -34,7 +34,7 @@ O produto-alvo e um Copiloto Financeiro Review-Only:
 | Acoes `/api/ai` | Somente leitura | `getDashboardSummary`, `getUpcomingBills` |
 | Auditoria de acoes de IA | Implementado | `ai_actions`, `lib/ai/audit.ts` |
 | RLS de auditoria de IA | Implementado por autor | `supabase/migrations/070_ai_actions.sql` |
-| Chat/copiloto UI | Nao implementado | Pendente AI-02 |
+| Chat/copiloto UI | UI inicial implementada em PR | `components/ai/ai-command-bar.tsx`, `components/app/app-shell.tsx` |
 | Provider/modelo real | Nao implementado | Pendente AI-07 |
 | Salvamento automatico | Nao implementado e proibido | Invariante de seguranca |
 
@@ -73,7 +73,7 @@ Fluxo esperado quando a feature estiver completa:
 | --- | --- | --- | --- | --- |
 | AI-00 | Roadmap vivo | Criar este documento e regra de acompanhamento | Concluido | Este PR |
 | AI-01 | Reconciliacao documental | Alinhar GAP-020, DocDoc e contratos com `/api/ai` read-only existente | Concluido | Este PR |
-| AI-02 | Command Bar IA | Definir e implementar UI inicial "O que aconteceu?" | Planejado | - |
+| AI-02 | Command Bar IA | Definir e implementar UI inicial "O que aconteceu?" | Em revisao | `components/ai/ai-command-bar.tsx`, `components/app/app-shell.tsx` |
 | AI-03 | Classificador de intencao | Detectar gasto, conta a pagar, recebivel, banco, pergunta ou recusa | Planejado | - |
 | AI-04 | Rascunho universal | Unificar rascunhos review-only para as quatro intents financeiras | Planejado | - |
 | AI-05 | Perguntas financeiras read-only | Expandir consultas seguras sobre dashboard, vencimentos, categorias e limites | Planejado | - |
@@ -100,7 +100,7 @@ Um bloco so pode sair de `Planejado` ou `Em andamento` para `Concluido` quando:
 | --- | --- | --- |
 | Provider/modelo | Pendente | Nao escolher provider sem PR dedicado e guard de dependencia. |
 | Retencao de prompts | Pendente | Prompt bruto nao deve ser persistido ate existir contrato explicito. |
-| UI do copiloto | Pendente | Deve respeitar mobile-first e nao criar chat solto sem contexto. |
+| UI do copiloto | Decidida para AI-02 | Command bar global no AppShell, local review-only, sem chat solto e sem provider. |
 | Rate limit do provider | Pendente | Deve usar actor, organizacao e target claros. |
 | Escopo de perguntas financeiras | Pendente | Comecar por perguntas read-only de baixo risco. |
 | Acoes semi-automaticas | Futuro | Exigir confirmacao forte e audit dedicado. |
@@ -120,6 +120,7 @@ Um bloco so pode sair de `Planejado` ou `Em andamento` para `Concluido` quando:
 | Data | Bloco | Mudanca | PR |
 | --- | --- | --- | --- |
 | 2026-06-28 | AI-00/AI-01 | Criacao do roadmap vivo e reconciliacao documental inicial | Este PR |
+| 2026-06-28 | AI-02 | Implementacao inicial da command bar global "O que aconteceu?" em modo seguro, sem provider, sem endpoint novo e sem salvamento | Este PR |
 
 ## 10. Fora De Escopo Por Enquanto
 
