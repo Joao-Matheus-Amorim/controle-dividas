@@ -3,7 +3,8 @@
 > Status DocDoc: Atual
 > Uso atual: contrato do provider/modelo runtime e endpoint model-backed da IA
 > financeira. Provider runtime implementado (OpenRouter), rate limit in-memory,
-> auditoria integrada, endpoint `/api/ai/chat` para perguntas.
+> auditoria integrada, endpoint `/api/ai/chat` para perguntas e rascunhos
+> review-only com memoria curta.
 > `/api/ai` continua como endpoint read-only inicial com tools financeiras.
 > Roadmap vivo da feature completa: `docs/audits/AI_COPILOT_ROADMAP.md`.
 
@@ -12,16 +13,17 @@
 Definir a fronteira minima antes de qualquer chamada real a modelo para o
 GAP-020.
 
-O runtime com provider produz respostas para perguntas financeiras e nao salva
-dados. Escrita continua exclusiva por Server Actions existentes com validacao
-final.
+O runtime com provider produz respostas para perguntas financeiras e rascunhos
+review-only. Escrita continua exclusiva por Server Actions existentes com
+validacao final.
 
 Estado runtime separado:
 - `/api/ai`: endpoint read-only para consultas financeiras guardadas
   (`getDashboardSummary`, `getUpcomingBills`, `getCategorySpendingSummary`,
   `getMemberLimitsSummary`). Nao chama modelo, nao gera rascunho com provider.
-- `/api/ai/chat`: endpoint model-backed para responder perguntas naturais do
-  usuario com provider, rate limit, auditoria e classificacao de intent.
+- `/api/ai/chat`: endpoint model-backed para responder perguntas naturais,
+  manter memoria curta da conversa, retornar rascunhos revisaveis e operar com
+  provider, rate limit, auditoria e classificacao de intent.
 
 ## Pre-condicoes obrigatorias (aplicadas)
 
@@ -65,8 +67,8 @@ Regras obrigatorias:
 - nenhuma chave pode ser lida no client;
 - a ausencia de configuracao deve falhar fechado;
 - o provider configurado deve ser resolvido apenas no servidor;
-- logs, erros e respostas nao podem persistir texto bruto do usuario sem
-  contrato de retencao dedicado.
+- logs, erros e respostas nao podem persistir texto bruto do usuario fora do
+  contrato de retencao curta de `ai_conversations`.
 
 Qualquer variavel de ambiente futura deve ter:
 
@@ -86,17 +88,32 @@ Funcionamento:
 - Classifica a intent com `classifyAiFinanceIntent` (deterministico, local).
 - Se provider habilitado e configurado: chama o modelo com system prompt.
 - Se provider desabilitado: retorna feedback local review-only.
+- Mantem conversa curta em `ai_conversations` por organizacao/perfil, com
+  `expires_at` de 24 horas e limpeza manual via `/api/ai/chat/clear`.
 - Audita a chamada em `ai_actions` com resultado agregado.
 - Rate limit: 20 requisicoes por minuto por organizacao.
 
 Regras obrigatorias (implementadas):
 
-- aceita apenas perguntas (intent `pergunta`);
+- aceita perguntas e intents financeiras suportadas para rascunho review-only;
 - resolve organizacao ativa e permissoes no servidor;
 - nunca chama `createExpense`, `createPayableBill`, `createReceivableIncome`
   ou `createBankAccount`;
 - nunca retorna dados que permitam salvamento direto;
 - respeita feature flag `ENABLE_AI_FINANCE_PROVIDER` para rollback.
+
+## Memoria curta e retencao
+
+Implementado em `ai_conversations`:
+
+- Escopo: `organization_id` + `profile_id` com unique constraint.
+- Conteudo: ultimas mensagens do copiloto, `intent`, `collected_data` e estado
+  de conclusao do rascunho.
+- Retencao: `expires_at` default de 24 horas, renovado a cada interacao.
+- Limpeza: conversas expiradas sao removidas no acesso; usuario pode limpar a
+  conversa via `/api/ai/chat/clear`.
+- Acesso runtime: escrita/limpeza server-side via service role apos validacao da
+  organizacao ativa e perfil autenticado.
 
 ## Rate limit, audit e abuso
 
@@ -126,8 +143,5 @@ inventados.
 
 ## Fora de escopo deste contrato
 
-- persistir conversa;
 - criar embeddings;
-- alterar schema;
-- alterar RLS;
 - salvamento automatico.

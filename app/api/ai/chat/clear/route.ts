@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid organization context" }, { status: 403 });
     }
 
-    clearConversation(organization_id, profile.id);
+    await clearConversation(organization_id, profile.id);
 
     return NextResponse.json({ success: true });
   } catch (err) {
