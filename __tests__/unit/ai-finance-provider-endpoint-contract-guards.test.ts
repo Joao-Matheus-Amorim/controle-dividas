@@ -58,10 +58,12 @@ describe("AI finance provider endpoint contract guards", () => {
     expect(contract).toContain("salvamento automatico");
   });
 
-  it("implements rate limit and audit without raw prompt retention", () => {
+  it("implements rate limit, audit and short-lived conversation retention", () => {
     expect(contract).toContain("rate limit dedicado");
     expect(contract).toContain("20 requisicoes por minuto");
-    expect(contract).toContain("sem prompt bruto");
+    expect(contract).toContain("ai_conversations");
+    expect(contract).toContain("expires_at");
+    expect(contract).toContain("24 horas");
     expect(contract).toContain("retryafterms");
   });
 

@@ -16,6 +16,8 @@ describe("AI provider guards", () => {
   const openrouterSource = read("lib/ai/provider/openrouter.ts");
   const factorySource = read("lib/ai/provider/factory.ts");
   const rateLimiterSource = read("lib/ai/rate-limiter.ts");
+  const conversationSource = read("lib/ai/conversation.ts");
+  const conversationMigration = read("supabase/migrations/072_ai_conversations.sql");
   const chatRouteSource = read("app/api/ai/chat/route.ts");
   const commandBarSource = read("components/ai/ai-command-bar.tsx");
   const packageJson = readLower("package.json");
@@ -64,6 +66,20 @@ describe("AI provider guards", () => {
     expect(chatRouteSource).toContain("buildAiFinanceUniversalDraft");
     expect(chatRouteSource).not.toContain("createExpense");
     expect(chatRouteSource).not.toContain("createPayableBill");
+  });
+
+  it("persists short-lived conversations with organization scope and retention", () => {
+    expect(conversationSource).toContain('import "server-only"');
+    expect(conversationSource).toContain("createAdminClient");
+    expect(conversationSource).toContain("ai_conversations");
+    expect(conversationSource).toContain("RETENTION_MS");
+    expect(conversationSource).toContain("MAX_MESSAGES");
+    expect(conversationMigration).toContain("create table if not exists public.ai_conversations");
+    expect(conversationMigration).toContain("organization_id uuid not null");
+    expect(conversationMigration).toContain("profile_id uuid not null");
+    expect(conversationMigration).toContain("expires_at timestamp with time zone not null");
+    expect(conversationMigration).toContain("ai_conversations_service_role_all");
+    expect(conversationMigration).not.toContain("to authenticated");
   });
 
   it("connects the command bar to the chat endpoint for all intents", () => {

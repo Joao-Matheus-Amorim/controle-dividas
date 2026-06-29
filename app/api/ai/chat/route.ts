@@ -12,6 +12,7 @@ import {
   getOrCreateConversation,
   addMessage,
   setConversationIntent,
+  updateCollectedData,
   markConversationComplete,
 } from "@/lib/ai/conversation";
 
@@ -172,13 +173,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const conv = getOrCreateConversation(organization_id, profile.id);
+    let conv = await getOrCreateConversation(organization_id, profile.id);
 
     if (!conv.intent && classification.intent !== "pergunta") {
-      setConversationIntent(organization_id, profile.id, classification.intent);
+      conv = await setConversationIntent(organization_id, profile.id, classification.intent);
     }
 
-    addMessage(organization_id, profile.id, "user", text);
+    conv = await addMessage(organization_id, profile.id, "user", text);
 
     const today = new Date().toISOString().slice(0, 10);
     const allUserTexts = conv.messages
@@ -192,6 +193,7 @@ export async function POST(request: NextRequest) {
     let draftReady = false;
 
     if (classification.intent !== "pergunta") {
+      draftData = { ...conv.collectedData };
       const draftResult = buildAiFinanceUniversalDraft({ text: allUserTexts, today });
       if (
         draftResult.draft &&
@@ -199,7 +201,6 @@ export async function POST(request: NextRequest) {
           draftResult.classification.intent === conv.intent)
       ) {
         const draft = draftResult.draft as Record<string, unknown>;
-        draftData = {};
         for (const [key, value] of Object.entries(draft)) {
           if (value !== undefined && value !== null && value !== "" && key !== "intent") {
             draftData[key] = value;
@@ -211,8 +212,12 @@ export async function POST(request: NextRequest) {
       missingFields = getMissingFields(effectiveIntent, draftData);
       isComplete = missingFields.length === 0;
 
+      if (Object.keys(draftData).length > 0) {
+        conv = await updateCollectedData(organization_id, profile.id, draftData);
+      }
+
       if (isComplete) {
-        markConversationComplete(organization_id, profile.id);
+        conv = await markConversationComplete(organization_id, profile.id);
       }
 
       draftReady = isComplete || Object.keys(draftData).length >= 2;
@@ -273,10 +278,10 @@ export async function POST(request: NextRequest) {
       maxTokens: 512,
     });
 
-    addMessage(organization_id, profile.id, "assistant", completion.content);
+    await addMessage(organization_id, profile.id, "assistant", completion.content);
 
     if (isComplete) {
-      markConversationComplete(organization_id, profile.id);
+      await markConversationComplete(organization_id, profile.id);
     }
 
     await auditLog({
