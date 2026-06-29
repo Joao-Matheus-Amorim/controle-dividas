@@ -39,7 +39,7 @@ O produto-alvo e um Copiloto Financeiro Review-Only:
 | Rascunho universal review-only | Implementado em PR | `lib/finance/ai-finance-universal-draft.ts` |
 | Perguntas financeiras read-only | Expandido em PR | `getCategorySpendingSummary`, `getMemberLimitsSummary` em `lib/ai/tools/finance-tools.ts` |
 | Insights no dashboard | Implementado em PR | `lib/finance/dashboard-insights.ts`, `components/dashboard/dashboard-ai-insights.tsx` |
-| Provider/modelo real | Nao implementado | Pendente AI-07 |
+| Provider/modelo real | Implementado em PR (OpenRouter via fetch, sem SDK) | `lib/ai/provider/`, `app/api/ai/chat/`, `lib/ai/rate-limiter.ts` |
 | Salvamento automatico | Nao implementado e proibido | Invariante de seguranca |
 
 ## 3. Modelo Operacional
@@ -81,8 +81,8 @@ Fluxo esperado quando a feature estiver completa:
 | AI-03 | Classificador de intencao | Detectar gasto, conta a pagar, recebivel, banco, pergunta ou recusa | Concluido | PR #969 |
 | AI-04 | Rascunho universal | Unificar rascunhos review-only para as quatro intents financeiras | Concluido | PR #970 |
 | AI-05 | Perguntas financeiras read-only | Expandir consultas seguras sobre dashboard, vencimentos, categorias e limites | Concluido | PR #970 |
-| AI-06 | Insights no dashboard | Exibir resumo inteligente do mes e alertas contextuais | Em revisao | `lib/finance/dashboard-insights.ts`, `components/dashboard/dashboard-ai-insights.tsx`, `__tests__/unit/dashboard-ai-insights.test.ts` |
-| AI-07 | Provider/modelo real | Integrar modelo externo fail-closed, com rate limit, audit e rollback | Bloqueado | Decisao de provider e gates |
+| AI-06 | Insights no dashboard | Exibir resumo inteligente do mes e alertas contextuais | Concluido | PR #971 |
+| AI-07 | Provider/modelo real | Integrar modelo externo fail-closed, com rate limit, audit e rollback | Em revisao | `lib/ai/provider/`, `lib/ai/rate-limiter.ts`, `app/api/ai/chat/route.ts`, `__tests__/unit/ai-provider-guards.test.ts` |
 | AI-08 | Historico/memoria | Avaliar historico seguro de interacoes sem vazamento de dados sensiveis | Futuro | - |
 | AI-09 | Acoes assistidas | Preparar acoes como marcar pago/abrir filtros, sempre com confirmacao forte | Futuro | - |
 
@@ -102,11 +102,11 @@ Um bloco so pode sair de `Planejado` ou `Em andamento` para `Concluido` quando:
 
 | Decisao | Status | Observacao |
 | --- | --- | --- |
-| Provider/modelo | Pendente | Nao escolher provider sem PR dedicado e guard de dependencia. |
+| Provider/modelo | Decidida | OpenRouter como provider inicial (OpenAI-compatible via fetch, sem SDK); estrutura para trocar para OpenAI depois. |
 | Retencao de prompts | Pendente | Prompt bruto nao deve ser persistido ate existir contrato explicito. |
-| UI do copiloto | Decidida para AI-02 | Command bar global no AppShell, local review-only, sem chat solto e sem provider. |
-| Rate limit do provider | Pendente | Deve usar actor, organizacao e target claros. |
-| Escopo de perguntas financeiras | Pendente | Comecar por perguntas read-only de baixo risco. |
+| UI do copiloto | Decidida para AI-02 | Command bar global no AppShell, conectada ao provider para intents de pergunta. |
+| Rate limit do provider | Implementado | In-memory rate limiter por organizacao (20 req/min). |
+| Escopo de perguntas financeiras | Decidido | Perguntas read-only via `/api/ai/chat` com provider, audit e rate limit. |
 | Acoes semi-automaticas | Futuro | Exigir confirmacao forte e audit dedicado. |
 
 ## 8. Sequencia Recomendada De PRs
@@ -117,7 +117,7 @@ Um bloco so pode sair de `Planejado` ou `Em andamento` para `Concluido` quando:
 4. AI-04: conectar classificador aos rascunhos universais review-only.
 5. AI-05: expandir `/api/ai` para perguntas financeiras read-only.
 6. AI-06: adicionar insights textuais no dashboard.
-7. AI-07: somente depois escolher provider/modelo e implementar chamada real.
+7. AI-07: escolher provider/modelo e implementar chamada real fail-closed com rate limit, audit e rollback.
 
 ## 9. Historico De Atualizacoes
 
@@ -127,7 +127,8 @@ Um bloco so pode sair de `Planejado` ou `Em andamento` para `Concluido` quando:
 | 2026-06-28 | AI-02 | Implementacao inicial da command bar global "O que aconteceu?" em modo seguro, sem provider, sem endpoint novo e sem salvamento | Este PR |
 | 2026-06-28 | AI-03 | Implementacao do classificador deterministico local para gasto, conta a pagar, conta a receber, banco, pergunta e recusa, sem provider e sem salvamento | Este PR |
 | 2026-06-28 | AI-04/AI-05 | Rascunho universal review-only e expansao de perguntas financeiras read-only sem provider, sem endpoint model-backed e sem salvamento | Este PR |
-| 2026-06-28 | AI-06 | Insights deterministicos no dashboard usando dados ja permitidos, sem provider, sem endpoint novo e sem salvamento | Este PR |
+| 2026-06-28 | AI-06 | Insights deterministicos no dashboard usando dados ja permitidos, sem provider, sem endpoint novo e sem salvamento | PR #971 |
+| 2026-06-28 | AI-07 | Provider OpenRouter com estrutura para OpenAI, rate limit in-memory, auditoria, endpoint `/api/ai/chat` e command bar conectada ao provider | Este PR |
 
 ## 10. Fora De Escopo Por Enquanto
 

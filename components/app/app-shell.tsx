@@ -138,7 +138,10 @@ export async function AppShell({ children, orgSlug }: AppShellProps) {
           ) : null}
           {canUseAi && (
             <div className="mt-2">
-              <AICommandBar disabled={!currentOrganization} />
+              <AICommandBar
+                disabled={!currentOrganization}
+                organizationId={currentOrganization?.id ?? null}
+              />
             </div>
           )}
         </div>

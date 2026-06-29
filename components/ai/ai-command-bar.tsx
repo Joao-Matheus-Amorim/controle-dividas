@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Loader2 } from "lucide-react";
 import { getAiFinanceClassifierIntentLabel } from "@/lib/finance/ai-finance-intent-classifier";
 import { buildAiFinanceUniversalDraft } from "@/lib/finance/ai-finance-universal-draft";
 import { cn } from "@/lib/utils";
@@ -10,36 +10,65 @@ export interface AICommandBarProps {
   className?: string;
   placeholder?: string;
   disabled?: boolean;
+  organizationId?: string | null;
 }
 
 export function AICommandBar({
   className,
   placeholder = "O que aconteceu?",
   disabled = false,
+  organizationId,
 }: AICommandBarProps) {
   const [input, setInput] = React.useState("");
   const [message, setMessage] = React.useState<string | null>(null);
+  const [loading, setLoading] = React.useState(false);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setInput(event.target.value);
     setMessage(null);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || disabled) return;
+    if (!input.trim() || disabled || loading) return;
 
-    const boundary = buildAiFinanceUniversalDraft({
-      text: input,
+    const text = input.trim();
+    setInput("");
+    setLoading(true);
+
+    const draftResult = buildAiFinanceUniversalDraft({
+      text,
       today: new Date().toISOString().slice(0, 10),
     });
-    const label = getAiFinanceClassifierIntentLabel(boundary.classification.intent);
-    const missing = boundary.missingFields.length > 0
-      ? ` Campos faltantes: ${boundary.missingFields.join(", ")}.`
-      : "";
+    const { intent } = draftResult.classification;
+    const intentLabel = getAiFinanceClassifierIntentLabel(intent);
 
-    setMessage(`Detectei ${label}. Nada foi salvo.${missing}`);
-    setInput("");
+    if (intent === "pergunta" && organizationId) {
+      try {
+        const response = await fetch("/api/ai/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text, organization_id: organizationId }),
+        });
+
+        if (!response.ok) {
+          const err = await response.json().catch(() => ({ error: "Erro de comunicacao" }));
+          setMessage(`Detectei ${intentLabel}. ${err.error ?? "Nao foi possivel processar."}`);
+        } else {
+          const data = await response.json();
+          setMessage(data.result?.content ?? `Detectei ${intentLabel}. Nada foi salvo.`);
+        }
+      } catch {
+        setMessage(`Detectei ${intentLabel}. Erro de rede ao consultar o assistente.`);
+      }
+    } else {
+      const missing = draftResult.missingFields.length > 0
+        ? ` Campos faltantes: ${draftResult.missingFields.join(", ")}.`
+        : "";
+      setMessage(`Detectei ${intentLabel}. Nada foi salvo.${missing}`);
+    }
+
+    setLoading(false);
   };
 
   return (
@@ -55,15 +84,19 @@ export function AICommandBar({
           value={input}
           onChange={handleChange}
           placeholder={placeholder}
-          disabled={disabled}
+          disabled={disabled || loading}
           className="h-full w-full bg-transparent px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/75 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
         />
         <button
           type="submit"
-          disabled={disabled || !input.trim()}
+          disabled={disabled || !input.trim() || loading}
           className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-primary p-1.5 text-primary-foreground transition-colors disabled:opacity-50 hover:bg-ff-primary-hover active:scale-95"
         >
-          <Sparkles className="h-4 w-4" />
+          {loading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Sparkles className="h-4 w-4" />
+          )}
         </button>
       </div>
       {message ? (
