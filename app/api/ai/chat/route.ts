@@ -191,7 +191,7 @@ export async function POST(request: NextRequest) {
     let isComplete = false;
     let draftReady = false;
 
-    if (classification.intent !== "pergunta" && classification.intent !== "recusa") {
+    if (classification.intent !== "pergunta") {
       const draftResult = buildAiFinanceUniversalDraft({ text: allUserTexts, today });
       if (
         draftResult.draft &&
