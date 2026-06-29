@@ -18,22 +18,31 @@ export function AICommandBar({
   const [input, setInput] = React.useState("");
   const [message, setMessage] = React.useState<string | null>(null);
 
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setInput(event.target.value);
+    setMessage(null);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || disabled) return;
 
-    setMessage("Copiloto em modo seguro: entrada registrada apenas na tela por enquanto.");
+    setMessage("Copiloto em modo seguro: nada foi salvo. A classificacao vem no proximo bloco.");
     setInput("");
   };
 
   return (
     <form onSubmit={handleSubmit} className={cn("relative w-full space-y-2", className)}>
+      <label htmlFor="ai-command-bar-input" className="sr-only">
+        O que aconteceu?
+      </label>
       <div className="relative flex h-11 w-full items-center overflow-hidden rounded-full border border-border bg-muted pl-4 pr-12 shadow-ff-xs transition-colors focus-within:border-primary focus-within:shadow-ff-sm">
         <Sparkles className="h-4 w-4 shrink-0 text-muted-foreground/50" />
         <input
+          id="ai-command-bar-input"
           type="text"
           value={input}
-          onChange={(e) => setInput(e.target.value)}
+          onChange={handleChange}
           placeholder={placeholder}
           disabled={disabled}
           className="h-full w-full bg-transparent px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/75 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
@@ -46,7 +55,11 @@ export function AICommandBar({
           <Sparkles className="h-4 w-4" />
         </button>
       </div>
-      {message ? <p className="px-4 text-xs text-muted-foreground">{message}</p> : null}
+      {message ? (
+        <p className="px-4 text-xs text-muted-foreground" role="status" aria-live="polite">
+          {message}
+        </p>
+      ) : null}
     </form>
   );
 }
