@@ -83,8 +83,8 @@ Fluxo esperado quando a feature estiver completa:
 | AI-05 | Perguntas financeiras read-only | Expandir consultas seguras sobre dashboard, vencimentos, categorias e limites | Concluido | PR #970 |
 | AI-06 | Insights no dashboard | Exibir resumo inteligente do mes e alertas contextuais | Concluido | PR #971 |
 | AI-07 | Provider/modelo real | Integrar modelo externo fail-closed, com rate limit, audit e rollback | Concluido | PR #972 |
-| AI-08 | Historico/memoria | Avaliar historico seguro de interacoes sem vazamento de dados sensiveis | Futuro | - |
-| AI-09 | Acoes assistidas | Preparar acoes como marcar pago/abrir filtros, sempre com confirmacao forte | Futuro | - |
+| AI-08 | Historico/memoria | Manter contexto curto de conversa por organizacao/perfil, com limpeza manual e sem persistencia duravel de prompt bruto | Concluido | PR #977 |
+| AI-09 | Acoes assistidas | Abrir formularios financeiros com rascunho revisavel a partir do copiloto, sem salvamento automatico | Concluido | PR #977 |
 
 ## 6. Criterio De Conclusao Por Bloco
 
@@ -130,6 +130,7 @@ Um bloco so pode sair de `Planejado` ou `Em andamento` para `Concluido` quando:
 | 2026-06-28 | AI-06 | Insights deterministicos no dashboard usando dados ja permitidos, sem provider, sem endpoint novo e sem salvamento | PR #971 |
 | 2026-06-28 | AI-07 | Provider OpenRouter com estrutura para OpenAI, rate limit in-memory, auditoria, endpoint `/api/ai/chat` e command bar conectada ao provider | PR #972 |
 | 2026-06-28 | AI-07 (hotfix) | Restaurar default model para `openai/gpt-4o-mini` | PR #973 |
+| 2026-06-29 | AI-08/AI-09 | Memoria curta in-memory por organizacao/perfil, limpeza manual de conversa, rascunho retornado pelo chat e abertura de formularios com dados revisaveis via `sessionStorage` | PR #977 |
 
 ## 10. Fora De Escopo Por Enquanto
 
