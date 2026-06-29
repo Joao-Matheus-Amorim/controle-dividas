@@ -9,6 +9,8 @@ interface GuardResult {
 const ACTION_TO_FEATURE: Record<string, FeaturePermissionKey> = {
   getDashboardSummary: 'view_own_dashboard',
   getUpcomingBills: 'view_own_dashboard',
+  getCategorySpendingSummary: 'view_reports',
+  getMemberLimitsSummary: 'view_own_limit',
 };
 
 export async function checkAiAction(

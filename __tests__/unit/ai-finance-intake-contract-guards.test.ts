@@ -40,6 +40,7 @@ describe("AI finance intake contract guards", () => {
     expect(contract).toContain("lib/finance/ai-finance-intake-catalogs.ts");
     expect(contract).toContain("lib/finance/ai-finance-intake-runtime.ts");
     expect(contract).toContain("lib/finance/ai-finance-intent-classifier.ts");
+    expect(contract).toContain("lib/finance/ai-finance-universal-draft.ts");
     expect(contract).toContain("components/finance/assisted-draft-review-boundary.tsx");
     expect(contract).toContain("components/finance/expense-form.tsx");
     expect(contract).toContain("formaction");
@@ -62,6 +63,8 @@ describe("AI finance intake contract guards", () => {
     expect(contract).toContain("nunca chamar `createexpense`");
     expect(compactContract).toContain("nunca chamar `createexpense`, `createpayablebill`, `createreceivableincome` ou `createbankaccount`");
     expect(contract).toContain("nunca inventar ids");
+    expect(contract).toContain("canautosave: false");
+    expect(contract).toContain("directsaveaction: null");
   });
 
   it("requires organization catalogs and linked-member scoping", () => {
