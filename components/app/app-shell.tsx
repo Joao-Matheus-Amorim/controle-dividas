@@ -8,6 +8,7 @@ import { AuthButton } from "@/components/auth-button";
 import { EnvVarWarning } from "@/components/env-var-warning";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { Separator } from "@/components/ui/separator";
+import { AICommandBar } from "@/components/ai/ai-command-bar";
 import { getVisibleModuleKeys } from "@/lib/finance/access-control";
 import type { FinanceModuleKey } from "@/lib/finance/permissions";
 import { getOrgPathFromProtectedPath } from "@/lib/organizations/paths";
@@ -68,6 +69,8 @@ export async function AppShell({ children, orgSlug }: AppShellProps) {
   });
   const mobilePrimaryItems = visibleMobilePrimaryNavigation.map(toMobileNavigationItem);
   const mobileAllItems = visibleNavigation.map(toMobileNavigationItem);
+
+  const canUseAi = visibleModules.has("DASHBOARD");
 
   return (
     <main className="app-no-x-scroll min-h-screen bg-background text-foreground">
@@ -133,6 +136,11 @@ export async function AppShell({ children, orgSlug }: AppShellProps) {
               </div>
             </>
           ) : null}
+          {canUseAi && (
+            <div className="mt-2">
+              <AICommandBar disabled={!currentOrganization} />
+            </div>
+          )}
         </div>
       </nav>
 
