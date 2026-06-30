@@ -334,104 +334,109 @@ export async function createFamilyUser(
   if (!email) return { error: "Informe o email de acesso." };
   if (!linkedFamilyMemberId) return { error: "Selecione o membro da familia vinculado a este acesso." };
 
-  const supabase = await createClient();
-  const adminProfile = await ensureAdminProfile();
-  const { organization } = await requireOrganizationAdmin();
-  const legacyOwnerId = organization.owner_auth_user_id;
-
   try {
+    const supabase = await createClient();
+    const adminProfile = await ensureAdminProfile();
+    const { organization } = await requireOrganizationAdmin();
+    const legacyOwnerId = organization.owner_auth_user_id;
+
     await ensureUniqueEmail({ organizationId: organization.id, email });
     await ensureUniqueMemberAccess({
       organizationId: organization.id,
       memberId: linkedFamilyMemberId,
     });
     await ensureMemberBelongsToOrganization(organization.id, linkedFamilyMemberId);
-  } catch (error) {
-    return { error: error instanceof Error ? error.message : "Nao foi possivel validar o acesso." };
-  }
 
-  const rateLimit = checkSensitiveOperationRateLimit({
-    ...adminUserRateLimits.create,
-    actorKey: adminProfile.id,
-    organizationId: organization.id,
-    targetKey: linkedFamilyMemberId,
-  });
-
-  if (!rateLimit.allowed) {
-    await recordAdminUserAuditEvent({
+    const rateLimit = checkSensitiveOperationRateLimit({
+      ...adminUserRateLimits.create,
+      actorKey: adminProfile.id,
       organizationId: organization.id,
-      action: "admin.user.create",
-      profileId: linkedFamilyMemberId,
-      targetType: "family_member",
-      outcome: "denied",
-      metadata: {
-        status: "rate_limited",
-      },
+      targetKey: linkedFamilyMemberId,
     });
 
-    return { error: "Muitas tentativas de cadastro de acesso familiar. Tente novamente em alguns minutos." };
-  }
+    if (!rateLimit.allowed) {
+      await recordAdminUserAuditEvent({
+        organizationId: organization.id,
+        action: "admin.user.create",
+        profileId: linkedFamilyMemberId,
+        targetType: "family_member",
+        outcome: "denied",
+        metadata: {
+          status: "rate_limited",
+        },
+      });
 
-  const { data: profile, error } = await supabase
-    .from("profiles")
-    .insert({
-      owner_id: legacyOwnerId,
-      organization_id: organization.id,
-      auth_user_id: null,
-      linked_family_member_id: linkedFamilyMemberId,
-      name,
-      email,
-      role,
-      is_active: true,
-    })
-    .select("id")
-    .single();
+      return { error: "Muitas tentativas de cadastro de acesso familiar. Tente novamente em alguns minutos." };
+    }
 
-  if (error) return { error: error.message };
-
-  if (profile?.id) {
-    const permissionRows = FINANCE_MODULES.map((module) => {
-      const defaults = getDefaultPermissionForAccessModel(accessModel, module.key as FinanceModuleKey);
-
-      return {
+    const { data: profile, error } = await supabase
+      .from("profiles")
+      .insert({
         owner_id: legacyOwnerId,
         organization_id: organization.id,
-        profile_id: profile.id,
-        module: module.key,
-        can_view: defaults.can_view,
-        can_create: defaults.can_create,
-        can_edit: defaults.can_edit,
-        can_delete: defaults.can_delete,
-        scope: defaults.scope,
-        allowed_member_ids: [],
-        granted_by: adminProfile.id,
-      };
-    });
-
-    const { error: permissionsError } = await supabase
-      .from("user_module_permissions")
-      .insert(permissionRows);
-
-    if (permissionsError) return { error: permissionsError.message };
-
-    await recordAdminUserAuditEvent({
-      organizationId: organization.id,
-      action: "admin.user.create",
-      profileId: profile.id,
-      metadata: {
+        auth_user_id: null,
+        linked_family_member_id: linkedFamilyMemberId,
+        name,
+        email,
         role,
-        access_model: accessModel,
-        default_permission_count: permissionRows.length,
-      },
-    });
+        is_active: true,
+      })
+      .select("id")
+      .single();
+
+    if (error) return { error: error.message };
+
+    if (profile?.id) {
+      const permissionRows = FINANCE_MODULES.map((module) => {
+        const defaults = getDefaultPermissionForAccessModel(accessModel, module.key as FinanceModuleKey);
+
+        return {
+          owner_id: legacyOwnerId,
+          organization_id: organization.id,
+          profile_id: profile.id,
+          module: module.key,
+          can_view: defaults.can_view,
+          can_create: defaults.can_create,
+          can_edit: defaults.can_edit,
+          can_delete: defaults.can_delete,
+          scope: defaults.scope,
+          allowed_member_ids: [],
+          granted_by: adminProfile.id,
+        };
+      });
+
+      const { error: permissionsError } = await supabase
+        .from("user_module_permissions")
+        .insert(permissionRows);
+
+      if (permissionsError) return { error: permissionsError.message };
+
+      await recordAdminUserAuditEvent({
+        organizationId: organization.id,
+        action: "admin.user.create",
+        profileId: profile.id,
+        metadata: {
+          role,
+          access_model: accessModel,
+          default_permission_count: permissionRows.length,
+        },
+      });
+    }
+
+    revalidateOrganizationPaths(
+      ["/protected/admin", "/protected/admin/usuarios", "/protected/admin/permissoes"],
+      organization.slug,
+    );
+
+    return { success: "Acesso familiar cadastrado com sucesso." };
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "Nao foi possivel cadastrar este acesso.",
+    };
   }
-
-  revalidateOrganizationPaths(
-    ["/protected/admin", "/protected/admin/usuarios", "/protected/admin/permissoes"],
-    organization.slug,
-  );
-
-  return { success: "Acesso familiar cadastrado com sucesso." };
 }
 
 export async function updateFamilyUser(formData: FormData): Promise<FamilyUserActionState> {

@@ -206,75 +206,75 @@ export async function createBankAccount(
     return validationError;
   }
 
-  const supabase = await createClient();
-  const profile = await getCurrentProfile();
-  const { organization } = await requireOrganizationAccess();
-
   try {
+    const supabase = await createClient();
+    const profile = await getCurrentProfile();
+    const { organization } = await requireOrganizationAccess();
+
     await assertMemberBelongsToOrganization(
       organization.id,
       input.familyMemberId,
     );
     await assertCanAccessMember("BANCOS", "can_create", input.familyMemberId);
-  } catch (error) {
-    return {
-      error:
-        error instanceof Error
-          ? error.message
-          : "Voce nao tem permissao para cadastrar banco para esta pessoa.",
-    };
-  }
 
-  const rateLimit = checkSensitiveOperationRateLimit({
-    ...bankCreateRateLimit,
-    actorKey: profile.id,
-    organizationId: organization.id,
-  });
+    const rateLimit = checkSensitiveOperationRateLimit({
+      ...bankCreateRateLimit,
+      actorKey: profile.id,
+      organizationId: organization.id,
+    });
 
-  if (!rateLimit.allowed) {
+    if (!rateLimit.allowed) {
+      await recordBankAuditEvent({
+        organizationId: organization.id,
+        action: "finance.bank.create",
+        bankId: null,
+        outcome: "denied",
+        metadata: {
+          status: "rate_limited",
+          bank_created: true,
+          family_member_id: input.familyMemberId,
+        },
+      });
+
+      return { error: "Muitas tentativas de cadastro de banco. Tente novamente em alguns minutos." };
+    }
+
+    const { data: createdBank, error } = await supabase.from("banks").insert({
+      owner_id: organization.owner_auth_user_id,
+      organization_id: organization.id,
+      family_member_id: input.familyMemberId,
+      bank_name: input.bankName,
+      account_type: input.accountType || null,
+      current_balance: input.currentBalance,
+      currency: input.currency,
+      notes: input.notes || null,
+    }).select("id").single();
+
+    if (error) {
+      return { error: error.message };
+    }
+
     await recordBankAuditEvent({
       organizationId: organization.id,
       action: "finance.bank.create",
-      bankId: null,
-      outcome: "denied",
+      bankId: createdBank?.id ? String(createdBank.id) : null,
       metadata: {
-        status: "rate_limited",
         bank_created: true,
         family_member_id: input.familyMemberId,
       },
     });
 
-    return { error: "Muitas tentativas de cadastro de banco. Tente novamente em alguns minutos." };
+    revalidateOrganizationPaths(["/protected/bancos", "/protected"], organization.slug);
+
+    return { success: "Banco cadastrado com sucesso." };
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "Nao foi possivel cadastrar este banco.",
+    };
   }
-
-  const { data: createdBank, error } = await supabase.from("banks").insert({
-    owner_id: organization.owner_auth_user_id,
-    organization_id: organization.id,
-    family_member_id: input.familyMemberId,
-    bank_name: input.bankName,
-    account_type: input.accountType || null,
-    current_balance: input.currentBalance,
-    currency: input.currency,
-    notes: input.notes || null,
-  }).select("id").single();
-
-  if (error) {
-    return { error: error.message };
-  }
-
-  await recordBankAuditEvent({
-    organizationId: organization.id,
-    action: "finance.bank.create",
-    bankId: createdBank?.id ? String(createdBank.id) : null,
-    metadata: {
-      bank_created: true,
-      family_member_id: input.familyMemberId,
-    },
-  });
-
-  revalidateOrganizationPaths(["/protected/bancos", "/protected"], organization.slug);
-
-  return { success: "Banco cadastrado com sucesso." };
 }
 
 export async function updateBankAccount(

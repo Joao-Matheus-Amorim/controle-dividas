@@ -253,68 +253,77 @@ export async function createExpenseCategory(
     return validationError;
   }
 
-  const supabase = await createClient();
-  const currentUserId = await getCurrentUserId();
-  const { organization } = await requireOrganizationAdmin();
-  const rateLimit = checkSensitiveOperationRateLimit({
-    ...categoryCreateRateLimit,
-    actorKey: currentUserId,
-    organizationId: organization.id,
-  });
+  try {
+    const supabase = await createClient();
+    const currentUserId = await getCurrentUserId();
+    const { organization } = await requireOrganizationAdmin();
+    const rateLimit = checkSensitiveOperationRateLimit({
+      ...categoryCreateRateLimit,
+      actorKey: currentUserId,
+      organizationId: organization.id,
+    });
 
-  if (!rateLimit.allowed) {
+    if (!rateLimit.allowed) {
+      await recordExpenseCategoryAuditEvent({
+        organizationId: organization.id,
+        action: "finance.category.create",
+        categoryId: null,
+        outcome: "denied",
+        metadata: {
+          status: "rate_limited",
+          category_created: true,
+        },
+      });
+
+      return { error: "Muitas tentativas de cadastro de categoria. Tente novamente em alguns minutos." };
+    }
+
+    const parentValidationError = await validateExpenseCategoryParent({
+      supabase,
+      organizationId: organization.id,
+      parentCategoryId: input.parentCategoryId,
+    });
+
+    if (parentValidationError) {
+      return parentValidationError;
+    }
+
+    const { data: category, error } = await supabase.from("expense_categories").insert({
+      owner_id: organization.owner_auth_user_id,
+      organization_id: organization.id,
+      parent_category_id: input.parentCategoryId || null,
+      name: input.name,
+      description: input.description || null,
+      is_default: false,
+    }).select("id").single();
+
+    if (error) {
+      return { error: error.message };
+    }
+
     await recordExpenseCategoryAuditEvent({
       organizationId: organization.id,
       action: "finance.category.create",
-      categoryId: null,
-      outcome: "denied",
+      categoryId: category?.id ? String(category.id) : null,
       metadata: {
-        status: "rate_limited",
         category_created: true,
       },
     });
 
-    return { error: "Muitas tentativas de cadastro de categoria. Tente novamente em alguns minutos." };
+    revalidateOrganizationPaths(
+      ["/protected/configuracoes", "/protected/gastos", "/protected"],
+      organization.slug,
+    );
+
+    return { success: "Categoria cadastrada com sucesso." };
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "Nao foi possivel cadastrar esta categoria.",
+    };
   }
-
-  const parentValidationError = await validateExpenseCategoryParent({
-    supabase,
-    organizationId: organization.id,
-    parentCategoryId: input.parentCategoryId,
-  });
-
-  if (parentValidationError) {
-    return parentValidationError;
-  }
-
-  const { data: category, error } = await supabase.from("expense_categories").insert({
-    owner_id: organization.owner_auth_user_id,
-    organization_id: organization.id,
-    parent_category_id: input.parentCategoryId || null,
-    name: input.name,
-    description: input.description || null,
-    is_default: false,
-  }).select("id").single();
-
-  if (error) {
-    return { error: error.message };
-  }
-
-  await recordExpenseCategoryAuditEvent({
-    organizationId: organization.id,
-    action: "finance.category.create",
-    categoryId: category?.id ? String(category.id) : null,
-    metadata: {
-      category_created: true,
-    },
-  });
-
-  revalidateOrganizationPaths(
-    ["/protected/configuracoes", "/protected/gastos", "/protected"],
-    organization.slug,
-  );
-
-  return { success: "Categoria cadastrada com sucesso." };
 }
 
 export async function updateExpenseCategory(
@@ -515,57 +524,66 @@ export async function createReceivableIncomeSource(
     return validationError;
   }
 
-  const supabase = await createClient();
-  const currentUserId = await getCurrentUserId();
-  const { organization } = await requireOrganizationAdmin();
-  const rateLimit = checkSensitiveOperationRateLimit({
-    ...receivableSourceCreateRateLimit,
-    actorKey: currentUserId,
-    organizationId: organization.id,
-  });
+  try {
+    const supabase = await createClient();
+    const currentUserId = await getCurrentUserId();
+    const { organization } = await requireOrganizationAdmin();
+    const rateLimit = checkSensitiveOperationRateLimit({
+      ...receivableSourceCreateRateLimit,
+      actorKey: currentUserId,
+      organizationId: organization.id,
+    });
 
-  if (!rateLimit.allowed) {
+    if (!rateLimit.allowed) {
+      await recordReceivableSourceAuditEvent({
+        organizationId: organization.id,
+        action: "finance.receivable_source.create",
+        sourceId: null,
+        outcome: "denied",
+        metadata: {
+          status: "rate_limited",
+          source_created: true,
+        },
+      });
+
+      return { error: "Muitas tentativas de cadastro de origem. Tente novamente em alguns minutos." };
+    }
+
+    const { data: source, error } = await supabase.from("receivable_income_sources").insert({
+      owner_id: organization.owner_auth_user_id,
+      organization_id: organization.id,
+      name: input.name,
+      description: input.description || null,
+      is_default: false,
+    }).select("id").single();
+
+    if (error) {
+      return { error: error.message };
+    }
+
     await recordReceivableSourceAuditEvent({
       organizationId: organization.id,
       action: "finance.receivable_source.create",
-      sourceId: null,
-      outcome: "denied",
+      sourceId: source?.id ? String(source.id) : null,
       metadata: {
-        status: "rate_limited",
         source_created: true,
       },
     });
 
-    return { error: "Muitas tentativas de cadastro de origem. Tente novamente em alguns minutos." };
+    revalidateOrganizationPaths(
+      ["/protected/configuracoes", "/protected/contas-a-receber", "/protected"],
+      organization.slug,
+    );
+
+    return { success: "Origem cadastrada com sucesso." };
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "Nao foi possivel cadastrar esta origem.",
+    };
   }
-
-  const { data: source, error } = await supabase.from("receivable_income_sources").insert({
-    owner_id: organization.owner_auth_user_id,
-    organization_id: organization.id,
-    name: input.name,
-    description: input.description || null,
-    is_default: false,
-  }).select("id").single();
-
-  if (error) {
-    return { error: error.message };
-  }
-
-  await recordReceivableSourceAuditEvent({
-    organizationId: organization.id,
-    action: "finance.receivable_source.create",
-    sourceId: source?.id ? String(source.id) : null,
-    metadata: {
-      source_created: true,
-    },
-  });
-
-  revalidateOrganizationPaths(
-    ["/protected/configuracoes", "/protected/contas-a-receber", "/protected"],
-    organization.slug,
-  );
-
-  return { success: "Origem cadastrada com sucesso." };
 }
 
 export async function updateReceivableIncomeSource(

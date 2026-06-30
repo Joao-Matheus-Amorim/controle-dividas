@@ -258,78 +258,78 @@ export async function createExpense(
       input.categoryId,
     );
     await assertCanAccessMember("GASTOS", "can_create", input.familyMemberId);
-  } catch (error) {
-    return {
-      error:
-        error instanceof Error
-          ? error.message
-          : "Voce nao tem permissao para cadastrar gasto para esta pessoa.",
-    };
-  }
 
-  if (!input.bankId) {
-    return { error: "Selecione o banco usado no gasto." };
-  }
+    if (!input.bankId) {
+      return { error: "Selecione o banco usado no gasto." };
+    }
 
-  const rateLimit = checkSensitiveOperationRateLimit({
-    ...expenseCreateRateLimit,
-    actorKey: profile.id,
-    organizationId: organization.id,
-  });
+    const rateLimit = checkSensitiveOperationRateLimit({
+      ...expenseCreateRateLimit,
+      actorKey: profile.id,
+      organizationId: organization.id,
+    });
 
-  if (!rateLimit.allowed) {
+    if (!rateLimit.allowed) {
+      await recordExpenseAuditEvent({
+        organizationId: organization.id,
+        action: "finance.expense.create",
+        expenseId: null,
+        outcome: "denied",
+        metadata: {
+          status: "rate_limited",
+          expense_created: true,
+          family_member_id: input.familyMemberId,
+        },
+      });
+
+      return { error: "Muitas tentativas de cadastro de gasto. Tente novamente em alguns minutos." };
+    }
+
+    const { data: createdExpenseId, error } = await supabase.rpc("create_expense_with_movement", {
+      target_organization_id: organization.id,
+      target_owner_id: organization.owner_auth_user_id,
+      target_family_member_id: input.familyMemberId,
+      target_category_id: input.categoryId || null,
+      target_expense_date: input.expenseDate,
+      target_description: input.description,
+      target_purchase_location: input.purchaseLocation,
+      target_amount: input.amount,
+      target_payment_method: input.paymentMethod,
+      target_bank_id: input.bankId,
+      target_notes: input.notes,
+      target_profile_id: profile.id,
+    });
+
+    if (error) {
+      return { error: error.message };
+    }
+
     await recordExpenseAuditEvent({
       organizationId: organization.id,
       action: "finance.expense.create",
-      expenseId: null,
-      outcome: "denied",
+      expenseId: createdExpenseId ? String(createdExpenseId) : null,
       metadata: {
-        status: "rate_limited",
         expense_created: true,
         family_member_id: input.familyMemberId,
       },
     });
 
-    return { error: "Muitas tentativas de cadastro de gasto. Tente novamente em alguns minutos." };
+    revalidateOrganizationPaths([
+      "/protected/gastos",
+      "/protected/movimentacoes",
+      "/protected/bancos",
+      "/protected",
+    ], organization.slug);
+
+    return { success: "Gasto cadastrado com sucesso." };
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "Erro inesperado ao cadastrar gasto.",
+    };
   }
-
-  const { data: createdExpenseId, error } = await supabase.rpc("create_expense_with_movement", {
-    target_organization_id: organization.id,
-    target_owner_id: organization.owner_auth_user_id,
-    target_family_member_id: input.familyMemberId,
-    target_category_id: input.categoryId || null,
-    target_expense_date: input.expenseDate,
-    target_description: input.description,
-    target_purchase_location: input.purchaseLocation,
-    target_amount: input.amount,
-    target_payment_method: input.paymentMethod,
-    target_bank_id: input.bankId,
-    target_notes: input.notes,
-    target_profile_id: profile.id,
-  });
-
-  if (error) {
-    return { error: error.message };
-  }
-
-  await recordExpenseAuditEvent({
-    organizationId: organization.id,
-    action: "finance.expense.create",
-    expenseId: createdExpenseId ? String(createdExpenseId) : null,
-    metadata: {
-      expense_created: true,
-      family_member_id: input.familyMemberId,
-    },
-  });
-
-  revalidateOrganizationPaths([
-    "/protected/gastos",
-    "/protected/movimentacoes",
-    "/protected/bancos",
-    "/protected",
-  ], organization.slug);
-
-  return { success: "Gasto cadastrado com sucesso." };
 }
 
 export async function updateExpense(
