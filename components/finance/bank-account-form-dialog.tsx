@@ -1,9 +1,10 @@
 "use client";
 
-import { Banknote } from "lucide-react";
+import { Banknote, XCircle } from "lucide-react";
 import { useState } from "react";
 
 import { AppFormSheet } from "@/components/app/app-form-sheet";
+import { Button } from "@/components/ui/button";
 import { BankAccountForm } from "@/components/finance/bank-account-form";
 import type { DbFamilyMember } from "@/lib/finance/types";
 
@@ -43,6 +44,11 @@ export function BankAccountFormDialog({
     setFormKey((current) => current + 1);
   }
 
+  function handleDismissDraft() {
+    setDraftData(null);
+    setFormKey((current) => current + 1);
+  }
+
   return (
     <AppFormSheet
       open={open}
@@ -55,6 +61,20 @@ export function BankAccountFormDialog({
       triggerLabel="Novo banco"
       icon={Banknote}
     >
+      {draftData ? (
+        <div className="mb-5 flex items-start justify-between gap-3 rounded-ff-lg border border-primary/20 bg-ff-primary-soft px-4 py-3">
+          <div>
+            <p className="text-xs font-semibold text-primary">Rascunho gerado pela IA</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Os campos abaixo foram preenchidos com base na sugestão da IA. Recuse para começar do zero.
+            </p>
+          </div>
+          <Button type="button" variant="outline" size="sm" onClick={handleDismissDraft} className="shrink-0 gap-1.5">
+            <XCircle className="h-3.5 w-3.5" />
+            Recusar
+          </Button>
+        </div>
+      ) : null}
       <BankAccountForm
         key={formKey}
         members={members}
