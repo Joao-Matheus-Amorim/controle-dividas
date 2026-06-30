@@ -1,5 +1,5 @@
-const CACHE_NAME = "family-finance-v1";
-const STATIC_ASSETS = [
+var CACHE_NAME = "family-finance-v1";
+var STATIC_ASSETS = [
   "/offline",
   "/icon.svg",
   "/icon-192x192.png",
@@ -8,13 +8,30 @@ const STATIC_ASSETS = [
   "/apple-icon-180x180.png",
 ];
 
+function isUsable(response) {
+  return response && response.ok && response.type !== "opaque";
+}
+
 function cacheResponse(request, response) {
-  if (request.method !== "GET" || !response || !response.ok) {
+  if (request.method !== "GET" || !isUsable(response)) {
     return Promise.resolve();
   }
 
-  const responseToCache = response.clone();
-  return caches.open(CACHE_NAME).then((cache) => cache.put(request, responseToCache));
+  var responseToCache = response.clone();
+  return caches.open(CACHE_NAME).then(function (cache) { return cache.put(request, responseToCache); });
+}
+
+function fetchAndCache(request, fallbackUrl) {
+  return fetch(request).then(function (response) {
+    if (!isUsable(response)) {
+      throw new Error("unusable");
+    }
+    cacheResponse(request, response).catch(function () {});
+    return response;
+  }).catch(function () {
+    var cacheQuery = fallbackUrl ? caches.match(fallbackUrl) : caches.match(request);
+    return cacheQuery;
+  });
 }
 
 self.addEventListener("install", (event) => {
@@ -51,14 +68,10 @@ self.addEventListener("fetch", (event) => {
   // Navigation requests: network first, fallback to cache
   if (request.mode === "navigate") {
     event.respondWith(
-      fetch(request)
-        .then((response) => {
-          cacheResponse(request, response).catch(() => undefined);
-          return response;
-        })
-        .catch(() => {
-          return caches.match("/offline") || caches.match(request);
-        }),
+      fetchAndCache(request).then(function (response) {
+        if (response) return response;
+        return caches.match("/offline");
+      }),
     );
     return;
   }
@@ -68,13 +81,10 @@ self.addEventListener("fetch", (event) => {
     url.pathname.match(/\.(js|css|png|svg|ico|woff2?|ttf|otf|webp|jpg|jpeg)$/)
   ) {
     event.respondWith(
-      caches.match(request).then((cached) => {
-        const fetchPromise = fetch(request)
-          .then((response) => {
-            cacheResponse(request, response).catch(() => undefined);
-            return response;
-          })
-          .catch(() => cached);
+      caches.match(request).then(function (cached) {
+        var fetchPromise = fetchAndCache(request).then(function (response) {
+          return response || cached;
+        });
 
         return cached || fetchPromise;
       }),
@@ -83,12 +93,5 @@ self.addEventListener("fetch", (event) => {
   }
 
   // Everything else: network first with cache fallback
-  event.respondWith(
-    fetch(request)
-      .then((response) => {
-        cacheResponse(request, response).catch(() => undefined);
-        return response;
-      })
-      .catch(() => caches.match(request)),
-  );
+  event.respondWith(fetchAndCache(request));
 });

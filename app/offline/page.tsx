@@ -1,7 +1,13 @@
+"use client";
+
+import { usePathname } from "next/navigation";
 import { WifiOff } from "lucide-react";
 import Link from "next/link";
 
 export default function OfflinePage() {
+  const pathname = usePathname();
+  const fallbackHref = pathname && pathname !== "/offline" ? pathname : "/protected";
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-background px-6 text-center">
       <div className="flex h-16 w-16 items-center justify-center rounded-ff-2xl bg-ff-bg-soft">
@@ -12,7 +18,7 @@ export default function OfflinePage() {
         Você está offline. Conecte-se à internet para usar o FamilyFinance.
       </p>
       <Link
-        href="/protected"
+        href={fallbackHref}
         className="rounded-ff-md bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-ff-primary-hover"
       >
         Tentar novamente

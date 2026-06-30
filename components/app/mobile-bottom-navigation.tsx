@@ -73,9 +73,11 @@ function isCurrentPath(pathname: string, href: string) {
 function MobileNavigationLink({
   item,
   className,
+  showIndicator,
 }: {
   item: MobileNavigationItem;
   className?: string;
+  showIndicator?: boolean;
 }) {
   const pathname = usePathname();
   const Icon = iconMap[item.iconKey];
@@ -90,6 +92,9 @@ function MobileNavigationLink({
         className,
       )}
     >
+      {active && showIndicator ? (
+        <span className="absolute -top-0.5 left-1/2 h-[0.1875rem] w-6 -translate-x-1/2 rounded-full bg-primary" />
+      ) : null}
       <Icon className="h-5 w-5 shrink-0" />
       <span className="max-w-full truncate">{item.label}</span>
     </Link>
@@ -117,6 +122,7 @@ export function MobileBottomNavigation({
           <MobileNavigationLink
             key={item.href}
             item={item}
+            showIndicator
             className="flex-1 flex-col gap-1 px-1 py-2.5 text-[10px] font-semibold uppercase tracking-wide"
           />
         ))}

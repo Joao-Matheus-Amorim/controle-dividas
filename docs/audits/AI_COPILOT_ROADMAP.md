@@ -1,9 +1,8 @@
 # AI Copilot Roadmap
 
-> Status DocDoc: Atual
-> Uso atual: fonte viva para acompanhar a feature de IA financeira como
-> copiloto review-only. Todo PR que conclui, reduz ou altera um bloco deste
-> roadmap deve atualizar este documento no mesmo escopo.
+> Status DocDoc: Atual — todos os blocos AI-00 a AI-14 concluidos
+> Uso atual: fonte viva de auditoria do roadmap de IA financeira.
+> Todo PR que altera um bloco de IA deve atualizar este documento no mesmo escopo.
 > Este documento nao autoriza salvamento automatico, provider/modelo em
 > producao, chat livre, embeddings ou escrita direta no banco.
 
@@ -35,11 +34,13 @@ O produto-alvo e um Copiloto Financeiro Review-Only:
 | Auditoria de acoes de IA | Implementado | `ai_actions`, `lib/ai/audit.ts` |
 | RLS de auditoria de IA | Implementado por autor | `supabase/migrations/070_ai_actions.sql` |
 | Chat/copiloto UI | UI inicial implementada em PR | `components/ai/ai-command-bar.tsx`, `components/app/app-shell.tsx` |
+| Gatilho do Command Bar | Feature flag `NEXT_PUBLIC_ENABLE_AI_COMMAND_BAR=false` em `.env.example` | `components/app/app-shell.tsx:74` |
 | Classificador de intencao | Implementado em PR | `lib/finance/ai-finance-intent-classifier.ts` |
 | Rascunho universal review-only | Implementado em PR | `lib/finance/ai-finance-universal-draft.ts` |
 | Perguntas financeiras read-only | Expandido em PR | `getCategorySpendingSummary`, `getMemberLimitsSummary` em `lib/ai/tools/finance-tools.ts` |
 | Insights no dashboard | Implementado em PR (provider-backed com fallback deterministico) | `lib/finance/dashboard-insights.ts`, `lib/ai/dashboard-insights-provider.ts`, `components/dashboard/dashboard-ai-insights.tsx` |
-| Provider/modelo real | Implementado em PR (OpenRouter via fetch, sem SDK) | `lib/ai/provider/`, `app/api/ai/chat/`, `lib/ai/rate-limiter.ts` |
+| Provider/modelo real | Implementado em PR (OpenRouter via fetch, sem SDK, rate limiter Supabase-backed) | `lib/ai/provider/`, `app/api/ai/chat/`, `lib/ai/rate-limiter.ts` |
+| `lib/ai/providers/` | Deletado (dead code, zero imports) | PR #981 |
 | Salvamento automatico | Nao implementado e proibido | Invariante de seguranca |
 
 ## 3. Modelo Operacional
@@ -87,9 +88,9 @@ Fluxo esperado quando a feature estiver completa:
 | AI-09 | Acoes assistidas | Draft prontos abrem formulario pre-preenchido com dados coletados | Concluido | PR #977 |
 | AI-10 | Catalogos no draft builder | Resolver memberId, categoryId, bankId, sourceId via catalogos reais da org no chat endpoint | Concluido | PR atual |
 | AI-11 | System prompt enriquecido com catalogo | Chat endpoint inclui nomes de membros, categorias, origens e contas no system prompt | Concluido | PR atual |
-| AI-12 | Dashboard insights com provider | Insights no dashboard gerados pelo provider OpenRouter com fallback deterministico, rate limit e config boundary | Concluido | PR atual |
-| AI-13 | Quick actions assistidas | "Marca conta X como paga" via chat com resolucao de bill, confirmacao forte via formulario e execucao dedicada | Concluido | PR atual |
-| AI-14 | Testes e2e do fluxo AI | Testes Playwright cobrindo command bar, classificador e fallback sem provider | Concluido | PR atual |
+| AI-12 | Dashboard insights com provider | Insights no dashboard gerados pelo provider OpenRouter com fallback deterministico, rate limit e config boundary | Concluido | PR #980, PR #981 |
+| AI-13 | Quick actions assistidas | "Marca conta X como paga" via chat com resolucao de bill, confirmacao forte via formulario e execucao dedicada | Concluido | PR #981, PR #982 |
+| AI-14 | Testes e2e do fluxo AI | Testes Playwright cobrindo command bar, classificador e fallback sem provider | Concluido | PR #981 |
 
 ## 6. Criterio De Conclusao Por Bloco
 
@@ -110,11 +111,12 @@ Um bloco so pode sair de `Planejado` ou `Em andamento` para `Concluido` quando:
 | Provider/modelo | Decidida | OpenRouter como provider inicial (OpenAI-compatible via fetch, sem SDK); estrutura para trocar para OpenAI depois. |
 | Retencao de prompts | Pendente | Prompt bruto nao deve ser persistido ate existir contrato explicito. |
 | UI do copiloto | Decidida para AI-02 | Command bar global no AppShell, conectada ao provider para intents de pergunta. |
-| Rate limit do provider | Implementado | In-memory rate limiter por organizacao (20 req/min). |
+| Gatilho do Command Bar | Decidido | Feature flag `NEXT_PUBLIC_ENABLE_AI_COMMAND_BAR` (padrao `false`) em `app-shell.tsx`. |
+| Rate limit do provider | Implementado | Rate limiter Supabase-backed via `ai_conversations.user_id` (service_role, sem Redis). |
 | Escopo de perguntas financeiras | Decidido | Perguntas read-only via `/api/ai/chat` com provider, audit e rate limit. |
-| Acoes semi-automaticas | Futuro | Exigir confirmacao forte e audit dedicado. |
+| Acoes semi-automaticas | Decidido | Quick actions assistidas (AI-13) com confirmacao forte via Dialog e endpoint dedicado `pay-bill`. |
 
-## 8. Sequencia Recomendada De PRs
+## 8. Sequencia Executada De PRs
 
 1. AI-00/AI-01: criar roadmap vivo e reconciliar contratos existentes.
 2. AI-02: documentar e implementar command bar review-only sem provider.
@@ -128,6 +130,8 @@ Um bloco so pode sair de `Planejado` ou `Em andamento` para `Concluido` quando:
 10. AI-12: dashboard insights com provider e fallback deterministico.
 11. AI-13: quick actions assistidas com confirmacao forte.
 12. AI-14: testes e2e do fluxo AI.
+
+Roadmap AI concluido (AI-00 a AI-14). Proximos passos arquivados em `docs/audits/DOCUMENTATION_GAPS.md`.
 
 ## 9. Historico De Atualizacoes
 
@@ -146,6 +150,12 @@ Um bloco so pode sair de `Planejado` ou `Em andamento` para `Concluido` quando:
 | 2026-06-29 | AI-12 | Dashboard insights com provider: gerador com fallback deterministico, rate limit e config boundary | PR atual |
 | 2026-06-29 | AI-13 | Quick actions assistidas: classificador acao_pagamento, resolucao de bills, confirmacao via dialog, endpoint dedicado pay-bill | PR atual |
 | 2026-06-29 | AI-14 | Testes e2e do fluxo AI: command bar, classificador com novo intent e fallback sem provider | PR atual |
+| 2026-06-30 | AI-13/AI-14 | Merge PRs #981 e #982 com quick actions, testes e2e e melhorias de UX | PR #981, PR #982 |
+| 2026-06-30 | AI-07 (rate limiter) | Rate limiter migrado de `Map` em memoria para Supabase (`ai_conversations.user_id`, service_role); `lib/ai/providers/` deletado (dead code) | PR #982 |
+| 2026-06-30 | AI-02 (feature flag) | Command Bar gated por `NEXT_PUBLIC_ENABLE_AI_COMMAND_BAR=false` | PR #982 |
+| 2026-06-30 | PWA/splash screen | Theme-color dark unconditional (`#14110F`), `color-scheme: dark` no CSS, safe area no AppFormDialog, SW opaque guard (`isUsable()` + `fetchAndCache()`) | PR #982 |
+| 2026-06-30 | Testes/guard | `page-skeleton.test.tsx` (11 testes), guard tests atualizados (rate limiter, PageSkeleton, `ui-primitive-usage-guards`) | PR #982 |
+| 2026-06-30 | Typecheck fix | Erro pre-existente `sign-up-form.tsx:46` corrigido (`AuthorizedEmailResult` com discriminated union) | PR #982 |
 
 ## 10. Fora De Escopo Por Enquanto
 

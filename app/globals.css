@@ -3,6 +3,10 @@
 @tailwind utilities;
 
 @layer base {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
   :root {
     /* Redesign 2026 — Ink + Copper + Ivory (LIGHT = warm paper variant with contrast).
      * Spec: docs/design/redesign-2026-ink-copper-ivory.md
@@ -91,19 +95,6 @@
     --chart-5: var(--ff-chart-5);
     --radius: var(--ff-radius-xl);
 
-    /* Legacy --app-* tokens kept temporarily for non-migrated
-     * dashboard components. Phase 5 removes them entirely. */
-    --app-bg: #080810;
-    --app-bg-soft: #10101a;
-    --app-surface: rgba(255, 255, 255, 0.045);
-    --app-surface-strong: rgba(255, 255, 255, 0.075);
-    --app-border: rgba(255, 255, 255, 0.1);
-    --app-primary: #8b72f8;
-    --app-primary-soft: #b09cff;
-    --app-success: #1de9b2;
-    --app-warning: #f7b84b;
-    --app-danger: #f0506e;
-    --app-info: #5caaff;
   }
 
   .dark {
@@ -155,6 +146,7 @@
     max-width: 100%;
     overflow-x: hidden;
     scroll-behavior: smooth;
+    color-scheme: dark;
   }
 
   body {

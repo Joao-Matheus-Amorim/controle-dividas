@@ -30,7 +30,7 @@ export function PeopleStatusForm({ memberId, isActive }: PeopleStatusFormProps) 
         type="submit"
         variant="outline"
         disabled={isPending}
-        className="h-9 rounded-xl border-white/10 bg-transparent text-white/60 hover:bg-white/10 hover:text-white"
+        className="h-9 rounded-xl border-border bg-transparent text-foreground hover:bg-ff-bg-soft hover:text-foreground"
       >
         {isPending ? "Salvando..." : isActive ? "Desativar" : "Ativar"}
       </Button>

@@ -27,7 +27,7 @@ export default function InitialOrganizationOnboardingPage() {
           <OrganizationOnboardingForm />
         </div>
 
-        <div className="rounded-2xl border border-primary/20 bg-primary/10 p-4 text-sm leading-6 text-[#d8d0ff]">
+        <div className="rounded-2xl border border-primary/20 bg-primary/10 p-4 text-sm leading-6 text-foreground/80">
           Escolha um nome para o espaco financeiro e, se quiser, ajuste o
           identificador do link. Depois da criacao, use Voltar para o app para
           acessar o ambiente protegido como responsavel principal.

@@ -65,7 +65,7 @@ function FormSection({ icon: Icon, title, description, children }: FormSectionPr
   return (
     <section className="rounded-[1.25rem] border border-border bg-ff-bg-soft p-3.5 sm:p-4">
       <div className="mb-4 flex items-start gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-primary/25 bg-primary/12 text-[#c6bbff]">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-primary/25 bg-primary/12 text-primary">
           <Icon className="h-4 w-4" aria-hidden="true" />
         </div>
         <div className="min-w-0">

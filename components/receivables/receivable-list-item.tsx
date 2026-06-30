@@ -37,37 +37,37 @@ export function ReceivableListItem({
     : "";
 
   return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-[#080810]/50 p-3 md:flex-row md:items-center md:justify-between">
+    <div className="flex flex-col gap-3 rounded-2xl border border-border bg-background/50 p-3 md:flex-row md:items-center md:justify-between">
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
-          <p className="truncate text-sm font-semibold text-white">{income.source}</p>
+          <p className="truncate text-sm font-semibold text-foreground">{income.source}</p>
           <Badge variant={statusVariant(income.computed_status)}>{income.computed_status}</Badge>
           {income.last_reversed_movement ? (
             <Badge variant="outline" className="border-amber-300/30 bg-amber-300/10 text-amber-100">
               Recebimento estornado
             </Badge>
           ) : null}
-          <Badge variant="outline" className="border-white/10 text-white/50">renda {income.income_type}</Badge>
+          <Badge variant="outline" className="border-border text-muted-foreground">renda {income.income_type}</Badge>
         </div>
-        <p className="mt-1 truncate text-xs text-white/35">
+        <p className="mt-1 truncate text-xs text-ff-subtle-foreground">
           {income.family_members?.name || "Sem pessoa vinculada"}
         </p>
         {income.payment_origin ? (
-          <p className="mt-0.5 truncate text-xs text-white/30">Origem do pagamento: {income.payment_origin}</p>
+          <p className="mt-0.5 truncate text-xs text-ff-subtle-foreground">Origem do pagamento: {income.payment_origin}</p>
         ) : null}
         {reversedAtLabel ? (
           <p className="mt-0.5 truncate text-xs text-amber-100/70">
             Ultimo estorno: {reversedAtLabel}{reversedBankLabel}
           </p>
         ) : null}
-        <p className="mt-0.5 truncate text-xs text-white/25">
+        <p className="mt-0.5 truncate text-xs text-ff-subtle-foreground">
           Data prevista: {new Date(`${income.expected_date}T00:00:00`).toLocaleDateString("pt-BR")}
           {income.receiving_bank ? ` - ${income.receiving_bank}` : ""}
         </p>
       </div>
 
       <div className="flex items-start justify-between gap-3 md:justify-end">
-        <p className="pt-2 text-sm font-bold text-[#1de9b2]">{compactCurrency(Number(income.amount))}</p>
+        <p className="pt-2 text-sm font-bold text-ff-success">{compactCurrency(Number(income.amount))}</p>
         {canEdit ? (
           <>
             <ReceivableIncomeEditDialog

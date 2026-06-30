@@ -27,7 +27,7 @@ export function BankDeleteForm({ accountId }: { accountId: string }) {
         size="icon"
         disabled={isPending}
         aria-label="Excluir banco"
-        className="h-9 w-9 rounded-xl border-white/10 bg-transparent text-white/35 hover:bg-white/10 hover:text-white"
+        className="h-9 w-9 rounded-xl border-border bg-transparent text-ff-subtle-foreground hover:bg-ff-bg-soft hover:text-foreground"
       >
         <Trash2 className="h-4 w-4" />
       </Button>

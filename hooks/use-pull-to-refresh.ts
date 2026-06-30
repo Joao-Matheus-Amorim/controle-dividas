@@ -28,6 +28,7 @@ export function usePullToRefresh() {
     touchCurrentY.current = e.touches[0].clientY;
     const dist = Math.max(0, touchCurrentY.current - touchStartY.current);
     if (dist > 0) {
+      e.preventDefault();
       setPullDistance(dist);
       setState("pulling");
     }

@@ -16,25 +16,25 @@ interface MovementListProps {
 
 export function MovementList({ movements }: MovementListProps) {
   return (
-    <section className="space-y-3 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
+    <section className="space-y-3 rounded-[1.5rem] border border-border bg-ff-bg-soft p-4">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/25">
+          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-ff-subtle-foreground">
             Lancamentos
           </p>
-          <p className="mt-1 text-sm text-white/35">
+          <p className="mt-1 text-sm text-ff-subtle-foreground">
             Historico gerado por pagamentos e recebimentos.
           </p>
         </div>
-        <p className="text-xs font-semibold text-[#8b72f8]">{movements.length}</p>
+        <p className="text-xs font-semibold text-primary">{movements.length}</p>
       </div>
 
       {movements.length === 0 ? (
-        <div className="rounded-2xl border border-white/10 bg-[#080810]/45 p-4 text-sm text-white/35">
+        <div className="rounded-2xl border border-border bg-background/45 p-4 text-sm text-ff-subtle-foreground">
           Nenhuma movimentacao registrada ainda.
         </div>
       ) : (
-        <div className="divide-y divide-white/10 overflow-hidden rounded-2xl border border-white/10 bg-[#080810]/45">
+        <div className="divide-y divide-white/10 overflow-hidden rounded-2xl border border-border bg-background/45">
           {movements.map((movement) => (
             <div
               key={movement.id}
@@ -42,30 +42,30 @@ export function MovementList({ movements }: MovementListProps) {
             >
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
-                  <p className="truncate text-sm font-semibold text-white">
+                  <p className="truncate text-sm font-semibold text-foreground">
                     {movementTitle(movement)}
                   </p>
                   <Badge variant={movement.direction === "inflow" ? "secondary" : "destructive"}>
                     {movementTypeLabel(movement)}
                   </Badge>
                   {movement.reversed_at ? (
-                    <Badge variant="outline" className="border-white/10 text-white/45">
+                    <Badge variant="outline" className="border-border text-muted-foreground">
                       estornado
                     </Badge>
                   ) : null}
                 </div>
-                <p className="mt-1 truncate text-xs text-white/35">
+                <p className="mt-1 truncate text-xs text-ff-subtle-foreground">
                   {movement.family_members?.name ?? "Sem pessoa"} - {movementBankLabel(movement)}
                 </p>
-                <p className="mt-0.5 truncate text-xs text-white/25">
+                <p className="mt-0.5 truncate text-xs text-ff-subtle-foreground">
                   {movementReferenceLabel(movement)}
                 </p>
               </div>
 
-              <div className="min-w-0 text-xs text-white/35">
+              <div className="min-w-0 text-xs text-ff-subtle-foreground">
                 <p>{movementDateTime(movement)}</p>
                 {movement.recorded_timezone ? (
-                  <p className="mt-0.5 truncate text-white/25">{movement.recorded_timezone}</p>
+                  <p className="mt-0.5 truncate text-ff-subtle-foreground">{movement.recorded_timezone}</p>
                 ) : null}
                 {movement.reversed_at ? (
                   <p className="mt-0.5 truncate text-ff-destructive">
@@ -76,9 +76,9 @@ export function MovementList({ movements }: MovementListProps) {
 
               <div className="flex flex-col items-start gap-2 md:items-end">
                 <p className={movement.reversed_at
-                  ? "text-sm font-bold text-white/35 line-through"
+                  ? "text-sm font-bold text-ff-subtle-foreground line-through"
                   : movement.direction === "inflow"
-                    ? "text-sm font-bold text-[#1de9b2]"
+                    ? "text-sm font-bold text-ff-success"
                     : "text-sm font-bold text-ff-destructive"}
                 >
                   {movementAmount(movement)}

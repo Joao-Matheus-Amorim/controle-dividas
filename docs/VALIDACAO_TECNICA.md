@@ -50,6 +50,8 @@ Ja existem no codigo:
 - migrations Supabase organizadas;
 - testes unitarios;
 - testes de integracao com MSW;
+- AI copilot (classificador de intencao, rascunho universal, quick actions, dashboard insights, provider OpenRouter, rate limit, auditoria, historico com retencao 24h);
+- migrations Supabase organizadas (072 cria `ai_conversations` para conversas IA, 070 cria `ai_actions` para acoes assistidas);
 - PWA manifest;
 - deploy de producao automatizado apos CI verde na `main`, com fallback manual via `.github/workflows/deploy.yml`, aplicando backend Supabase e frontend Vercel.
 - CI com `npm audit --audit-level=moderate`, Vitest `4.1.8`, lint, typecheck, testes e build.

@@ -14,10 +14,10 @@ export function PeopleList({
   canManagePeople = false,
 }: PeopleListProps) {
   return (
-    <section className="space-y-3 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
+    <section className="space-y-3 rounded-[1.5rem] border border-border bg-ff-bg-soft p-4">
       <div className="flex items-center justify-between">
-        <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/25">Membros cadastrados</p>
-        <p className="text-xs font-semibold text-[#8b72f8]">{members.length}</p>
+        <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-ff-subtle-foreground">Membros cadastrados</p>
+        <p className="text-xs font-semibold text-primary">{members.length}</p>
       </div>
 
       {members.map((member) => (

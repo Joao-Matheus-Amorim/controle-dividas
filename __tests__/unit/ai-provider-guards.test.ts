@@ -47,9 +47,10 @@ describe("AI provider guards", () => {
     expect(factorySource).toContain("openrouter");
   });
 
-  it("rate limits by organization with in-memory store", () => {
-    expect(rateLimiterSource).toContain("Map");
+  it("rate limits by user with Supabase-backed store", () => {
     expect(rateLimiterSource).toContain("checkRateLimit");
+    expect(rateLimiterSource).toContain("createAdminClient");
+    expect(rateLimiterSource).toContain("ai_conversations");
     expect(rateLimiterSource).toContain("WINDOW_MS");
     expect(rateLimiterSource).toContain("MAX_REQUESTS");
     expect(rateLimiterSource).toContain("allowed");
@@ -93,7 +94,7 @@ describe("AI provider guards", () => {
     const roadmap = readLower("docs/audits/AI_COPILOT_ROADMAP.md");
     expect(roadmap).toContain("ai-07");
     expect(roadmap).toContain("openrouter");
-    expect(roadmap).toContain("lib/ai/provider/");
+    expect(roadmap).toContain("lib/ai/");
     expect(roadmap).toContain("lib/ai/rate-limiter.ts");
     expect(roadmap).toContain("app/api/ai/chat/");
   });

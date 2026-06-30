@@ -127,7 +127,7 @@ export async function generateDashboardInsights(
       return fallback();
     }
 
-    const rateLimit = checkRateLimit("dashboard-insights");
+    const rateLimit = await checkRateLimit("dashboard-insights");
     if (!rateLimit.allowed) {
       return fallback();
     }

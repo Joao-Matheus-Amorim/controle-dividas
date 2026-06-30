@@ -33,7 +33,7 @@ export function AssistedDraftReviewBoundary({
           <p className="mt-1 text-sm text-muted-foreground">{description}</p>
         </div>
         {applied ? (
-          <span className="rounded-full bg-primary/15 px-3 py-1 text-xs font-semibold text-[#c9bfff]">
+          <span className="rounded-full bg-primary/15 px-3 py-1 text-xs font-semibold text-primary">
             rascunho aplicado
           </span>
         ) : null}

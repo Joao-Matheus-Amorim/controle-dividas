@@ -29,14 +29,14 @@ export function OrganizationOnboardingForm() {
       <div className="space-y-2">
         <Label htmlFor="organization_slug">Identificador do link</Label>
         <Input id="organization_slug" name="organization_slug" placeholder="familia-amorim" />
-        <p className="text-xs leading-5 text-white/35">
+        <p className="text-xs leading-5 text-ff-subtle-foreground">
           Use letras minusculas, numeros e hifens. Se ficar vazio, sera sugerido a partir do nome.
         </p>
       </div>
 
       <AppActionFeedback error={state.error} success={state.success} />
 
-      <Button type="submit" disabled={isPending} className="w-full rounded-2xl bg-[#8b72f8] font-bold text-white hover:bg-[#7d66e4]">
+      <Button type="submit" disabled={isPending} className="w-full rounded-2xl bg-primary font-bold text-foreground hover:bg-ff-primary-hover">
         {isPending ? "Processando..." : "Continuar"}
       </Button>
     </form>
