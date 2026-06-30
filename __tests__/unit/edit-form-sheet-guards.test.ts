@@ -36,7 +36,7 @@ describe("edit form sheet guards", () => {
     const source = readSource("components/finance/expense-list-client.tsx");
 
     expect(source).toContain("SheetClose");
-    expect(source).toContain("Voltar");
+    expect(source).toContain("Fechar");
     expect(source).toContain("h-[100dvh]");
     expect(source).toContain("md:w-[calc(100vw-2rem)]");
     expect(source).toContain("md:max-w-none");
