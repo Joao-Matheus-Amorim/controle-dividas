@@ -37,6 +37,10 @@ function getSignupRateLimitActorKey(email: string) {
   return email;
 }
 
+type AuthorizedEmailResult =
+  | { allowed: true; name: string; role: string }
+  | { allowed: false; error: string };
+
 function sanitizeOrigin(origin: string | null) {
   const value = origin?.trim();
 
@@ -68,7 +72,7 @@ async function getSignupEmailRedirectTo() {
   return `${protocol}://${host}/auth/confirm?next=/protected`;
 }
 
-export async function checkAuthorizedFamilyEmail(email: unknown) {
+export async function checkAuthorizedFamilyEmail(email: unknown): Promise<AuthorizedEmailResult> {
   const normalizedEmail = normalizeAuthorizedEmail(typeof email === "string" ? email : null);
   const rateLimit = checkSensitiveOperationRateLimit({
     ...signupAuthorizedEmailRateLimit,
@@ -86,7 +90,7 @@ export async function checkAuthorizedFamilyEmail(email: unknown) {
   return getAuthorizedSignupProfile(normalizedEmail);
 }
 
-async function getAuthorizedSignupProfile(normalizedEmail: string) {
+async function getAuthorizedSignupProfile(normalizedEmail: string): Promise<AuthorizedEmailResult> {
   let lookup: Awaited<ReturnType<typeof findAuthorizedProfilesByEmail>>;
 
   try {
@@ -129,7 +133,7 @@ async function getAuthorizedSignupProfile(normalizedEmail: string) {
   return { allowed: true, name: profile.name, role: profile.role };
 }
 
-export async function createAuthorizedFamilyAccess(email: unknown, password: unknown) {
+export async function createAuthorizedFamilyAccess(email: unknown, password: unknown): Promise<AuthorizedEmailResult> {
   const normalizedEmail = normalizeAuthorizedEmail(typeof email === "string" ? email : null);
   const rateLimit = checkSensitiveOperationRateLimit({
     ...signupSubmitRateLimit,

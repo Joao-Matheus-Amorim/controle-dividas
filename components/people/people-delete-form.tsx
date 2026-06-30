@@ -21,22 +21,22 @@ export function PeopleDeleteForm({ member }: { member: DbFamilyMember }) {
   const [isConfirmed, setIsConfirmed] = useState(false);
 
   return (
-    <form action={formAction} className="mt-4 space-y-3 rounded-2xl border border-[#f0506e]/20 bg-[#f0506e]/10 p-3">
+    <form action={formAction} className="mt-4 space-y-3 rounded-2xl border border-ff-destructive bg-ff-destructive-soft p-3">
       <input type="hidden" name="id" value={member.id} />
       <input type="hidden" name="confirm_delete" value={isConfirmed ? "confirmado" : ""} />
 
       <div className="space-y-1">
-        <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#ff8da0]">
+        <p className="text-xs font-bold uppercase tracking-[0.18em] text-ff-destructive">
           Excluir pessoa
         </p>
-        <p className="text-sm text-white/50">
+        <p className="text-sm text-muted-foreground">
           Exclui apenas pessoas sem gastos, contas, bancos, movimentacoes ou
           acesso vinculado. Desative a pessoa em vez de excluir quando ja houver
           historico.
         </p>
       </div>
 
-      <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-white/10 bg-[#080810]/50 p-3 text-sm text-white/45">
+      <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-background/50 p-3 text-sm text-muted-foreground">
         <input
           type="checkbox"
           checked={isConfirmed}
@@ -52,7 +52,7 @@ export function PeopleDeleteForm({ member }: { member: DbFamilyMember }) {
         type="submit"
         variant="outline"
         disabled={!isConfirmed || isPending}
-        className="w-full rounded-xl border-[#f0506e]/30 bg-transparent text-[#ff8da0] hover:bg-[#f0506e]/15 hover:text-white"
+        className="w-full rounded-xl border-ff-destructive/30 bg-transparent text-ff-destructive hover:bg-ff-destructive/15 hover:text-foreground"
       >
         <Trash2 className="mr-2 h-4 w-4" />
         {isPending ? "Excluindo..." : "Excluir pessoa"}

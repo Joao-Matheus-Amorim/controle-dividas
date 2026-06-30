@@ -48,7 +48,7 @@ export function ReceivableStatusForm({
           name="status"
           value={selectedStatus}
           onChange={(event) => setSelectedStatus(event.target.value)}
-          className="h-9 rounded-xl border border-white/10 bg-[#080810] px-2 text-xs text-white/70"
+          className="h-9 rounded-xl border border-border bg-background px-2 text-xs text-foreground"
         >
           <option value="previsto">Previsto</option>
           <option value="recebido">Recebido</option>
@@ -58,7 +58,7 @@ export function ReceivableStatusForm({
           <select
             name="bank_id"
             required
-            className="h-9 min-w-[11rem] rounded-xl border border-white/10 bg-[#080810] px-2 text-xs text-white/70"
+            className="h-9 min-w-[11rem] rounded-xl border border-border bg-background px-2 text-xs text-foreground"
           >
             <option value="">Banco recebido</option>
             {memberBankAccounts.map((account) => (
@@ -72,7 +72,7 @@ export function ReceivableStatusForm({
           type="submit"
           variant="outline"
           disabled={isPending}
-          className="h-9 rounded-xl border-white/10 bg-transparent text-white/60 hover:bg-white/10 hover:text-white"
+          className="h-9 rounded-xl border-border bg-transparent text-foreground hover:bg-ff-bg-soft hover:text-foreground"
         >
           {isPending ? "Salvando..." : "Salvar"}
         </Button>

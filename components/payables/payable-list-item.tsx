@@ -37,10 +37,10 @@ export function PayableListItem({
     : "";
 
   return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-[#080810]/50 p-3 md:flex-row md:items-center md:justify-between">
+    <div className="flex flex-col gap-3 rounded-2xl border border-border bg-background/50 p-3 md:flex-row md:items-center md:justify-between">
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
-          <p className="truncate text-sm font-semibold text-white">{bill.name}</p>
+          <p className="truncate text-sm font-semibold text-foreground">{bill.name}</p>
           <Badge variant={bill.bill_type === "fixa" ? "secondary" : "outline"}>
             {bill.bill_type === "fixa" ? "fixa" : "avulsa"}
           </Badge>
@@ -51,10 +51,10 @@ export function PayableListItem({
             </Badge>
           ) : null}
           {bill.recurrence ? (
-            <Badge variant="outline" className="border-white/10 text-white/50">{bill.recurrence}</Badge>
+            <Badge variant="outline" className="border-border text-muted-foreground">{bill.recurrence}</Badge>
           ) : null}
         </div>
-        <p className="mt-1 truncate text-xs text-white/35">
+        <p className="mt-1 truncate text-xs text-ff-subtle-foreground">
           {bill.category || "Sem categoria"} - {bill.family_members?.name || "Sem responsavel"}
         </p>
         {reversedAtLabel ? (
@@ -62,14 +62,14 @@ export function PayableListItem({
             Ultimo estorno: {reversedAtLabel}{reversedBankLabel}
           </p>
         ) : null}
-        <p className="mt-0.5 truncate text-xs text-white/25">
+        <p className="mt-0.5 truncate text-xs text-ff-subtle-foreground">
           Vencimento: {new Date(`${bill.due_date}T00:00:00`).toLocaleDateString("pt-BR")}
           {bill.bank_used ? ` - ${bill.bank_used}` : ""}
         </p>
       </div>
 
       <div className="flex items-center justify-between gap-3 md:justify-end">
-        <p className="text-sm font-bold text-white">{compactCurrency(Number(bill.amount))}</p>
+        <p className="text-sm font-bold text-foreground">{compactCurrency(Number(bill.amount))}</p>
         {canEdit ? (
           <>
             <PayableBillEditDialog

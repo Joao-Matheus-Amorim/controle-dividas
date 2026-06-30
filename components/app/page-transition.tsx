@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { cn } from "@/lib/utils";
 
 type PageTransitionProps = {
   children: React.ReactNode;
@@ -29,9 +30,10 @@ export function PageTransition({ children }: PageTransitionProps) {
 
   return (
     <div
-      className={`transition-all duration-ff-base ease-out ${
-        transitionStage === "exit" ? "translate-y-1 opacity-0" : "translate-y-0 opacity-100"
-      }`}
+      className={cn(
+        "transition-all duration-ff-base ease-out motion-reduce:transition-none motion-reduce:translate-y-0 motion-reduce:opacity-100",
+        transitionStage === "exit" ? "translate-y-1 opacity-0" : "translate-y-0 opacity-100",
+      )}
     >
       {displayChildren}
     </div>

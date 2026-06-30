@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import type { LucideIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -38,7 +38,13 @@ export function AppFormSheet({
   onOpenChange,
 }: AppFormSheetProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  useKeyboardAwareForm({ containerRef: scrollRef });
+  const { handleKeyboardOpen } = useKeyboardAwareForm({ containerRef: scrollRef });
+
+  useEffect(() => {
+    if (!open) return;
+    const cleanup = handleKeyboardOpen();
+    return cleanup;
+  }, [open, handleKeyboardOpen]);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>

@@ -26,11 +26,11 @@ export function ReceivableHeroSummary({
         items={[
           {
             label: "Recebido",
-            value: <span className="text-[#1de9b2]">{receivedCount} · {compactCurrency(totalReceived)}</span>,
+            value: <span className="text-ff-success">{receivedCount} · {compactCurrency(totalReceived)}</span>,
           },
           {
             label: "Atrasado",
-            value: <span className="text-[#f0506e]">{overdueCount} · {compactCurrency(totalOverdue)}</span>,
+            value: <span className="text-ff-destructive">{overdueCount} · {compactCurrency(totalOverdue)}</span>,
           },
         ]}
       />

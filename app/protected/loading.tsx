@@ -1,5 +1,5 @@
-import { AppPageSkeleton } from "@/components/app/app-skeleton";
+import { PageSkeleton } from "@/components/app/page-skeleton";
 
 export default function ProtectedLoading() {
-  return <AppPageSkeleton />;
+  return <PageSkeleton variant="dashboard" />;
 }

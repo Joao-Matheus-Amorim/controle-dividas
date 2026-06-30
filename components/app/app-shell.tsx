@@ -71,7 +71,8 @@ export async function AppShell({ children, orgSlug }: AppShellProps) {
   const mobilePrimaryItems = visibleMobilePrimaryNavigation.map(toMobileNavigationItem);
   const mobileAllItems = visibleNavigation.map(toMobileNavigationItem);
 
-  const canUseAi = visibleModules.has("DASHBOARD");
+  const aiCommandBarEnabled = process.env.NEXT_PUBLIC_ENABLE_AI_COMMAND_BAR === "true";
+  const canUseAi = visibleModules.has("DASHBOARD") && aiCommandBarEnabled;
 
   return (
     <main className="app-no-x-scroll min-h-screen bg-background text-foreground">

@@ -24,11 +24,11 @@ export function PayableHeroSummary({
         items={[
           {
             label: "Pendentes",
-            value: <span className="text-[#f7b84b]">{pendingCount} · {compactCurrency(totalPending)}</span>,
+            value: <span className="text-ff-warning">{pendingCount} · {compactCurrency(totalPending)}</span>,
           },
           {
             label: "Atrasadas",
-            value: <span className="text-[#f0506e]">{overdueCount} · {compactCurrency(totalOverdue)}</span>,
+            value: <span className="text-ff-destructive">{overdueCount} · {compactCurrency(totalOverdue)}</span>,
           },
         ]}
       />

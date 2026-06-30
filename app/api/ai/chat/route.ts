@@ -371,8 +371,8 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const rateLimitKey = `chat:${organization_id}:${profile.id}`;
-    const rateLimitResult = checkRateLimit(rateLimitKey);
+    const rateLimitKey = profile.id;
+    const rateLimitResult = await checkRateLimit(rateLimitKey);
 
     if (!rateLimitResult.allowed) {
       await auditLog({

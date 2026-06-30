@@ -12,9 +12,9 @@ function readSource(path: string) {
 describe("ui primitive usage guards", () => {
   it("keeps protected loading states using the Skeleton primitive", () => {
     const loadingSource = readSource("app/protected/loading.tsx");
-    const skeletonSource = readSource("components/app/app-skeleton.tsx");
+    const skeletonSource = readSource("components/app/page-skeleton.tsx");
 
-    expect(loadingSource).toContain("AppPageSkeleton");
+    expect(loadingSource).toContain("PageSkeleton");
     expect(skeletonSource).toContain('@/components/ui/skeleton');
     expect(skeletonSource).toContain("Skeleton");
     expect(skeletonSource).not.toContain("animate-pulse rounded-2xl bg-white/10");

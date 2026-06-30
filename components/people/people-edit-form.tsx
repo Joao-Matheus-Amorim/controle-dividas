@@ -34,7 +34,7 @@ export function PeopleEditForm({ member }: { member: DbFamilyMember }) {
         className="h-10 rounded-xl"
         required
       />
-      <Button type="submit" disabled={isPending} className="h-10 rounded-xl bg-[#8b72f8] text-white hover:bg-[#7d66e4]">
+      <Button type="submit" disabled={isPending} className="h-10 rounded-xl bg-primary text-foreground hover:bg-ff-primary-hover">
         {isPending ? "Salvando..." : "Salvar"}
       </Button>
 

@@ -18,7 +18,7 @@ export function LogoutButton() {
   return (
     <Button
       onClick={logout}
-      className="h-10 shrink-0 rounded-2xl bg-[#8b72f8] px-4 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(139,114,248,0.2)] hover:bg-[#7d66e4]"
+      className="h-10 shrink-0 rounded-2xl bg-primary px-4 text-sm font-semibold text-foreground shadow-[0_12px_30px_rgba(139,114,248,0.2)] hover:bg-ff-primary-hover"
     >
       <span className="hidden sm:inline">Logout</span>
       <LogOut className="h-4 w-4 sm:hidden" />

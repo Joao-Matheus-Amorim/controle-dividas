@@ -29,19 +29,19 @@ export function BankBalanceForm({ account }: { account: DbBankAccount }) {
           type="number"
           step="0.01"
           defaultValue={Number(account.current_balance)}
-          className="h-9 w-28 rounded-xl border-white/10 bg-[#080810] text-xs text-white"
+          className="h-9 w-28 rounded-xl border-border bg-background text-xs text-foreground"
         />
         <Button
           type="submit"
           variant="outline"
           disabled={isPending}
-          className="h-9 rounded-xl border-white/10 bg-transparent text-white/60 hover:bg-white/10 hover:text-white"
+          className="h-9 rounded-xl border-border bg-transparent text-foreground hover:bg-ff-bg-soft hover:text-foreground"
         >
           {isPending ? "Salvando..." : "Salvar"}
         </Button>
       </div>
 
-      <p className="max-w-[220px] text-[11px] text-white/30">
+      <p className="max-w-[220px] text-[11px] text-ff-subtle-foreground">
         Ajuste manual do saldo atual.
       </p>
       <AppActionFeedback error={state.error} success={state.success} className="max-w-[220px] text-xs" />
