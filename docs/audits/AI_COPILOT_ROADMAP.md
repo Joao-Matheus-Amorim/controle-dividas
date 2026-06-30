@@ -88,6 +88,8 @@ Fluxo esperado quando a feature estiver completa:
 | AI-10 | Catalogos no draft builder | Resolver memberId, categoryId, bankId, sourceId via catalogos reais da org no chat endpoint | Concluido | PR atual |
 | AI-11 | System prompt enriquecido com catalogo | Chat endpoint inclui nomes de membros, categorias, origens e contas no system prompt | Concluido | PR atual |
 | AI-12 | Dashboard insights com provider | Insights no dashboard gerados pelo provider OpenRouter com fallback deterministico, rate limit e config boundary | Concluido | PR atual |
+| AI-13 | Quick actions assistidas | "Marca conta X como paga" via chat com resolucao de bill, confirmacao forte via formulario e execucao dedicada | Concluido | PR atual |
+| AI-14 | Testes e2e do fluxo AI | Testes Playwright cobrindo command bar, classificador e fallback sem provider | Concluido | PR atual |
 
 ## 6. Criterio De Conclusao Por Bloco
 
@@ -124,6 +126,8 @@ Um bloco so pode sair de `Planejado` ou `Em andamento` para `Concluido` quando:
 8. AI-08/AI-09: conversa com memoria e acoes assistidas.
 9. AI-10/AI-11: catalogos no draft builder e system prompt enriquecido.
 10. AI-12: dashboard insights com provider e fallback deterministico.
+11. AI-13: quick actions assistidas com confirmacao forte.
+12. AI-14: testes e2e do fluxo AI.
 
 ## 9. Historico De Atualizacoes
 
@@ -140,6 +144,8 @@ Um bloco so pode sair de `Planejado` ou `Em andamento` para `Concluido` quando:
 | 2026-06-29 | AI-10 | Catalogos da org passados ao draft builder no chat endpoint; memberId resolvido | PR atual |
 | 2026-06-29 | AI-11 | System prompt enriquecido com nomes de membros, categorias, origens e contas bancarias | PR atual |
 | 2026-06-29 | AI-12 | Dashboard insights com provider: gerador com fallback deterministico, rate limit e config boundary | PR atual |
+| 2026-06-29 | AI-13 | Quick actions assistidas: classificador acao_pagamento, resolucao de bills, confirmacao via dialog, endpoint dedicado pay-bill | PR atual |
+| 2026-06-29 | AI-14 | Testes e2e do fluxo AI: command bar, classificador com novo intent e fallback sem provider | PR atual |
 
 ## 10. Fora De Escopo Por Enquanto
 
@@ -147,7 +153,6 @@ Um bloco so pode sair de `Planejado` ou `Em andamento` para `Concluido` quando:
 - provider/modelo real em producao;
 - embeddings;
 - salvamento automatico;
-- marcar conta como paga sem confirmacao forte;
 - criar/editar/excluir registros diretamente pelo endpoint de IA;
 - expor chave de provider no client;
 - registrar prompt bruto sem contrato de retencao;

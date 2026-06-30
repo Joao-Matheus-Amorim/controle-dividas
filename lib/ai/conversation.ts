@@ -7,7 +7,7 @@ export type ConversationMessage = {
   content: string;
 };
 
-export type ConversationIntent = "gasto" | "conta_a_pagar" | "conta_a_receber" | "banco" | "pergunta" | null;
+export type ConversationIntent = "gasto" | "conta_a_pagar" | "conta_a_receber" | "banco" | "acao_pagamento" | "pergunta" | null;
 
 export type Conversation = {
   id: string;

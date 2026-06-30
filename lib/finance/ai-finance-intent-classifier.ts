@@ -2,6 +2,7 @@ import { aiFinanceIntents, type AiFinanceIntent } from "@/lib/finance/ai-finance
 
 export const aiFinanceClassifierIntents = [
   ...aiFinanceIntents,
+  "acao_pagamento",
   "pergunta",
   "recusa",
 ] as const;
@@ -29,8 +30,6 @@ const refusalTerms = [
   "edite",
   "excluir",
   "exclua",
-  "marcar como pago",
-  "pague a conta",
   "salvar automaticamente",
   "transferir dinheiro",
 ];
@@ -48,6 +47,15 @@ const questionTerms = [
   "resumo",
   "tenho que pagar",
   "total",
+];
+
+const actionTerms = [
+  "marca",
+  "marcar como pago",
+  "marque",
+  "paga a conta",
+  "pague a conta",
+  "pague",
 ];
 
 const intentTerms: Record<AiFinanceIntent, string[]> = {
@@ -104,11 +112,12 @@ const labels: Record<AiFinanceClassifierIntent, string> = {
   conta_a_pagar: "conta a pagar",
   conta_a_receber: "conta a receber",
   banco: "banco",
+  acao_pagamento: "acao de pagamento",
   pergunta: "pergunta financeira",
   recusa: "recusa controlada",
 };
 
-function normalizeInput(input: string) {
+export function normalizeInput(input: string) {
   return input
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -120,6 +129,15 @@ function normalizeInput(input: string) {
 
 function findMatches(text: string, terms: readonly string[]) {
   return terms.filter((term) => text.includes(normalizeInput(term)));
+}
+
+function findWordBoundaryMatches(text: string, terms: readonly string[]) {
+  const normalized = normalizeInput(text);
+  return terms.filter((term) => {
+    const normalizedTerm = normalizeInput(term);
+    const escaped = normalizedTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return new RegExp(`(^|\\s)${escaped}(\\s|$)`).test(normalized);
+  });
 }
 
 function buildClassification(
@@ -155,6 +173,15 @@ export function classifyAiFinanceIntent(input: string): AiFinanceIntentClassific
       "recusa",
       refusalMatches,
       "Pedido parece executar, alterar ou excluir dados; a IA permanece review-only.",
+    );
+  }
+
+  const actionMatches = findWordBoundaryMatches(text, actionTerms);
+  if (actionMatches.length > 0) {
+    return buildClassification(
+      "acao_pagamento",
+      actionMatches,
+      "Texto parece ser uma acao de pagamento assistida.",
     );
   }
 

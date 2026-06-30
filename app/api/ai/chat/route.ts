@@ -6,7 +6,7 @@ import { auditLog } from "@/lib/ai/audit";
 import { createAiProvider } from "@/lib/ai/provider";
 import { checkRateLimit } from "@/lib/ai/rate-limiter";
 import { getCurrentOrganizationProfile } from "@/lib/finance/access-control";
-import { classifyAiFinanceIntent, getAiFinanceClassifierIntentLabel, type AiFinanceClassifierIntent } from "@/lib/finance/ai-finance-intent-classifier";
+import { classifyAiFinanceIntent, getAiFinanceClassifierIntentLabel, normalizeInput, type AiFinanceClassifierIntent } from "@/lib/finance/ai-finance-intent-classifier";
 import { buildAiFinanceUniversalDraft, type AiFinanceUniversalDraftCatalogs } from "@/lib/finance/ai-finance-universal-draft";
 import { getOrganizationExpenseCategories } from "@/lib/organizations/categories";
 import { getOrganizationReceivableIncomeSources } from "@/lib/organizations/receivable-income-sources";
@@ -62,6 +62,41 @@ function getMissingFields(intent: string, data: Record<string, unknown>): string
 
 function getFriendlyNames(fields: string[]): string[] {
   return fields.map((f) => friendlyFieldNames[f] || f);
+}
+
+function findBestPayableBillMatch(
+  text: string,
+  bills: Array<{ id: string; name: string; amount: number; due_date: string; responsible_member_id: string | null }>,
+) {
+  const normalized = normalizeInput(text);
+  const stopWords = new Set(["marca", "marcar", "como", "pago", "paga", "pague", "a", "o", "de", "da", "do", "para", "e", "em", "no", "na", "por", "com", "se", "voce", "sua"]);
+  const textTokens = new Set(normalized.split(/\s+/).filter((t) => t.length > 1 && !stopWords.has(t)));
+
+  let best: (typeof bills)[0] | null = null;
+  let bestScore = 0;
+
+  for (const bill of bills) {
+    const billName = normalizeInput(bill.name);
+    let score = 0;
+
+    if (normalized.includes(billName)) {
+      score += 100;
+    }
+
+    const billTokens = billName.split(/\s+/).filter(Boolean);
+    for (const bt of billTokens) {
+      if (textTokens.has(bt)) {
+        score += 10;
+      }
+    }
+
+    if (score > bestScore) {
+      bestScore = score;
+      best = bill;
+    }
+  }
+
+  return bestScore >= 10 ? best : null;
 }
 
 function buildCatalogContext(catalogs?: AiFinanceUniversalDraftCatalogs): string[] {
@@ -255,6 +290,83 @@ export async function POST(request: NextRequest) {
       receivableSources,
       bankAccounts,
     };
+
+    if (classification.intent === "acao_pagamento") {
+      conv = await setConversationIntent(organization_id, profile.id, "acao_pagamento");
+
+      const { data: unpaidBills } = await supabase
+        .from("payable_bills")
+        .select("id, name, amount, due_date, responsible_member_id")
+        .eq("organization_id", organization_id)
+        .neq("status", "pago")
+        .order("due_date", { ascending: true });
+
+      const matchedBill = findBestPayableBillMatch(allUserTexts, unpaidBills ?? []);
+
+      if (!matchedBill) {
+        const noMatchContent = "Nao encontrei nenhuma conta pendente com esse nome. Tente novamente com mais detalhes.";
+        await addMessage(organization_id, profile.id, "assistant", noMatchContent);
+        await auditLog({
+          action: "chat_completion",
+          payload: { text, organization_id, classification: "acao_pagamento" },
+          result: { content: noMatchContent },
+          success: true,
+          organization_id,
+          created_by: profile.id,
+        });
+        return NextResponse.json({
+          result: {
+            content: noMatchContent,
+            classification: { intent: "acao_pagamento", confidence: classification.confidence },
+            conversationComplete: true,
+            draftReady: false,
+          },
+        });
+      }
+
+      const member = members.find((m) => m.id === matchedBill.responsible_member_id);
+      const memberName = member?.name ?? "";
+      const memberBankAccounts = (bankAccounts ?? []).filter(
+        (b) => b.family_member_id === matchedBill.responsible_member_id,
+      );
+
+      const draftData: Record<string, unknown> = {
+        intent: "acao_pagamento",
+        billId: matchedBill.id,
+        billName: matchedBill.name,
+        billAmount: matchedBill.amount,
+        billDueDate: matchedBill.due_date,
+        memberName,
+        memberBankAccounts: memberBankAccounts.map((b) => ({ id: b.id, name: b.bank_name })),
+      };
+
+      conv = await updateCollectedData(organization_id, profile.id, draftData);
+      conv = await markConversationComplete(organization_id, profile.id);
+
+      const currency = member?.currency ?? "EUR";
+      const formattedAmount = new Intl.NumberFormat("pt-BR", { style: "currency", currency }).format(matchedBill.amount);
+      const actionContent = `Encontrei a conta "${matchedBill.name}" (${formattedAmount}) de ${memberName}, vencimento ${matchedBill.due_date}. Confirma a marcacao como paga?`;
+
+      await addMessage(organization_id, profile.id, "assistant", actionContent);
+      await auditLog({
+        action: "chat_completion",
+        payload: { text, organization_id, classification: "acao_pagamento", billId: matchedBill.id },
+        result: { content: actionContent },
+        success: true,
+        organization_id,
+        created_by: profile.id,
+      });
+
+      return NextResponse.json({
+        result: {
+          content: actionContent,
+          classification: { intent: "acao_pagamento", confidence: classification.confidence },
+          conversationComplete: true,
+          draftReady: true,
+          draft: draftData,
+        },
+      });
+    }
 
     let draftData: Record<string, unknown> = {};
     let missingFields: string[] = [];

@@ -105,10 +105,12 @@ export function buildAiFinanceUniversalDraft({
 }: BuildAiFinanceUniversalDraftInput): AiFinanceUniversalDraftBoundary {
   const classification = classifyAiFinanceIntent(text);
 
-  if (classification.intent === "pergunta") {
+  if (classification.intent === "pergunta" || classification.intent === "acao_pagamento") {
     return buildBlockedBoundary(
       classification,
-      "Perguntas financeiras devem usar somente acoes read-only permitidas.",
+      classification.intent === "pergunta"
+        ? "Perguntas financeiras devem usar somente acoes read-only permitidas."
+        : "Acoes de pagamento devem ser tratadas no chat endpoint, nao no draft builder.",
     );
   }
 
@@ -181,7 +183,7 @@ export function buildAiFinanceUniversalDraft({
     };
   }
 
-  const missingFields = missingFieldsForDraft(classification.intent, draft);
+  const missingFields = missingFieldsForDraft(classification.intent as AiFinanceIntent, draft);
 
   return {
     mode: "review_only",
