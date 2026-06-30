@@ -40,9 +40,10 @@ export function ReceivableIncomeFormDialog({
   bankAccounts: DbBankAccount[];
   defaultMemberId?: string;
 }) {
-  const [open, setOpen] = useState(() => !!readAiDraft());
+  const [initialDraft] = useState<Record<string, unknown> | null>(() => readAiDraft());
+  const [open, setOpen] = useState(() => Boolean(initialDraft));
   const [formKey, setFormKey] = useState(0);
-  const [draftData, setDraftData] = useState<Record<string, unknown> | null>(() => readAiDraft());
+  const [draftData, setDraftData] = useState<Record<string, unknown> | null>(initialDraft);
 
   function handleSuccess() {
     setDraftData(null);

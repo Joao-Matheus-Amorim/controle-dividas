@@ -112,7 +112,7 @@ export function ReportExportActions(props: ReportExportActionsProps) {
   const href = `data:text/csv;charset=utf-8,${encodeURIComponent(csv)}`;
 
   return (
-    <Button asChild variant="outline" className="h-10 rounded-xl border-white/10 bg-transparent text-white/70 hover:bg-white/10 hover:text-white">
+    <Button asChild variant="outline" className="h-10 rounded-xl border-border bg-transparent text-foreground hover:bg-ff-bg-soft hover:text-foreground">
       <a href={href} download="relatorios-familyfinance.csv">
         <Download className="mr-2 h-4 w-4" />
         Exportar CSV

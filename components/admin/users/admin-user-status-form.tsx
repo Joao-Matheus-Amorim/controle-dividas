@@ -29,7 +29,7 @@ export function AdminUserStatusForm({ profileId, isActive, disabled = false }: A
         type="submit"
         variant="outline"
         disabled={disabled || isPending}
-        className="h-9 rounded-xl border-white/10 bg-transparent text-white/60 hover:bg-white/10 hover:text-white disabled:opacity-40"
+        className="h-9 rounded-xl border-border bg-transparent text-foreground hover:bg-ff-bg-soft hover:text-foreground disabled:opacity-40"
       >
         {isPending ? "Salvando..." : isActive ? "Desativar" : "Ativar"}
       </Button>

@@ -28,13 +28,13 @@ export function ActiveOrganizationIndicator({
 
   if (!hasMultipleOrganizations) {
     return (
-      <div className="flex min-w-0 items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-medium text-white/80">
-        <Building2 className="h-3.5 w-3.5 shrink-0 text-[#b09cff]" aria-hidden="true" />
-        <span className="hidden text-white/45 sm:inline">Organizacao</span>
-        <span className="max-w-44 truncate text-white" title={organization.name}>
+      <div className="flex min-w-0 items-center gap-2 rounded-full border border-border bg-ff-bg-soft px-3 py-1.5 text-xs font-medium text-foreground">
+        <Building2 className="h-3.5 w-3.5 shrink-0 text-primary" aria-hidden="true" />
+        <span className="hidden text-muted-foreground sm:inline">Organizacao</span>
+        <span className="max-w-44 truncate text-foreground" title={organization.name}>
           {organization.name}
         </span>
-        <span className="hidden max-w-32 truncate rounded-full bg-white/[0.06] px-2 py-0.5 text-[10px] uppercase tracking-wide text-white/40 md:inline">
+        <span className="hidden max-w-32 truncate rounded-full bg-ff-bg-soft px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground md:inline">
           {organization.slug}
         </span>
       </div>
@@ -44,20 +44,20 @@ export function ActiveOrganizationIndicator({
   return (
     <form action={setActiveOrganization} className="flex min-w-0 items-center gap-2">
       <input type="hidden" name="current_path" value={currentPath ?? ""} />
-      <div className="flex min-w-0 items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-medium text-white/80">
-        <Building2 className="h-3.5 w-3.5 shrink-0 text-[#b09cff]" aria-hidden="true" />
-        <span className="hidden text-white/45 sm:inline">Organizacao</span>
+      <div className="flex min-w-0 items-center gap-2 rounded-full border border-border bg-ff-bg-soft px-3 py-1.5 text-xs font-medium text-foreground">
+        <Building2 className="h-3.5 w-3.5 shrink-0 text-primary" aria-hidden="true" />
+        <span className="hidden text-muted-foreground sm:inline">Organizacao</span>
       </div>
       <select
         name="organization_id"
         defaultValue={organization.id}
-        className="h-8 min-w-0 max-w-56 rounded-full border border-white/10 bg-[#121225] px-3 text-xs text-white outline-none"
+        className="h-8 min-w-0 max-w-56 rounded-full border border-border bg-card px-3 text-xs text-foreground outline-none"
       >
         {organizationOptions.map((organizationOption) => (
           <option
             key={organizationOption.id}
             value={organizationOption.id}
-            className="bg-[#121225] text-white"
+            className="bg-card text-foreground"
           >
             {organizationOption.name}
           </option>
@@ -65,7 +65,7 @@ export function ActiveOrganizationIndicator({
       </select>
       <button
         type="submit"
-        className="h-8 rounded-full border border-white/10 px-3 text-xs font-semibold text-[#b09cff] transition hover:bg-white/[0.06]"
+        className="h-8 rounded-full border border-border px-3 text-xs font-semibold text-primary transition hover:bg-ff-bg-soft"
       >
         Trocar
       </button>

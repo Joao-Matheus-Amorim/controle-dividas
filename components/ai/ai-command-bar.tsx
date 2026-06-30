@@ -63,7 +63,7 @@ export function AICommandBar({
   };
 
   const handleOpenForm = () => {
-    if (!draft || !orgSlug) return;
+    if (!draft) return;
 
     if (draft.intent === "acao_pagamento") {
       setSelectedBankId("");
@@ -75,7 +75,7 @@ export function AICommandBar({
     if (!route) return;
 
     sessionStorage.setItem(SESSION_KEY, JSON.stringify(draft));
-    router.push(`/org/${orgSlug}/${route}`);
+    router.push(orgSlug ? `/org/${orgSlug}/${route}` : `/protected/${route}`);
   };
 
   const handleConfirmPayment = async () => {
@@ -214,7 +214,7 @@ export function AICommandBar({
               ) : (
                 <ExternalLink className="h-3 w-3" />
               )}
-              {draft.intent === "acao_pagamento" ? "Confirmar pagamento" : "Abrir formulario"}
+              {draft.intent === "acao_pagamento" ? "Confirmar pagamento" : "Revisar rascunho"}
             </button>
           ) : null}
           <button

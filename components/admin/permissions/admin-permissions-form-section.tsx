@@ -18,18 +18,18 @@ export function AdminPermissionsFormSection({
 }: AdminPermissionsFormSectionProps) {
   return (
     <div className="space-y-5">
-      <section className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
+      <section className="rounded-[1.5rem] border border-border bg-ff-bg-soft p-4">
         <div className="mb-4 flex items-center justify-between">
-          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/25">Configurar permissões</p>
-          <p className="text-xs font-semibold text-[#8b72f8]">ações · escopo · pessoas</p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-ff-subtle-foreground">Configurar permissões</p>
+          <p className="text-xs font-semibold text-primary">ações · escopo · pessoas</p>
         </div>
         <PermissionsForm profiles={profiles} permissions={permissions} members={members} />
       </section>
 
-      <section className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
+      <section className="rounded-[1.5rem] border border-border bg-ff-bg-soft p-4">
         <div className="mb-4 flex items-center justify-between">
-          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/25">Configurar funcionalidades</p>
-          <p className="text-xs font-semibold text-[#8b72f8]">features · planos · acesso fino</p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-ff-subtle-foreground">Configurar funcionalidades</p>
+          <p className="text-xs font-semibold text-primary">features · planos · acesso fino</p>
         </div>
         <FeaturePermissionsForm profiles={profiles} featurePermissions={featurePermissions} />
       </section>

@@ -26,10 +26,10 @@ export function ExpenseListSection({
   canCreate,
 }: ExpenseListSectionProps) {
   return (
-    <section className="space-y-3 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4 sm:p-5">
+    <section className="space-y-3 rounded-[1.5rem] border border-border bg-ff-bg-soft p-4 sm:p-5">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/25">Gastos cadastrados</p>
-        <p className="text-xs font-semibold text-[#8b72f8]">{expenses.length}</p>
+        <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-ff-subtle-foreground">Gastos cadastrados</p>
+        <p className="text-xs font-semibold text-primary">{expenses.length}</p>
       </div>
 
       {expenses.length === 0 ? (
@@ -39,7 +39,7 @@ export function ExpenseListSection({
           description="Registre um gasto para acompanhar impacto por pessoa, categoria e banco."
           action={
             canCreate ? (
-              <Button asChild size="sm" className="h-10 w-full rounded-2xl bg-[#8b72f8] px-4 font-bold text-white hover:bg-[#7d66e4] sm:w-auto">
+              <Button asChild size="sm" className="h-10 w-full rounded-2xl bg-primary px-4 font-bold text-foreground hover:bg-ff-primary-hover sm:w-auto">
                 <Link href="#novo-gasto">
                   <PlusCircle className="h-4 w-4" />
                   Novo gasto

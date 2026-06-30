@@ -23,7 +23,7 @@ export function AdminUserSyncForm({ profileId }: { profileId: string }) {
         type="submit"
         variant="outline"
         disabled={isPending}
-        className="h-9 rounded-xl border-[#8b72f8]/30 bg-[#8b72f8]/10 text-[#b09cff] hover:bg-[#8b72f8]/20"
+        className="h-9 rounded-xl border-primary/30 bg-primary/10 text-primary hover:bg-primary/20"
       >
         <Link2 className="mr-2 h-4 w-4" />
         {isPending ? "Sincronizando..." : "Sincronizar login"}

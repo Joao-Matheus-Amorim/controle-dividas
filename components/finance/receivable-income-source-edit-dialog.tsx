@@ -23,7 +23,7 @@ export function ReceivableIncomeSourceEditDialog({
           variant="outline"
           size="icon"
           aria-label="Editar origem"
-          className="h-9 w-9 rounded-xl border-white/10 bg-transparent text-white/35 hover:bg-white/10 hover:text-white"
+          className="h-9 w-9 rounded-xl border-border bg-transparent text-ff-subtle-foreground hover:bg-ff-bg-soft hover:text-foreground"
         >
           <Pencil className="h-4 w-4" />
         </Button>

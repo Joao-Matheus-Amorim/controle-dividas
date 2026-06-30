@@ -39,7 +39,7 @@ export function PayableBillDeleteDialog({ bill }: { bill: DbPayableBill }) {
           variant="outline"
           size="icon"
           aria-label="Excluir conta"
-          className="h-9 w-9 rounded-xl border-white/10 bg-transparent text-white/35 hover:bg-white/10 hover:text-white"
+          className="h-9 w-9 rounded-xl border-border bg-transparent text-ff-subtle-foreground hover:bg-ff-bg-soft hover:text-foreground"
         >
           <Trash2 className="h-4 w-4" />
         </Button>
@@ -56,11 +56,11 @@ export function PayableBillDeleteDialog({ bill }: { bill: DbPayableBill }) {
           <input type="hidden" name="id" value={bill.id} />
           <input type="hidden" name="confirm_delete" value={isConfirmed ? "confirmado" : ""} />
 
-          <div className="rounded-2xl border border-[#f0506e]/20 bg-[#f0506e]/10 p-4 text-sm text-[#ff8da0]">
-            Tem certeza que deseja excluir <strong className="text-white">{bill.name}</strong>?
+          <div className="rounded-2xl border border-ff-destructive bg-ff-destructive-soft p-4 text-sm text-ff-destructive">
+            Tem certeza que deseja excluir <strong className="text-foreground">{bill.name}</strong>?
           </div>
 
-          <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-white/10 bg-[#080810]/50 p-3 text-sm text-white/45">
+          <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-border bg-background/50 p-3 text-sm text-muted-foreground">
             <input
               type="checkbox"
               checked={isConfirmed}
@@ -75,7 +75,7 @@ export function PayableBillDeleteDialog({ bill }: { bill: DbPayableBill }) {
           <Button
             type="submit"
             disabled={!isConfirmed || isPending}
-            className="w-full rounded-2xl bg-[#f0506e] font-bold text-white hover:bg-[#df405f]"
+            className="w-full rounded-2xl bg-ff-destructive font-bold text-foreground hover:bg-ff-destructive/90"
           >
             {isPending ? "Excluindo..." : "Excluir definitivamente"}
           </Button>

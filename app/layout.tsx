@@ -1,7 +1,20 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
+import { InstallPrompt } from "@/components/app/install-prompt";
+import { ServiceWorkerRegister } from "@/components/app/service-worker-register";
+import { ToasterWrapper } from "@/components/app/toaster-wrapper";
 import "./globals.css";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#14110F" },
+    { media: "(prefers-color-scheme: light)", color: "#E8E1D5" },
+  ],
+};
 
 const defaultUrl =
   process.env.NEXT_PUBLIC_APP_URL?.trim() ||
@@ -15,6 +28,9 @@ export const metadata: Metadata = {
   },
   description: "Painel financeiro familiar para controle de gastos, contas, bancos e permissões.",
   applicationName: "FamilyFinance",
+  icons: {
+    apple: [{ url: "/apple-icon-180x180.png", sizes: "180x180", type: "image/png" }],
+  },
   appleWebApp: {
     capable: true,
     title: "FamilyFinance",
@@ -43,6 +59,9 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
+          <ToasterWrapper />
+          <ServiceWorkerRegister />
+          <InstallPrompt />
         </ThemeProvider>
       </body>
     </html>

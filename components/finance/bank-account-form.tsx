@@ -128,7 +128,7 @@ export function BankAccountForm({
               <input type="hidden" name="family_member_id" value={automaticMember.id} />
               <div className={financeAutomaticMemberClass}>
                 <p className="font-semibold">{automaticMember.name}</p>
-                <p className="mt-1 text-xs text-white/45">Pessoa definida automaticamente pelo seu acesso.</p>
+                <p className="mt-1 text-xs text-muted-foreground">Pessoa definida automaticamente pelo seu acesso.</p>
               </div>
             </>
           ) : (

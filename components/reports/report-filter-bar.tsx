@@ -31,16 +31,16 @@ export function ReportFilterBar({
   const categoryLabels = buildExpenseCategoryLabelMap(categories);
 
   return (
-    <section className="space-y-3 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
+    <section className="space-y-3 rounded-[1.5rem] border border-border bg-ff-bg-soft p-4">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/25">Filtros</p>
-          <p className="mt-1 text-sm text-white/35">Refine o relatorio por pessoa, categoria e periodo.</p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-ff-subtle-foreground">Filtros</p>
+          <p className="mt-1 text-sm text-ff-subtle-foreground">Refine o relatorio por pessoa, categoria e periodo.</p>
         </div>
         {hasActiveFilters ? (
           <Link
             href={getOrgPathFromProtectedPath("/protected/relatorios", orgSlug)}
-            className="text-xs font-semibold text-[#8b72f8] underline-offset-4 hover:underline"
+            className="text-xs font-semibold text-primary underline-offset-4 hover:underline"
           >
             Limpar filtros
           </Link>
@@ -51,7 +51,7 @@ export function ReportFilterBar({
         <select
           name="pessoa"
           defaultValue={filters.memberId}
-          className="h-10 rounded-xl border border-white/10 bg-[#080810] px-3 text-sm text-white"
+          className="h-10 rounded-xl border border-border bg-background px-3 text-sm text-foreground"
         >
           <option value="">Todas as pessoas</option>
           {members.map((member) => (
@@ -62,7 +62,7 @@ export function ReportFilterBar({
         <select
           name="categoria"
           defaultValue={filters.categoryId}
-          className="h-10 rounded-xl border border-white/10 bg-[#080810] px-3 text-sm text-white"
+          className="h-10 rounded-xl border border-border bg-background px-3 text-sm text-foreground"
         >
           <option value="">Todas as categorias</option>
           {categories.map((category) => (
@@ -79,7 +79,7 @@ export function ReportFilterBar({
           <Button
             type="submit"
             variant="outline"
-            className="h-10 rounded-xl border-white/10 bg-transparent text-white/70 hover:bg-white/10 hover:text-white"
+            className="h-10 rounded-xl border-border bg-transparent text-foreground hover:bg-ff-bg-soft hover:text-foreground"
           >
             Aplicar filtros
           </Button>

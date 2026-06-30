@@ -9,6 +9,7 @@ import { EnvVarWarning } from "@/components/env-var-warning";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { Separator } from "@/components/ui/separator";
 import { AICommandBar } from "@/components/ai/ai-command-bar";
+import { PageTransition } from "@/components/app/page-transition";
 import { getVisibleModuleKeys } from "@/lib/finance/access-control";
 import type { FinanceModuleKey } from "@/lib/finance/permissions";
 import { getOrgPathFromProtectedPath } from "@/lib/organizations/paths";
@@ -74,7 +75,7 @@ export async function AppShell({ children, orgSlug }: AppShellProps) {
 
   return (
     <main className="app-no-x-scroll min-h-screen bg-background text-foreground">
-      <nav className="sticky top-0 z-40 max-w-full overflow-hidden border-b border-border bg-card">
+      <nav className="sticky top-0 z-40 max-w-full overflow-hidden border-b border-border bg-card pt-[env(safe-area-inset-top)]">
         <div className="mx-auto flex min-h-16 w-full max-w-7xl flex-col gap-3 px-4 py-3 md:px-6">
           <div className="flex min-w-0 items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
@@ -148,8 +149,8 @@ export async function AppShell({ children, orgSlug }: AppShellProps) {
         </div>
       </nav>
 
-      <div className="relative z-10 mx-auto w-full max-w-7xl overflow-x-clip px-4 py-6 pb-28 md:px-6 md:py-8 md:pb-8">
-        {children}
+      <div className="relative z-10 mx-auto w-full max-w-7xl overflow-x-clip px-4 py-6 pb-[max(7rem,env(safe-area-inset-bottom))] md:px-6 md:py-8 md:pb-8">
+        <PageTransition>{children}</PageTransition>
       </div>
 
       <MobileBottomNavigation primaryItems={mobilePrimaryItems} allItems={mobileAllItems} />

@@ -61,7 +61,7 @@ export function FamilyUserForm({ members }: { members: DbFamilyMember[] }) {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-xs leading-5 text-white/35">
+      <div className="rounded-2xl border border-border bg-ff-bg-soft p-3 text-xs leading-5 text-ff-subtle-foreground">
         O modelo de acesso só define as permissões iniciais. Depois o Admin pode liberar ou bloquear qualquer módulo em Admin &gt; Permissões.
       </div>
 

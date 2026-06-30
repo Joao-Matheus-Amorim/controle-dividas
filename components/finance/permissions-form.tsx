@@ -44,12 +44,12 @@ export function PermissionsForm({
 
   if (editableProfiles.length === 0) {
     return (
-      <div className="rounded-[1.5rem] border border-white/10 bg-[#080810]/60 p-6 text-center shadow-2xl shadow-black/30">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-3xl bg-[#8b72f8]/15 text-[#b09cff]">
+      <div className="rounded-[1.5rem] border border-border bg-background/60 p-6 text-center shadow-2xl shadow-black/30">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-3xl bg-primary/15 text-primary">
           <UserRound className="h-5 w-5" />
         </div>
-        <p className="mt-4 text-sm font-semibold text-white">Nenhum usuário familiar cadastrado</p>
-        <p className="mt-1 text-sm text-white/35">Cadastre um usuário familiar antes de configurar permissões.</p>
+        <p className="mt-4 text-sm font-semibold text-foreground">Nenhum usuário familiar cadastrado</p>
+        <p className="mt-1 text-sm text-ff-subtle-foreground">Cadastre um usuário familiar antes de configurar permissões.</p>
       </div>
     );
   }
@@ -59,14 +59,14 @@ export function PermissionsForm({
       <input type="hidden" name="profile_id" value={selectedProfileId} />
 
       <section className="grid gap-4 lg:grid-cols-[280px_1fr]">
-        <aside className="rounded-[1.75rem] border border-white/10 bg-[linear-gradient(145deg,rgba(255,255,255,0.075),rgba(255,255,255,0.025))] p-4 shadow-[0_22px_70px_rgba(0,0,0,0.35)] backdrop-blur-xl">
+        <aside className="rounded-[1.75rem] border border-border bg-ff-bg-soft p-4 shadow-ff-lg">
           <div className="mb-4 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#8b72f8]/15 text-[#b09cff] shadow-lg shadow-[#8b72f8]/10">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/15 text-primary shadow-lg shadow-primary/10">
               <SlidersHorizontal className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/25">Usuários</p>
-              <p className="text-sm font-semibold text-white">Escolha um perfil</p>
+              <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-ff-subtle-foreground">Usuários</p>
+              <p className="text-sm font-semibold text-foreground">Escolha um perfil</p>
             </div>
           </div>
 
@@ -83,43 +83,43 @@ export function PermissionsForm({
                   className={cn(
                     "group flex w-full items-center gap-3 rounded-2xl border p-3 text-left transition duration-200",
                     isSelected
-                      ? "border-[#8b72f8]/50 bg-[#8b72f8]/15 shadow-[0_14px_35px_rgba(139,114,248,0.18)]"
-                      : "border-white/10 bg-[#080810]/50 hover:border-white/20 hover:bg-white/[0.055] hover:shadow-xl hover:shadow-black/20",
+                      ? "border-primary/50 bg-primary/15 shadow-ff-lg"
+                      : "border-border bg-background/50 hover:border-ff-border-strong hover:bg-ff-bg-soft hover:shadow-xl hover:shadow-black/20",
                   )}
                 >
                   <div
                     className={cn(
                       "flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-bold transition",
-                      isSelected ? "bg-[#8b72f8] text-white" : "bg-white/10 text-white/45 group-hover:text-white",
+                      isSelected ? "bg-primary text-foreground" : "bg-card text-muted-foreground group-hover:text-foreground",
                     )}
                   >
                     {initials(profile.name)}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-white">{profile.name}</p>
-                    <p className="truncate text-xs text-white/35">{profileVisibleCount} módulo(s) visível(is)</p>
+                    <p className="truncate text-sm font-semibold text-foreground">{profile.name}</p>
+                    <p className="truncate text-xs text-ff-subtle-foreground">{profileVisibleCount} módulo(s) visível(is)</p>
                   </div>
-                  {isSelected ? <Check className="h-4 w-4 text-[#b09cff]" /> : null}
+                  {isSelected ? <Check className="h-4 w-4 text-primary" /> : null}
                 </button>
               );
             })}
           </div>
         </aside>
 
-        <section className="rounded-[1.75rem] border border-white/10 bg-[radial-gradient(circle_at_top_right,rgba(139,114,248,0.13),transparent_35%),rgba(255,255,255,0.045)] p-4 shadow-[0_28px_90px_rgba(0,0,0,0.38)] backdrop-blur-xl md:p-5">
+        <section className="rounded-[1.75rem] border border-border bg-card p-4 shadow-ff-lg md:p-5">
           <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#8b72f8]/15 text-[#b09cff] shadow-lg shadow-[#8b72f8]/10">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/15 text-primary shadow-lg shadow-primary/10">
                 <KeyRound className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/25">Matriz de permissões</p>
-                <p className="text-sm font-semibold text-white">
+                <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-ff-subtle-foreground">Matriz de permissões</p>
+                <p className="text-sm font-semibold text-foreground">
                   {selectedProfile?.name || "Perfil selecionado"}
                 </p>
               </div>
             </div>
-            <div className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-1.5 text-xs font-semibold text-white/45">
+            <div className="rounded-full border border-border bg-ff-bg-soft px-3 py-1.5 text-xs font-semibold text-muted-foreground">
               {visibleModulesCount}/{FINANCE_MODULES.length} visíveis
             </div>
           </div>
@@ -138,19 +138,19 @@ export function PermissionsForm({
               return (
                 <div
                   key={`${selectedProfileId}-${module.key}`}
-                  className="rounded-[1.5rem] border border-white/10 bg-[#080810]/55 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_16px_45px_rgba(0,0,0,0.22)] transition duration-200 hover:-translate-y-0.5 hover:border-white/20 hover:bg-[#10101a]/80 hover:shadow-[0_24px_70px_rgba(0,0,0,0.34)]"
+                  className="rounded-[1.5rem] border border-border bg-background/55 p-4 shadow-ff-md transition duration-200 hover:-translate-y-0.5 hover:border-ff-border-strong hover:bg-card/80 hover:shadow-ff-lg"
                 >
                   <div className="mb-4 flex items-center justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-3">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/10 text-white/55">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-card text-foreground">
                         <ShieldCheck className="h-5 w-5" />
                       </div>
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-white">{module.label}</p>
-                        <p className="truncate text-xs text-white/30">{module.key}</p>
+                        <p className="truncate text-sm font-semibold text-foreground">{module.label}</p>
+                        <p className="truncate text-xs text-ff-subtle-foreground">{module.key}</p>
                       </div>
                     </div>
-                    <span className="rounded-full border border-white/10 bg-white/[0.05] px-2.5 py-1 text-[11px] font-bold text-white/40">
+                    <span className="rounded-full border border-border bg-ff-bg-soft px-2.5 py-1 text-[11px] font-bold text-muted-foreground">
                       {enabledActions}/{PERMISSION_ACTIONS.length}
                     </span>
                   </div>
@@ -163,7 +163,7 @@ export function PermissionsForm({
                         <label
                           key={action.key}
                           htmlFor={inputId}
-                          className="group flex cursor-pointer items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.035] p-3 text-sm text-white/55 transition duration-200 hover:border-[#8b72f8]/35 hover:bg-[#8b72f8]/10 hover:text-white"
+                          className="group flex cursor-pointer items-center gap-3 rounded-2xl border border-border bg-ff-bg-soft p-3 text-sm text-foreground transition duration-200 hover:border-primary/35 hover:bg-primary/10 hover:text-foreground"
                         >
                           <input
                             id={inputId}
@@ -172,17 +172,17 @@ export function PermissionsForm({
                             defaultChecked={Boolean(modulePermission?.[action.key])}
                             className="peer sr-only"
                           />
-                          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-lg border border-white/15 bg-[#080810] text-transparent transition peer-checked:border-[#8b72f8] peer-checked:bg-[#8b72f8] peer-checked:text-white group-hover:border-[#8b72f8]/50">
+                          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-lg border border-ff-border-strong bg-background text-transparent transition peer-checked:border-primary peer-checked:bg-primary peer-checked:text-foreground group-hover:border-primary/50">
                             <Check className="h-3.5 w-3.5" />
                           </span>
-                          <span className="font-medium peer-checked:text-white">{action.label}</span>
+                          <span className="font-medium peer-checked:text-foreground">{action.label}</span>
                         </label>
                       );
                     })}
                   </div>
 
-                  <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.03] p-3">
-                    <div className="mb-3 flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-white/25">
+                  <div className="mt-4 rounded-2xl border border-border bg-ff-bg-soft p-3">
+                    <div className="mb-3 flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-ff-subtle-foreground">
                       <UsersRound className="h-4 w-4" />
                       Escopo de dados
                     </div>
@@ -194,7 +194,7 @@ export function PermissionsForm({
                           <label
                             key={scopeOption.key}
                             htmlFor={inputId}
-                            className="group cursor-pointer rounded-2xl border border-white/10 bg-[#080810]/50 p-3 text-left transition hover:border-[#8b72f8]/35 hover:bg-[#8b72f8]/10"
+                            className="group cursor-pointer rounded-2xl border border-border bg-background/50 p-3 text-left transition hover:border-primary/35 hover:bg-primary/10"
                           >
                             <input
                               id={inputId}
@@ -205,19 +205,19 @@ export function PermissionsForm({
                               className="peer sr-only"
                             />
                             <div className="flex items-center justify-between gap-2">
-                              <p className="text-sm font-semibold text-white/60 peer-checked:text-white">{scopeOption.label}</p>
-                              <span className="flex h-4 w-4 items-center justify-center rounded-full border border-white/15 text-transparent peer-checked:border-[#8b72f8] peer-checked:bg-[#8b72f8] peer-checked:text-white">
+                              <p className="text-sm font-semibold text-foreground peer-checked:text-foreground">{scopeOption.label}</p>
+                              <span className="flex h-4 w-4 items-center justify-center rounded-full border border-ff-border-strong text-transparent peer-checked:border-primary peer-checked:bg-primary peer-checked:text-foreground">
                                 <Check className="h-3 w-3" />
                               </span>
                             </div>
-                            <p className="mt-1 text-xs leading-4 text-white/30">{scopeOption.description}</p>
+                            <p className="mt-1 text-xs leading-4 text-ff-subtle-foreground">{scopeOption.description}</p>
                           </label>
                         );
                       })}
                     </div>
 
-                    <div className="mt-3 rounded-2xl border border-white/10 bg-[#080810]/45 p-3">
-                      <p className="text-xs font-semibold text-white/40">
+                    <div className="mt-3 rounded-2xl border border-border bg-background/45 p-3">
+                      <p className="text-xs font-semibold text-muted-foreground">
                         Pessoas liberadas quando o escopo for selecionados
                       </p>
                       <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
@@ -228,7 +228,7 @@ export function PermissionsForm({
                             <label
                               key={member.id}
                               htmlFor={inputId}
-                              className="group flex cursor-pointer items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.035] p-3 text-sm text-white/55 transition hover:border-[#8b72f8]/35 hover:bg-[#8b72f8]/10"
+                              className="group flex cursor-pointer items-center gap-3 rounded-2xl border border-border bg-ff-bg-soft p-3 text-sm text-foreground transition hover:border-primary/35 hover:bg-primary/10"
                             >
                               <input
                                 id={inputId}
@@ -238,10 +238,10 @@ export function PermissionsForm({
                                 defaultChecked={allowedMemberIds.includes(member.id)}
                                 className="peer sr-only"
                               />
-                              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-lg border border-white/15 bg-[#080810] text-transparent transition peer-checked:border-[#8b72f8] peer-checked:bg-[#8b72f8] peer-checked:text-white group-hover:border-[#8b72f8]/50">
+                              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-lg border border-ff-border-strong bg-background text-transparent transition peer-checked:border-primary peer-checked:bg-primary peer-checked:text-foreground group-hover:border-primary/50">
                                 <Check className="h-3.5 w-3.5" />
                               </span>
-                              <span className="truncate font-medium peer-checked:text-white">{member.name}</span>
+                              <span className="truncate font-medium peer-checked:text-foreground">{member.name}</span>
                             </label>
                           );
                         })}
@@ -261,7 +261,7 @@ export function PermissionsForm({
         <Button
           type="submit"
           disabled={isPending}
-          className="h-12 rounded-2xl bg-[#8b72f8] px-6 font-semibold text-white shadow-[0_18px_45px_rgba(139,114,248,0.28)] hover:bg-[#7d66e4]"
+          className="h-12 rounded-2xl bg-primary px-6 font-semibold text-foreground shadow-ff-lg hover:bg-ff-primary-hover"
         >
           {isPending ? "Salvando..." : "Salvar permissões"}
         </Button>

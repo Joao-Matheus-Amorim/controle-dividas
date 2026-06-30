@@ -162,7 +162,7 @@ export function PayableBillForm({
       ) : null}
 
       <div className={financeChoiceGroupClass}>
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/35">Tipo de conta</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ff-subtle-foreground">Tipo de conta</p>
         <div className="mt-3 grid gap-2 md:grid-cols-2">
           <label className={financeChoiceOptionClass}>
             <input
@@ -173,8 +173,8 @@ export function PayableBillForm({
               onChange={() => setBillType("avulsa")}
               className="sr-only"
             />
-            <span className="text-sm font-semibold text-white">Conta avulsa</span>
-            <span className="mt-1 block text-xs leading-5 text-white/35">Pagamento pontual, boleto eventual ou divida sem repeticao.</span>
+            <span className="text-sm font-semibold text-foreground">Conta avulsa</span>
+            <span className="mt-1 block text-xs leading-5 text-ff-subtle-foreground">Pagamento pontual, boleto eventual ou divida sem repeticao.</span>
           </label>
 
           <label className={financeChoiceOptionClass}>
@@ -186,15 +186,15 @@ export function PayableBillForm({
               onChange={() => setBillType("fixa")}
               className="sr-only"
             />
-            <span className="text-sm font-semibold text-white">Conta fixa</span>
-            <span className="mt-1 block text-xs leading-5 text-white/35">Conta recorrente, inicialmente mensal e futuramente personalizavel.</span>
+            <span className="text-sm font-semibold text-foreground">Conta fixa</span>
+            <span className="mt-1 block text-xs leading-5 text-ff-subtle-foreground">Conta recorrente, inicialmente mensal e futuramente personalizavel.</span>
           </label>
         </div>
       </div>
 
       {isFixedBill ? (
         <div className={financeChoiceGroupClass}>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/35">Direcionamento da conta fixa</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ff-subtle-foreground">Direcionamento da conta fixa</p>
           <div className="mt-3 grid gap-2 md:grid-cols-2">
             <label className={financeChoiceOptionClass}>
               <input
@@ -205,8 +205,8 @@ export function PayableBillForm({
                 onChange={() => setFixedBillAudience("family")}
                 className="sr-only"
               />
-              <span className="text-sm font-semibold text-white">Família inteira</span>
-              <span className="mt-1 block text-xs leading-5 text-white/35">
+              <span className="text-sm font-semibold text-foreground">Família inteira</span>
+              <span className="mt-1 block text-xs leading-5 text-ff-subtle-foreground">
                 Conta compartilhada da casa. Escolha abaixo quem será o responsável financeiro pelo pagamento.
               </span>
             </label>
@@ -220,8 +220,8 @@ export function PayableBillForm({
                 onChange={() => setFixedBillAudience("person")}
                 className="sr-only"
               />
-              <span className="text-sm font-semibold text-white">Personalizada por pessoa</span>
-              <span className="mt-1 block text-xs leading-5 text-white/35">
+              <span className="text-sm font-semibold text-foreground">Personalizada por pessoa</span>
+              <span className="mt-1 block text-xs leading-5 text-ff-subtle-foreground">
                 Use quando a conta fixa pertence a uma pessoa específica, como mensalidade ou plano individual.
               </span>
             </label>
@@ -336,7 +336,7 @@ export function PayableBillForm({
               <input type="hidden" name="responsible_member_id" value={automaticMember.id} />
               <div className={financeAutomaticMemberClass}>
                 <p className="font-semibold">{automaticMember.name}</p>
-                <p className="mt-1 text-xs text-white/45">Responsável definido automaticamente pelo seu acesso.</p>
+                <p className="mt-1 text-xs text-muted-foreground">Responsável definido automaticamente pelo seu acesso.</p>
               </div>
             </>
           ) : (

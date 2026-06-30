@@ -53,7 +53,7 @@ export function AppDataTable<TData, TValue>({
   return (
     <div className="space-y-4">
       <div className="relative">
-        <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
+        <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-ff-subtle-foreground" />
         <Input
           value={globalFilter ?? ""}
           onChange={(event) => setGlobalFilter(event.target.value)}
@@ -62,10 +62,10 @@ export function AppDataTable<TData, TValue>({
         />
       </div>
 
-      <div className="overflow-hidden rounded-[1.5rem] border border-white/10 bg-[#080810]/50">
+      <div className="overflow-hidden rounded-[1.5rem] border border-border bg-background/50">
         <div className="max-w-full overflow-hidden">
           <table className="w-full table-fixed text-sm">
-            <thead className="bg-white/[0.04] text-left text-[11px] uppercase tracking-[0.18em] text-white/35">
+            <thead className="bg-ff-bg-soft text-left text-[11px] uppercase tracking-[0.18em] text-ff-subtle-foreground">
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id}>
                   {headerGroup.headers.map((header) => (
@@ -78,12 +78,12 @@ export function AppDataTable<TData, TValue>({
                 </tr>
               ))}
             </thead>
-            <tbody className="divide-y divide-white/10">
+            <tbody className="divide-y divide-border">
               {table.getRowModel().rows.length ? (
                 table.getRowModel().rows.map((row) => (
-                  <tr key={row.id} className="transition hover:bg-white/[0.035]">
+                  <tr key={row.id} className="transition hover:bg-ff-bg-soft">
                     {row.getVisibleCells().map((cell) => (
-                      <td key={cell.id} className="truncate px-3 py-3 text-white/70">
+                      <td key={cell.id} className="truncate px-3 py-3 text-foreground">
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </td>
                     ))}
@@ -105,7 +105,7 @@ export function AppDataTable<TData, TValue>({
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-3 text-xs text-white/35">
+      <div className="flex items-center justify-between gap-3 text-xs text-ff-subtle-foreground">
         <span>
           {table.getFilteredRowModel().rows.length} registro(s)
         </span>
@@ -114,7 +114,7 @@ export function AppDataTable<TData, TValue>({
             type="button"
             variant="outline"
             size="sm"
-            className="rounded-xl border-white/10 bg-transparent text-white/60 hover:bg-white/10 hover:text-white"
+            className="rounded-xl border-border bg-transparent text-foreground hover:bg-ff-bg-soft hover:text-foreground"
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
           >
@@ -124,7 +124,7 @@ export function AppDataTable<TData, TValue>({
             type="button"
             variant="outline"
             size="sm"
-            className="rounded-xl border-white/10 bg-transparent text-white/60 hover:bg-white/10 hover:text-white"
+            className="rounded-xl border-border bg-transparent text-foreground hover:bg-ff-bg-soft hover:text-foreground"
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
           >

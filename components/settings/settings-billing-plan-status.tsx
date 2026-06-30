@@ -106,42 +106,42 @@ export function SettingsBillingPlanStatus({
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <AppSectionTitle>Plano da organizacao</AppSectionTitle>
-          <h2 className="mt-2 text-xl font-black tracking-[-0.035em] text-white">
+          <h2 className="mt-2 text-xl font-black tracking-[-0.035em] text-foreground">
             {billingPlan.name}
           </h2>
-          <p className="mt-1 text-sm leading-6 text-white/40">
+          <p className="mt-1 text-sm leading-6 text-muted-foreground">
             {billingPlan.description}
           </p>
         </div>
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-[#8b72f8]/10 text-[#b09cff]">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-border bg-primary/10 text-primary">
           <CreditCard className="h-5 w-5" />
         </div>
       </div>
 
       <div className="grid gap-2 sm:grid-cols-3">
-        <div className="rounded-2xl border border-white/10 bg-[#080810]/55 p-3">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-white/25">
+        <div className="rounded-2xl border border-border bg-background/55 p-3">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-ff-subtle-foreground">
             Organizacao
           </p>
-          <p className="mt-1 truncate text-sm font-bold text-white">{organizationName}</p>
+          <p className="mt-1 truncate text-sm font-bold text-foreground">{organizationName}</p>
         </div>
-        <div className="rounded-2xl border border-white/10 bg-[#080810]/55 p-3">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-white/25">
+        <div className="rounded-2xl border border-border bg-background/55 p-3">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-ff-subtle-foreground">
             Status
           </p>
-          <p className="mt-1 truncate text-sm font-bold text-white">{status}</p>
+          <p className="mt-1 truncate text-sm font-bold text-foreground">{status}</p>
         </div>
-        <div className="rounded-2xl border border-white/10 bg-[#080810]/55 p-3">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-white/25">
+        <div className="rounded-2xl border border-border bg-background/55 p-3">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-ff-subtle-foreground">
             Trial
           </p>
-          <p className="mt-1 truncate text-sm font-bold text-white">
+          <p className="mt-1 truncate text-sm font-bold text-foreground">
             {formatTrialEndsAt(trialEndsAt)}
           </p>
         </div>
       </div>
 
-      <div className="flex items-start gap-3 rounded-2xl border border-[#1de9b2]/15 bg-[#1de9b2]/10 p-3 text-sm text-[#1de9b2]">
+      <div className="flex items-start gap-3 rounded-2xl border border-ff-success/30 bg-ff-success-soft p-3 text-sm text-ff-success">
         <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
         <p>
           A assinatura e concluida no ambiente de pagamento. O plano local permanece ate a confirmacao.
@@ -149,24 +149,24 @@ export function SettingsBillingPlanStatus({
       </div>
 
       {checkoutStatusMessage ? (
-        <div className="rounded-2xl border border-white/10 bg-[#080810]/55 p-3 text-sm text-white/65">
+        <div className="rounded-2xl border border-border bg-background/55 p-3 text-sm text-foreground">
           {checkoutStatusMessage}
         </div>
       ) : null}
 
       {portalStatusMessage ? (
-        <div className="rounded-2xl border border-white/10 bg-[#080810]/55 p-3 text-sm text-white/65">
+        <div className="rounded-2xl border border-border bg-background/55 p-3 text-sm text-foreground">
           {portalStatusMessage}
         </div>
       ) : null}
 
       <form
         action={portalAction}
-        className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-[#080810]/55 p-3 sm:flex-row sm:items-center sm:justify-between"
+        className="flex flex-col gap-3 rounded-2xl border border-border bg-background/55 p-3 sm:flex-row sm:items-center sm:justify-between"
       >
         <div>
-          <p className="text-sm font-bold text-white">Portal de billing</p>
-          <p className="mt-1 text-sm leading-6 text-white/40">
+          <p className="text-sm font-bold text-foreground">Portal de billing</p>
+          <p className="mt-1 text-sm leading-6 text-muted-foreground">
             Gerencie metodo de pagamento e assinatura no Stripe.
           </p>
         </div>
@@ -183,12 +183,12 @@ export function SettingsBillingPlanStatus({
           return (
             <form
               action={formAction}
-              className="flex min-h-36 flex-col justify-between rounded-2xl border border-white/10 bg-[#080810]/55 p-3"
+              className="flex min-h-36 flex-col justify-between rounded-2xl border border-border bg-background/55 p-3"
               key={paidPlan.key}
             >
               <div>
-                <p className="text-sm font-bold text-white">{paidPlan.name}</p>
-                <p className="mt-1 text-sm leading-6 text-white/40">
+                <p className="text-sm font-bold text-foreground">{paidPlan.name}</p>
+                <p className="mt-1 text-sm leading-6 text-muted-foreground">
                   {paidPlan.description}
                 </p>
               </div>
@@ -206,25 +206,25 @@ export function SettingsBillingPlanStatus({
       </div>
 
       {!checkoutEnabled ? (
-        <p className="text-sm text-white/40">
+        <p className="text-sm text-muted-foreground">
           Checkout indisponivel neste ambiente. O app continua funcionando normalmente.
         </p>
       ) : null}
 
       {!canManageBilling ? (
-        <p className="text-sm text-white/40">
+        <p className="text-sm text-muted-foreground">
           Apenas owner/admin da organizacao pode iniciar checkout.
         </p>
       ) : null}
 
       {checkoutEnabled && !checkoutReady ? (
-        <p className="text-sm text-white/40">
+        <p className="text-sm text-muted-foreground">
           Checkout indisponivel por configuracao incompleta.
         </p>
       ) : null}
 
       {checkoutEnabled && checkoutReady && canManageBilling && !hasStripeCustomer ? (
-        <p className="text-sm text-white/40">
+        <p className="text-sm text-muted-foreground">
           Portal indisponivel ate a organizacao ter um customer Stripe.
         </p>
       ) : null}

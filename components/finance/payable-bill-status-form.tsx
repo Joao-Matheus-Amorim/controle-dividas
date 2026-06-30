@@ -42,7 +42,7 @@ export function PayableBillStatusForm({
           name="status"
           value={selectedStatus}
           onChange={(event) => setSelectedStatus(event.target.value)}
-          className="h-9 rounded-xl border border-white/10 bg-[#080810] px-2 text-xs text-white/70"
+          className="h-9 rounded-xl border border-border bg-background px-2 text-xs text-foreground"
         >
           <option value="pendente">Pendente</option>
           <option value="pago">Pago</option>
@@ -52,7 +52,7 @@ export function PayableBillStatusForm({
           <select
             name="bank_id"
             required
-            className="h-9 min-w-[11rem] rounded-xl border border-white/10 bg-[#080810] px-2 text-xs text-white/70"
+            className="h-9 min-w-[11rem] rounded-xl border border-border bg-background px-2 text-xs text-foreground"
           >
             <option value="">Banco usado</option>
             {memberBankAccounts.map((account) => (
@@ -62,7 +62,7 @@ export function PayableBillStatusForm({
             ))}
           </select>
         ) : null}
-        <Button type="submit" variant="outline" disabled={isPending} className="h-9 rounded-xl border-white/10 bg-transparent text-white/60 hover:bg-white/10 hover:text-white">
+        <Button type="submit" variant="outline" disabled={isPending} className="h-9 rounded-xl border-border bg-transparent text-foreground hover:bg-ff-bg-soft hover:text-foreground">
           {isPending ? "Salvando..." : "Salvar"}
         </Button>
       </div>

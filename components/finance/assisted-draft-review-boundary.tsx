@@ -24,16 +24,16 @@ export function AssistedDraftReviewBoundary({
   onSuggest,
 }: AssistedDraftReviewBoundaryProps) {
   return (
-    <section className="rounded-[1.25rem] border border-white/10 bg-white/[0.04] p-3.5 sm:p-4">
+    <section className="rounded-[1.25rem] border border-border bg-ff-bg-soft p-3.5 sm:p-4">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/35">
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-ff-subtle-foreground">
             Rascunho assistido
           </p>
-          <p className="mt-1 text-sm text-white/45">{description}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{description}</p>
         </div>
         {applied ? (
-          <span className="rounded-full bg-[#8b72f8]/15 px-3 py-1 text-xs font-semibold text-[#c9bfff]">
+          <span className="rounded-full bg-primary/15 px-3 py-1 text-xs font-semibold text-[#c9bfff]">
             rascunho aplicado
           </span>
         ) : null}

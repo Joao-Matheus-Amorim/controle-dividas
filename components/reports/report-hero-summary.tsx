@@ -22,11 +22,11 @@ export function ReportHeroSummary({
         items={[
           {
             label: "Gastos",
-            value: <span className="text-[#f0506e]">{compactCurrency(totalExpenses)}</span>,
+            value: <span className="text-ff-destructive">{compactCurrency(totalExpenses)}</span>,
           },
           {
             label: "Recebido",
-            value: <span className="text-[#1de9b2]">{compactCurrency(totalReceivedIncomes)}</span>,
+            value: <span className="text-ff-success">{compactCurrency(totalReceivedIncomes)}</span>,
           },
         ]}
       />

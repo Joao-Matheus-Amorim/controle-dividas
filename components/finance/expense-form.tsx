@@ -159,7 +159,7 @@ export function ExpenseForm({
               <input type="hidden" name="family_member_id" value={automaticMember.id} />
               <div className={financeAutomaticMemberClass}>
                 <p className="font-semibold">{automaticMember.name}</p>
-                <p className="mt-1 text-xs text-white/45">Responsavel definido automaticamente pelo seu acesso.</p>
+                <p className="mt-1 text-xs text-muted-foreground">Responsavel definido automaticamente pelo seu acesso.</p>
               </div>
             </>
           ) : (

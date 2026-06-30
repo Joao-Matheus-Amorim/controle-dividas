@@ -9,16 +9,16 @@ interface AdminPermissionsModulesListProps {
 
 export function AdminPermissionsModulesList({ modules }: AdminPermissionsModulesListProps) {
   return (
-    <section className="space-y-3 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
+    <section className="space-y-3 rounded-[1.5rem] border border-border bg-ff-bg-soft p-4">
       <div className="flex items-center justify-between">
-        <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/25">Módulos controláveis</p>
-        <p className="text-xs font-semibold text-[#8b72f8]">{modules.length}</p>
+        <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-ff-subtle-foreground">Módulos controláveis</p>
+        <p className="text-xs font-semibold text-primary">{modules.length}</p>
       </div>
       <div className="grid gap-2 md:grid-cols-2">
         {modules.map((module) => (
-          <div key={module.key} className="rounded-2xl border border-white/10 bg-[#080810]/50 p-3">
-            <p className="text-sm font-semibold text-white">{module.label}</p>
-            <p className="mt-1 text-xs text-white/35">{module.key}</p>
+          <div key={module.key} className="rounded-2xl border border-border bg-background/50 p-3">
+            <p className="text-sm font-semibold text-foreground">{module.label}</p>
+            <p className="mt-1 text-xs text-ff-subtle-foreground">{module.key}</p>
           </div>
         ))}
       </div>
