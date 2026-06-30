@@ -1,8 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Sparkles, Loader2, ExternalLink, Trash2, CheckCircle } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { Sparkles, Loader2, ExternalLink, Trash2, CheckCircle, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Dialog,
@@ -41,7 +40,6 @@ export function AICommandBar({
   organizationId,
   orgSlug,
 }: AICommandBarProps) {
-  const router = useRouter();
   const [input, setInput] = React.useState("");
   const [message, setMessage] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(false);
@@ -75,7 +73,7 @@ export function AICommandBar({
     if (!route) return;
 
     sessionStorage.setItem(SESSION_KEY, JSON.stringify(draft));
-    router.push(orgSlug ? `/org/${orgSlug}/${route}` : `/protected/${route}`);
+    window.location.href = orgSlug ? `/org/${orgSlug}/${route}` : `/protected/${route}`;
   };
 
   const handleConfirmPayment = async () => {
@@ -109,6 +107,10 @@ export function AICommandBar({
 
     setConfirming(false);
     setConfirmOpen(false);
+  };
+
+  const handleDismissDraft = () => {
+    setDraft(null);
   };
 
   const handleClearConversation = async () => {
@@ -204,18 +206,28 @@ export function AICommandBar({
             {message}
           </p>
           {draft ? (
-            <button
-              type="button"
-              onClick={handleOpenForm}
-              className="inline-flex items-center gap-1 rounded-full bg-ff-primary-soft px-3 py-1 text-xs font-medium text-primary transition hover:bg-primary hover:text-primary-foreground"
-            >
-              {draft.intent === "acao_pagamento" ? (
-                <CheckCircle className="h-3 w-3" />
-              ) : (
-                <ExternalLink className="h-3 w-3" />
-              )}
-              {draft.intent === "acao_pagamento" ? "Confirmar pagamento" : "Revisar rascunho"}
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={handleOpenForm}
+                className="inline-flex items-center gap-1 rounded-full bg-ff-primary-soft px-3 py-1 text-xs font-medium text-primary transition hover:bg-primary hover:text-primary-foreground"
+              >
+                {draft.intent === "acao_pagamento" ? (
+                  <CheckCircle className="h-3 w-3" />
+                ) : (
+                  <ExternalLink className="h-3 w-3" />
+                )}
+                {draft.intent === "acao_pagamento" ? "Confirmar pagamento" : "Revisar rascunho"}
+              </button>
+              <button
+                type="button"
+                onClick={handleDismissDraft}
+                className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium text-muted-foreground transition hover:text-foreground"
+              >
+                <XCircle className="h-3 w-3" />
+                Recusar rascunho
+              </button>
+            </>
           ) : null}
           <button
             type="button"
