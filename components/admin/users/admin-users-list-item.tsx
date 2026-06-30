@@ -18,21 +18,21 @@ export function AdminUsersListItem({ profile, adminProfileId, members }: AdminUs
   const accessStatus = profile.auth_user_id ? "Acesso ativado" : "Aguardando primeiro acesso";
 
   return (
-    <div className="space-y-3 rounded-2xl border border-white/10 bg-[#080810]/50 p-3">
+    <div className="space-y-3 rounded-2xl border border-border bg-background/50 p-3">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="flex min-w-0 items-start gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#5caaff]/15 text-xs font-bold text-[#5caaff]">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-bold text-primary">
             {profile.role === "admin" ? "AD" : initials(profile.name)}
           </div>
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <p className="truncate text-sm font-semibold text-white">{profile.name}</p>
+              <p className="truncate text-sm font-semibold text-foreground">{profile.name}</p>
               <Badge variant={profile.role === "admin" ? "default" : "secondary"}>{profile.role === "admin" ? "Admin" : "Membro"}</Badge>
               <Badge variant={profile.is_active ? "outline" : "destructive"}>{profile.is_active ? "Ativo" : "Inativo"}</Badge>
-              {isCurrentAdmin ? <Badge variant="outline" className="border-white/10 text-white/50">você</Badge> : null}
+              {isCurrentAdmin ? <Badge variant="outline" className="border-border text-muted-foreground">você</Badge> : null}
             </div>
-            <p className="mt-1 truncate text-xs text-white/35">{profile.email || "Email não informado"}</p>
-            <p className="mt-0.5 truncate text-xs text-white/25">Membro: {profile.family_members?.name || "Sem vínculo"} · {accessStatus}</p>
+            <p className="mt-1 truncate text-xs text-ff-subtle-foreground">{profile.email || "Email não informado"}</p>
+            <p className="mt-0.5 truncate text-xs text-ff-subtle-foreground">Membro: {profile.family_members?.name || "Sem vínculo"} · {accessStatus}</p>
           </div>
         </div>
 
@@ -44,8 +44,8 @@ export function AdminUsersListItem({ profile, adminProfileId, members }: AdminUs
       </div>
 
       {!isCurrentAdmin ? (
-        <details className="rounded-2xl border border-white/10 bg-white/[0.035] p-3">
-          <summary className="cursor-pointer text-xs font-bold uppercase tracking-[0.18em] text-white/35">
+        <details className="rounded-2xl border border-border bg-ff-bg-soft p-3">
+          <summary className="cursor-pointer text-xs font-bold uppercase tracking-[0.18em] text-ff-subtle-foreground">
             Editar acesso
           </summary>
           <AdminUserEditForm profile={profile} members={members} />

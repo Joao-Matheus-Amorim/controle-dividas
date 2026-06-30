@@ -23,7 +23,7 @@ export function ExpenseHeroSummary({
           {
             label: "Saldo restante",
             value: (
-              <span className={totalRemaining < 0 ? "text-[#f0506e]" : "text-[#1de9b2]"}>
+              <span className={totalRemaining < 0 ? "text-ff-destructive" : "text-ff-success"}>
                 {compactCurrency(totalRemaining)}
               </span>
             ),

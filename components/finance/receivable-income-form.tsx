@@ -63,14 +63,14 @@ type FormSectionProps = {
 
 function FormSection({ icon: Icon, title, description, children }: FormSectionProps) {
   return (
-    <section className="rounded-[1.25rem] border border-white/10 bg-white/[0.035] p-3.5 sm:p-4">
+    <section className="rounded-[1.25rem] border border-border bg-ff-bg-soft p-3.5 sm:p-4">
       <div className="mb-4 flex items-start gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-[#8b72f8]/25 bg-[#8b72f8]/12 text-[#c6bbff]">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-primary/25 bg-primary/12 text-[#c6bbff]">
           <Icon className="h-4 w-4" aria-hidden="true" />
         </div>
         <div className="min-w-0">
-          <h3 className="text-sm font-bold text-white">{title}</h3>
-          <p className="mt-1 text-xs leading-5 text-white/45">{description}</p>
+          <h3 className="text-sm font-bold text-foreground">{title}</h3>
+          <p className="mt-1 text-xs leading-5 text-muted-foreground">{description}</p>
         </div>
       </div>
       {children}
@@ -212,7 +212,7 @@ export function ReceivableIncomeForm({
                 <input type="hidden" name="receiver_member_id" value={automaticMember.id} />
                 <div className={financeAutomaticMemberClass}>
                   <p className="font-semibold">{automaticMember.name}</p>
-                  <p className="mt-1 text-xs text-white/45">Pessoa definida automaticamente pelo seu acesso.</p>
+                  <p className="mt-1 text-xs text-muted-foreground">Pessoa definida automaticamente pelo seu acesso.</p>
                 </div>
               </>
             ) : (
@@ -321,7 +321,7 @@ export function ReceivableIncomeForm({
           <div className={financeFieldClass}>
             <Label htmlFor={isEditing ? `amount-${income?.id}` : "amount"}>Valor</Label>
             <div className="relative">
-              <CircleDollarSign className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/28" aria-hidden="true" />
+              <CircleDollarSign className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ff-subtle-foreground" aria-hidden="true" />
               <Input
                 id={isEditing ? `amount-${income?.id}` : "amount"}
                 name="amount"
@@ -392,7 +392,7 @@ export function ReceivableIncomeForm({
           <div className={financeFieldClass}>
             <Label htmlFor={isEditing ? `receiving_bank-${income?.id}` : "receiving_bank"}>Banco de recebimento</Label>
             <div className="relative">
-              <Landmark className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/28" aria-hidden="true" />
+              <Landmark className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ff-subtle-foreground" aria-hidden="true" />
               <select
                 id={isEditing ? `receiving_bank-${income?.id}` : "receiving_bank"}
                 name="receiving_bank"

@@ -1,3 +1,7 @@
+"use client";
+
+import { useEffect } from "react";
+import { toast } from "sonner";
 import { AlertTriangle, CheckCircle2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -9,13 +13,25 @@ interface AppActionFeedbackProps {
 }
 
 export function AppActionFeedback({ error, success, className }: AppActionFeedbackProps) {
+  useEffect(() => {
+    if (error) {
+      toast.error(error, { duration: 5000 });
+    }
+  }, [error]);
+
+  useEffect(() => {
+    if (success) {
+      toast.success(success);
+    }
+  }, [success]);
+
   if (!error && !success) {
     return null;
   }
 
   if (error) {
     return (
-      <p className={cn("flex items-center gap-2 rounded-2xl border border-[#f0506e]/20 bg-[#f0506e]/10 px-3 py-2 text-sm text-[#ff8da0]", className)}>
+      <p className={cn("flex items-center gap-2 rounded-2xl border border-ff-destructive bg-ff-destructive-soft px-3 py-2 text-sm text-ff-destructive", className)}>
         <AlertTriangle className="h-4 w-4 shrink-0" />
         {error}
       </p>
@@ -23,7 +39,7 @@ export function AppActionFeedback({ error, success, className }: AppActionFeedba
   }
 
   return (
-    <p className={cn("flex items-center gap-2 rounded-2xl border border-[#1de9b2]/20 bg-[#1de9b2]/10 px-3 py-2 text-sm text-[#1de9b2]", className)}>
+    <p className={cn("flex items-center gap-2 rounded-2xl border border-ff-success bg-ff-success-soft px-3 py-2 text-sm text-ff-success", className)}>
       <CheckCircle2 className="h-4 w-4 shrink-0" />
       {success}
     </p>

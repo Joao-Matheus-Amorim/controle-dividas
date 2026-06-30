@@ -70,13 +70,13 @@ export function FinanceDateField({
             id={triggerId}
             type="button"
             variant="outline"
-            className="h-12 w-full justify-between rounded-2xl border-white/10 bg-[#080810] px-4 text-left text-base font-semibold text-white hover:bg-white/10 md:text-sm"
+            className="h-12 w-full justify-between rounded-2xl border-border bg-background px-4 text-left text-base font-semibold text-foreground hover:bg-ff-bg-soft md:text-sm"
           >
             <span>{formatDateLabel(value)}</span>
-            <CalendarDays className="h-4 w-4 text-[#8b72f8]" />
+            <CalendarDays className="h-4 w-4 text-primary" />
           </Button>
         </DialogTrigger>
-        <DialogContent className="max-w-sm rounded-3xl border-white/10 bg-[#10101a] text-white">
+        <DialogContent className="max-w-sm rounded-3xl border-border bg-card text-foreground">
           <DialogHeader>
             <DialogTitle>{label}</DialogTitle>
             <DialogDescription>Escolha a data para este lançamento.</DialogDescription>

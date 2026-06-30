@@ -64,6 +64,151 @@ function getFriendlyNames(fields: string[]): string[] {
   return fields.map((f) => friendlyFieldNames[f] || f);
 }
 
+function formatDateToken(value: unknown) {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return String(value ?? "");
+  const [year, month, day] = value.split("-");
+  return `${day}/${month}/${year}`;
+}
+
+function formatMoney(value: unknown, currency = "EUR") {
+  const amount = Number(value);
+  if (!Number.isFinite(amount)) return String(value ?? "");
+  return new Intl.NumberFormat("pt-BR", { style: "currency", currency }).format(amount);
+}
+
+function findMemberName(memberId: unknown, members: DbFamilyMember[]) {
+  return typeof memberId === "string"
+    ? members.find((member) => member.id === memberId)?.name
+    : undefined;
+}
+
+function findMemberCurrency(memberId: unknown, members: DbFamilyMember[]) {
+  return typeof memberId === "string"
+    ? members.find((member) => member.id === memberId)?.currency
+    : undefined;
+}
+
+function findExpenseCategoryName(categoryId: unknown, categories: DbExpenseCategory[]) {
+  return typeof categoryId === "string"
+    ? categories.find((category) => category.id === categoryId)?.name
+    : undefined;
+}
+
+function findReceivableSourceName(sourceId: unknown, sources: DbReceivableIncomeSource[]) {
+  return typeof sourceId === "string"
+    ? sources.find((source) => source.id === sourceId)?.name
+    : undefined;
+}
+
+function findBankName(bankId: unknown, bankAccounts: DbBankAccount[]) {
+  return typeof bankId === "string"
+    ? bankAccounts.find((bank) => bank.id === bankId)?.bank_name
+    : undefined;
+}
+
+function compactHumanFields(fields: Array<[string, unknown]>) {
+  return fields
+    .filter(([, value]) => value !== undefined && value !== null && value !== "")
+    .map(([label, value]) => `${label}: ${value}`);
+}
+
+function buildHumanDraftFields(
+  intent: string,
+  draftData: Record<string, unknown>,
+  catalogs: AiFinanceUniversalDraftCatalogs,
+) {
+  const members = catalogs.members ?? [];
+  const bankAccounts = catalogs.bankAccounts ?? [];
+  const currency = findMemberCurrency(draftData.memberId, members) ?? "EUR";
+
+  if (intent === "gasto") {
+    return compactHumanFields([
+      ["pessoa", findMemberName(draftData.memberId, members)],
+      ["categoria", findExpenseCategoryName(draftData.categoryId, catalogs.expenseCategories ?? [])],
+      ["valor", draftData.amount ? formatMoney(draftData.amount, currency) : undefined],
+      ["data", draftData.date ? formatDateToken(draftData.date) : undefined],
+      ["descricao", draftData.description],
+      ["local", draftData.purchaseLocation],
+      ["pagamento", draftData.paymentMethod],
+      ["banco", findBankName(draftData.bankId, bankAccounts)],
+    ]);
+  }
+
+  if (intent === "conta_a_pagar") {
+    return compactHumanFields([
+      ["responsavel", findMemberName(draftData.memberId, members)],
+      ["categoria", findExpenseCategoryName(draftData.categoryId, catalogs.expenseCategories ?? [])],
+      ["conta", draftData.name],
+      ["valor", draftData.amount ? formatMoney(draftData.amount, currency) : undefined],
+      ["vencimento", draftData.dueDate ? formatDateToken(draftData.dueDate) : undefined],
+      ["status", draftData.status],
+      ["tipo", draftData.billType],
+      ["banco", findBankName(draftData.bankId, bankAccounts)],
+    ]);
+  }
+
+  if (intent === "conta_a_receber") {
+    return compactHumanFields([
+      ["recebedor", findMemberName(draftData.memberId, members)],
+      ["origem", findReceivableSourceName(draftData.sourceId, catalogs.receivableSources ?? [])],
+      ["valor", draftData.amount ? formatMoney(draftData.amount, currency) : undefined],
+      ["data prevista", draftData.expectedDate ? formatDateToken(draftData.expectedDate) : undefined],
+      ["status", draftData.status],
+      ["tipo", draftData.incomeType],
+      ["origem do pagamento", draftData.paymentOrigin],
+      ["banco", findBankName(draftData.bankId, bankAccounts)],
+    ]);
+  }
+
+  if (intent === "banco") {
+    return compactHumanFields([
+      ["pessoa", findMemberName(draftData.memberId, members)],
+      ["banco", draftData.bankName],
+      ["tipo", draftData.accountType],
+      ["saldo", draftData.currentBalance ? formatMoney(draftData.currentBalance, String(draftData.currency ?? "EUR")) : undefined],
+      ["moeda", draftData.currency],
+    ]);
+  }
+
+  return [];
+}
+
+function buildHumanDraftMessage({
+  intent,
+  draftData,
+  missingFields,
+  draftReady,
+  catalogs,
+}: {
+  intent: AiFinanceClassifierIntent;
+  draftData: Record<string, unknown>;
+  missingFields: string[];
+  draftReady: boolean;
+  catalogs: AiFinanceUniversalDraftCatalogs;
+}) {
+  const intentLabel = getAiFinanceClassifierIntentLabel(intent);
+  const filledFields = buildHumanDraftFields(intent, draftData, catalogs);
+  const lines = [`Detectei ${intentLabel} e montei um rascunho para voce revisar.`];
+
+  if (filledFields.length > 0) {
+    lines.push(`Preenchi: ${filledFields.join("; ")}.`);
+  } else {
+    lines.push("Ainda nao consegui preencher campos suficientes com seguranca.");
+  }
+
+  if (missingFields.length > 0) {
+    lines.push(`Ainda falta: ${getFriendlyNames(missingFields).join(", ")}.`);
+  }
+
+  lines.push(
+    draftReady
+      ? "Nada foi salvo ainda. Clique em Revisar rascunho para abrir o formulario, corrigir o que faltar e salvar."
+      : "Nada foi salvo ainda. Envie mais detalhes para eu montar um rascunho melhor.",
+  );
+
+  return lines.join(" ");
+}
+
 function findBestPayableBillMatch(
   text: string,
   bills: Array<{ id: string; name: string; amount: number; due_date: string; responsible_member_id: string | null }>,
@@ -403,6 +548,36 @@ export async function POST(request: NextRequest) {
       }
 
       draftReady = isComplete || Object.keys(draftData).length >= 2;
+    }
+
+    if (classification.intent !== "pergunta") {
+      const draftContent = buildHumanDraftMessage({
+        intent: classification.intent,
+        draftData,
+        missingFields,
+        draftReady,
+        catalogs,
+      });
+
+      await addMessage(organization_id, profile.id, "assistant", draftContent);
+      await auditLog({
+        action: "chat_completion",
+        payload: { text, organization_id, classification: classification.intent },
+        result: { content: draftContent, deterministic: true },
+        success: true,
+        organization_id,
+        created_by: profile.id,
+      });
+
+      return NextResponse.json({
+        result: {
+          content: draftContent,
+          classification: { intent: classification.intent, confidence: classification.confidence },
+          conversationComplete: isComplete,
+          draftReady,
+          draft: draftData,
+        },
+      });
     }
 
     const intentLabel = getAiFinanceClassifierIntentLabel(classification.intent);

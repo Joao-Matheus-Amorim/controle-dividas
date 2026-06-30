@@ -25,7 +25,7 @@ export function AdminUserDeleteForm({ profileId }: { profileId: string }) {
         size="icon"
         disabled={isPending}
         aria-label="Excluir acesso"
-        className="h-9 w-9 rounded-xl border-[#f0506e]/20 bg-[#f0506e]/10 text-[#f0506e] hover:bg-[#f0506e]/20"
+        className="h-9 w-9 rounded-xl border-ff-destructive bg-ff-destructive-soft text-ff-destructive hover:bg-ff-destructive-soft"
       >
         <Trash2 className="h-4 w-4" />
       </Button>
