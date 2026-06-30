@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Sparkles, Loader2, ExternalLink, Trash2, CheckCircle } from "lucide-react";
+import { Sparkles, Loader2, ExternalLink, Trash2, CheckCircle, XCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
@@ -111,6 +111,10 @@ export function AICommandBar({
     setConfirmOpen(false);
   };
 
+  const handleDismissDraft = () => {
+    setDraft(null);
+  };
+
   const handleClearConversation = async () => {
     if (!organizationId) return;
     try {
@@ -204,18 +208,28 @@ export function AICommandBar({
             {message}
           </p>
           {draft ? (
-            <button
-              type="button"
-              onClick={handleOpenForm}
-              className="inline-flex items-center gap-1 rounded-full bg-ff-primary-soft px-3 py-1 text-xs font-medium text-primary transition hover:bg-primary hover:text-primary-foreground"
-            >
-              {draft.intent === "acao_pagamento" ? (
-                <CheckCircle className="h-3 w-3" />
-              ) : (
-                <ExternalLink className="h-3 w-3" />
-              )}
-              {draft.intent === "acao_pagamento" ? "Confirmar pagamento" : "Revisar rascunho"}
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={handleOpenForm}
+                className="inline-flex items-center gap-1 rounded-full bg-ff-primary-soft px-3 py-1 text-xs font-medium text-primary transition hover:bg-primary hover:text-primary-foreground"
+              >
+                {draft.intent === "acao_pagamento" ? (
+                  <CheckCircle className="h-3 w-3" />
+                ) : (
+                  <ExternalLink className="h-3 w-3" />
+                )}
+                {draft.intent === "acao_pagamento" ? "Confirmar pagamento" : "Revisar rascunho"}
+              </button>
+              <button
+                type="button"
+                onClick={handleDismissDraft}
+                className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium text-muted-foreground transition hover:text-foreground"
+              >
+                <XCircle className="h-3 w-3" />
+                Recusar rascunho
+              </button>
+            </>
           ) : null}
           <button
             type="button"
