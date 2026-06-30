@@ -12,9 +12,24 @@ describe("AI finance intent classifier", () => {
       "conta_a_pagar",
       "conta_a_receber",
       "banco",
+      "acao_pagamento",
       "pergunta",
       "recusa",
     ]);
+  });
+
+  it("detects quick action payment requests", () => {
+    const result = classifyAiFinanceIntent("marca a conta de luz como paga");
+
+    expect(result.intent).toBe("acao_pagamento");
+    expect(result.matchedTerms).toContain("marca");
+  });
+
+  it("detects pague a conta as action, not refusal", () => {
+    const result = classifyAiFinanceIntent("pague a conta de internet");
+
+    expect(result.intent).toBe("acao_pagamento");
+    expect(result.matchedTerms).toContain("pague a conta");
   });
 
   it("detects expense input without saving anything", () => {
