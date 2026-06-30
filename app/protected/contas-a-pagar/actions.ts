@@ -303,13 +303,13 @@ export async function createPayableBill(
     return validationError;
   }
 
-  const supabase = await createClient();
-  const profile = await getCurrentProfile();
-  const { organization } = await requireOrganizationAccess();
-  const shouldCreatePaidMovement = input.status === "pago";
-  let paidMovementBank: Record<string, unknown> | null = null;
-
   try {
+    const supabase = await createClient();
+    const profile = await getCurrentProfile();
+    const { organization } = await requireOrganizationAccess();
+    const shouldCreatePaidMovement = input.status === "pago";
+    let paidMovementBank: Record<string, unknown> | null = null;
+
     await assertResponsibleMemberBelongsToOrganization(
       organization.id,
       input.responsibleMemberId,
@@ -338,109 +338,109 @@ export async function createPayableBill(
     ) {
       throw new Error("O banco do pagamento precisa usar a mesma moeda da conta.");
     }
-  } catch (error) {
-    return {
-      error:
-        error instanceof Error
-          ? error.message
-          : "Voce nao tem permissao para cadastrar conta para esta pessoa.",
-    };
-  }
 
-  const rateLimit = checkSensitiveOperationRateLimit({
-    ...payableCreateRateLimit,
-    actorKey: profile.id,
-    organizationId: organization.id,
-  });
+    const rateLimit = checkSensitiveOperationRateLimit({
+      ...payableCreateRateLimit,
+      actorKey: profile.id,
+      organizationId: organization.id,
+    });
 
-  if (!rateLimit.allowed) {
+    if (!rateLimit.allowed) {
+      await recordPayableBillAuditEvent({
+        organizationId: organization.id,
+        action: "finance.payable.create",
+        billId: null,
+        outcome: "denied",
+        metadata: {
+          status: "rate_limited",
+          payable_created: true,
+          responsible_member_id: input.responsibleMemberId,
+        },
+      });
+
+      return { error: "Muitas tentativas de cadastro de conta. Tente novamente em alguns minutos." };
+    }
+
+    const { data: createdBill, error } = await supabase.from("payable_bills").insert({
+      owner_id: organization.owner_auth_user_id,
+      organization_id: organization.id,
+      name: input.name,
+      category: input.category || null,
+      amount: input.amount,
+      currency: input.currency,
+      due_date: input.dueDate,
+      responsible_member_id: input.responsibleMemberId,
+      status: shouldCreatePaidMovement ? "pendente" : input.status,
+      bill_type: input.billType,
+      bank_used: input.bankUsed || null,
+      recurrence: input.recurrence || null,
+      notes: input.notes || null,
+    }).select("id").single();
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    const createdBillId = createdBill?.id ? String(createdBill.id) : null;
+
+    if (shouldCreatePaidMovement && createdBillId && paidMovementBank?.id) {
+      const { error: movementError } = await supabase.rpc("mark_payable_bill_paid_with_movement", {
+        target_organization_id: organization.id,
+        target_payable_bill_id: createdBillId,
+        target_bank_id: String(paidMovementBank.id),
+        target_profile_id: profile.id,
+        target_recorded_timezone: input.recordedTimezone,
+      });
+
+      if (movementError) {
+        return { error: movementError.message };
+      }
+    }
+
     await recordPayableBillAuditEvent({
       organizationId: organization.id,
       action: "finance.payable.create",
-      billId: null,
-      outcome: "denied",
+      billId: createdBillId,
       metadata: {
-        status: "rate_limited",
         payable_created: true,
         responsible_member_id: input.responsibleMemberId,
       },
     });
 
-    return { error: "Muitas tentativas de cadastro de conta. Tente novamente em alguns minutos." };
-  }
-
-  const { data: createdBill, error } = await supabase.from("payable_bills").insert({
-    owner_id: organization.owner_auth_user_id,
-    organization_id: organization.id,
-    name: input.name,
-    category: input.category || null,
-    amount: input.amount,
-    currency: input.currency,
-    due_date: input.dueDate,
-    responsible_member_id: input.responsibleMemberId,
-    status: shouldCreatePaidMovement ? "pendente" : input.status,
-    bill_type: input.billType,
-    bank_used: input.bankUsed || null,
-    recurrence: input.recurrence || null,
-    notes: input.notes || null,
-  }).select("id").single();
-
-  if (error) {
-    return { error: error.message };
-  }
-
-  const createdBillId = createdBill?.id ? String(createdBill.id) : null;
-
-  if (shouldCreatePaidMovement && createdBillId && paidMovementBank?.id) {
-    const { error: movementError } = await supabase.rpc("mark_payable_bill_paid_with_movement", {
-      target_organization_id: organization.id,
-      target_payable_bill_id: createdBillId,
-      target_bank_id: String(paidMovementBank.id),
-      target_profile_id: profile.id,
-      target_recorded_timezone: input.recordedTimezone,
-    });
-
-    if (movementError) {
-      return { error: movementError.message };
+    if (shouldCreatePaidMovement) {
+      await recordPayableBillAuditEvent({
+        organizationId: organization.id,
+        action: "finance.payable.status.update",
+        billId: createdBillId,
+        metadata: {
+          previous_status: "pendente",
+          next_status: "pago",
+          responsible_member_id: input.responsibleMemberId,
+        },
+      });
     }
+
+    revalidateOrganizationPaths([
+      "/protected/contas-a-pagar",
+      "/protected/movimentacoes",
+      "/protected/bancos",
+      "/protected",
+    ], organization.slug);
+
+    return {
+      success:
+        input.billType === "fixa"
+          ? "Conta fixa cadastrada com sucesso."
+          : "Conta avulsa cadastrada com sucesso.",
+    };
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "Nao foi possivel cadastrar esta conta.",
+    };
   }
-
-  await recordPayableBillAuditEvent({
-    organizationId: organization.id,
-    action: "finance.payable.create",
-    billId: createdBillId,
-    metadata: {
-      payable_created: true,
-      responsible_member_id: input.responsibleMemberId,
-    },
-  });
-
-  if (shouldCreatePaidMovement) {
-    await recordPayableBillAuditEvent({
-      organizationId: organization.id,
-      action: "finance.payable.status.update",
-      billId: createdBillId,
-      metadata: {
-        previous_status: "pendente",
-        next_status: "pago",
-        responsible_member_id: input.responsibleMemberId,
-      },
-    });
-  }
-
-  revalidateOrganizationPaths([
-    "/protected/contas-a-pagar",
-    "/protected/movimentacoes",
-    "/protected/bancos",
-    "/protected",
-  ], organization.slug);
-
-  return {
-    success:
-      input.billType === "fixa"
-        ? "Conta fixa cadastrada com sucesso."
-        : "Conta avulsa cadastrada com sucesso.",
-  };
 }
 
 export async function updatePayableBill(

@@ -299,13 +299,13 @@ export async function createReceivableIncome(
     return validationError;
   }
 
-  const supabase = await createClient();
-  const profile = await getCurrentProfile();
-  const { organization } = await requireOrganizationAccess();
-  const shouldCreateReceivedMovement = input.status === "recebido";
-  let receivedMovementBank: Record<string, unknown> | null = null;
-
   try {
+    const supabase = await createClient();
+    const profile = await getCurrentProfile();
+    const { organization } = await requireOrganizationAccess();
+    const shouldCreateReceivedMovement = input.status === "recebido";
+    let receivedMovementBank: Record<string, unknown> | null = null;
+
     await assertReceiverMemberBelongsToOrganization(
       organization.id,
       input.receiverMemberId,
@@ -334,103 +334,103 @@ export async function createReceivableIncome(
     ) {
       throw new Error("O banco do recebimento precisa usar a mesma moeda da entrada.");
     }
-  } catch (error) {
-    return {
-      error:
-        error instanceof Error
-          ? error.message
-          : "Voce nao tem permissao para cadastrar recebimento para esta pessoa.",
-    };
-  }
 
-  const rateLimit = checkSensitiveOperationRateLimit({
-    ...receivableCreateRateLimit,
-    actorKey: profile.id,
-    organizationId: organization.id,
-  });
+    const rateLimit = checkSensitiveOperationRateLimit({
+      ...receivableCreateRateLimit,
+      actorKey: profile.id,
+      organizationId: organization.id,
+    });
 
-  if (!rateLimit.allowed) {
+    if (!rateLimit.allowed) {
+      await recordReceivableIncomeAuditEvent({
+        organizationId: organization.id,
+        action: "finance.receivable.create",
+        incomeId: null,
+        outcome: "denied",
+        metadata: {
+          status: "rate_limited",
+          receivable_created: true,
+          receiver_member_id: input.receiverMemberId,
+        },
+      });
+
+      return { error: "Muitas tentativas de cadastro de recebimento. Tente novamente em alguns minutos." };
+    }
+
+    const { data: createdIncome, error } = await supabase.from("receivable_incomes").insert({
+      owner_id: organization.owner_auth_user_id,
+      organization_id: organization.id,
+      receiver_member_id: input.receiverMemberId,
+      source: input.source,
+      payment_origin: input.paymentOrigin || null,
+      income_type: input.incomeType,
+      amount: input.amount,
+      currency: input.currency,
+      expected_date: input.expectedDate,
+      status: shouldCreateReceivedMovement ? "previsto" : input.status,
+      receiving_bank: input.receivingBank || null,
+      notes: input.notes || null,
+    }).select("id").single();
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    const createdIncomeId = createdIncome?.id ? String(createdIncome.id) : null;
+
+    if (shouldCreateReceivedMovement && createdIncomeId && receivedMovementBank?.id) {
+      const { error: movementError } = await supabase.rpc("mark_receivable_income_received_with_movement", {
+        target_organization_id: organization.id,
+        target_receivable_income_id: createdIncomeId,
+        target_bank_id: String(receivedMovementBank.id),
+        target_profile_id: profile.id,
+        target_recorded_timezone: input.recordedTimezone,
+      });
+
+      if (movementError) {
+        return { error: movementError.message };
+      }
+    }
+
     await recordReceivableIncomeAuditEvent({
       organizationId: organization.id,
       action: "finance.receivable.create",
-      incomeId: null,
-      outcome: "denied",
+      incomeId: createdIncomeId,
       metadata: {
-        status: "rate_limited",
         receivable_created: true,
         receiver_member_id: input.receiverMemberId,
       },
     });
 
-    return { error: "Muitas tentativas de cadastro de recebimento. Tente novamente em alguns minutos." };
-  }
-
-  const { data: createdIncome, error } = await supabase.from("receivable_incomes").insert({
-    owner_id: organization.owner_auth_user_id,
-    organization_id: organization.id,
-    receiver_member_id: input.receiverMemberId,
-    source: input.source,
-    payment_origin: input.paymentOrigin || null,
-    income_type: input.incomeType,
-    amount: input.amount,
-    currency: input.currency,
-    expected_date: input.expectedDate,
-    status: shouldCreateReceivedMovement ? "previsto" : input.status,
-    receiving_bank: input.receivingBank || null,
-    notes: input.notes || null,
-  }).select("id").single();
-
-  if (error) {
-    return { error: error.message };
-  }
-
-  const createdIncomeId = createdIncome?.id ? String(createdIncome.id) : null;
-
-  if (shouldCreateReceivedMovement && createdIncomeId && receivedMovementBank?.id) {
-    const { error: movementError } = await supabase.rpc("mark_receivable_income_received_with_movement", {
-      target_organization_id: organization.id,
-      target_receivable_income_id: createdIncomeId,
-      target_bank_id: String(receivedMovementBank.id),
-      target_profile_id: profile.id,
-      target_recorded_timezone: input.recordedTimezone,
-    });
-
-    if (movementError) {
-      return { error: movementError.message };
+    if (shouldCreateReceivedMovement) {
+      await recordReceivableIncomeAuditEvent({
+        organizationId: organization.id,
+        action: "finance.receivable.status.update",
+        incomeId: createdIncomeId,
+        metadata: {
+          previous_status: "previsto",
+          next_status: "recebido",
+          receiver_member_id: input.receiverMemberId,
+        },
+      });
     }
+
+    revalidateOrganizationPaths([
+      "/protected/contas-a-receber",
+      "/protected/movimentacoes",
+      "/protected/bancos",
+      "/protected",
+    ], organization.slug);
+
+    return { success: "Conta a receber cadastrada com sucesso." };
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "Nao foi possivel cadastrar este recebimento.",
+    };
   }
-
-  await recordReceivableIncomeAuditEvent({
-    organizationId: organization.id,
-    action: "finance.receivable.create",
-    incomeId: createdIncomeId,
-    metadata: {
-      receivable_created: true,
-      receiver_member_id: input.receiverMemberId,
-    },
-  });
-
-  if (shouldCreateReceivedMovement) {
-    await recordReceivableIncomeAuditEvent({
-      organizationId: organization.id,
-      action: "finance.receivable.status.update",
-      incomeId: createdIncomeId,
-      metadata: {
-        previous_status: "previsto",
-        next_status: "recebido",
-        receiver_member_id: input.receiverMemberId,
-      },
-    });
-  }
-
-  revalidateOrganizationPaths([
-    "/protected/contas-a-receber",
-    "/protected/movimentacoes",
-    "/protected/bancos",
-    "/protected",
-  ], organization.slug);
-
-  return { success: "Conta a receber cadastrada com sucesso." };
 }
 
 export async function updateReceivableIncome(
