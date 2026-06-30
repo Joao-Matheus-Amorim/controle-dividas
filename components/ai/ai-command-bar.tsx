@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { Sparkles, Loader2, ExternalLink, Trash2, CheckCircle, XCircle } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
   Dialog,
@@ -41,7 +40,6 @@ export function AICommandBar({
   organizationId,
   orgSlug,
 }: AICommandBarProps) {
-  const router = useRouter();
   const [input, setInput] = React.useState("");
   const [message, setMessage] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(false);
@@ -75,7 +73,7 @@ export function AICommandBar({
     if (!route) return;
 
     sessionStorage.setItem(SESSION_KEY, JSON.stringify(draft));
-    router.push(orgSlug ? `/org/${orgSlug}/${route}` : `/protected/${route}`);
+    window.location.href = orgSlug ? `/org/${orgSlug}/${route}` : `/protected/${route}`;
   };
 
   const handleConfirmPayment = async () => {

@@ -141,7 +141,7 @@ describe("finance beta UX contract guards", () => {
     expect(appFormSheet).toContain("md:max-w-none");
     expect(appFormSheet).not.toContain("md:max-w-md");
     expect(appFormSheet).toContain("SheetClose");
-    expect(appFormSheet).toContain("Voltar");
+    expect(appFormSheet).toContain("Fechar");
     expect(appFormSheet).toContain("sticky top-0");
     expect(appFormSheet).toContain("flex-1 overflow-y-auto");
   });
