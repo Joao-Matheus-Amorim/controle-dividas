@@ -189,7 +189,7 @@ export function ExpenseListClient({
                   size="sm"
                   className="mt-[-0.125rem] shrink-0 rounded-xl px-3 text-xs font-semibold text-muted-foreground hover:bg-ff-bg-soft hover:text-foreground"
                 >
-                  Voltar
+                  Fechar
                 </Button>
               </SheetClose>
             </div>
