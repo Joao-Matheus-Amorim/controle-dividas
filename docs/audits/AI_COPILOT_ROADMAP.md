@@ -34,7 +34,7 @@ O produto-alvo e um Copiloto Financeiro Review-Only:
 | Auditoria de acoes de IA | Implementado | `ai_actions`, `lib/ai/audit.ts` |
 | RLS de auditoria de IA | Implementado por autor | `supabase/migrations/070_ai_actions.sql` |
 | Chat/copiloto UI | UI inicial implementada em PR | `components/ai/ai-command-bar.tsx`, `components/app/app-shell.tsx` |
-| Gatilho do Command Bar | Feature flag `NEXT_PUBLIC_ENABLE_AI_COMMAND_BAR=false` em `.env.example` | `components/app/app-shell.tsx:74` |
+| Gatilho do Command Bar | Gate por módulo DASHBOARD visível | `components/app/app-shell.tsx` |
 | Classificador de intencao | Implementado em PR | `lib/finance/ai-finance-intent-classifier.ts` |
 | Rascunho universal review-only | Implementado em PR | `lib/finance/ai-finance-universal-draft.ts` |
 | Perguntas financeiras read-only | Expandido em PR | `getCategorySpendingSummary`, `getMemberLimitsSummary` em `lib/ai/tools/finance-tools.ts` |
@@ -111,7 +111,7 @@ Um bloco so pode sair de `Planejado` ou `Em andamento` para `Concluido` quando:
 | Provider/modelo | Decidida | OpenRouter como provider inicial (OpenAI-compatible via fetch, sem SDK); estrutura para trocar para OpenAI depois. |
 | Retencao de prompts | Pendente | Prompt bruto nao deve ser persistido ate existir contrato explicito. |
 | UI do copiloto | Decidida para AI-02 | Command bar global no AppShell, conectada ao provider para intents de pergunta. |
-| Gatilho do Command Bar | Decidido | Feature flag `NEXT_PUBLIC_ENABLE_AI_COMMAND_BAR` (padrao `false`) em `app-shell.tsx`. |
+| Gatilho do Command Bar | Decidido | Gate por módulo DASHBOARD (sem flag extra). |
 | Rate limit do provider | Implementado | Rate limiter Supabase-backed via `ai_conversations.user_id` (service_role, sem Redis). |
 | Escopo de perguntas financeiras | Decidido | Perguntas read-only via `/api/ai/chat` com provider, audit e rate limit. |
 | Acoes semi-automaticas | Decidido | Quick actions assistidas (AI-13) com confirmacao forte via Dialog e endpoint dedicado `pay-bill`. |
@@ -152,7 +152,7 @@ Roadmap AI concluido (AI-00 a AI-14). Proximos passos arquivados em `docs/audits
 | 2026-06-29 | AI-14 | Testes e2e do fluxo AI: command bar, classificador com novo intent e fallback sem provider | PR atual |
 | 2026-06-30 | AI-13/AI-14 | Merge PRs #981 e #982 com quick actions, testes e2e e melhorias de UX | PR #981, PR #982 |
 | 2026-06-30 | AI-07 (rate limiter) | Rate limiter migrado de `Map` em memoria para Supabase (`ai_conversations.user_id`, service_role); `lib/ai/providers/` deletado (dead code) | PR #982 |
-| 2026-06-30 | AI-02 (feature flag) | Command Bar gated por `NEXT_PUBLIC_ENABLE_AI_COMMAND_BAR=false` | PR #982 |
+| 2026-06-30 | AI-02 (feature flag) | Command Bar feature flag adicionada e depois removida por reverter comportamento | PR #982, revertida em PR #986 |
 | 2026-06-30 | PWA/splash screen | Theme-color dark unconditional (`#14110F`), `color-scheme: dark` no CSS, safe area no AppFormDialog, SW opaque guard (`isUsable()` + `fetchAndCache()`) | PR #982 |
 | 2026-06-30 | Testes/guard | `page-skeleton.test.tsx` (11 testes), guard tests atualizados (rate limiter, PageSkeleton, `ui-primitive-usage-guards`) | PR #982 |
 | 2026-06-30 | Typecheck fix | Erro pre-existente `sign-up-form.tsx:46` corrigido (`AuthorizedEmailResult` com discriminated union) | PR #982 |
