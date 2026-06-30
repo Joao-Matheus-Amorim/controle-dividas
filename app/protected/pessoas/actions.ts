@@ -42,55 +42,64 @@ export async function createFamilyMember(
     return { error: "Informe um limite mensal valido." };
   }
 
-  const supabase = await createClient();
-  const profile = await getCurrentProfile();
-  const { organization } = await requireOrganizationAdmin();
-  const rateLimit = checkSensitiveOperationRateLimit({
-    ...familyMemberCreateRateLimit,
-    actorKey: profile.id,
-    organizationId: organization.id,
-  });
+  try {
+    const supabase = await createClient();
+    const profile = await getCurrentProfile();
+    const { organization } = await requireOrganizationAdmin();
+    const rateLimit = checkSensitiveOperationRateLimit({
+      ...familyMemberCreateRateLimit,
+      actorKey: profile.id,
+      organizationId: organization.id,
+    });
 
-  if (!rateLimit.allowed) {
+    if (!rateLimit.allowed) {
+      await recordFamilyMemberWriteAuditEvent({
+        organizationId: organization.id,
+        action: "finance.member.create",
+        outcome: "denied",
+        metadata: {
+          status: "rate_limited",
+          member_created: true,
+        },
+      });
+
+      return { error: "Muitas tentativas de cadastro de pessoa. Tente novamente em alguns minutos." };
+    }
+
+    const { data: member, error } = await supabase.from("family_members").insert({
+      owner_id: organization.owner_auth_user_id,
+      organization_id: organization.id,
+      name,
+      role: role || null,
+      monthly_limit: monthlyLimit,
+      currency: "EUR",
+      is_active: true,
+    }).select("id").single();
+
+    if (error) {
+      return { error: error.message };
+    }
+
     await recordFamilyMemberWriteAuditEvent({
       organizationId: organization.id,
       action: "finance.member.create",
-      outcome: "denied",
+      familyMemberId: member?.id ? String(member.id) : null,
       metadata: {
-        status: "rate_limited",
         member_created: true,
       },
     });
 
-    return { error: "Muitas tentativas de cadastro de pessoa. Tente novamente em alguns minutos." };
+    revalidateOrganizationPaths(["/protected/pessoas", "/protected"], organization.slug);
+
+    return { success: "Pessoa cadastrada com sucesso." };
+  } catch (error) {
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "Nao foi possivel cadastrar esta pessoa.",
+    };
   }
-
-  const { data: member, error } = await supabase.from("family_members").insert({
-    owner_id: organization.owner_auth_user_id,
-    organization_id: organization.id,
-    name,
-    role: role || null,
-    monthly_limit: monthlyLimit,
-    currency: "EUR",
-    is_active: true,
-  }).select("id").single();
-
-  if (error) {
-    return { error: error.message };
-  }
-
-  await recordFamilyMemberWriteAuditEvent({
-    organizationId: organization.id,
-    action: "finance.member.create",
-    familyMemberId: member?.id ? String(member.id) : null,
-    metadata: {
-      member_created: true,
-    },
-  });
-
-  revalidateOrganizationPaths(["/protected/pessoas", "/protected"], organization.slug);
-
-  return { success: "Pessoa cadastrada com sucesso." };
 }
 
 export async function updateFamilyMember(
