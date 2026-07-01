@@ -1,5 +1,4 @@
 import { AppShell } from "@/components/app/app-shell";
-import { seedInitialFinanceData } from "@/lib/finance/server";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { createClient } from "@/lib/supabase/server";
 
@@ -18,9 +17,8 @@ export default async function OrgLayout({ children, params }: OrgLayoutProps) {
     return <AppShell orgSlug={orgSlug}>{children}</AppShell>;
   }
 
-  // Garante acesso à organização e seed inicial de dados
+  // Garante acesso à organização; seed inicial roda no onboarding/fallbacks específicos.
   await requireOrganizationAccess(orgSlug);
-  await seedInitialFinanceData(orgSlug);
 
   return <AppShell orgSlug={orgSlug}>{children}</AppShell>;
 }

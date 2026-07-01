@@ -6,6 +6,7 @@ const mockState = vi.hoisted(() => ({
   rateLimitChecks: [] as Array<Record<string, unknown>>,
   rpcCalls: [] as Array<{ name: string; params: Record<string, unknown> }>,
   rpcError: null as { message: string } | null,
+  seedCalls: 0,
 }));
 
 vi.mock("@/lib/security/sensitive-rate-limit", () => ({
@@ -36,6 +37,12 @@ vi.mock("@/lib/supabase/server", () => ({
   })),
 }));
 
+vi.mock("@/lib/finance/server", () => ({
+  seedInitialFinanceData: vi.fn(async () => {
+    mockState.seedCalls += 1;
+  }),
+}));
+
 function formData(input: Record<string, string>) {
   const form = new FormData();
 
@@ -53,6 +60,7 @@ describe("onboarding organization rate limit runtime actions", () => {
     mockState.rateLimitChecks = [];
     mockState.rpcCalls = [];
     mockState.rpcError = null;
+    mockState.seedCalls = 0;
     vi.resetModules();
   });
 
@@ -87,6 +95,7 @@ describe("onboarding organization rate limit runtime actions", () => {
         },
       },
     ]);
+    expect(mockState.seedCalls).toBe(1);
   });
 
   it("does not call the onboarding RPC when rate limit denies", async () => {
@@ -113,6 +122,7 @@ describe("onboarding organization rate limit runtime actions", () => {
       }),
     ]);
     expect(mockState.rpcCalls).toHaveLength(0);
+    expect(mockState.seedCalls).toBe(0);
   });
 
   it("uses a shared missing-session bucket before the RPC when claims are absent", async () => {
