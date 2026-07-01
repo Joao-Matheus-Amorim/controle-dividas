@@ -6,7 +6,7 @@ import { AppFormSheet } from "@/components/app/app-form-sheet";
 import { FamilyUserForm } from "@/components/finance/family-user-form";
 import type { DbFamilyMember } from "@/lib/finance/types";
 
-export function FamilyUserFormDialog({ members }: { members: DbFamilyMember[] }) {
+export function FamilyUserFormDialog({ members, memberCreateHref }: { members: DbFamilyMember[]; memberCreateHref: string }) {
   return (
     <AppFormSheet
       title="Novo usuário"
@@ -14,7 +14,7 @@ export function FamilyUserFormDialog({ members }: { members: DbFamilyMember[] })
       triggerLabel="Novo usuário"
       icon={UserPlus}
     >
-      <FamilyUserForm members={members} />
+      <FamilyUserForm members={members} memberCreateHref={memberCreateHref} />
     </AppFormSheet>
   );
 }

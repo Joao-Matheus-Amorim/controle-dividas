@@ -50,7 +50,7 @@ describe("profile bootstrap organization guards", () => {
   it("keeps organization context reads centralized in the organization server helper", () => {
     const source = readSource("lib/organizations/server.ts");
 
-    expect(source).toContain("export async function getUserOrganizations");
+    expect(source).toContain("export const getUserOrganizations = cache");
     expect(source).toContain('from("organization_memberships")');
     expect(source).toContain('from("organizations")');
     expect(source).toContain("export async function requireOrganizationAccess");

@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import Link from "next/link";
 
 import { createFamilyUser } from "@/app/protected/admin/actions";
 import { AppActionFeedback } from "@/components/app/app-action-feedback";
@@ -12,8 +13,9 @@ import type { ProfileFormState } from "@/lib/finance/admin-types";
 
 const initialState: ProfileFormState = {};
 
-export function FamilyUserForm({ members }: { members: DbFamilyMember[] }) {
+export function FamilyUserForm({ members, memberCreateHref }: { members: DbFamilyMember[]; memberCreateHref: string }) {
   const [state, formAction, isPending] = useActionState(createFamilyUser, initialState);
+  const hasMembers = members.length > 0;
 
   return (
     <form action={formAction} className="space-y-5">
@@ -33,16 +35,25 @@ export function FamilyUserForm({ members }: { members: DbFamilyMember[] }) {
           <select
             id="linked_family_member_id"
             name="linked_family_member_id"
-            required
+            required={hasMembers}
+            disabled={!hasMembers}
             className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
-            <option value="">Selecione o membro</option>
+            <option value="">{hasMembers ? "Selecione o membro" : "Nenhum membro cadastrado"}</option>
             {members.map((member) => (
               <option key={member.id} value={member.id}>
                 {member.name}
               </option>
             ))}
           </select>
+          {!hasMembers ? (
+            <div className="rounded-2xl border border-border bg-background/60 p-3 text-xs leading-5 text-muted-foreground">
+              Cadastre primeiro o membro financeiro que vai usar este acesso.
+              <Link href={memberCreateHref} className="mt-2 inline-flex font-semibold text-primary underline-offset-4 hover:underline">
+                Ir para criação de membro
+              </Link>
+            </div>
+          ) : null}
         </div>
 
         <div className="space-y-2">
@@ -67,7 +78,7 @@ export function FamilyUserForm({ members }: { members: DbFamilyMember[] }) {
 
       <AppActionFeedback error={state.error} success={state.success} />
 
-      <Button type="submit" disabled={isPending}>
+      <Button type="submit" disabled={isPending || !hasMembers}>
         {isPending ? "Salvando..." : "Cadastrar acesso familiar"}
       </Button>
     </form>

@@ -4,6 +4,7 @@ import { AdminUsersList } from "@/components/admin/users/admin-users-list";
 import { AdminUsersPageHeader } from "@/components/admin/users/admin-users-page-header";
 import { AdminUsersSummaryCards } from "@/components/admin/users/admin-users-summary-cards";
 import { getAdminDashboardData } from "@/lib/finance/admin-server";
+import { getOrgPathFromProtectedPath } from "@/lib/organizations/paths";
 
 type AdminUsuariosPageProps = {
   orgSlug?: string;
@@ -29,7 +30,10 @@ export async function AdminUsuariosPage({ orgSlug }: AdminUsuariosPageProps = {}
         memberCount={members.length}
       />
 
-      <AdminUsersCreateSection members={members} />
+      <AdminUsersCreateSection
+        members={members}
+        memberCreateHref={getOrgPathFromProtectedPath("/protected/pessoas", orgSlug)}
+      />
 
       <AdminUsersList
         profiles={profiles}
