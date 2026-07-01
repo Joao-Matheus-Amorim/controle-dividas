@@ -1,15 +1,6 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { getCurrentOrganizationProfile } from "@/lib/finance/access-control";
-import { requireOrganizationAccess } from "@/lib/organizations/server";
-import { auditLog } from "@/lib/ai/audit";
-import { revalidateOrganizationPaths } from "@/lib/organizations/revalidation";
-import { checkRateLimit } from "@/lib/ai/rate-limiter";
-import type { ConfirmationLevel } from "./confirmation-policy";
-
-const COMMAND_TTL_MS = 5 * 60 * 1000;
-const pendingConfirmations = new Map<string, { actionType: string; payload: Record<string, unknown>; expiresAt: number }>();
 
 export type ActionContext = {
   profileId: string;
@@ -32,7 +23,6 @@ export async function createExpenseFromAi(draft: Record<string, unknown>, ctx: A
   const { memberId, categoryId, amount, date, description, bankId, paymentMethod, purchaseLocation, notes } = draft as Record<string, string | undefined>;
 
   const name = sanitizeInput(description || "");
-  const category = categoryId || "";
 
   const amountNumber = validateAmount(amount);
   if (!amountNumber) {
@@ -72,7 +62,6 @@ export async function createPayableBillFromAi(draft: Record<string, unknown>, ct
   const { memberId, categoryId, name, amount, dueDate, status, billType, bankId, notes } = draft as Record<string, string | undefined>;
 
   const billName = sanitizeInput(name || "");
-  const category = categoryId || "";
 
   const amountNumber = validateAmount(amount);
   if (!amountNumber || !dueDate) {
@@ -319,7 +308,6 @@ export async function markReceivableReceivedFromAi(incomeId: string, bankId: str
 function sanitizeInput(input: string): string {
   return input
     .trim()
-    .replace(/<[^>]*>/g, "")
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")

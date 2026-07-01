@@ -1,5 +1,5 @@
 import { normalizeFinanceDraftText } from "@/lib/finance/finance-draft-utils";
-import type { DbFamilyMember, DbExpenseCategory, DbPayableBill } from "@/lib/finance/types";
+import type { DbFamilyMember, DbExpenseCategory } from "@/lib/finance/types";
 
 function normalize(text: string) {
   return normalizeFinanceDraftText(text)

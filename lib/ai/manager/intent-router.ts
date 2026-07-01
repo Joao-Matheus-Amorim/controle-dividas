@@ -1,8 +1,4 @@
-import {
-  classifyAiFinanceIntent,
-  normalizeInput,
-  type AiFinanceClassifierIntent,
-} from "@/lib/finance/ai-finance-intent-classifier";
+import { classifyAiFinanceIntent, normalizeInput } from "@/lib/finance/ai-finance-intent-classifier";
 
 export type AiCommandType =
   | "create_expense"

@@ -6,7 +6,7 @@ import { auditLog } from "@/lib/ai/audit";
 import { createAiProvider } from "@/lib/ai/provider";
 import { checkRateLimit } from "@/lib/ai/rate-limiter";
 import { getCurrentOrganizationProfile } from "@/lib/finance/access-control";
-import { classifyAiFinanceIntent, getAiFinanceClassifierIntentLabel, normalizeInput, type AiFinanceClassifierIntent, type AiFinanceIntentClassification } from "@/lib/finance/ai-finance-intent-classifier";
+import { classifyAiFinanceIntent, getAiFinanceClassifierIntentLabel, type AiFinanceClassifierIntent, type AiFinanceIntentClassification } from "@/lib/finance/ai-finance-intent-classifier";
 import { buildAiFinanceUniversalDraft, type AiFinanceUniversalDraftCatalogs } from "@/lib/finance/ai-finance-universal-draft";
 import { routeAiCommand, type AiCommandType } from "@/lib/ai/manager/intent-router";
 import { getOrganizationExpenseCategories } from "@/lib/organizations/categories";
