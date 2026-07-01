@@ -1,5 +1,4 @@
 import { ExpenseCategoryEditDialog } from "@/components/finance/expense-category-edit-dialog";
-import { ExpenseCategoryForm } from "@/components/finance/expense-category-form";
 import { Badge } from "@/components/ui/badge";
 import { buildExpenseCategoryLabelMap } from "@/lib/finance/category-labels";
 import type { DbExpenseCategory } from "@/lib/finance/types";
@@ -18,22 +17,15 @@ export function SettingsCategories({
   const categoryLabels = buildExpenseCategoryLabelMap(categories);
 
   return (
-    <section className={canManageCategories ? "grid gap-4 xl:grid-cols-[0.9fr_1.1fr]" : "grid gap-4"}>
-      {canManageCategories ? (
-        <div className="rounded-[1.5rem] border border-border bg-ff-bg-soft p-4">
-          <div className="mb-4 flex items-center justify-between">
-            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-ff-subtle-foreground">Nova categoria de custo</p>
-            <p className="text-xs font-semibold text-primary">formulario</p>
-          </div>
-          <ExpenseCategoryForm categories={categories} />
-        </div>
-      ) : null}
-
+    <section className="grid gap-4">
       <div className="space-y-3 rounded-[1.5rem] border border-border bg-ff-bg-soft p-4">
         <div className="flex items-center justify-between">
           <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-ff-subtle-foreground">Categorias de gastos e contas</p>
           <p className="text-xs font-semibold text-primary">{categories.length}</p>
         </div>
+        <p className="text-xs leading-5 text-muted-foreground">
+          Use as categorias padrao sempre que possivel. Crie uma categoria personalizada so quando nenhuma opcao existente representar o custo.
+        </p>
         {categories.map((category) => (
           <div key={category.id} className="flex items-start justify-between gap-4 rounded-2xl border border-border bg-background/50 p-3">
             <div>
@@ -58,6 +50,7 @@ export function SettingsCategories({
           </div>
         ))}
       </div>
+
     </section>
   );
 }

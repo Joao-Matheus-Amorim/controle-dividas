@@ -236,7 +236,8 @@ describe("finance form UI contract guards", () => {
     expect(form).toContain('submitLayout = "inline"');
     expect(form).toContain("financeInlineSubmitBarClass");
     expect(form).toContain("submitLayout === \"sheet\" ? financeSubmitBarClass : financeInlineSubmitBarClass");
-    expect(settings).toContain("<ExpenseCategoryForm categories={categories} />");
+    expect(settings).toContain("Use as categorias padrao sempre que possivel");
+    expect(settings).not.toContain("ExpenseCategoryForm");
     expect(editDialog).toContain('submitLayout="sheet"');
   });
 });
