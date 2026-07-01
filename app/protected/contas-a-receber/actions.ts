@@ -812,9 +812,14 @@ export async function deleteReceivableIncome(
   formData: FormData,
 ): Promise<ReceivableIncomeActionState> {
   const id = String(formData.get("id") ?? "");
+  const confirmation = String(formData.get("confirm_delete") ?? "");
 
   if (!id) {
     return { error: "Recebimento nao encontrado." };
+  }
+
+  if (confirmation !== "confirmado") {
+    return { error: "Confirme a exclusao antes de continuar." };
   }
 
   try {

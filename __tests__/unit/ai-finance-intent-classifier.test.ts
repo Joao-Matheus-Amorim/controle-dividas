@@ -67,10 +67,17 @@ describe("AI finance intent classifier", () => {
     expect(result.reason).toContain("read-only");
   });
 
-  it("refuses destructive or direct execution requests", () => {
+  it("detects delete intent instead of refusal", () => {
     const result = classifyAiFinanceIntent("apague a conta de luz vencida");
 
+    expect(result.intent).toBe("conta_a_pagar");
+    expect(result.actionType).toBe("excluir");
+  });
+
+  it("refuses non-financial operations like money transfer", () => {
+    const result = classifyAiFinanceIntent("transferir dinheiro");
+
     expect(result.intent).toBe("recusa");
-    expect(result.reason).toContain("review-only");
+    expect(result.reason).toContain("nao permitido");
   });
 });

@@ -638,6 +638,7 @@ describe("bank audit runtime actions", () => {
 
     const result = await deleteBankAccount(createFormData({
       id: "bank-1",
+      confirm_delete: "confirmado",
     }));
 
     expect(result).toEqual({ success: "Banco excluido com sucesso." });
@@ -671,6 +672,7 @@ describe("bank audit runtime actions", () => {
 
     const result = await deleteBankAccount(createFormData({
       id: "bank-1",
+      confirm_delete: "confirmado",
     }));
 
     expect(result).toEqual({ error: "Banco nao encontrado." });
@@ -684,6 +686,7 @@ describe("bank audit runtime actions", () => {
 
     const result = await deleteBankAccount(createFormData({
       id: "bank-1",
+      confirm_delete: "confirmado",
     }));
 
     expect(result).toEqual({

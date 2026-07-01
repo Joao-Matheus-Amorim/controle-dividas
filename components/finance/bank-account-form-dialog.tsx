@@ -1,7 +1,7 @@
 "use client";
 
-import { Banknote, XCircle } from "lucide-react";
-import { useState } from "react";
+import { Banknote, XCircle, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
 
 import { AppFormSheet } from "@/components/app/app-form-sheet";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,7 @@ import type { DbFamilyMember } from "@/lib/finance/types";
 
 const SESSION_KEY = "ai_draft";
 
-function readAiDraft(): Record<string, unknown> | null {
+function readAiDraft(): { data: Record<string, unknown>; actionType: string } | null {
   if (typeof window === "undefined") return null;
   try {
     const raw = sessionStorage.getItem(SESSION_KEY);
@@ -18,7 +18,7 @@ function readAiDraft(): Record<string, unknown> | null {
     const parsed = JSON.parse(raw);
     if (parsed.intent === "banco") {
       sessionStorage.removeItem(SESSION_KEY);
-      return parsed.data ?? null;
+      return { data: parsed.data ?? {}, actionType: parsed.actionType ?? "criar" };
     }
     return null;
   } catch {
@@ -33,10 +33,24 @@ export function BankAccountFormDialog({
   members: DbFamilyMember[];
   defaultMemberId?: string;
 }) {
-  const [initialDraft] = useState<Record<string, unknown> | null>(() => readAiDraft());
+  const [initialDraft] = useState<{ data: Record<string, unknown>; actionType: string } | null>(() => readAiDraft());
   const [open, setOpen] = useState(() => Boolean(initialDraft));
   const [formKey, setFormKey] = useState(0);
-  const [draftData, setDraftData] = useState<Record<string, unknown> | null>(initialDraft);
+  const [editRecord, setEditRecord] = useState<Record<string, unknown> | null>(null);
+  const [fetchError, setFetchError] = useState(false);
+  const [draftData, setDraftData] = useState<Record<string, unknown> | null>(initialDraft?.data ?? null);
+
+  const isEdit = Boolean(initialDraft?.actionType === "editar" && initialDraft?.data?.id);
+  const loadingRecord = isEdit && open && !editRecord && !fetchError;
+
+  useEffect(() => {
+    if (isEdit && initialDraft?.data?.id && open) {
+      fetch(`/api/finance/get-record?entity=bank&id=${initialDraft.data.id}`)
+        .then((res) => res.json())
+        .then((json) => { if (json.result) setEditRecord(json.result); else setFetchError(true); })
+        .catch(() => setFetchError(true));
+    }
+  }, [isEdit, initialDraft?.data?.id, open]);
 
   function handleSuccess() {
     setDraftData(null);
@@ -58,20 +72,25 @@ export function BankAccountFormDialog({
     <AppFormSheet
       open={open}
       onOpenChange={(next) => {
-        if (!next) setDraftData(null);
+        if (!next) { setDraftData(null); setEditRecord(null); setFetchError(false); }
         setOpen(next);
       }}
-      title="Novo banco"
-      description="Cadastre uma conta, banco, cartão ou saldo em dinheiro."
+      title={isEdit ? "Editar banco" : "Novo banco"}
+      description={isEdit ? "Atualize os dados da conta bancaria." : "Cadastre uma conta, banco, cartao ou saldo em dinheiro."}
       triggerLabel="Novo banco"
       icon={Banknote}
     >
-      {draftData ? (
+      {loadingRecord ? (
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          <span className="ml-2 text-sm text-muted-foreground">Carregando registro...</span>
+        </div>
+      ) : draftData && !isEdit ? (
         <div className="mb-5 flex items-start justify-between gap-3 rounded-ff-lg border border-primary/20 bg-ff-primary-soft px-4 py-3">
           <div>
             <p className="text-xs font-semibold text-primary">Rascunho gerado pela IA</p>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              Os campos abaixo foram preenchidos com base na sugestão da IA. Recuse para começar do zero.
+              Os campos abaixo foram preenchidos com base na sugestao da IA. Recuse para comecar do zero.
             </p>
           </div>
           <Button type="button" variant="outline" size="sm" onClick={handleDismissDraft} className="shrink-0 gap-1.5">
@@ -82,6 +101,8 @@ export function BankAccountFormDialog({
       ) : null}
       <BankAccountForm
         key={formKey}
+        mode={isEdit && editRecord ? "edit" : "create"}
+        account={isEdit && editRecord ? (editRecord as never) : undefined}
         members={members}
         defaultMemberId={defaultMemberId}
         draftData={draftData ?? undefined}

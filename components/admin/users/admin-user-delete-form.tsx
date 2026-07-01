@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 
 import { deleteFamilyUserWithState } from "@/app/protected/admin/action-state";
 import type { FamilyUserActionState } from "@/app/protected/admin/actions";
@@ -15,15 +15,26 @@ export function AdminUserDeleteForm({ profileId }: { profileId: string }) {
     deleteFamilyUserWithState,
     initialState,
   );
+  const [isConfirmed, setIsConfirmed] = useState(false);
 
   return (
     <form action={formAction} className="flex flex-col items-end gap-2">
       <input type="hidden" name="id" value={profileId} />
+      <input type="hidden" name="confirm_delete" value={isConfirmed ? "confirmado" : ""} />
+      <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground hover:text-foreground">
+        <input
+          type="checkbox"
+          checked={isConfirmed}
+          onChange={(event) => setIsConfirmed(event.target.checked)}
+          className="mt-0.5"
+        />
+        <span>Confirmar exclusao</span>
+      </label>
       <Button
         type="submit"
         variant="outline"
         size="icon"
-        disabled={isPending}
+        disabled={!isConfirmed || isPending}
         aria-label="Excluir acesso"
         className="h-9 w-9 rounded-xl border-ff-destructive bg-ff-destructive-soft text-ff-destructive hover:bg-ff-destructive-soft"
       >

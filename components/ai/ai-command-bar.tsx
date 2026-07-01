@@ -6,13 +6,11 @@ import { cn } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-  DialogClose,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import {
+  AiDraftPreviewCard,
+  type DraftField,
+} from "@/components/ai/ai-draft-preview-card";
 
 const INTENT_ROUTES: Record<string, string> = {
   gasto: "gastos",
@@ -43,13 +41,13 @@ export function AICommandBar({
   const [input, setInput] = React.useState("");
   const [message, setMessage] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(false);
-  const [draft, setDraft] = React.useState<{ intent: string; data: Record<string, unknown> } | null>(null);
-  const [confirmOpen, setConfirmOpen] = React.useState(false);
+  const [draft, setDraft] = React.useState<{ intent: string; actionType: string; data: Record<string, unknown> } | null>(null);
+  const [actionType, setActionType] = React.useState<"pay" | "receive" | "delete" | null>(null);
   const [selectedBankId, setSelectedBankId] = React.useState("");
-  const [confirming, setConfirming] = React.useState(false);
+  const [confirmingAction, setConfirmingAction] = React.useState(false);
 
   const memberBankAccounts = React.useMemo(() => {
-    if (!draft || draft.intent !== "acao_pagamento") return [];
+    if (!draft) return [];
     const raw = draft.data.memberBankAccounts;
     if (!Array.isArray(raw)) return [];
     return raw as BankOption[];
@@ -63,9 +61,22 @@ export function AICommandBar({
   const handleOpenForm = () => {
     if (!draft) return;
 
-    if (draft.intent === "acao_pagamento") {
+    const at = draft.actionType;
+
+    if (draft.intent === "acao_pagamento" || at === "pagar") {
       setSelectedBankId("");
-      setConfirmOpen(true);
+      setActionType("pay");
+      return;
+    }
+
+    if (draft.intent === "conta_a_receber" || at === "receber") {
+      setSelectedBankId("");
+      setActionType("receive");
+      return;
+    }
+
+    if (at === "excluir") {
+      setActionType("delete");
       return;
     }
 
@@ -77,44 +88,121 @@ export function AICommandBar({
     window.location.href = orgSlug ? `/org/${orgSlug}/${route}` : `/protected/${route}`;
   };
 
-  const handleConfirmPayment = async () => {
-    if (!draft || !organizationId) return;
+  const handleConfirm = async () => {
+    if (!draft || !organizationId || !actionType) return;
 
-    const billId = draft.data.billId as string | undefined;
-    if (!billId || !selectedBankId) return;
-
-    setConfirming(true);
+    setConfirmingAction(true);
     try {
-      const response = await fetch("/api/ai/actions/pay-bill", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          billId,
-          bankId: selectedBankId,
-          organization_id: organizationId,
-        }),
-      });
+      if (actionType === "pay") {
+        const billId = draft.data.billId as string | undefined;
+        if (!billId || !selectedBankId) return;
 
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({ error: "Erro ao marcar como paga." }));
-        setMessage(err.error ?? "Erro ao marcar como paga.");
-        setConfirming(false);
-        setConfirmOpen(false);
+        const response = await fetch("/api/ai/actions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            actionType: "mark_payable_paid",
+            payload: { billId, bankId: selectedBankId },
+            confirmation: "confirmado",
+          }),
+        });
+
+        if (!response.ok) {
+          const err = await response.json().catch(() => ({ error: "Erro ao marcar como paga." }));
+          setMessage(err.error ?? "Erro ao marcar como paga.");
+          setConfirmingAction(false);
+          setActionType(null);
+          return;
+        }
+
+        setMessage("Conta marcada como paga com sucesso!");
+        setDraft(null);
+        setConfirmingAction(false);
+        setActionType(null);
+        setTimeout(() => window.location.reload(), 1500);
         return;
       }
 
-      setMessage("Conta marcada como paga com sucesso!");
-      setDraft(null);
-      setConfirming(false);
-      setConfirmOpen(false);
-      setTimeout(() => window.location.reload(), 1500);
-      return;
+      if (actionType === "receive") {
+        const incomeId = draft.data.incomeId as string | undefined;
+        if (!incomeId) return;
+
+        const payload: Record<string, unknown> = { incomeId };
+        if (selectedBankId) payload.bankId = selectedBankId;
+
+        const response = await fetch("/api/ai/actions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            actionType: "mark_receivable_received",
+            payload,
+            confirmation: "confirmado",
+          }),
+        });
+
+        if (!response.ok) {
+          const err = await response.json().catch(() => ({ error: "Erro ao marcar como recebido." }));
+          setMessage(err.error ?? "Erro ao marcar como recebido.");
+          setConfirmingAction(false);
+          setActionType(null);
+          return;
+        }
+
+        setMessage("Recebimento marcado como recebido com sucesso!");
+        setDraft(null);
+        setConfirmingAction(false);
+        setActionType(null);
+        setTimeout(() => window.location.reload(), 1500);
+        return;
+      }
+
+      if (actionType === "delete") {
+        const recordId = draft.data.id as string | undefined;
+        if (!recordId) return;
+
+        const actionTypeMap: Record<string, string> = {
+          gasto: "delete_expense",
+          conta_a_pagar: "delete_payable_bill",
+          conta_a_receber: "delete_receivable_income",
+          banco: "delete_bank_account",
+        };
+
+        const apiActionType = actionTypeMap[draft.intent];
+        if (!apiActionType) {
+          setMessage("Nao foi possivel determinar o tipo de exclusao.");
+          setConfirmingAction(false);
+          setActionType(null);
+          return;
+        }
+
+        const response = await fetch("/api/ai/actions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            actionType: apiActionType,
+            payload: { id: recordId },
+            confirmation: "confirmado",
+          }),
+        });
+
+        if (!response.ok) {
+          const err = await response.json().catch(() => ({ error: "Erro ao excluir." }));
+          setMessage(err.error ?? "Erro ao excluir.");
+        } else {
+          setMessage("Excluido com sucesso!");
+          setDraft(null);
+          setConfirmingAction(false);
+          setActionType(null);
+          setTimeout(() => window.location.reload(), 1500);
+          return;
+        }
+      }
     } catch {
-      setMessage("Erro de rede ao confirmar pagamento.");
+      setMessage("Erro de rede ao confirmar a acao.");
     }
 
-    setConfirming(false);
-    setConfirmOpen(false);
+    setConfirmingAction(false);
+    setActionType(null);
   };
 
   const handleDismissDraft = () => {
@@ -169,6 +257,7 @@ export function AICommandBar({
         if (data.result?.draft && data.result?.draftReady) {
           setDraft({
             intent: data.result.classification.intent,
+            actionType: data.result.classification.actionType ?? "criar",
             data: data.result.draft,
           });
         }
@@ -179,6 +268,44 @@ export function AICommandBar({
 
     setLoading(false);
   };
+
+  const buildDraftFields = React.useCallback(
+    (at: "pay" | "receive" | "delete"): DraftField[] => {
+      if (!draft) return [];
+      const d = draft.data;
+
+      if (at === "pay") {
+        return [
+          { key: "billName", label: "Conta", value: (d.billName as string) ?? null, confidence: "alta", type: "text", required: true },
+          { key: "billAmount", label: "Valor", value: (d.billAmount as number) ?? null, confidence: "alta", type: "currency", required: true },
+          { key: "billDueDate", label: "Vencimento", value: (d.billDueDate as string) ?? null, confidence: "alta", type: "date", required: true },
+          { key: "memberName", label: "Membro", value: (d.memberName as string) ?? null, confidence: "alta", type: "text" },
+        ];
+      }
+
+      if (at === "receive") {
+        const hasMember = Boolean(d.memberName);
+        return [
+          { key: "incomeAmount", label: "Valor", value: (d.incomeAmount as number) ?? null, confidence: "alta", type: "currency", required: true },
+          { key: "incomeDueDate", label: "Data prevista", value: (d.incomeDueDate as string) ?? null, confidence: "alta", type: "date", required: true },
+          { key: "memberName", label: "Membro", value: (d.memberName as string) ?? null, confidence: hasMember ? "alta" : "baixa", type: "text" },
+        ];
+      }
+
+      const intentLabel =
+        draft.intent === "gasto" ? "Gasto"
+        : draft.intent === "conta_a_pagar" ? "Conta a pagar"
+        : draft.intent === "conta_a_receber" ? "Conta a receber"
+        : "Banco";
+      const name = (d.name ?? d.description ?? "") as string;
+      return [
+        { key: "type", label: "Tipo", value: intentLabel, confidence: "alta", type: "text" },
+        { key: "name", label: "Registro", value: name || null, confidence: name ? "alta" : "baixa", type: "text", required: true },
+        { key: "amount", label: "Valor", value: (d.amount as number) ?? null, confidence: d.amount ? "alta" : "media", type: "currency" },
+      ];
+    },
+    [draft],
+  );
 
   return (
     <form onSubmit={handleSubmit} className={cn("relative w-full space-y-2", className)}>
@@ -220,12 +347,24 @@ export function AICommandBar({
                 onClick={handleOpenForm}
                 className="inline-flex items-center gap-1 rounded-full bg-ff-primary-soft px-3 py-1 text-xs font-medium text-primary transition hover:bg-primary hover:text-primary-foreground"
               >
-                {draft.intent === "acao_pagamento" ? (
+                {draft.actionType === "pagar" || draft.intent === "acao_pagamento" ? (
                   <CheckCircle className="h-3 w-3" />
+                ) : draft.actionType === "receber" ? (
+                  <CheckCircle className="h-3 w-3" />
+                ) : draft.actionType === "excluir" ? (
+                  <Trash2 className="h-3 w-3" />
                 ) : (
                   <ExternalLink className="h-3 w-3" />
                 )}
-                {draft.intent === "acao_pagamento" ? "Confirmar pagamento" : "Revisar rascunho"}
+                {draft.actionType === "pagar" || draft.intent === "acao_pagamento"
+                  ? "Confirmar pagamento"
+                  : draft.actionType === "receber"
+                  ? "Confirmar recebimento"
+                  : draft.actionType === "excluir"
+                  ? "Confirmar exclusao"
+                  : draft.actionType === "editar"
+                  ? "Editar registro"
+                  : "Revisar rascunho"}
               </button>
               <button
                 type="button"
@@ -248,80 +387,56 @@ export function AICommandBar({
         </div>
       ) : null}
 
-      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirmar pagamento</DialogTitle>
-            <DialogDescription>
-              Confirme os detalhes da conta a ser marcada como paga.
-            </DialogDescription>
-          </DialogHeader>
-          {draft && draft.intent === "acao_pagamento" ? (
-            <div className="space-y-3 py-2">
-              <div className="rounded-ff-lg bg-ff-bg-soft p-3 text-xs space-y-1.5">
-                <div className="flex justify-between">
-                  <span className="text-ff-subtle-foreground">Conta</span>
-                  <span className="font-medium text-foreground">{String(draft.data.billName ?? "")}</span>
+      <Dialog open={actionType !== null} onOpenChange={(open) => { if (!open) setActionType(null); }}>
+        <DialogContent className="sm:max-w-md">
+          {draft && actionType ? (
+            <AiDraftPreviewCard
+              operation={{
+                action: actionType === "pay" ? "pay" : actionType === "receive" ? "receive" : "delete",
+                intent: draft.intent,
+              }}
+              fields={buildDraftFields(actionType)}
+              title={
+                actionType === "pay" ? "Confirmar pagamento"
+                : actionType === "receive" ? "Confirmar recebimento"
+                : "Confirmar exclusao"
+              }
+              description={
+                actionType === "pay" ? "Confirme os detalhes da conta a ser marcada como paga."
+                : actionType === "receive" ? "Confirme os detalhes do recebimento a ser marcado como recebido."
+                : "Esta acao nao pode ser desfeita."
+              }
+              extraContent={actionType !== "delete" ? (
+                <div className="space-y-1.5 pt-2">
+                  <label htmlFor="unified-bank-select" className="text-xs font-medium text-foreground">
+                    {actionType === "pay" ? "Banco usado no pagamento" : "Banco usado (opcional)"}
+                  </label>
+                  <select
+                    id="unified-bank-select"
+                    value={selectedBankId}
+                    onChange={(e) => setSelectedBankId(e.target.value)}
+                    required={actionType === "pay"}
+                    className="h-9 w-full rounded-xl border border-border bg-muted px-2 text-xs text-foreground"
+                  >
+                    <option value="">{actionType === "pay" ? "Selecione um banco" : "Nao informar"}</option>
+                    {memberBankAccounts.map((bank) => (
+                      <option key={bank.id} value={bank.id}>{bank.name}</option>
+                    ))}
+                  </select>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-ff-subtle-foreground">Valor</span>
-                  <span className="font-medium text-foreground">
-                    {new Intl.NumberFormat("pt-BR", {
-                      style: "currency",
-                      currency: "EUR",
-                    }).format(Number(draft.data.billAmount ?? 0))}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-ff-subtle-foreground">Vencimento</span>
-                  <span className="font-medium text-foreground">{String(draft.data.billDueDate ?? "")}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-ff-subtle-foreground">Membro</span>
-                  <span className="font-medium text-foreground">{String(draft.data.memberName ?? "")}</span>
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                <label htmlFor="confirm-bank-select" className="text-xs font-medium text-foreground">
-                  Banco usado no pagamento
-                </label>
-                <select
-                  id="confirm-bank-select"
-                  value={selectedBankId}
-                  onChange={(e) => setSelectedBankId(e.target.value)}
-                  required
-                  className="h-9 w-full rounded-xl border border-border bg-muted px-2 text-xs text-foreground"
-                >
-                  <option value="">Selecione um banco</option>
-                  {memberBankAccounts.map((bank) => (
-                    <option key={bank.id} value={bank.id}>
-                      {bank.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
+              ) : undefined}
+              confirmLabel={
+                actionType === "pay" ? "Sim, marcar como paga"
+                : actionType === "receive" ? "Sim, marcar como recebido"
+                : "Sim, excluir"
+              }
+              confirmDisabled={actionType === "pay" && !selectedBankId}
+              confirming={confirmingAction}
+              destructive={actionType === "delete"}
+              onConfirm={handleConfirm}
+              onReject={() => setActionType(null)}
+            />
           ) : null}
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button type="button" variant="outline" size="sm">
-                Cancelar
-              </Button>
-            </DialogClose>
-            <Button
-              type="button"
-              size="sm"
-              disabled={!selectedBankId || confirming}
-              onClick={handleConfirmPayment}
-            >
-              {confirming ? (
-                <Loader2 className="h-3 w-3 animate-spin" />
-              ) : (
-                <CheckCircle className="h-3 w-3" />
-              )}
-              {confirming ? "Confirmando..." : "Sim, marcar como paga"}
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </form>

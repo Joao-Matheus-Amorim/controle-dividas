@@ -394,6 +394,7 @@ describe("admin family user actions", () => {
 
     const result = await deleteFamilyUser(createFormData({
       id: "profile-1",
+      confirm_delete: "confirmado",
     }));
 
     expect(result).toEqual({ error: "database delete failed" });
@@ -406,6 +407,7 @@ describe("admin family user actions", () => {
 
     const result = await deleteFamilyUser(createFormData({
       id: "profile-1",
+      confirm_delete: "confirmado",
     }));
 
     expect(result).toEqual({
@@ -437,6 +439,7 @@ describe("admin family user actions", () => {
 
     const result = await deleteFamilyUser(createFormData({
       id: "profile-1",
+      confirm_delete: "confirmado",
     }));
 
     expect(result).toEqual({ success: "Acesso familiar excluido com sucesso." });

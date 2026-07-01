@@ -248,6 +248,7 @@ describe("remaining finance mutation actions", () => {
 
     const result = await deleteExpenseCategory(createFormData({
       id: "category-1",
+      confirm_delete: "confirmado",
     }));
 
     expect(result).toEqual({ error: "category delete failed" });

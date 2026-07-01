@@ -617,7 +617,9 @@ export async function syncFamilyUserAuthLinkFormAction(formData: FormData): Prom
 
 export async function deleteFamilyUser(formData: FormData): Promise<FamilyUserActionState> {
   const id = String(formData.get("id") ?? "");
+  const confirmation = String(formData.get("confirm_delete") ?? "");
   if (!id) return { error: "Acesso familiar nao encontrado." };
+  if (confirmation !== "confirmado") return { error: "Confirme a exclusao antes de continuar." };
 
   const supabase = await createClient();
   const adminProfile = await ensureAdminProfile();
