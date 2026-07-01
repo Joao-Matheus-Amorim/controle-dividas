@@ -409,19 +409,28 @@ async function handleEditIntent(
       .order("expense_date", { ascending: false })
       .limit(50);
 
-    const matched = findBestTextMatch(allUserTexts, expenses ?? [], (e) => e.description);
-    if (!matched) {
-      const content = `Nao encontrei nenhum gasto com essa descricao. Tente novamente com mais detalhes.`;
+    const list = expenses ?? [];
+    const matched = findBestTextMatch(allUserTexts, list, (e) => e.description);
+    if (matched) {
+      const draft = { id: matched.id, intent: "gasto" as const, description: matched.description, amount: matched.amount, date: matched.expense_date, memberId: matched.family_member_id, categoryId: matched.category_id, bankId: matched.bank_id, paymentMethod: matched.payment_method, purchaseLocation: matched.purchase_location, notes: matched.notes };
+      const content = `Encontrei o gasto "${matched.description}" (${formatMoney(matched.amount)}). Vou abrir o formulario para voce editar.`;
       await addMessage(organization_id, profileId, "assistant", content);
-      return NextResponse.json({ result: { content, classification: { intent, actionType: "editar", confidence: classification.confidence }, conversationComplete: true, draftReady: false } });
+      await setConversationIntent(organization_id, profileId, "gasto");
+      await updateCollectedData(organization_id, profileId, draft as unknown as Record<string, unknown>);
+      return NextResponse.json({ result: { content, classification: { intent, actionType: "editar", confidence: classification.confidence }, conversationComplete: true, draftReady: true, draft: draft as unknown as Record<string, unknown> } });
     }
 
-    const draft = { id: matched.id, intent: "gasto" as const, description: matched.description, amount: matched.amount, date: matched.expense_date, memberId: matched.family_member_id, categoryId: matched.category_id, bankId: matched.bank_id, paymentMethod: matched.payment_method, purchaseLocation: matched.purchase_location, notes: matched.notes };
-    const content = `Encontrei o gasto "${matched.description}" (${formatMoney(matched.amount)}). Vou abrir o formulario para voce editar.`;
+    if (list.length > 0) {
+      const options: PendingOption[] = list.map((e) => ({ id: e.id, name: e.description, amount: e.amount, dueDate: e.expense_date }));
+      const content = formatPendingEditOptionsMessage(options, "editar");
+      await setPendingOptions(organization_id, profileId, { action: "edit", options, intent: "gasto" });
+      await addMessage(organization_id, profileId, "assistant", content);
+      return NextResponse.json({ result: { content, classification: { intent, actionType: "editar", confidence: classification.confidence }, conversationComplete: false, draftReady: false } });
+    }
+
+    const content = "Nao encontrei nenhum gasto com essa descricao. Tente novamente com mais detalhes.";
     await addMessage(organization_id, profileId, "assistant", content);
-    await setConversationIntent(organization_id, profileId, "gasto");
-    await updateCollectedData(organization_id, profileId, draft as unknown as Record<string, unknown>);
-    return NextResponse.json({ result: { content, classification: { intent, actionType: "editar", confidence: classification.confidence }, conversationComplete: true, draftReady: true, draft: draft as unknown as Record<string, unknown> } });
+    return NextResponse.json({ result: { content, classification: { intent, actionType: "editar", confidence: classification.confidence }, conversationComplete: true, draftReady: false } });
   }
 
   if (intent === "conta_a_pagar") {
@@ -432,17 +441,26 @@ async function handleEditIntent(
       .order("due_date", { ascending: false })
       .limit(50);
 
-    const matched = findBestTextMatch(allUserTexts, bills ?? [], (b) => b.name);
-    if (!matched) {
-      const content = `Nao encontrei nenhuma conta com esse nome. Tente novamente com mais detalhes.`;
+    const list = bills ?? [];
+    const matched = findBestTextMatch(allUserTexts, list, (b) => b.name);
+    if (matched) {
+      const draft = { id: matched.id, intent: "conta_a_pagar" as const, name: matched.name, amount: matched.amount, dueDate: matched.due_date, status: matched.status, billType: matched.bill_type, memberId: matched.responsible_member_id, categoryId: matched.category_id, bankId: matched.bank_id, notes: matched.notes };
+      const content = `Encontrei a conta "${matched.name}" (${formatMoney(matched.amount)}). Vou abrir o formulario para voce editar.`;
       await addMessage(organization_id, profileId, "assistant", content);
-      return NextResponse.json({ result: { content, classification: { intent, actionType: "editar", confidence: classification.confidence }, conversationComplete: true, draftReady: false } });
+      return NextResponse.json({ result: { content, classification: { intent, actionType: "editar", confidence: classification.confidence }, conversationComplete: true, draftReady: true, draft: draft as unknown as Record<string, unknown> } });
     }
 
-    const draft = { id: matched.id, intent: "conta_a_pagar" as const, name: matched.name, amount: matched.amount, dueDate: matched.due_date, status: matched.status, billType: matched.bill_type, memberId: matched.responsible_member_id, categoryId: matched.category_id, bankId: matched.bank_id, notes: matched.notes };
-    const content = `Encontrei a conta "${matched.name}" (${formatMoney(matched.amount)}). Vou abrir o formulario para voce editar.`;
+    if (list.length > 0) {
+      const options: PendingOption[] = list.map((b) => ({ id: b.id, name: b.name, amount: b.amount, dueDate: b.due_date }));
+      const content = formatPendingEditOptionsMessage(options, "editar");
+      await setPendingOptions(organization_id, profileId, { action: "edit", options, intent: "conta_a_pagar" });
+      await addMessage(organization_id, profileId, "assistant", content);
+      return NextResponse.json({ result: { content, classification: { intent, actionType: "editar", confidence: classification.confidence }, conversationComplete: false, draftReady: false } });
+    }
+
+    const content = "Nao encontrei nenhuma conta com esse nome. Tente novamente com mais detalhes.";
     await addMessage(organization_id, profileId, "assistant", content);
-    return NextResponse.json({ result: { content, classification: { intent, actionType: "editar", confidence: classification.confidence }, conversationComplete: true, draftReady: true, draft: draft as unknown as Record<string, unknown> } });
+    return NextResponse.json({ result: { content, classification: { intent, actionType: "editar", confidence: classification.confidence }, conversationComplete: true, draftReady: false } });
   }
 
   if (intent === "conta_a_receber") {
@@ -453,17 +471,26 @@ async function handleEditIntent(
       .order("expected_date", { ascending: false })
       .limit(50);
 
-    const matched = findBestTextMatch(allUserTexts, incomes ?? [], (i) => String(i.amount));
-    if (!matched) {
-      const content = `Nao encontrei nenhum recebimento com essas informacoes. Tente novamente com mais detalhes.`;
+    const list = incomes ?? [];
+    const matched = findBestTextMatch(allUserTexts, list, (i) => String(i.amount));
+    if (matched) {
+      const draft = { id: matched.id, intent: "conta_a_receber" as const, amount: matched.amount, expectedDate: matched.expected_date, status: matched.status, incomeType: matched.income_type, sourceId: matched.source_id, memberId: matched.receiver_member_id, bankId: matched.bank_id, paymentOrigin: matched.payment_origin, notes: matched.notes };
+      const content = `Encontrei um recebimento de ${formatMoney(matched.amount)}. Vou abrir o formulario para voce editar.`;
       await addMessage(organization_id, profileId, "assistant", content);
-      return NextResponse.json({ result: { content, classification: { intent, actionType: "editar", confidence: classification.confidence }, conversationComplete: true, draftReady: false } });
+      return NextResponse.json({ result: { content, classification: { intent, actionType: "editar", confidence: classification.confidence }, conversationComplete: true, draftReady: true, draft: draft as unknown as Record<string, unknown> } });
     }
 
-    const draft = { id: matched.id, intent: "conta_a_receber" as const, amount: matched.amount, expectedDate: matched.expected_date, status: matched.status, incomeType: matched.income_type, sourceId: matched.source_id, memberId: matched.receiver_member_id, bankId: matched.bank_id, paymentOrigin: matched.payment_origin, notes: matched.notes };
-    const content = `Encontrei um recebimento de ${formatMoney(matched.amount)}. Vou abrir o formulario para voce editar.`;
+    if (list.length > 0) {
+      const options: PendingOption[] = list.map((i) => ({ id: i.id, name: i.notes || `${formatMoney(i.amount)} - ${i.expected_date}`, amount: i.amount, dueDate: i.expected_date }));
+      const content = formatPendingEditOptionsMessage(options, "editar");
+      await setPendingOptions(organization_id, profileId, { action: "edit", options, intent: "conta_a_receber" });
+      await addMessage(organization_id, profileId, "assistant", content);
+      return NextResponse.json({ result: { content, classification: { intent, actionType: "editar", confidence: classification.confidence }, conversationComplete: false, draftReady: false } });
+    }
+
+    const content = "Nao encontrei nenhum recebimento com essas informacoes. Tente novamente com mais detalhes.";
     await addMessage(organization_id, profileId, "assistant", content);
-    return NextResponse.json({ result: { content, classification: { intent, actionType: "editar", confidence: classification.confidence }, conversationComplete: true, draftReady: true, draft: draft as unknown as Record<string, unknown> } });
+    return NextResponse.json({ result: { content, classification: { intent, actionType: "editar", confidence: classification.confidence }, conversationComplete: true, draftReady: false } });
   }
 
   if (intent === "banco") {
@@ -474,17 +501,26 @@ async function handleEditIntent(
       .order("bank_name", { ascending: true })
       .limit(50);
 
-    const matched = findBestTextMatch(allUserTexts, banks ?? [], (b) => b.bank_name);
-    if (!matched) {
-      const content = `Nao encontrei nenhuma conta bancaria com esse nome. Tente novamente com mais detalhes.`;
+    const list = banks ?? [];
+    const matched = findBestTextMatch(allUserTexts, list, (b) => b.bank_name);
+    if (matched) {
+      const draft = { id: matched.id, intent: "banco" as const, bankName: matched.bank_name, accountType: matched.account_type, currentBalance: matched.current_balance, currency: matched.currency, memberId: matched.family_member_id, notes: matched.notes };
+      const content = `Encontrei a conta "${matched.bank_name}". Vou abrir o formulario para voce editar.`;
       await addMessage(organization_id, profileId, "assistant", content);
-      return NextResponse.json({ result: { content, classification: { intent, actionType: "editar", confidence: classification.confidence }, conversationComplete: true, draftReady: false } });
+      return NextResponse.json({ result: { content, classification: { intent, actionType: "editar", confidence: classification.confidence }, conversationComplete: true, draftReady: true, draft: draft as unknown as Record<string, unknown> } });
     }
 
-    const draft = { id: matched.id, intent: "banco" as const, bankName: matched.bank_name, accountType: matched.account_type, currentBalance: matched.current_balance, currency: matched.currency, memberId: matched.family_member_id, notes: matched.notes };
-    const content = `Encontrei a conta "${matched.bank_name}". Vou abrir o formulario para voce editar.`;
+    if (list.length > 0) {
+      const options: PendingOption[] = list.map((b) => ({ id: b.id, name: b.bank_name, amount: b.current_balance }));
+      const content = formatPendingEditOptionsMessage(options, "editar");
+      await setPendingOptions(organization_id, profileId, { action: "edit", options, intent: "banco" });
+      await addMessage(organization_id, profileId, "assistant", content);
+      return NextResponse.json({ result: { content, classification: { intent, actionType: "editar", confidence: classification.confidence }, conversationComplete: false, draftReady: false } });
+    }
+
+    const content = "Nao encontrei nenhuma conta bancaria com esse nome. Tente novamente com mais detalhes.";
     await addMessage(organization_id, profileId, "assistant", content);
-    return NextResponse.json({ result: { content, classification: { intent, actionType: "editar", confidence: classification.confidence }, conversationComplete: true, draftReady: true, draft: draft as unknown as Record<string, unknown> } });
+    return NextResponse.json({ result: { content, classification: { intent, actionType: "editar", confidence: classification.confidence }, conversationComplete: true, draftReady: false } });
   }
 
     const content = `Nao consigo editar ${intentLabel} por enquanto.`;
@@ -510,18 +546,27 @@ async function handleDeleteIntent(
       .order("expense_date", { ascending: false })
       .limit(50);
 
-    const matched = findBestTextMatch(allUserTexts, expenses ?? [], (e) => e.description);
-    if (!matched) {
-      const content = `Nao encontrei nenhum gasto com essa descricao. Tente novamente.`;
+    const list = expenses ?? [];
+    const matched = findBestTextMatch(allUserTexts, list, (e) => e.description);
+    if (matched) {
+      const draft = { id: matched.id, intent: "gasto", name: matched.description, amount: matched.amount };
+      const content = `Confirma a exclusao do gasto "${matched.description}" (${formatMoney(matched.amount)})? Esta acao nao pode ser desfeita.`;
       await addMessage(organization_id, profileId, "assistant", content);
-      return NextResponse.json({ result: { content, classification: { intent, actionType: "excluir", confidence: classification.confidence }, conversationComplete: true, draftReady: false } });
+      await setConversationIntent(organization_id, profileId, "gasto");
+      return NextResponse.json({ result: { content, classification: { intent, actionType: "excluir", confidence: classification.confidence }, conversationComplete: true, draftReady: true, draft: draft as unknown as Record<string, unknown> } });
     }
 
-    const draft = { id: matched.id, intent: "gasto", name: matched.description, amount: matched.amount };
-    const content = `Confirma a exclusao do gasto "${matched.description}" (${formatMoney(matched.amount)})? Esta acao nao pode ser desfeita.`;
+    if (list.length > 0) {
+      const options: PendingOption[] = list.map((e) => ({ id: e.id, name: e.description, amount: e.amount, dueDate: e.expense_date }));
+      const content = formatPendingEditOptionsMessage(options, "excluir");
+      await setPendingOptions(organization_id, profileId, { action: "delete", options, intent: "gasto" });
+      await addMessage(organization_id, profileId, "assistant", content);
+      return NextResponse.json({ result: { content, classification: { intent, actionType: "excluir", confidence: classification.confidence }, conversationComplete: false, draftReady: false } });
+    }
+
+    const content = "Nao encontrei nenhum gasto com essa descricao. Tente novamente.";
     await addMessage(organization_id, profileId, "assistant", content);
-    await setConversationIntent(organization_id, profileId, "gasto");
-    return NextResponse.json({ result: { content, classification: { intent, actionType: "excluir", confidence: classification.confidence }, conversationComplete: true, draftReady: true, draft: draft as unknown as Record<string, unknown> } });
+    return NextResponse.json({ result: { content, classification: { intent, actionType: "excluir", confidence: classification.confidence }, conversationComplete: true, draftReady: false } });
   }
 
   if (intent === "conta_a_pagar") {
@@ -532,18 +577,27 @@ async function handleDeleteIntent(
       .order("due_date", { ascending: false })
       .limit(50);
 
-    const matched = findBestTextMatch(allUserTexts, bills ?? [], (b) => b.name);
-    if (!matched) {
-      const content = `Nao encontrei nenhuma conta com esse nome. Tente novamente.`;
+    const list = bills ?? [];
+    const matched = findBestTextMatch(allUserTexts, list, (b) => b.name);
+    if (matched) {
+      const draft = { id: matched.id, intent: "conta_a_pagar", name: matched.name, amount: matched.amount };
+      const content = `Confirma a exclusao da conta "${matched.name}" (${formatMoney(matched.amount)})? Esta acao nao pode ser desfeita.`;
       await addMessage(organization_id, profileId, "assistant", content);
-      return NextResponse.json({ result: { content, classification: { intent, actionType: "excluir", confidence: classification.confidence }, conversationComplete: true, draftReady: false } });
+      await setConversationIntent(organization_id, profileId, "conta_a_pagar");
+      return NextResponse.json({ result: { content, classification: { intent, actionType: "excluir", confidence: classification.confidence }, conversationComplete: true, draftReady: true, draft: draft as unknown as Record<string, unknown> } });
     }
 
-    const draft = { id: matched.id, intent: "conta_a_pagar", name: matched.name, amount: matched.amount };
-    const content = `Confirma a exclusao da conta "${matched.name}" (${formatMoney(matched.amount)})? Esta acao nao pode ser desfeita.`;
+    if (list.length > 0) {
+      const options: PendingOption[] = list.map((b) => ({ id: b.id, name: b.name, amount: b.amount, dueDate: b.due_date }));
+      const content = formatPendingEditOptionsMessage(options, "excluir");
+      await setPendingOptions(organization_id, profileId, { action: "delete", options, intent: "conta_a_pagar" });
+      await addMessage(organization_id, profileId, "assistant", content);
+      return NextResponse.json({ result: { content, classification: { intent, actionType: "excluir", confidence: classification.confidence }, conversationComplete: false, draftReady: false } });
+    }
+
+    const content = "Nao encontrei nenhuma conta com esse nome. Tente novamente.";
     await addMessage(organization_id, profileId, "assistant", content);
-    await setConversationIntent(organization_id, profileId, "conta_a_pagar");
-    return NextResponse.json({ result: { content, classification: { intent, actionType: "excluir", confidence: classification.confidence }, conversationComplete: true, draftReady: true, draft: draft as unknown as Record<string, unknown> } });
+    return NextResponse.json({ result: { content, classification: { intent, actionType: "excluir", confidence: classification.confidence }, conversationComplete: true, draftReady: false } });
   }
 
   if (intent === "conta_a_receber") {
@@ -554,18 +608,27 @@ async function handleDeleteIntent(
       .order("expected_date", { ascending: false })
       .limit(50);
 
-    const matched = findBestTextMatch(allUserTexts, incomes ?? [], (i) => String(i.amount));
-    if (!matched) {
-      const content = `Nao encontrei nenhum recebimento com essas informacoes. Tente novamente.`;
+    const list = incomes ?? [];
+    const matched = findBestTextMatch(allUserTexts, list, (i) => String(i.amount));
+    if (matched) {
+      const draft = { id: matched.id, intent: "conta_a_receber", name: `${formatMoney(matched.amount)} - ${matched.expected_date}`, amount: matched.amount };
+      const content = `Confirma a exclusao do recebimento de ${formatMoney(matched.amount)} (${matched.expected_date})? Esta acao nao pode ser desfeita.`;
       await addMessage(organization_id, profileId, "assistant", content);
-      return NextResponse.json({ result: { content, classification: { intent, actionType: "excluir", confidence: classification.confidence }, conversationComplete: true, draftReady: false } });
+      await setConversationIntent(organization_id, profileId, "conta_a_receber");
+      return NextResponse.json({ result: { content, classification: { intent, actionType: "excluir", confidence: classification.confidence }, conversationComplete: true, draftReady: true, draft: draft as unknown as Record<string, unknown> } });
     }
 
-    const draft = { id: matched.id, intent: "conta_a_receber", name: `${formatMoney(matched.amount)} - ${matched.expected_date}`, amount: matched.amount };
-    const content = `Confirma a exclusao do recebimento de ${formatMoney(matched.amount)} (${matched.expected_date})? Esta acao nao pode ser desfeita.`;
+    if (list.length > 0) {
+      const options: PendingOption[] = list.map((i) => ({ id: i.id, name: `${formatMoney(i.amount)} - ${i.expected_date}`, amount: i.amount, dueDate: i.expected_date }));
+      const content = formatPendingEditOptionsMessage(options, "excluir");
+      await setPendingOptions(organization_id, profileId, { action: "delete", options, intent: "conta_a_receber" });
+      await addMessage(organization_id, profileId, "assistant", content);
+      return NextResponse.json({ result: { content, classification: { intent, actionType: "excluir", confidence: classification.confidence }, conversationComplete: false, draftReady: false } });
+    }
+
+    const content = "Nao encontrei nenhum recebimento com essas informacoes. Tente novamente.";
     await addMessage(organization_id, profileId, "assistant", content);
-    await setConversationIntent(organization_id, profileId, "conta_a_receber");
-    return NextResponse.json({ result: { content, classification: { intent, actionType: "excluir", confidence: classification.confidence }, conversationComplete: true, draftReady: true, draft: draft as unknown as Record<string, unknown> } });
+    return NextResponse.json({ result: { content, classification: { intent, actionType: "excluir", confidence: classification.confidence }, conversationComplete: true, draftReady: false } });
   }
 
   if (intent === "banco") {
@@ -576,18 +639,27 @@ async function handleDeleteIntent(
       .order("bank_name", { ascending: true })
       .limit(50);
 
-    const matched = findBestTextMatch(allUserTexts, banks ?? [], (b) => b.bank_name);
-    if (!matched) {
-      const content = `Nao encontrei nenhuma conta bancaria com esse nome. Tente novamente.`;
+    const list = banks ?? [];
+    const matched = findBestTextMatch(allUserTexts, list, (b) => b.bank_name);
+    if (matched) {
+      const draft = { id: matched.id, intent: "banco", name: matched.bank_name };
+      const content = `Confirma a exclusao da conta "${matched.bank_name}"? Esta acao nao pode ser desfeita.`;
       await addMessage(organization_id, profileId, "assistant", content);
-      return NextResponse.json({ result: { content, classification: { intent, actionType: "excluir", confidence: classification.confidence }, conversationComplete: true, draftReady: false } });
+      await setConversationIntent(organization_id, profileId, "banco");
+      return NextResponse.json({ result: { content, classification: { intent, actionType: "excluir", confidence: classification.confidence }, conversationComplete: true, draftReady: true, draft: draft as unknown as Record<string, unknown> } });
     }
 
-    const draft = { id: matched.id, intent: "banco", name: matched.bank_name };
-    const content = `Confirma a exclusao da conta "${matched.bank_name}"? Esta acao nao pode ser desfeita.`;
+    if (list.length > 0) {
+      const options: PendingOption[] = list.map((b) => ({ id: b.id, name: b.bank_name, amount: b.current_balance }));
+      const content = formatPendingEditOptionsMessage(options, "excluir");
+      await setPendingOptions(organization_id, profileId, { action: "delete", options, intent: "banco" });
+      await addMessage(organization_id, profileId, "assistant", content);
+      return NextResponse.json({ result: { content, classification: { intent, actionType: "excluir", confidence: classification.confidence }, conversationComplete: false, draftReady: false } });
+    }
+
+    const content = "Nao encontrei nenhuma conta bancaria com esse nome. Tente novamente.";
     await addMessage(organization_id, profileId, "assistant", content);
-    await setConversationIntent(organization_id, profileId, "banco");
-    return NextResponse.json({ result: { content, classification: { intent, actionType: "excluir", confidence: classification.confidence }, conversationComplete: true, draftReady: true, draft: draft as unknown as Record<string, unknown> } });
+    return NextResponse.json({ result: { content, classification: { intent, actionType: "excluir", confidence: classification.confidence }, conversationComplete: true, draftReady: false } });
   }
 
   const content = `Nao consigo excluir ${intentLabel} por enquanto.`;
@@ -815,6 +887,126 @@ async function handlePendingReceivableSelection(
       draft: draftData,
     },
   });
+}
+
+function formatPendingEditOptionsMessage(options: PendingOption[], action: "editar" | "excluir"): string {
+  const actionLabel = action === "editar" ? "editar" : "excluir";
+  const lines = options.map((opt, i) => {
+    const amount = opt.amount ? formatMoney(opt.amount) : "";
+    const due = opt.dueDate ? ` (${formatDateToken(opt.dueDate)})` : "";
+    return `${i + 1}) ${opt.name}${amount ? ` - ${amount}` : ""}${due}`;
+  });
+  return `Encontrei ${options.length} registro${options.length === 1 ? "" : "s"}:\n${lines.join("\n")}\n\nQual voce quer ${actionLabel}? Digite o numero ou nome.`;
+}
+
+async function handlePendingEditSelection(
+  option: PendingOption,
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  organization_id: string,
+  profileId: string,
+  classification: AiFinanceIntentClassification,
+  intent: AiFinanceIntent,
+) {
+  if (intent === "gasto") {
+    const { data: expense } = await supabase
+      .from("expenses")
+      .select("id, description, amount, expense_date, category_id, family_member_id, bank_id, payment_method, purchase_location, notes")
+      .eq("id", option.id)
+      .eq("organization_id", organization_id)
+      .maybeSingle();
+
+    if (!expense) {
+      const content = "Gasto nao encontrado. Tente novamente.";
+      await addMessage(organization_id, profileId, "assistant", content);
+      return NextResponse.json({ result: { content, classification: { intent, actionType: "editar", confidence: classification.confidence }, conversationComplete: true, draftReady: false } });
+    }
+
+    const draft = { id: expense.id, intent: "gasto" as const, description: expense.description, amount: expense.amount, date: expense.expense_date, memberId: expense.family_member_id, categoryId: expense.category_id, bankId: expense.bank_id, paymentMethod: expense.payment_method, purchaseLocation: expense.purchase_location, notes: expense.notes };
+    const content = `Encontrei o gasto "${expense.description}" (${formatMoney(expense.amount)}). Vou abrir o formulario para voce editar.`;
+    await addMessage(organization_id, profileId, "assistant", content);
+    await setConversationIntent(organization_id, profileId, "gasto");
+    await updateCollectedData(organization_id, profileId, draft as unknown as Record<string, unknown>);
+    return NextResponse.json({ result: { content, classification: { intent, actionType: "editar", confidence: classification.confidence }, conversationComplete: true, draftReady: true, draft: draft as unknown as Record<string, unknown> } });
+  }
+
+  if (intent === "conta_a_pagar") {
+    const { data: bill } = await supabase
+      .from("payable_bills")
+      .select("id, name, amount, due_date, status, bill_type, category_id, responsible_member_id, bank_id, notes")
+      .eq("id", option.id)
+      .eq("organization_id", organization_id)
+      .maybeSingle();
+
+    if (!bill) {
+      const content = "Conta nao encontrada. Tente novamente.";
+      await addMessage(organization_id, profileId, "assistant", content);
+      return NextResponse.json({ result: { content, classification: { intent, actionType: "editar", confidence: classification.confidence }, conversationComplete: true, draftReady: false } });
+    }
+
+    const draft = { id: bill.id, intent: "conta_a_pagar" as const, name: bill.name, amount: bill.amount, dueDate: bill.due_date, status: bill.status, billType: bill.bill_type, memberId: bill.responsible_member_id, categoryId: bill.category_id, bankId: bill.bank_id, notes: bill.notes };
+    const content = `Encontrei a conta "${bill.name}" (${formatMoney(bill.amount)}). Vou abrir o formulario para voce editar.`;
+    await addMessage(organization_id, profileId, "assistant", content);
+    return NextResponse.json({ result: { content, classification: { intent, actionType: "editar", confidence: classification.confidence }, conversationComplete: true, draftReady: true, draft: draft as unknown as Record<string, unknown> } });
+  }
+
+  if (intent === "conta_a_receber") {
+    const { data: income } = await supabase
+      .from("receivable_incomes")
+      .select("id, amount, expected_date, status, income_type, source_id, receiver_member_id, bank_id, payment_origin, notes")
+      .eq("id", option.id)
+      .eq("organization_id", organization_id)
+      .maybeSingle();
+
+    if (!income) {
+      const content = "Recebimento nao encontrado. Tente novamente.";
+      await addMessage(organization_id, profileId, "assistant", content);
+      return NextResponse.json({ result: { content, classification: { intent, actionType: "editar", confidence: classification.confidence }, conversationComplete: true, draftReady: false } });
+    }
+
+    const draft = { id: income.id, intent: "conta_a_receber" as const, amount: income.amount, expectedDate: income.expected_date, status: income.status, incomeType: income.income_type, sourceId: income.source_id, memberId: income.receiver_member_id, bankId: income.bank_id, paymentOrigin: income.payment_origin, notes: income.notes };
+    const content = `Encontrei um recebimento de ${formatMoney(income.amount)}. Vou abrir o formulario para voce editar.`;
+    await addMessage(organization_id, profileId, "assistant", content);
+    return NextResponse.json({ result: { content, classification: { intent, actionType: "editar", confidence: classification.confidence }, conversationComplete: true, draftReady: true, draft: draft as unknown as Record<string, unknown> } });
+  }
+
+  if (intent === "banco") {
+    const { data: bank } = await supabase
+      .from("banks")
+      .select("id, bank_name, account_type, current_balance, currency, family_member_id, notes")
+      .eq("id", option.id)
+      .eq("organization_id", organization_id)
+      .maybeSingle();
+
+    if (!bank) {
+      const content = "Conta bancaria nao encontrada. Tente novamente.";
+      await addMessage(organization_id, profileId, "assistant", content);
+      return NextResponse.json({ result: { content, classification: { intent, actionType: "editar", confidence: classification.confidence }, conversationComplete: true, draftReady: false } });
+    }
+
+    const draft = { id: bank.id, intent: "banco" as const, bankName: bank.bank_name, accountType: bank.account_type, currentBalance: bank.current_balance, currency: bank.currency, memberId: bank.family_member_id, notes: bank.notes };
+    const content = `Encontrei a conta "${bank.bank_name}". Vou abrir o formulario para voce editar.`;
+    await addMessage(organization_id, profileId, "assistant", content);
+    return NextResponse.json({ result: { content, classification: { intent, actionType: "editar", confidence: classification.confidence }, conversationComplete: true, draftReady: true, draft: draft as unknown as Record<string, unknown> } });
+  }
+
+  const content = `Nao consigo editar este registro.`;
+  await addMessage(organization_id, profileId, "assistant", content);
+  return NextResponse.json({ result: { content, classification: { intent, actionType: "editar", confidence: classification.confidence }, conversationComplete: true, draftReady: false } });
+}
+
+async function handlePendingDeleteSelection(
+  option: PendingOption,
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  organization_id: string,
+  profileId: string,
+  classification: AiFinanceIntentClassification,
+  intent: AiFinanceIntent,
+) {
+  const draft = { id: option.id, intent, name: option.name, amount: option.amount };
+  const content = `Confirma a exclusao de "${option.name}"${option.amount ? ` (${formatMoney(option.amount)})` : ""}? Esta acao nao pode ser desfeita.`;
+  await addMessage(organization_id, profileId, "assistant", content);
+  await setConversationIntent(organization_id, profileId, intent);
+  return NextResponse.json({ result: { content, classification: { intent, actionType: "excluir", confidence: classification.confidence }, conversationComplete: true, draftReady: true, draft: draft as unknown as Record<string, unknown> } });
 }
 
 function detectQueryDomain(text: string): QueryContext["domain"] | null {
@@ -1181,6 +1373,18 @@ export async function POST(request: NextRequest) {
         if (pendingState.action === "receive") {
           return await handlePendingReceivableSelection(
             resolved, supabase, organization_id, profile.id, members, classification,
+          );
+        }
+        if (pendingState.action === "edit") {
+          const editIntent = (pendingState.intent ?? classification.intent) as AiFinanceIntent;
+          return await handlePendingEditSelection(
+            resolved, supabase, organization_id, profile.id, classification, editIntent,
+          );
+        }
+        if (pendingState.action === "delete") {
+          const deleteIntent = (pendingState.intent ?? classification.intent) as AiFinanceIntent;
+          return await handlePendingDeleteSelection(
+            resolved, supabase, organization_id, profile.id, classification, deleteIntent,
           );
         }
       }
