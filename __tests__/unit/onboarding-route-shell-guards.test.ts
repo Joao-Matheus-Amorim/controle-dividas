@@ -15,6 +15,12 @@ describe("initial organization onboarding route guards", () => {
     expect(existsSync(join(rootDir, "app/protected/onboarding/organizacao/page.tsx"))).toBe(false);
   });
 
+  it("keeps initial finance seed out of hot protected layouts", () => {
+    expect(readSource("app/protected/layout.tsx")).not.toContain("seedInitialFinanceData");
+    expect(readSource("app/org/[orgSlug]/layout.tsx")).not.toContain("seedInitialFinanceData");
+    expect(readSource("app/onboarding/organizacao/actions.ts")).toContain("seedInitialFinanceData()");
+  });
+
   it("keeps the onboarding page wired to the organization form", () => {
     const source = readSource("app/onboarding/organizacao/page.tsx");
 

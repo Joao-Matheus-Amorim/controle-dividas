@@ -1,6 +1,7 @@
 "use server";
 
 import { checkSensitiveOperationRateLimit } from "@/lib/security/sensitive-rate-limit";
+import { seedInitialFinanceData } from "@/lib/finance/server";
 import { createClient } from "@/lib/supabase/server";
 
 export type InitialOrganizationOnboardingState = {
@@ -80,6 +81,8 @@ export async function createInitialOrganizationFromOnboarding(
   if (error) {
     return { error: getOnboardingErrorMessage(error.message) };
   }
+
+  await seedInitialFinanceData();
 
   return { success: "Espaco financeiro criado com sucesso." };
 }
