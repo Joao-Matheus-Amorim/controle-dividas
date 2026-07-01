@@ -8,18 +8,22 @@ import { checkRateLimit } from "@/lib/ai/rate-limiter";
 import { getCurrentOrganizationProfile } from "@/lib/finance/access-control";
 import { classifyAiFinanceIntent, getAiFinanceClassifierIntentLabel, type AiFinanceClassifierIntent, type AiFinanceIntentClassification } from "@/lib/finance/ai-finance-intent-classifier";
 import { buildAiFinanceUniversalDraft, type AiFinanceUniversalDraftCatalogs } from "@/lib/finance/ai-finance-universal-draft";
-import { routeAiCommand, type AiCommandType } from "@/lib/ai/manager/intent-router";
+import { routeAiCommand } from "@/lib/ai/manager/intent-router";
 import { getOrganizationExpenseCategories } from "@/lib/organizations/categories";
 import { getOrganizationReceivableIncomeSources } from "@/lib/organizations/receivable-income-sources";
 import { getOrganizationBankAccountsForMembers } from "@/lib/organizations/banks";
 import type { AiFinanceIntent } from "@/lib/finance/ai-finance-intake-schema";
 import type { DbBankAccount, DbExpenseCategory, DbFamilyMember, DbReceivableIncomeSource } from "@/lib/finance/types";
+import type { PendingOption } from "@/lib/ai/conversation";
 import {
   getOrCreateConversation,
   addMessage,
   setConversationIntent,
   updateCollectedData,
   markConversationComplete,
+  getPendingOptions,
+  setPendingOptions,
+  clearPendingOptions,
 } from "@/lib/ai/conversation";
 
 const chatRequestSchema = z.object({
@@ -76,6 +80,68 @@ function formatMoney(value: unknown, currency = "EUR") {
   const amount = Number(value);
   if (!Number.isFinite(amount)) return String(value ?? "");
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency }).format(amount);
+}
+
+function resolvePendingChoice(text: string, options: PendingOption[]): PendingOption | null {
+  const normalized = normalizeInputSimple(text);
+  const words = normalized.split(/\s+/).filter(Boolean);
+  if (words.length === 0) return null;
+
+  const num = parseInt(normalized, 10);
+  if (num > 0 && num <= options.length) {
+    return options[num - 1];
+  }
+
+  const ordinalMap: Record<string, number> = {
+    primeira: 0, primeiro: 0, "1o": 0, "1a": 0,
+    segunda: 1, segundo: 1, "2o": 1, "2a": 1,
+    terceira: 2, terceiro: 2, "3o": 2, "3a": 2,
+    quarta: 3, quarto: 3, "4o": 3, "4a": 3,
+    quinta: 4, quinto: 4, "5o": 4, "5a": 4,
+    sexta: 5, sexto: 5, "6o": 5, "6a": 5,
+    setima: 6, setimo: 6, "7o": 6, "7a": 6,
+    oitava: 7, oitavo: 7, "8o": 7, "8a": 7,
+    nona: 8, nono: 8, "9o": 8, "9a": 8,
+    decima: 9, decimo: 9, "10o": 9, "10a": 9,
+  };
+  for (const [word, idx] of Object.entries(ordinalMap)) {
+    if (normalized.includes(word)) {
+      return options[idx] ?? null;
+    }
+  }
+
+  if (words.length <= 4 && /essa?|este?|esta|dai|ai/.test(normalized)) {
+    return options[0];
+  }
+
+  for (const opt of options) {
+    const optName = normalizeInputSimple(opt.name);
+    if (normalized.includes(optName)) {
+      return opt;
+    }
+  }
+
+  return null;
+}
+
+function formatPendingPayableOptionsMessage(options: PendingOption[]): string {
+  const lines = options.map((opt, i) => {
+    const amount = formatMoney(opt.amount);
+    const due = opt.dueDate ? ` (vence ${formatDateToken(opt.dueDate)})` : "";
+    const member = opt.memberName ? ` - ${opt.memberName}` : "";
+    return `${i + 1}) ${opt.name}${member} - ${amount}${due}`;
+  });
+  const s = options.length === 1 ? "a" : "as";
+  return `Encontrei ${options.length} conta${s} pendente${s}:\n${lines.join("\n")}\n\nQual voce quer pagar? Digite o numero, nome ou "a primeira".`;
+}
+
+function formatPendingReceivableOptionsMessage(options: PendingOption[]): string {
+  const lines = options.map((opt, i) => {
+    const amount = formatMoney(opt.amount);
+    const due = opt.dueDate ? ` (data ${formatDateToken(opt.dueDate)})` : "";
+    return `${i + 1}) ${opt.name}${opt.memberName ? ` - ${opt.memberName}` : ""} - ${amount}${due}`;
+  });
+  return `Encontrei ${options.length} recebimento${options.length === 1 ? "" : "s"} pendente${options.length === 1 ? "" : "s"}:\n${lines.join("\n")}\n\nQual voce quer confirmar? Digite o numero ou nome.`;
 }
 
 function findMemberName(memberId: unknown, members: DbFamilyMember[]) {
@@ -328,7 +394,6 @@ async function handleEditIntent(
   supabase: Awaited<ReturnType<typeof createClient>>,
   organization_id: string,
   profileId: string,
-  members: DbFamilyMember[],
 ) {
   const intent = classification.intent as AiFinanceIntent;
   const intentLabel = getAiFinanceClassifierIntentLabel(intent);
@@ -534,17 +599,55 @@ async function handleMarkReceivedIntent(
   profileId: string,
   members: DbFamilyMember[],
   bankAccounts: DbBankAccount[],
+  classification?: AiFinanceIntentClassification,
 ) {
-  const { data: unpaidIncomes } = await supabase
+  const { data: rawIncomes } = await supabase
     .from("receivable_incomes")
     .select("id, amount, expected_date, status, income_type, source_id, receiver_member_id, bank_id, payment_origin, notes")
     .eq("organization_id", organization_id)
     .neq("status", "recebido")
     .order("expected_date", { ascending: true });
 
-  const matchedIncome = findBestTextMatch(allUserTexts, unpaidIncomes ?? [], (i) => i.notes ?? `${i.amount}`);
-  if (!matchedIncome) {
-    const noMatchContent = "Nao encontrei nenhum recebimento pendente com essas informacoes. Tente novamente com mais detalhes.";
+  const unpaidIncomes = rawIncomes ?? [];
+
+  const matchedIncome = findBestTextMatch(allUserTexts, unpaidIncomes, (i) => i.notes ?? `${i.amount}`);
+  if (matchedIncome) {
+    // Single match — proceed (existing flow)
+    const member = members.find((m) => m.id === matchedIncome.receiver_member_id);
+    const memberName = member?.name ?? "";
+    const memberBankAccounts = bankAccounts.filter(
+      (b) => b.family_member_id === matchedIncome.receiver_member_id,
+    );
+
+    const draftData: Record<string, unknown> = {
+      intent: "conta_a_receber",
+      incomeId: matchedIncome.id,
+      incomeAmount: matchedIncome.amount,
+      incomeDueDate: matchedIncome.expected_date,
+      memberName,
+      memberBankAccounts: memberBankAccounts.map((b) => ({ id: b.id, name: b.bank_name })),
+    };
+
+    const formattedAmount = new Intl.NumberFormat("pt-BR", { style: "currency", currency: member?.currency ?? "EUR" }).format(matchedIncome.amount);
+    const actionContent = `Encontrei um recebimento de ${formattedAmount} (${matchedIncome.expected_date})${memberName ? ` de ${memberName}` : ""}. Confirma a marcacao como recebido?`;
+
+    await addMessage(organization_id, profileId, "assistant", actionContent);
+    await setConversationIntent(organization_id, profileId, "conta_a_receber");
+    await markConversationComplete(organization_id, profileId);
+
+    return NextResponse.json({
+      result: {
+        content: actionContent,
+        classification: { intent: "conta_a_receber", actionType: "receber", confidence: classification?.confidence ?? "medium" },
+        conversationComplete: true,
+        draftReady: true,
+        draft: draftData,
+      },
+    });
+  }
+
+  if (unpaidIncomes.length === 0) {
+    const noMatchContent = "Nao encontrei nenhum recebimento pendente.";
     await addMessage(organization_id, profileId, "assistant", noMatchContent);
     return NextResponse.json({
       result: {
@@ -556,32 +659,154 @@ async function handleMarkReceivedIntent(
     });
   }
 
-  const member = members.find((m) => m.id === matchedIncome.receiver_member_id);
+  // Multiple options — show list + ask
+  const options: PendingOption[] = unpaidIncomes.map((i) => ({
+    id: i.id,
+    name: i.notes || `${formatMoney(i.amount)} - ${i.expected_date}`,
+    amount: i.amount,
+    dueDate: i.expected_date,
+    memberId: i.receiver_member_id ?? undefined,
+    memberName: members.find((m) => m.id === i.receiver_member_id)?.name,
+  }));
+
+  await setPendingOptions(organization_id, profileId, { action: "receive", options });
+
+  const listContent = formatPendingReceivableOptionsMessage(options);
+  await addMessage(organization_id, profileId, "assistant", listContent);
+
+  return NextResponse.json({
+    result: {
+      content: listContent,
+      classification: { intent: "conta_a_receber", actionType: "receber", confidence: classification?.confidence ?? "medium" },
+      conversationComplete: false,
+      draftReady: false,
+    },
+  });
+}
+
+async function handlePendingPayableSelection(
+  option: PendingOption,
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  organization_id: string,
+  profileId: string,
+  members: DbFamilyMember[],
+  classification: AiFinanceIntentClassification,
+) {
+  const { data: bill } = await supabase
+    .from("payable_bills")
+    .select("id, name, amount, due_date, responsible_member_id")
+    .eq("id", option.id)
+    .eq("organization_id", organization_id)
+    .maybeSingle();
+
+  if (!bill) {
+    const content = "Conta nao encontrada. Tente novamente.";
+    await addMessage(organization_id, profileId, "assistant", content);
+    return NextResponse.json({
+      result: { content, classification: { intent: "acao_pagamento", actionType: "pagar", confidence: "medium" }, conversationComplete: true, draftReady: false },
+    });
+  }
+
+  const member = members.find((m) => m.id === bill.responsible_member_id);
   const memberName = member?.name ?? "";
-  const memberBankAccounts = bankAccounts.filter(
-    (b) => b.family_member_id === matchedIncome.receiver_member_id,
-  );
+
+  let memberBankAccounts: Array<{ id: string; name: string }> = [];
+  if (bill.responsible_member_id) {
+    const { data: banks } = await supabase
+      .from("banks")
+      .select("id, bank_name")
+      .eq("organization_id", organization_id)
+      .eq("family_member_id", bill.responsible_member_id);
+    memberBankAccounts = (banks ?? []).map((b) => ({ id: b.id, name: b.bank_name }));
+  }
+
+  const draftData: Record<string, unknown> = {
+    intent: "acao_pagamento",
+    billId: bill.id,
+    billName: bill.name,
+    billAmount: bill.amount,
+    billDueDate: bill.due_date,
+    memberName,
+    memberBankAccounts,
+  };
+
+  await updateCollectedData(organization_id, profileId, draftData);
+  await markConversationComplete(organization_id, profileId);
+
+  const currency = member?.currency ?? "EUR";
+  const formattedAmount = new Intl.NumberFormat("pt-BR", { style: "currency", currency }).format(bill.amount);
+  const content = `Encontrei a conta "${bill.name}" (${formattedAmount}) de ${memberName}, vencimento ${bill.due_date}. Confirma a marcacao como paga?`;
+
+  await addMessage(organization_id, profileId, "assistant", content);
+
+  return NextResponse.json({
+    result: {
+      content,
+      classification: { intent: "acao_pagamento", actionType: "pagar", confidence: classification.confidence },
+      conversationComplete: true,
+      draftReady: true,
+      draft: draftData,
+    },
+  });
+}
+
+async function handlePendingReceivableSelection(
+  option: PendingOption,
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  organization_id: string,
+  profileId: string,
+  members: DbFamilyMember[],
+  classification: AiFinanceIntentClassification,
+) {
+  const { data: income } = await supabase
+    .from("receivable_incomes")
+    .select("id, amount, expected_date, status, income_type, source_id, receiver_member_id, bank_id, payment_origin, notes")
+    .eq("id", option.id)
+    .eq("organization_id", organization_id)
+    .maybeSingle();
+
+  if (!income) {
+    const content = "Recebimento nao encontrado. Tente novamente.";
+    await addMessage(organization_id, profileId, "assistant", content);
+    return NextResponse.json({
+      result: { content, classification: { intent: "conta_a_receber", actionType: "receber", confidence: "medium" }, conversationComplete: true, draftReady: false },
+    });
+  }
+
+  const member = members.find((m) => m.id === income.receiver_member_id);
+  const memberName = member?.name ?? "";
+  const currency = member?.currency ?? "EUR";
+
+  let memberBankAccounts: Array<{ id: string; name: string }> = [];
+  if (income.receiver_member_id) {
+    const { data: banks } = await supabase
+      .from("banks")
+      .select("id, bank_name")
+      .eq("organization_id", organization_id)
+      .eq("family_member_id", income.receiver_member_id);
+    memberBankAccounts = (banks ?? []).map((b) => ({ id: b.id, name: b.bank_name }));
+  }
 
   const draftData: Record<string, unknown> = {
     intent: "conta_a_receber",
-    incomeId: matchedIncome.id,
-    incomeAmount: matchedIncome.amount,
-    incomeDueDate: matchedIncome.expected_date,
+    incomeId: income.id,
+    incomeAmount: income.amount,
+    incomeDueDate: income.expected_date,
     memberName,
-    memberBankAccounts: memberBankAccounts.map((b) => ({ id: b.id, name: b.bank_name })),
+    memberBankAccounts,
   };
 
-  const formattedAmount = new Intl.NumberFormat("pt-BR", { style: "currency", currency: member?.currency ?? "EUR" }).format(matchedIncome.amount);
-  const actionContent = `Encontrei um recebimento de ${formattedAmount} (${matchedIncome.expected_date})${memberName ? ` de ${memberName}` : ""}. Confirma a marcacao como recebido?`;
+  const formattedAmount = new Intl.NumberFormat("pt-BR", { style: "currency", currency }).format(income.amount);
+  const content = `Encontrei um recebimento de ${formattedAmount} (${income.expected_date})${memberName ? ` de ${memberName}` : ""}. Confirma a marcacao como recebido?`;
 
-  await addMessage(organization_id, profileId, "assistant", actionContent);
+  await addMessage(organization_id, profileId, "assistant", content);
   await setConversationIntent(organization_id, profileId, "conta_a_receber");
   await markConversationComplete(organization_id, profileId);
 
   return NextResponse.json({
     result: {
-      content: actionContent,
-      classification: { intent: "conta_a_receber", actionType: "receber", confidence: "medium" as const },
+      content,
+      classification: { intent: "conta_a_receber", actionType: "receber", confidence: classification.confidence },
       conversationComplete: true,
       draftReady: true,
       draft: draftData,
@@ -755,6 +980,32 @@ export async function POST(request: NextRequest) {
       bankAccounts,
     };
 
+    const pendingState = getPendingOptions(conv);
+    if (pendingState) {
+      const resolved = resolvePendingChoice(text, pendingState.options);
+      if (resolved) {
+        await clearPendingOptions(organization_id, profile.id);
+        await auditLog({
+          action: `chat_pending_resolve.${pendingState.action}`,
+          payload: { text, selectedId: resolved.id, selectedName: resolved.name },
+          result: { pendingAction: pendingState.action },
+          success: true,
+          organization_id,
+          created_by: profile.id,
+        });
+        if (pendingState.action === "pay") {
+          return await handlePendingPayableSelection(
+            resolved, supabase, organization_id, profile.id, members, classification,
+          );
+        }
+        if (pendingState.action === "receive") {
+          return await handlePendingReceivableSelection(
+            resolved, supabase, organization_id, profile.id, members, classification,
+          );
+        }
+      }
+    }
+
     const isUpdate = commandRoute.type.startsWith("update_");
     const isDelete = commandRoute.type.startsWith("delete_");
     const isPayment = commandRoute.type === "mark_payable_paid" || classification.intent === "acao_pagamento";
@@ -775,21 +1026,55 @@ export async function POST(request: NextRequest) {
       const matchedBill = findBestPayableBillMatch(allUserTexts, unpaidBills ?? []);
 
       if (!matchedBill) {
-        const noMatchContent = "Nao encontrei nenhuma conta pendente com esse nome. Tente novamente com mais detalhes.";
-        await addMessage(organization_id, profile.id, "assistant", noMatchContent);
+        const bills = unpaidBills ?? [];
+        if (bills.length === 0) {
+          const noMatchContent = "Nao encontrei nenhuma conta pendente.";
+          await addMessage(organization_id, profile.id, "assistant", noMatchContent);
+          await auditLog({
+            action: "chat_completion",
+            payload: { text, organization_id, classification: "acao_pagamento" },
+            result: { content: noMatchContent },
+            success: true,
+            organization_id,
+            created_by: profile.id,
+          });
+          return NextResponse.json({
+            result: {
+              content: noMatchContent,
+              classification: { intent: "acao_pagamento", actionType: "pagar", confidence: classification.confidence },
+              conversationComplete: true,
+              draftReady: false,
+            },
+          });
+        }
+
+        const options: PendingOption[] = bills.map((b) => ({
+          id: b.id,
+          name: b.name,
+          amount: b.amount,
+          dueDate: b.due_date,
+          memberId: b.responsible_member_id ?? undefined,
+          memberName: members.find((m) => m.id === b.responsible_member_id)?.name,
+        }));
+
+        await setPendingOptions(organization_id, profile.id, { action: "pay", options });
+
+        const listContent = formatPendingPayableOptionsMessage(options);
+        await addMessage(organization_id, profile.id, "assistant", listContent);
         await auditLog({
           action: "chat_completion",
-          payload: { text, organization_id, classification: "acao_pagamento" },
-          result: { content: noMatchContent },
+          payload: { text, organization_id, classification: "acao_pagamento", pendingOptions: options.length },
+          result: { content: listContent },
           success: true,
           organization_id,
           created_by: profile.id,
         });
+
         return NextResponse.json({
           result: {
-            content: noMatchContent,
+            content: listContent,
             classification: { intent: "acao_pagamento", actionType: "pagar", confidence: classification.confidence },
-            conversationComplete: true,
+            conversationComplete: false,
             draftReady: false,
           },
         });
@@ -840,11 +1125,11 @@ export async function POST(request: NextRequest) {
     }
 
     if (isReceive) {
-      return await handleMarkReceivedIntent(allUserTexts, supabase, organization_id, profile.id, members, bankAccounts);
+      return await handleMarkReceivedIntent(allUserTexts, supabase, organization_id, profile.id, members, bankAccounts, classification);
     }
 
     if (isUpdate || classification.actionType === "editar") {
-      return await handleEditIntent(classification, allUserTexts, supabase, organization_id, profile.id, members);
+      return await handleEditIntent(classification, allUserTexts, supabase, organization_id, profile.id);
     }
 
     if (isDelete || classification.actionType === "excluir") {

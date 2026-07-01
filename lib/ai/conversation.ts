@@ -9,6 +9,41 @@ export type ConversationMessage = {
 
 export type ConversationIntent = "gasto" | "conta_a_pagar" | "conta_a_receber" | "banco" | "acao_pagamento" | "pergunta" | null;
 
+export type PendingOption = {
+  id: string;
+  name: string;
+  amount: number;
+  dueDate: string;
+  memberId?: string;
+  memberName?: string;
+};
+
+export type PendingOptionsState = {
+  action: "pay" | "receive";
+  options: PendingOption[];
+};
+
+const PENDING_KEY = "_pending";
+
+export function getPendingOptions(conv: Conversation): PendingOptionsState | null {
+  const pending = conv.collectedData[PENDING_KEY];
+  if (!pending || typeof pending !== "object") return null;
+  const p = pending as Record<string, unknown>;
+  if (p.action !== "pay" && p.action !== "receive") return null;
+  if (!Array.isArray(p.options) || p.options.length === 0) return null;
+  return p as unknown as PendingOptionsState;
+}
+
+export async function setPendingOptions(orgId: string, userId: string, state: PendingOptionsState): Promise<Conversation> {
+  return updateCollectedData(orgId, userId, { [PENDING_KEY]: state });
+}
+
+export async function clearPendingOptions(orgId: string, userId: string): Promise<Conversation> {
+  const conv = await getOrCreateConversation(orgId, userId);
+  const { [PENDING_KEY]: _, ...rest } = conv.collectedData;
+  return updateCollectedData(orgId, userId, rest);
+}
+
 export type Conversation = {
   id: string;
   orgId: string;
