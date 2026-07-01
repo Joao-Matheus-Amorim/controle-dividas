@@ -72,6 +72,7 @@ export function AICommandBar({
     const route = INTENT_ROUTES[draft.intent];
     if (!route) return;
 
+    sessionStorage.setItem("ai_origin", window.location.href);
     sessionStorage.setItem(SESSION_KEY, JSON.stringify(draft));
     window.location.href = orgSlug ? `/org/${orgSlug}/${route}` : `/protected/${route}`;
   };
@@ -97,10 +98,17 @@ export function AICommandBar({
       if (!response.ok) {
         const err = await response.json().catch(() => ({ error: "Erro ao marcar como paga." }));
         setMessage(err.error ?? "Erro ao marcar como paga.");
-      } else {
-        setMessage("Conta marcada como paga com sucesso!");
-        setDraft(null);
+        setConfirming(false);
+        setConfirmOpen(false);
+        return;
       }
+
+      setMessage("Conta marcada como paga com sucesso!");
+      setDraft(null);
+      setConfirming(false);
+      setConfirmOpen(false);
+      setTimeout(() => window.location.reload(), 1500);
+      return;
     } catch {
       setMessage("Erro de rede ao confirmar pagamento.");
     }

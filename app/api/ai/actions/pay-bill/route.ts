@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { createClient } from "@/lib/supabase/server";
@@ -109,6 +110,9 @@ export async function POST(request: NextRequest) {
       organization_id,
       created_by: profile.id,
     });
+
+    revalidatePath("/protected/contas-a-pagar", "layout");
+    revalidatePath("/protected/movimentacoes", "layout");
 
     return NextResponse.json({
       result: { success: true, billName: bill.name },

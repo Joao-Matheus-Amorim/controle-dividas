@@ -46,6 +46,11 @@ export function ExpenseFormDialog({
     setDraftData(null);
     setOpen(false);
     setFormKey((current) => current + 1);
+    const origin = sessionStorage.getItem("ai_origin");
+    if (origin) {
+      sessionStorage.removeItem("ai_origin");
+      setTimeout(() => { window.location.href = origin; }, 100);
+    }
   }
 
   function handleDismissDraft() {
