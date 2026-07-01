@@ -41,7 +41,7 @@ export function AICommandBar({
   const [input, setInput] = React.useState("");
   const [message, setMessage] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(false);
-  const [draft, setDraft] = React.useState<{ intent: string; actionType: string; data: Record<string, unknown> } | null>(null);
+  const [draft, setDraft] = React.useState<{ intent: string; actionType: string; data: Record<string, unknown>; confidence: "high" | "medium" | "low" } | null>(null);
   const [actionType, setActionType] = React.useState<"pay" | "receive" | "delete" | null>(null);
   const [selectedBankId, setSelectedBankId] = React.useState("");
   const [confirmingAction, setConfirmingAction] = React.useState(false);
@@ -259,6 +259,7 @@ export function AICommandBar({
             intent: data.result.classification.intent,
             actionType: data.result.classification.actionType ?? "criar",
             data: data.result.draft,
+            confidence: data.result.classification.confidence ?? "high",
           });
         }
       }
@@ -273,22 +274,40 @@ export function AICommandBar({
     (at: "pay" | "receive" | "delete"): DraftField[] => {
       if (!draft) return [];
       const d = draft.data;
+      const classifierConf: "alta" | "media" | "baixa" =
+        draft.confidence === "high" ? "alta" : draft.confidence === "medium" ? "media" : "baixa";
+      const confReason = draft.confidence === "high"
+        ? undefined
+        : draft.confidence === "medium"
+        ? "A IA identificou parcialmente este dado. Verifique se esta correto."
+        : "A IA nao tem certeza sobre este dado. Confira atentamente.";
+      const missingReason = "Nao foi possivel extrair este dado do texto.";
+      const resolved = (value: unknown): { confidence: "alta" | "media" | "baixa"; reason: string | undefined } => {
+        if (!value) return { confidence: "baixa", reason: missingReason };
+        return { confidence: classifierConf, reason: confReason };
+      };
 
       if (at === "pay") {
+        const billName = resolved(d.billName);
+        const billAmount = resolved(d.billAmount);
+        const billDueDate = resolved(d.billDueDate);
+        const memberName = resolved(d.memberName);
         return [
-          { key: "billName", label: "Conta", value: (d.billName as string) ?? null, confidence: "alta", type: "text", required: true },
-          { key: "billAmount", label: "Valor", value: (d.billAmount as number) ?? null, confidence: "alta", type: "currency", required: true },
-          { key: "billDueDate", label: "Vencimento", value: (d.billDueDate as string) ?? null, confidence: "alta", type: "date", required: true },
-          { key: "memberName", label: "Membro", value: (d.memberName as string) ?? null, confidence: "alta", type: "text" },
+          { key: "billName", label: "Conta", value: (d.billName as string) ?? null, ...billName, type: "text", required: true },
+          { key: "billAmount", label: "Valor", value: (d.billAmount as number) ?? null, ...billAmount, type: "currency", required: true },
+          { key: "billDueDate", label: "Vencimento", value: (d.billDueDate as string) ?? null, ...billDueDate, type: "date", required: true },
+          { key: "memberName", label: "Membro", value: (d.memberName as string) ?? null, ...memberName, type: "text" },
         ];
       }
 
       if (at === "receive") {
-        const hasMember = Boolean(d.memberName);
+        const incomeAmount = resolved(d.incomeAmount);
+        const incomeDueDate = resolved(d.incomeDueDate);
+        const memberName = resolved(d.memberName);
         return [
-          { key: "incomeAmount", label: "Valor", value: (d.incomeAmount as number) ?? null, confidence: "alta", type: "currency", required: true },
-          { key: "incomeDueDate", label: "Data prevista", value: (d.incomeDueDate as string) ?? null, confidence: "alta", type: "date", required: true },
-          { key: "memberName", label: "Membro", value: (d.memberName as string) ?? null, confidence: hasMember ? "alta" : "baixa", type: "text" },
+          { key: "incomeAmount", label: "Valor", value: (d.incomeAmount as number) ?? null, ...incomeAmount, type: "currency", required: true },
+          { key: "incomeDueDate", label: "Data prevista", value: (d.incomeDueDate as string) ?? null, ...incomeDueDate, type: "date", required: true },
+          { key: "memberName", label: "Membro", value: (d.memberName as string) ?? null, ...memberName, type: "text" },
         ];
       }
 
@@ -297,11 +316,12 @@ export function AICommandBar({
         : draft.intent === "conta_a_pagar" ? "Conta a pagar"
         : draft.intent === "conta_a_receber" ? "Conta a receber"
         : "Banco";
-      const name = (d.name ?? d.description ?? "") as string;
+      const name = resolved(d.name ?? d.description ?? "");
+      const amount = resolved(d.amount);
       return [
         { key: "type", label: "Tipo", value: intentLabel, confidence: "alta", type: "text" },
-        { key: "name", label: "Registro", value: name || null, confidence: name ? "alta" : "baixa", type: "text", required: true },
-        { key: "amount", label: "Valor", value: (d.amount as number) ?? null, confidence: d.amount ? "alta" : "media", type: "currency" },
+        { key: "name", label: "Registro", value: (d.name ?? d.description ?? "") as string || null, ...name, type: "text", required: true },
+        { key: "amount", label: "Valor", value: (d.amount as number) ?? null, ...amount, type: "currency" },
       ];
     },
     [draft],
