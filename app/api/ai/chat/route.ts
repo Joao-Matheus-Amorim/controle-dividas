@@ -916,7 +916,7 @@ function resolveQueryContextChoice(text: string, ctx: QueryContext): QueryContex
   }
 
   // Try essa/esse
-  if (/^ess[ae]|esse$/i.test(words[0]) || /ess[ae]|esse$/.test(words[words.length - 1])) {
+  if (/^(?:ess[ae]|esse)$/i.test(words[0]) || /^(?:ess[ae]|esse)$/i.test(words[words.length - 1])) {
     return ctx.results[0];
   }
 
