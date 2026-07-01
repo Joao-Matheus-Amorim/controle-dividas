@@ -37,19 +37,18 @@ export function BankAccountFormDialog({
   const [open, setOpen] = useState(() => Boolean(initialDraft));
   const [formKey, setFormKey] = useState(0);
   const [editRecord, setEditRecord] = useState<Record<string, unknown> | null>(null);
-  const [loadingRecord, setLoadingRecord] = useState(false);
+  const [fetchError, setFetchError] = useState(false);
   const [draftData, setDraftData] = useState<Record<string, unknown> | null>(initialDraft?.data ?? null);
 
   const isEdit = Boolean(initialDraft?.actionType === "editar" && initialDraft?.data?.id);
+  const loadingRecord = isEdit && open && !editRecord && !fetchError;
 
   useEffect(() => {
     if (isEdit && initialDraft?.data?.id && open) {
-      setLoadingRecord(true);
       fetch(`/api/finance/get-record?entity=bank&id=${initialDraft.data.id}`)
         .then((res) => res.json())
-        .then((json) => { if (json.result) setEditRecord(json.result); })
-        .catch(() => {})
-        .finally(() => setLoadingRecord(false));
+        .then((json) => { if (json.result) setEditRecord(json.result); else setFetchError(true); })
+        .catch(() => setFetchError(true));
     }
   }, [isEdit, initialDraft?.data?.id, open]);
 
@@ -73,7 +72,7 @@ export function BankAccountFormDialog({
     <AppFormSheet
       open={open}
       onOpenChange={(next) => {
-        if (!next) setDraftData(null);
+        if (!next) { setDraftData(null); setEditRecord(null); setFetchError(false); }
         setOpen(next);
       }}
       title={isEdit ? "Editar banco" : "Novo banco"}
