@@ -1,5 +1,4 @@
 import { AppShell } from "@/components/app/app-shell";
-import { seedInitialFinanceData } from "@/lib/finance/server";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { createClient } from "@/lib/supabase/server";
 
@@ -15,9 +14,8 @@ export default async function ProtectedLayout({
     return <AppShell>{children}</AppShell>;
   }
 
-  // Garante acesso à organização e seed inicial de dados
+  // Garante acesso à organização; seed inicial roda no onboarding/fallbacks específicos.
   await requireOrganizationAccess();
-  await seedInitialFinanceData();
 
   return <AppShell>{children}</AppShell>;
 }
