@@ -23,7 +23,22 @@ export type PendingOptionsState = {
   options: PendingOption[];
 };
 
+export type QueryContextResult = {
+  id: string;
+  name: string;
+  amount?: number;
+  dueDate?: string;
+  memberName?: string;
+};
+
+export type QueryContext = {
+  domain: "gasto" | "conta_a_pagar" | "conta_a_receber" | "banco";
+  results: QueryContextResult[];
+  originalQuery: string;
+};
+
 const PENDING_KEY = "_pending";
+const QUERY_CONTEXT_KEY = "_queryContext";
 
 export function getPendingOptions(conv: Conversation): PendingOptionsState | null {
   const pending = conv.collectedData[PENDING_KEY];
@@ -41,6 +56,24 @@ export async function setPendingOptions(orgId: string, userId: string, state: Pe
 export async function clearPendingOptions(orgId: string, userId: string): Promise<Conversation> {
   const conv = await getOrCreateConversation(orgId, userId);
   const { [PENDING_KEY]: _, ...rest } = conv.collectedData;
+  return updateCollectedData(orgId, userId, rest);
+}
+
+export function getQueryContext(conv: Conversation): QueryContext | null {
+  const ctx = conv.collectedData[QUERY_CONTEXT_KEY];
+  if (!ctx || typeof ctx !== "object") return null;
+  const qc = ctx as Record<string, unknown>;
+  if (typeof qc.domain !== "string" || !Array.isArray(qc.results)) return null;
+  return qc as unknown as QueryContext;
+}
+
+export async function setQueryContext(orgId: string, userId: string, ctx: QueryContext): Promise<Conversation> {
+  return updateCollectedData(orgId, userId, { [QUERY_CONTEXT_KEY]: ctx });
+}
+
+export async function clearQueryContext(orgId: string, userId: string): Promise<Conversation> {
+  const conv = await getOrCreateConversation(orgId, userId);
+  const { [QUERY_CONTEXT_KEY]: _, ...rest } = conv.collectedData;
   return updateCollectedData(orgId, userId, rest);
 }
 

@@ -14,7 +14,7 @@ import { getOrganizationReceivableIncomeSources } from "@/lib/organizations/rece
 import { getOrganizationBankAccountsForMembers } from "@/lib/organizations/banks";
 import type { AiFinanceIntent } from "@/lib/finance/ai-finance-intake-schema";
 import type { DbBankAccount, DbExpenseCategory, DbFamilyMember, DbReceivableIncomeSource } from "@/lib/finance/types";
-import type { PendingOption } from "@/lib/ai/conversation";
+import type { PendingOption, QueryContext, QueryContextResult } from "@/lib/ai/conversation";
 import {
   getOrCreateConversation,
   addMessage,
@@ -24,6 +24,9 @@ import {
   getPendingOptions,
   setPendingOptions,
   clearPendingOptions,
+  getQueryContext,
+  setQueryContext,
+  clearQueryContext,
 } from "@/lib/ai/conversation";
 
 const chatRequestSchema = z.object({
@@ -814,6 +817,183 @@ async function handlePendingReceivableSelection(
   });
 }
 
+function detectQueryDomain(text: string): QueryContext["domain"] | null {
+  const n = normalizeInputSimple(text);
+  if (/gasto|gastei|compra|comprei|despesa|mercado/.test(n)) return "gasto";
+  if (/conta|boleto|fatura|luz|agua|internet|aluguel|vencimento/.test(n)) return "conta_a_pagar";
+  if (/receber|recebi|receita|renda|salario/.test(n)) return "conta_a_receber";
+  if (/banco|nubank|itau|saldo|conta corrente/.test(n)) return "banco";
+  return null;
+}
+
+function buildQueryContextResults(
+  domain: QueryContext["domain"],
+  rows: Array<Record<string, unknown>>,
+): QueryContextResult[] {
+  if (domain === "gasto") {
+    return rows.map((r) => ({
+      id: String(r.id),
+      name: String(r.description ?? ""),
+      amount: Number(r.amount) || undefined,
+      dueDate: String(r.expense_date ?? ""),
+    }));
+  }
+  if (domain === "conta_a_pagar") {
+    return rows.map((r) => ({
+      id: String(r.id),
+      name: String(r.name ?? ""),
+      amount: Number(r.amount) || undefined,
+      dueDate: String(r.due_date ?? ""),
+      memberName: String(r.responsible_member_name ?? ""),
+    }));
+  }
+  if (domain === "conta_a_receber") {
+    return rows.map((r) => ({
+      id: String(r.id),
+      name: String(r.notes ?? `${r.amount}`),
+      amount: Number(r.amount) || undefined,
+      dueDate: String(r.expected_date ?? ""),
+    }));
+  }
+  if (domain === "banco") {
+    return rows.map((r) => ({
+      id: String(r.id),
+      name: String(r.bank_name ?? ""),
+      amount: Number(r.current_balance) || undefined,
+    }));
+  }
+  return [];
+}
+
+function formatQueryContextMessage(domain: QueryContext["domain"], results: QueryContextResult[]): string {
+  if (results.length === 0) return "Nao encontrei nenhum registro com esses criterios.";
+  const lines = results.map((r, i) => {
+    const parts = [`${i + 1}) ${r.name}`];
+    if (r.amount !== undefined) {
+      parts.push(new Intl.NumberFormat("pt-BR", { style: "currency", currency: "EUR" }).format(r.amount));
+    }
+    if (r.dueDate) {
+      const [y, m, d] = r.dueDate.split("-");
+      parts.push(`vencimento ${d}/${m}/${y}`);
+    }
+    if (r.memberName) parts.push(r.memberName);
+    return parts.join(" - ");
+  });
+  const domainLabel: Record<string, string> = {
+    gasto: "gastos",
+    conta_a_pagar: "contas a pagar",
+    conta_a_receber: "recebimentos",
+    banco: "contas bancarias",
+  };
+  return `Encontrei ${results.length} ${domainLabel[domain] ?? "registros"}:\n${lines.join("\n")}\n\nDeseja fazer algo com algum deles? Pode me dizer, por exemplo, "paga o primeiro" ou "edita o segundo".`;
+}
+
+function hasRefToQueryContext(text: string): boolean {
+  const n = normalizeInputSimple(text);
+  const refWords = /\b(primeir[ao]|segund[ao]|terceir[ao]|quart[ao]|ess[ae]|esse|este?|dai?|1[oa]?|2[oa]?|3[oa]?)\b/;
+  return refWords.test(n);
+}
+
+function resolveQueryContextChoice(text: string, ctx: QueryContext): QueryContextResult | null {
+  const n = normalizeInputSimple(text);
+  const words = n.split(/\s+/).filter(Boolean);
+  if (words.length === 0) return null;
+
+  // Try number
+  const num = parseInt(n, 10);
+  if (num > 0 && num <= ctx.results.length) return ctx.results[num - 1];
+
+  // Try ordinal
+  const ordinalMap: Record<string, number> = {
+    primeira: 0, primeiro: 0, "1o": 0, "1a": 0,
+    segunda: 1, segundo: 1, "2o": 1, "2a": 1,
+    terceira: 2, terceiro: 2, "3o": 2, "3a": 2,
+    quarta: 3, quarto: 3, "4o": 3, "4a": 3,
+    quinta: 4, quinto: 4, "5o": 4, "5a": 4,
+  };
+  for (const [word, idx] of Object.entries(ordinalMap)) {
+    if (n.includes(word)) return ctx.results[idx] ?? null;
+  }
+
+  // Try essa/esse
+  if (/^(?:ess[ae]|esse)$/i.test(words[0]) || /^(?:ess[ae]|esse)$/i.test(words[words.length - 1])) {
+    return ctx.results[0];
+  }
+
+  // Try name match
+  for (const r of ctx.results) {
+    if (n.includes(normalizeInputSimple(r.name))) return r;
+  }
+
+  return null;
+}
+
+async function handleStructuredQuery(
+  text: string,
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  organization_id: string,
+  profileId: string,
+  members: DbFamilyMember[],
+): Promise<NextResponse | null> {
+  const domain = detectQueryDomain(text);
+  if (!domain) return null;
+
+  let rows: Array<Record<string, unknown>> = [];
+
+  if (domain === "conta_a_pagar") {
+    const { data } = await supabase
+      .from("payable_bills")
+      .select("id, name, amount, due_date, responsible_member_id")
+      .eq("organization_id", organization_id)
+      .order("due_date", { ascending: true })
+      .limit(20);
+    rows = (data ?? []).map((r) => ({
+      ...r,
+      responsible_member_name: members.find((m) => m.id === r.responsible_member_id)?.name ?? "",
+    }));
+  } else if (domain === "gasto") {
+    const { data } = await supabase
+      .from("expenses")
+      .select("id, description, amount, expense_date")
+      .eq("organization_id", organization_id)
+      .order("expense_date", { ascending: false })
+      .limit(20);
+    rows = data ?? [];
+  } else if (domain === "conta_a_receber") {
+    const { data } = await supabase
+      .from("receivable_incomes")
+      .select("id, amount, expected_date, notes")
+      .eq("organization_id", organization_id)
+      .order("expected_date", { ascending: false })
+      .limit(20);
+    rows = data ?? [];
+  } else if (domain === "banco") {
+    const { data } = await supabase
+      .from("banks")
+      .select("id, bank_name, current_balance")
+      .eq("organization_id", organization_id)
+      .order("bank_name", { ascending: true })
+      .limit(20);
+    rows = data ?? [];
+  }
+
+  const results = buildQueryContextResults(domain, rows);
+  const ctx: QueryContext = { domain, results, originalQuery: text };
+  await setQueryContext(organization_id, profileId, ctx);
+
+  const content = formatQueryContextMessage(domain, results);
+  await addMessage(organization_id, profileId, "assistant", content);
+
+  return NextResponse.json({
+    result: {
+      content,
+      classification: { intent: "pergunta", actionType: "consultar", confidence: "high" },
+      conversationComplete: true,
+      draftReady: false,
+    },
+  });
+}
+
 function buildSystemPrompt(
   intent: AiFinanceClassifierIntent,
   collectedData: Record<string, unknown>,
@@ -1013,6 +1193,16 @@ export async function POST(request: NextRequest) {
     const isQuery = commandRoute.type === "query" || classification.intent === "pergunta";
     const isHelp = commandRoute.type === "help";
 
+    const queryCtx = getQueryContext(conv);
+    const qcResolved = queryCtx && queryCtx.results.length > 0 && hasRefToQueryContext(text)
+      ? resolveQueryContextChoice(text, queryCtx)
+      : null;
+
+    if (isQuery && !qcResolved) {
+      const structuredResponse = await handleStructuredQuery(text, supabase, organization_id, profile.id, members);
+      if (structuredResponse) return structuredResponse;
+    }
+
     if (isPayment) {
       conv = await setConversationIntent(organization_id, profile.id, "acao_pagamento");
 
@@ -1023,7 +1213,24 @@ export async function POST(request: NextRequest) {
         .neq("status", "pago")
         .order("due_date", { ascending: true });
 
-      const matchedBill = findBestPayableBillMatch(allUserTexts, unpaidBills ?? []);
+      let matchedBill: { id: string; name: string; amount: number; due_date: string; responsible_member_id: string | null } | null = null;
+      if (qcResolved && queryCtx?.domain === "conta_a_pagar") {
+        matchedBill = (unpaidBills ?? []).find((b) => b.id === qcResolved.id) ?? null;
+        if (matchedBill) {
+          await clearQueryContext(organization_id, profile.id);
+          await auditLog({
+            action: "chat_query_context_resolve",
+            payload: { text, queryContextDomain: queryCtx.domain, resolvedId: qcResolved.id, resolvedName: qcResolved.name },
+            result: { resolved: true, target: "payment" },
+            success: true,
+            organization_id,
+            created_by: profile.id,
+          });
+        }
+      }
+      if (!matchedBill) {
+        matchedBill = findBestPayableBillMatch(allUserTexts, unpaidBills ?? []);
+      }
 
       if (!matchedBill) {
         const bills = unpaidBills ?? [];
@@ -1125,6 +1332,17 @@ export async function POST(request: NextRequest) {
     }
 
     if (isReceive) {
+      if (qcResolved && queryCtx?.domain === "conta_a_receber") {
+        await clearQueryContext(organization_id, profile.id);
+        const opt: PendingOption = {
+          id: qcResolved.id,
+          name: qcResolved.name,
+          amount: typeof qcResolved.amount === "number" ? qcResolved.amount : 0,
+          dueDate: qcResolved.dueDate ?? "",
+          memberName: qcResolved.memberName,
+        };
+        return await handlePendingReceivableSelection(opt, supabase, organization_id, profile.id, members, classification);
+      }
       return await handleMarkReceivedIntent(allUserTexts, supabase, organization_id, profile.id, members, bankAccounts, classification);
     }
 
