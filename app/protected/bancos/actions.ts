@@ -579,9 +579,14 @@ export async function deleteBankAccount(
   formData: FormData,
 ): Promise<BankAccountActionState> {
   const id = String(formData.get("id") ?? "");
+  const confirmation = String(formData.get("confirm_delete") ?? "");
 
   if (!id) {
     return { error: "Banco nao encontrado." };
+  }
+
+  if (confirmation !== "confirmado") {
+    return { error: "Confirme a exclusao antes de continuar." };
   }
 
   try {

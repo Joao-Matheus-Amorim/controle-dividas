@@ -80,7 +80,7 @@ describe("AI finance universal draft", () => {
       today: "2026-06-28",
     });
     const refusal = buildAiFinanceUniversalDraft({
-      text: "apague a conta de luz",
+      text: "transferir dinheiro",
       today: "2026-06-28",
     });
 

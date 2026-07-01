@@ -447,9 +447,14 @@ export async function deleteExpenseCategory(
   formData: FormData,
 ): Promise<SettingsActionState> {
   const id = String(formData.get("id") ?? "");
+  const confirmation = String(formData.get("confirm_delete") ?? "");
 
   if (!id) {
     return { error: "Categoria nao encontrada." };
+  }
+
+  if (confirmation !== "confirmado") {
+    return { error: "Confirme a exclusao antes de continuar." };
   }
 
   const supabase = await createClient();
@@ -695,9 +700,14 @@ export async function deleteReceivableIncomeSource(
   formData: FormData,
 ): Promise<SettingsActionState> {
   const id = String(formData.get("id") ?? "");
+  const confirmation = String(formData.get("confirm_delete") ?? "");
 
   if (!id) {
     return { error: "Origem nao encontrada." };
+  }
+
+  if (confirmation !== "confirmado") {
+    return { error: "Confirme a exclusao antes de continuar." };
   }
 
   const supabase = await createClient();

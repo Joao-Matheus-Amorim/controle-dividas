@@ -9,8 +9,12 @@ export const aiFinanceClassifierIntents = [
 
 export type AiFinanceClassifierIntent = (typeof aiFinanceClassifierIntents)[number];
 
+export const AI_ACTION_TYPES = ["criar", "editar", "excluir", "pagar", "consultar"] as const;
+export type AiFinanceActionType = (typeof AI_ACTION_TYPES)[number];
+
 export type AiFinanceIntentClassification = {
   intent: AiFinanceClassifierIntent;
+  actionType: AiFinanceActionType;
   confidence: "high" | "medium" | "low";
   reason: string;
   matchedTerms: string[];
@@ -20,30 +24,25 @@ export type AiFinanceIntentClassification = {
 };
 
 const refusalTerms = [
-  "apagar",
-  "apague",
-  "cancelar",
-  "cancele",
-  "deletar",
-  "delete",
-  "editar",
-  "edite",
-  "excluir",
-  "exclua",
   "salvar automaticamente",
   "transferir dinheiro",
 ];
 
 const questionTerms = [
-  "quanto",
-  "qual",
-  "quais",
-  "quando",
+  "ajuda",
+  "comandos",
+  "como funciona",
+  "help",
   "listar",
   "liste",
   "me mostra",
   "mostrar",
   "mostre",
+  "o que voce",
+  "quais",
+  "qual",
+  "quando",
+  "quanto",
   "resumo",
   "tenho que pagar",
   "total",
@@ -57,6 +56,24 @@ const actionTerms = [
   "pague a conta",
   "pague",
 ];
+
+const editTerms: Record<string, string[]> = {
+  gasto: ["editar gasto", "edite gasto", "alterar gasto", "mudar gasto", "modificar gasto", "atualizar gasto"],
+  conta_a_pagar: ["editar conta", "edite conta", "alterar conta", "mudar conta", "modificar conta", "atualizar conta"],
+  conta_a_receber: ["editar recebimento", "edite recebimento", "alterar recebimento", "mudar recebimento"],
+  banco: ["editar banco", "edite banco", "alterar banco", "mudar banco", "modificar banco"],
+};
+
+const generalEditTerms = ["editar", "edite", "alterar", "altera", "mudar", "mude", "modificar", "modifique", "atualizar", "atualize"];
+
+const deleteTerms: Record<string, string[]> = {
+  gasto: ["excluir gasto", "exclua gasto", "apagar gasto", "apague gasto", "deletar gasto", "remover gasto"],
+  conta_a_pagar: ["excluir conta", "exclua conta", "apagar conta", "apague conta", "cancelar conta", "cancele conta", "deletar conta", "remover conta"],
+  conta_a_receber: ["excluir recebimento", "exclua recebimento", "apagar recebimento", "cancelar recebimento"],
+  banco: ["excluir banco", "exclua banco", "apagar banco", "apague banco", "deletar banco", "remover banco"],
+};
+
+const generalDeleteTerms = ["excluir", "exclua", "apagar", "apague", "deletar", "delete", "remover", "remova", "cancelar", "cancele"];
 
 const intentTerms: Record<AiFinanceIntent, string[]> = {
   gasto: [
@@ -74,6 +91,9 @@ const intentTerms: Record<AiFinanceIntent, string[]> = {
     "aluguel",
     "boleto",
     "conta a pagar",
+    "conta de agua",
+    "conta de gas",
+    "condominio",
     "fatura",
     "internet",
     "luz",
@@ -140,13 +160,37 @@ function findWordBoundaryMatches(text: string, terms: readonly string[]) {
   });
 }
 
+function detectActionType(
+  text: string,
+  intent: AiFinanceIntent,
+  actionMatches: string[],
+  questionMatches: string[],
+): AiFinanceActionType {
+  if (actionMatches.length > 0) return "pagar";
+  if (questionMatches.length > 0) return "consultar";
+
+  const domainEditMatch = findWordBoundaryMatches(text, editTerms[intent] ?? []);
+  if (domainEditMatch.length > 0) return "editar";
+
+  const domainDeleteMatch = findWordBoundaryMatches(text, deleteTerms[intent] ?? []);
+  if (domainDeleteMatch.length > 0) return "excluir";
+
+  if (findWordBoundaryMatches(text, generalEditTerms).length > 0) return "editar";
+  if (findWordBoundaryMatches(text, generalDeleteTerms).length > 0) return "excluir";
+
+  return "criar";
+}
+
 function buildClassification(
   intent: AiFinanceClassifierIntent,
   matchedTerms: string[],
   reason: string,
+  actionTypeOverride?: AiFinanceActionType,
 ): AiFinanceIntentClassification {
+  const actionType = actionTypeOverride ?? "criar";
   return {
     intent,
+    actionType,
     confidence: matchedTerms.length >= 2 ? "high" : matchedTerms.length === 1 ? "medium" : "low",
     reason,
     matchedTerms,
@@ -164,7 +208,7 @@ export function classifyAiFinanceIntent(input: string): AiFinanceIntentClassific
   const text = normalizeInput(input);
 
   if (!text) {
-    return buildClassification("recusa", [], "Entrada vazia ou sem texto financeiro suficiente.");
+    return buildClassification("recusa", [], "Entrada vazia ou sem texto financeiro suficiente.", "consultar");
   }
 
   const refusalMatches = findMatches(text, refusalTerms);
@@ -172,7 +216,8 @@ export function classifyAiFinanceIntent(input: string): AiFinanceIntentClassific
     return buildClassification(
       "recusa",
       refusalMatches,
-      "Pedido parece executar, alterar ou excluir dados; a IA permanece review-only.",
+      "Pedido nao permitido para assistente financeiro.",
+      "consultar",
     );
   }
 
@@ -182,6 +227,7 @@ export function classifyAiFinanceIntent(input: string): AiFinanceIntentClassific
       "acao_pagamento",
       actionMatches,
       "Texto parece ser uma acao de pagamento assistida.",
+      "pagar",
     );
   }
 
@@ -198,6 +244,7 @@ export function classifyAiFinanceIntent(input: string): AiFinanceIntentClassific
       "pergunta",
       questionMatches,
       "Texto parece uma pergunta financeira read-only.",
+      "consultar",
     );
   }
 
@@ -206,6 +253,7 @@ export function classifyAiFinanceIntent(input: string): AiFinanceIntentClassific
       "recusa",
       [],
       "Nao foi possivel classificar com seguranca em uma intent financeira permitida.",
+      "consultar",
     );
   }
 
@@ -214,8 +262,10 @@ export function classifyAiFinanceIntent(input: string): AiFinanceIntentClassific
       "pergunta",
       [...top.matches, ...second.matches],
       "Texto ficou ambiguo entre intents financeiras e precisa de esclarecimento.",
+      "consultar",
     );
   }
 
-  return buildClassification(top.intent, top.matches, `Texto classificado como ${labels[top.intent]}.`);
+  const actionType = detectActionType(text, top.intent, actionMatches, questionMatches);
+  return buildClassification(top.intent, top.matches, `Texto classificado como ${labels[top.intent]}. Acao: ${actionType}.`, actionType);
 }
