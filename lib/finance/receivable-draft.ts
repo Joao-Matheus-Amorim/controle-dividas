@@ -85,8 +85,11 @@ function findSourceName(text: string, sources: DbReceivableIncomeSource[]) {
 
 function parsePaymentOrigin(text: string) {
   const originMatch = text.match(/\b(?:de|do|da)\s+([A-Za-z0-9&.' -]+?)(?=\s+(?:por|no|na|em|amanha|ontem|\d)|$)/i);
+  const rawOrigin = originMatch?.[1]?.trim() ?? "";
 
-  return originMatch?.[1]?.trim() ?? "";
+  return rawOrigin
+    .replace(/\s+(?:de|do|da)\s+(?:comissao|comissão|salario|salário|freelance|bonus|bônus|venda|vendas|reembolso|cashback)$/i, "")
+    .trim();
 }
 
 function parseReceivableAmount(text: string) {

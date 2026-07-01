@@ -176,4 +176,23 @@ describe("auth signup submit rate limit runtime actions", () => {
 
     expect(mockState.signUpCalls).toHaveLength(0);
   });
+
+  it("allows public signup for a new organization owner without an authorized profile", async () => {
+    const { createInitialOrganizationAccess } = await import("@/app/auth/sign-up/actions");
+
+    await expect(createInitialOrganizationAccess("owner@example.com", "secret-123")).resolves.toEqual({
+      allowed: true,
+      next: "confirm_email",
+    });
+
+    expect(mockState.signUpCalls).toEqual([
+      {
+        email: "owner@example.com",
+        password: "secret-123",
+        options: {
+          emailRedirectTo: "https://app.example.com/auth/confirm?next=/protected",
+        },
+      },
+    ]);
+  });
 });

@@ -50,7 +50,7 @@ describe("AI provider guards", () => {
   it("rate limits by user with Supabase-backed store", () => {
     expect(rateLimiterSource).toContain("checkRateLimit");
     expect(rateLimiterSource).toContain("createAdminClient");
-    expect(rateLimiterSource).toContain("ai_conversations");
+    expect(rateLimiterSource).toContain("ai_actions");
     expect(rateLimiterSource).toContain("WINDOW_MS");
     expect(rateLimiterSource).toContain("MAX_REQUESTS");
     expect(rateLimiterSource).toContain("allowed");

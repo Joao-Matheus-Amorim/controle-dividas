@@ -69,7 +69,7 @@ export function AICommandBar({
       return;
     }
 
-    if (draft.intent === "conta_a_receber" || at === "receber") {
+    if (at === "receber") {
       setSelectedBankId("");
       setActionType("receive");
       return;

@@ -35,7 +35,7 @@ export function DashboardQuickActions({ actions }: DashboardQuickActionsProps) {
               href={action.href}
               className="group flex min-w-0 items-center gap-3 rounded-[1.15rem] border border-primary/25 bg-primary p-3 text-primary-foreground shadow-ff-md transition duration-ff-base ease-ff-spring active:scale-[0.98] hover:bg-ff-primary-hover"
             >
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/15 text-primary-foreground transition duration-ff-base">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary-foreground/15 text-primary-foreground transition duration-ff-base">
                 <Icon className="h-5 w-5" />
               </span>
               <div className="min-w-0 flex-1 text-left">

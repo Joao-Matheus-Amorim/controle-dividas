@@ -47,7 +47,7 @@ describe("visual tokens and component conventions documentation", () => {
     expect(doc).toContain("dark-first");
     expect(doc).toContain("mobile-first");
     expect(doc).toContain("explicit active organization context");
-    expect(doc).toContain("current visual baseline, not the final redesign");
+    expect(doc).toContain("the canonical current direction is `docs/design/redesign-2026-ink-copper-ivory.md`");
     expect(doc).toContain("selective_visual_snapshot_strategy.md");
     expect(doc).toContain("snapshots visuais seletivos");
   });

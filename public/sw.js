@@ -1,4 +1,4 @@
-var CACHE_NAME = "family-finance-v1";
+var CACHE_NAME = "family-finance-v2";
 var STATIC_ASSETS = [
   "/offline",
   "/icon.svg",
@@ -34,6 +34,10 @@ function fetchAndCache(request, fallbackUrl) {
   });
 }
 
+function isAuthenticatedRoute(pathname) {
+  return pathname.startsWith("/protected") || pathname.startsWith("/org/") || pathname.startsWith("/auth/") || pathname.startsWith("/login");
+}
+
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -51,6 +55,18 @@ self.addEventListener("activate", (event) => {
           .filter((name) => name !== CACHE_NAME)
           .map((name) => caches.delete(name)),
       );
+    }).then(function () {
+      return caches.open(CACHE_NAME).then(function (cache) {
+        return cache.keys().then(function (requests) {
+          return Promise.all(requests.map(function (request) {
+            var cachedUrl = new URL(request.url);
+            if (isAuthenticatedRoute(cachedUrl.pathname)) {
+              return cache.delete(request);
+            }
+            return Promise.resolve(false);
+          }));
+        });
+      });
     }),
   );
   self.clients.claim();
@@ -66,7 +82,12 @@ self.addEventListener("fetch", (event) => {
   }
 
   // Navigation requests: network first, fallback to cache
+  // Skip caching for authenticated routes to avoid leaking protected data offline
   if (request.mode === "navigate") {
+    if (isAuthenticatedRoute(url.pathname)) {
+      event.respondWith(fetch(request).catch(function () { return caches.match("/offline"); }));
+      return;
+    }
     event.respondWith(
       fetchAndCache(request).then(function (response) {
         if (response) return response;

@@ -91,7 +91,7 @@ Funcionamento:
 - Mantem conversa curta em `ai_conversations` por organizacao/perfil, com
   `expires_at` de 24 horas e limpeza manual via `/api/ai/chat/clear`.
 - Audita a chamada em `ai_actions` com resultado agregado.
-- Rate limit: 20 requisicoes por minuto por organizacao.
+- Rate limit: 20 requisicoes por minuto por perfil, contado em eventos persistidos de `ai_actions`.
 
 Regras obrigatorias (implementadas):
 
@@ -119,7 +119,7 @@ Implementado em `ai_conversations`:
 
 Implementado em `lib/ai/rate-limiter.ts`:
 
-- Rate limit dedicado: 20 requisicoes por minuto por organizacao.
+- Rate limit dedicado: 20 requisicoes por minuto por perfil em `ai_actions`.
 - Chave: `chat:{organization_id}:{user_id}`.
 - Retorna `429` com `retryAfterMs` quando excedido.
 - Auditoria registrada em `ai_actions` para tentativas com rate limit excedido.

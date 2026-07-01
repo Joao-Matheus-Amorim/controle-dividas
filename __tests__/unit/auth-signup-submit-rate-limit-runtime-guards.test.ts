@@ -20,6 +20,7 @@ describe("auth signup submit rate limit runtime guards", () => {
   const gapRegister = read("docs/SAAS_GAP_REGISTER.md");
 
   it("rate limits signup submit server-side before Supabase sign up", () => {
+    expect(signupActions).toContain("createinitialorganizationaccess");
     expect(signupActions).toContain("createauthorizedfamilyaccess");
     expect(signupActions).toContain("checksensitiveoperationratelimit");
     expect(signupActions).toContain('operationkey: "auth.signup.submit"');
@@ -39,10 +40,12 @@ describe("auth signup submit rate limit runtime guards", () => {
     expect(signupActions.indexOf("getauthorizedsignupprofile(normalizedemail)")).toBeLessThan(
       signupActions.indexOf("signup({"),
     );
+    expect(signupActions).toContain('return { allowed: true, next: "confirm_email" }');
   });
 
   it("keeps the signup form behind the server action boundary", () => {
-    expect(signupForm).toContain("createauthorizedfamilyaccess");
+    expect(signupForm).toContain("createinitialorganizationaccess");
+    expect(signupForm).not.toContain("createauthorizedfamilyaccess");
     expect(signupForm).not.toContain("signup({");
     expect(signupForm).not.toContain("@/lib/supabase/client");
   });
