@@ -147,6 +147,7 @@ describe("expense category audit runtime actions", () => {
 
     const result = await deleteExpenseCategory(createFormData({
       id: "category-1",
+      confirm_delete: "confirmado",
     }));
 
     expect(result).toEqual({ success: "Categoria excluida com sucesso." });
@@ -187,6 +188,7 @@ describe("expense category audit runtime actions", () => {
 
     const result = await deleteExpenseCategory(createFormData({
       id: "category-1",
+      confirm_delete: "confirmado",
     }));
 
     expect(result).toEqual({ error: "Categoria nao encontrada." });
@@ -200,6 +202,7 @@ describe("expense category audit runtime actions", () => {
 
     const result = await deleteExpenseCategory(createFormData({
       id: "category-1",
+      confirm_delete: "confirmado",
     }));
 
     expect(result).toEqual({

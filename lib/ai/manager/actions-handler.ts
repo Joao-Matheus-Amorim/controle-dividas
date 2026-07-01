@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { revalidateOrganizationPaths } from "@/lib/organizations/revalidation";
 
 export type ActionContext = {
   profileId: string;

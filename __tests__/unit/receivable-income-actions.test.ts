@@ -1041,6 +1041,7 @@ describe("receivable income actions", () => {
 
     const result = await deleteReceivableIncome(createFormData({
       id: "income-1",
+      confirm_delete: "confirmado",
     }));
 
     expect(result).toEqual({ error: "Voce nao tem permissao para executar esta acao para esta pessoa." });
@@ -1053,6 +1054,7 @@ describe("receivable income actions", () => {
 
     const result = await deleteReceivableIncome(createFormData({
       id: "income-1",
+      confirm_delete: "confirmado",
     }));
 
     expect(result).toEqual({ error: "database delete failed" });
@@ -1064,6 +1066,7 @@ describe("receivable income actions", () => {
 
     const result = await deleteReceivableIncome(createFormData({
       id: "income-1",
+      confirm_delete: "confirmado",
     }));
 
     expect(result).toEqual({ success: "Recebimento excluido com sucesso." });
@@ -1097,6 +1100,7 @@ describe("receivable income actions", () => {
 
     const result = await deleteReceivableIncome(createFormData({
       id: "income-1",
+      confirm_delete: "confirmado",
     }));
 
     expect(result).toEqual({
@@ -1124,6 +1128,7 @@ describe("receivable income actions", () => {
 
     const result = await deleteReceivableIncome(createFormData({
       id: "income-1",
+      confirm_delete: "confirmado",
     }));
 
     expect(result).toEqual({ error: "Recebimento nao encontrado." });
