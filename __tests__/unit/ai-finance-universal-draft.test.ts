@@ -39,6 +39,14 @@ const sources: DbReceivableIncomeSource[] = [
     is_default: true,
     created_at: "2026-06-28",
   },
+  {
+    id: "source-commission",
+    owner_id: "owner-1",
+    name: "Comissão",
+    description: null,
+    is_default: true,
+    created_at: "2026-06-28",
+  },
 ];
 
 describe("AI finance universal draft", () => {
@@ -88,5 +96,22 @@ describe("AI finance universal draft", () => {
     expect(refusal.draft).toBeNull();
     expect(question.canAutoSave).toBe(false);
     expect(refusal.directSaveAction).toBeNull();
+  });
+
+  it("builds a detailed received commission draft from natural text", () => {
+    const result = buildAiFinanceUniversalDraft({
+      text: "recebi 100 euros do Danyel da comissao",
+      today: "2026-06-28",
+      catalogs: { receivableSources: sources, bankAccounts },
+    });
+
+    expect(result.draft).toMatchObject({
+      intent: "conta_a_receber",
+      amount: 100,
+      expectedDate: "2026-06-28",
+      paymentOrigin: "Danyel",
+      sourceId: "source-commission",
+      status: "recebido",
+    });
   });
 });

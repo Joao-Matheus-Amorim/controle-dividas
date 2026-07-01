@@ -15,9 +15,9 @@ export async function AuthButton() {
 
   return user ? (
     <div className="flex min-w-0 max-w-full items-center gap-2 sm:gap-3">
-      <div className="hidden min-w-0 text-right text-sm leading-tight text-white/45 xs:block sm:block">
-        <p className="text-white/35">Hey,</p>
-        <p className="max-w-[128px] truncate font-medium text-white/80 sm:max-w-[220px]">
+      <div className="hidden min-w-0 text-right text-sm leading-tight text-muted-foreground xs:block sm:block">
+        <p className="text-ff-subtle-foreground">Hey,</p>
+        <p className="max-w-[128px] truncate font-medium text-foreground sm:max-w-[220px]">
           {email}
         </p>
       </div>

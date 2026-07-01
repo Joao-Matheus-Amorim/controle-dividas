@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentOrganizationProfile } from "@/lib/finance/access-control";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { auditLog } from "@/lib/ai/audit";
-import { revalidateOrganizationPaths } from "@/lib/organizations/revalidation";
+import { checkRateLimit } from "@/lib/ai/rate-limiter";
 import type { ActionContext, ActionResult } from "@/lib/ai/manager/actions-handler";
 import { createExpenseFromAi, createPayableBillFromAi, createReceivableIncomeFromAi, createBankAccountFromAi } from "@/lib/ai/manager/actions-handler";
 import { deleteExpenseFromAi, deletePayableBillFromAi, deleteReceivableIncomeFromAi, deleteBankAccountFromAi } from "@/lib/ai/manager/actions-handler";
@@ -28,10 +28,6 @@ const actionSchema = z.object({
   confirmation: z.string().optional(),
 });
 
-const EXPIRATION_MS = 5 * 60 * 1000;
-const pendingConfirmations = new Map<string, { actionType: string; payload: Record<string, unknown>; expiresAt: number }>();
-
-import { checkRateLimit } from "@/lib/ai/rate-limiter";
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
@@ -55,9 +51,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Inactive or missing profile" }, { status: 403 });
     }
 
-    const { organization, membership } = await requireOrganizationAccess();
+    const { organization } = await requireOrganizationAccess();
 
-    const rateLimitKey = auth.user.id;
+    const rateLimitKey = profile.id;
     const rateLimitResult = await checkRateLimit(rateLimitKey);
 
     if (!rateLimitResult.allowed) {
@@ -73,19 +69,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Rate limit exceeded", retryAfterMs: rateLimitResult.resetInMs }, { status: 429 });
     }
 
-    if (confirmation === "confirmado") {
-      const stored = pendingConfirmations.get(profile.id);
-      if (!stored) {
-        return NextResponse.json({ error: "Nenhuma confirmacao pendente. Solicite novamente." }, { status: 400 });
-      }
-      if (stored.actionType !== actionType) {
-        return NextResponse.json({ error: "Confirmacao incorreta para esta acao." }, { status: 400 });
-      }
-      if (Date.now() > stored.expiresAt) {
-        pendingConfirmations.delete(profile.id);
-        return NextResponse.json({ error: "Confirmacao expirada. Solicite novamente." }, { status: 400 });
-      }
-      pendingConfirmations.delete(profile.id);
+    if (confirmation !== "confirmado") {
+      await auditLog({
+        action: `ai.actions.${actionType}`,
+        payload,
+        result: { error: "confirmation_required" },
+        success: false,
+        organization_id: organization.id,
+        created_by: profile.id,
+      });
+
+      return NextResponse.json({ error: "Confirmacao obrigatoria para executar esta acao.", needsConfirmation: true }, { status: 400 });
     }
 
     const ctx: ActionContext = {
@@ -99,24 +93,29 @@ export async function POST(request: NextRequest) {
 
     const result = await executeAction(actionType, payload, ctx);
 
-    if (result.needsConfirmation && !confirmation) {
-      const confirmationId = crypto.randomUUID();
-      pendingConfirmations.set(confirmationId, {
-        actionType,
+    if (result.needsConfirmation) {
+      await auditLog({
+        action: `ai.actions.${actionType}`,
         payload,
-        expiresAt: Date.now() + EXPIRATION_MS,
+        result: { error: "review_required", summary: result.summary, details: result.details },
+        success: false,
+        organization_id: organization.id,
+        created_by: profile.id,
       });
 
-      return NextResponse.json({
-        needsConfirmation: true,
-        confirmationId,
-        summary: result.summary,
-        actionType,
-        details: result.details,
-      });
+      return NextResponse.json({ error: result.summary ?? "Revise os dados antes de confirmar.", needsConfirmation: true, details: result.details }, { status: 400 });
     }
 
     if (result.error) {
+      await auditLog({
+        action: `ai.actions.${actionType}`,
+        payload,
+        result: { error: result.error },
+        success: false,
+        organization_id: organization.id,
+        created_by: profile.id,
+      });
+
       return NextResponse.json({ error: result.error }, { status: 400 });
     }
 

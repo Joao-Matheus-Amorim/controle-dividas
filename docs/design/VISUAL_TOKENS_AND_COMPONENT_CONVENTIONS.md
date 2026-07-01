@@ -42,7 +42,7 @@ iconLibrary: lucide
 Current visual tokens come from:
 
 - `tailwind.config.ts` for Tailwind token mapping;
-- `app/globals.css` for CSS variables, app-specific colors, layout utilities and dark-mode overrides;
+- `app/globals.css` for `--ff-*` CSS variables, shadcn aliases, layout utilities and theme overrides;
 - shadcn primitives in `components/ui`;
 - app/domain components that compose those primitives.
 
@@ -77,25 +77,29 @@ chart-1..chart-5
 
 Use semantic tokens for reusable primitives and generic UI.
 
-### App-specific tokens
+### FamilyFinance tokens
 
-`app/globals.css` also defines app visual tokens:
+`app/globals.css` defines FamilyFinance visual tokens under the `--ff-*`
+namespace. These are the source of truth for the Ink + Copper + Ivory visual
+direction; shadcn variables are aliases over them.
 
 ```txt
---app-bg
---app-bg-soft
---app-surface
---app-surface-strong
---app-border
---app-primary
---app-primary-soft
---app-success
---app-warning
---app-danger
---app-info
+--ff-bg
+--ff-bg-soft
+--ff-card
+--ff-border
+--ff-primary
+--ff-primary-soft
+--ff-success
+--ff-warning
+--ff-destructive
+--ff-info
 ```
 
-Use these only when the current SaaS shell or domain UI already depends on the dark financial app style.
+Use Tailwind semantic classes (`bg-card`, `text-foreground`, `border-border`,
+`bg-primary`) and the extended `ff-*` classes (`bg-ff-bg-soft`,
+`text-ff-subtle-foreground`, `bg-ff-primary-soft`) instead of raw hex values or
+deprecated token names.
 
 ## Current visual direction
 
@@ -103,14 +107,14 @@ The current protected app visual style is:
 
 - dark-first;
 - high contrast;
-- purple primary accent;
-- glass/surface layers with subtle borders;
+- copper primary accent;
+- warm governed surfaces with semantic borders;
 - rounded cards and controls;
 - mobile-first layout;
 - explicit active organization context;
 - financial SaaS tone, not casual family-app tone.
 
-This is the current visual baseline, not the final redesign.
+The canonical current direction is `docs/design/redesign-2026-ink-copper-ivory.md`.
 
 ## Radius and surfaces
 
@@ -131,9 +135,10 @@ sm: calc(var(--radius) - 4px)
 Common current conventions:
 
 - shadcn `Card` uses `rounded-xl border bg-card text-card-foreground shadow`;
-- many app-level surfaces use `rounded-2xl`, `rounded-3xl` or full rounded pills;
-- subtle borders commonly use `border-white/10` in dark app surfaces;
-- app surfaces often use white alpha backgrounds over `#080810`.
+- app-level surfaces use `rounded-ff-*`, `border-border`, `bg-card` or
+  `bg-ff-bg-soft`;
+- cinematic depth is reserved for hero, overlay and backdrop surfaces;
+- avoid alpha-on-black classes, neon accents and legacy purple tokens.
 
 ## Spacing and layout
 
@@ -181,7 +186,9 @@ Guidelines:
 
 Use shadcn `Card` for generic structured surfaces.
 
-For domain dashboards, current UI may use richer app surfaces, gradients and alpha borders. These are accepted as current state but should not be expanded into a second design system without a dedicated issue.
+For domain dashboards, current UI may use richer app surfaces and governed
+cinematic depth. These must use the `ff-*` token namespace and should not expand
+into a second design system without a dedicated issue.
 
 ## Forms
 
@@ -242,9 +249,11 @@ This document does not:
 - change business rules;
 - change E2E coverage.
 
-## Future redesign notes for #80
+## Historical redesign notes for #80
 
-Before #80 starts, use this document as the baseline. A future redesign should decide explicitly which parts remain, which tokens become official, and whether app-specific alpha surfaces should be formalized as design tokens.
+This document is historical context for the earlier baseline. The current source
+of truth is `docs/design/redesign-2026-ink-copper-ivory.md`, `app/globals.css`
+and the implemented components.
 
 ## Selective visual snapshots
 

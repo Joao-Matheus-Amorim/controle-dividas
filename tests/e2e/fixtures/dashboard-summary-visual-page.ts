@@ -43,6 +43,14 @@ export function renderDashboardSummaryVisualFixturePage() {
     <title>${escapeHtml(dashboardSummaryVisualSnapshotSurface.description)}</title>
     <style>
       :root {
+        --ff-bg: 20 17 15;
+        --ff-bg-soft: 28 24 21;
+        --ff-card: 34 29 25;
+        --ff-border: 74 62 51;
+        --ff-primary: 198 142 77;
+        --ff-success: 126 181 127;
+        --ff-warning: 214 160 83;
+        --ff-destructive: 202 104 91;
         color-scheme: dark;
         background: #050508;
         color: #ffffff;
@@ -118,7 +126,7 @@ export function renderDashboardSummaryVisualFixturePage() {
         border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 16px;
         background: rgba(255, 255, 255, 0.055);
-        color: #b09cff;
+        color: rgb(var(--ff-primary));
         font-weight: 900;
       }
 
@@ -129,7 +137,7 @@ export function renderDashboardSummaryVisualFixturePage() {
         border-radius: 32px;
         padding: 20px;
         background:
-          radial-gradient(circle at 85% 12%, rgba(139, 114, 248, 0.28), transparent 34%),
+          radial-gradient(circle at 85% 12%, rgb(var(--ff-primary) / 0.18), transparent 34%),
           linear-gradient(145deg, #17112f 0%, #0b0b14 52%, #07070c 100%);
         box-shadow: 0 30px 90px rgba(0, 0, 0, 0.42);
       }
@@ -151,11 +159,11 @@ export function renderDashboardSummaryVisualFixturePage() {
       }
 
       .badge {
-        border: 1px solid rgba(29, 233, 178, 0.22);
+        border: 1px solid rgb(var(--ff-success) / 0.22);
         border-radius: 999px;
         padding: 7px 11px;
-        background: rgba(29, 233, 178, 0.1);
-        color: #1de9b2;
+        background: rgb(var(--ff-success) / 0.1);
+        color: rgb(var(--ff-success));
         font-size: 10px;
         font-weight: 900;
         letter-spacing: 0.16em;
@@ -279,7 +287,7 @@ export function renderDashboardSummaryVisualFixturePage() {
       }
 
       .summary-card--active {
-        border-color: rgba(139, 114, 248, 0.36);
+        border-color: rgb(var(--ff-primary) / 0.36);
         box-shadow: 0 14px 44px rgba(0, 0, 0, 0.34);
         opacity: 1;
         transform: scale(1);
@@ -391,7 +399,7 @@ export function renderDashboardSummaryVisualFixturePage() {
         <div class="metrics">
           <div class="metric">
             <p class="metric-label">Entradas</p>
-            <p class="metric-value" style="color:#1de9b2">${compactCurrency(hero.totalReceivableIncomes)}</p>
+            <p class="metric-value" style="color:rgb(var(--ff-success))">${compactCurrency(hero.totalReceivableIncomes)}</p>
           </div>
           <div class="metric">
             <p class="metric-label">Saidas</p>
@@ -399,11 +407,11 @@ export function renderDashboardSummaryVisualFixturePage() {
           </div>
           <div class="metric">
             <p class="metric-label">Em aberto</p>
-            <p class="metric-value" style="color:#f7b84b">${compactCurrency(hero.totalOpenDebts)}</p>
+            <p class="metric-value" style="color:rgb(var(--ff-warning))">${compactCurrency(hero.totalOpenDebts)}</p>
           </div>
           <div class="metric">
             <p class="metric-label">Saldo projetado</p>
-            <p class="metric-value" style="color:${hero.positiveProjectedNetFlow ? "#1de9b2" : "#f0506e"}">${compactCurrency(hero.projectedNetFlow)}</p>
+            <p class="metric-value" style="color:${hero.positiveProjectedNetFlow ? "rgb(var(--ff-success))" : "rgb(var(--ff-destructive))"}">${compactCurrency(hero.projectedNetFlow)}</p>
           </div>
         </div>
       </section>

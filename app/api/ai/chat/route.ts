@@ -269,6 +269,16 @@ function buildHumanDraftMessage({
 
   if (missingFields.length > 0) {
     lines.push(`Ainda falta: ${getFriendlyNames(missingFields).join(", ")}.`);
+    if (missingFields.includes("sourceId") && catalogs.receivableSources?.length) {
+      lines.push(`Origens disponiveis: ${catalogs.receivableSources.map((source) => source.name).join(", ")}.`);
+    }
+    if (missingFields.includes("bankId") && catalogs.bankAccounts?.length) {
+      lines.push(`Bancos disponiveis: ${catalogs.bankAccounts.map((bank) => bank.bank_name).join(", ")}.`);
+    }
+  }
+
+  if (intent === "conta_a_receber" && draftData.status === "recebido" && !draftData.bankId && catalogs.bankAccounts?.length) {
+    lines.push(`Em qual banco recebeu? Opcoes: ${catalogs.bankAccounts.map((bank) => bank.bank_name).join(", ")}.`);
   }
 
   lines.push(
@@ -421,7 +431,7 @@ async function handleEditIntent(
     }
 
     if (list.length > 0) {
-      const options: PendingOption[] = list.map((e) => ({ id: e.id, name: e.description, amount: e.amount, dueDate: e.expense_date }));
+      const options: PendingOption[] = list.slice(0, 10).map((e) => ({ id: e.id, name: e.description, amount: e.amount, dueDate: e.expense_date }));
       const content = formatPendingEditOptionsMessage(options, "editar");
       await setPendingOptions(organization_id, profileId, { action: "edit", options, intent: "gasto" });
       await addMessage(organization_id, profileId, "assistant", content);
@@ -451,7 +461,7 @@ async function handleEditIntent(
     }
 
     if (list.length > 0) {
-      const options: PendingOption[] = list.map((b) => ({ id: b.id, name: b.name, amount: b.amount, dueDate: b.due_date }));
+      const options: PendingOption[] = list.slice(0, 10).map((b) => ({ id: b.id, name: b.name, amount: b.amount, dueDate: b.due_date }));
       const content = formatPendingEditOptionsMessage(options, "editar");
       await setPendingOptions(organization_id, profileId, { action: "edit", options, intent: "conta_a_pagar" });
       await addMessage(organization_id, profileId, "assistant", content);
@@ -481,7 +491,7 @@ async function handleEditIntent(
     }
 
     if (list.length > 0) {
-      const options: PendingOption[] = list.map((i) => ({ id: i.id, name: i.notes || `${formatMoney(i.amount)} - ${i.expected_date}`, amount: i.amount, dueDate: i.expected_date }));
+      const options: PendingOption[] = list.slice(0, 10).map((i) => ({ id: i.id, name: i.notes || `${formatMoney(i.amount)} - ${i.expected_date}`, amount: i.amount, dueDate: i.expected_date }));
       const content = formatPendingEditOptionsMessage(options, "editar");
       await setPendingOptions(organization_id, profileId, { action: "edit", options, intent: "conta_a_receber" });
       await addMessage(organization_id, profileId, "assistant", content);
@@ -511,7 +521,7 @@ async function handleEditIntent(
     }
 
     if (list.length > 0) {
-      const options: PendingOption[] = list.map((b) => ({ id: b.id, name: b.bank_name, amount: b.current_balance }));
+      const options: PendingOption[] = list.slice(0, 10).map((b) => ({ id: b.id, name: b.bank_name, amount: b.current_balance }));
       const content = formatPendingEditOptionsMessage(options, "editar");
       await setPendingOptions(organization_id, profileId, { action: "edit", options, intent: "banco" });
       await addMessage(organization_id, profileId, "assistant", content);
@@ -557,7 +567,7 @@ async function handleDeleteIntent(
     }
 
     if (list.length > 0) {
-      const options: PendingOption[] = list.map((e) => ({ id: e.id, name: e.description, amount: e.amount, dueDate: e.expense_date }));
+      const options: PendingOption[] = list.slice(0, 10).map((e) => ({ id: e.id, name: e.description, amount: e.amount, dueDate: e.expense_date }));
       const content = formatPendingEditOptionsMessage(options, "excluir");
       await setPendingOptions(organization_id, profileId, { action: "delete", options, intent: "gasto" });
       await addMessage(organization_id, profileId, "assistant", content);
@@ -588,7 +598,7 @@ async function handleDeleteIntent(
     }
 
     if (list.length > 0) {
-      const options: PendingOption[] = list.map((b) => ({ id: b.id, name: b.name, amount: b.amount, dueDate: b.due_date }));
+      const options: PendingOption[] = list.slice(0, 10).map((b) => ({ id: b.id, name: b.name, amount: b.amount, dueDate: b.due_date }));
       const content = formatPendingEditOptionsMessage(options, "excluir");
       await setPendingOptions(organization_id, profileId, { action: "delete", options, intent: "conta_a_pagar" });
       await addMessage(organization_id, profileId, "assistant", content);
@@ -619,7 +629,7 @@ async function handleDeleteIntent(
     }
 
     if (list.length > 0) {
-      const options: PendingOption[] = list.map((i) => ({ id: i.id, name: `${formatMoney(i.amount)} - ${i.expected_date}`, amount: i.amount, dueDate: i.expected_date }));
+      const options: PendingOption[] = list.slice(0, 10).map((i) => ({ id: i.id, name: `${formatMoney(i.amount)} - ${i.expected_date}`, amount: i.amount, dueDate: i.expected_date }));
       const content = formatPendingEditOptionsMessage(options, "excluir");
       await setPendingOptions(organization_id, profileId, { action: "delete", options, intent: "conta_a_receber" });
       await addMessage(organization_id, profileId, "assistant", content);
@@ -650,7 +660,7 @@ async function handleDeleteIntent(
     }
 
     if (list.length > 0) {
-      const options: PendingOption[] = list.map((b) => ({ id: b.id, name: b.bank_name, amount: b.current_balance }));
+      const options: PendingOption[] = list.slice(0, 10).map((b) => ({ id: b.id, name: b.bank_name, amount: b.current_balance }));
       const content = formatPendingEditOptionsMessage(options, "excluir");
       await setPendingOptions(organization_id, profileId, { action: "delete", options, intent: "banco" });
       await addMessage(organization_id, profileId, "assistant", content);
@@ -669,10 +679,12 @@ async function handleDeleteIntent(
 
 async function handleMarkReceivedIntent(
   allUserTexts: string,
+  today: string,
   supabase: Awaited<ReturnType<typeof createClient>>,
   organization_id: string,
   profileId: string,
   members: DbFamilyMember[],
+  receivableSources: DbReceivableIncomeSource[],
   bankAccounts: DbBankAccount[],
   classification?: AiFinanceIntentClassification,
 ) {
@@ -693,6 +705,7 @@ async function handleMarkReceivedIntent(
     const memberBankAccounts = bankAccounts.filter(
       (b) => b.family_member_id === matchedIncome.receiver_member_id,
     );
+    const selectableBankAccounts = memberBankAccounts.length > 0 ? memberBankAccounts : bankAccounts;
 
     const draftData: Record<string, unknown> = {
       intent: "conta_a_receber",
@@ -700,7 +713,7 @@ async function handleMarkReceivedIntent(
       incomeAmount: matchedIncome.amount,
       incomeDueDate: matchedIncome.expected_date,
       memberName,
-      memberBankAccounts: memberBankAccounts.map((b) => ({ id: b.id, name: b.bank_name })),
+      memberBankAccounts: selectableBankAccounts.map((b) => ({ id: b.id, name: b.bank_name })),
     };
 
     const formattedAmount = new Intl.NumberFormat("pt-BR", { style: "currency", currency: member?.currency ?? "EUR" }).format(matchedIncome.amount);
@@ -722,14 +735,30 @@ async function handleMarkReceivedIntent(
   }
 
   if (unpaidIncomes.length === 0) {
-    const noMatchContent = "Nao encontrei nenhum recebimento pendente.";
-    await addMessage(organization_id, profileId, "assistant", noMatchContent);
+    const catalogs: AiFinanceUniversalDraftCatalogs = { members, receivableSources, bankAccounts };
+    const draftResult = buildAiFinanceUniversalDraft({ text: allUserTexts, today, catalogs });
+    const draftData = draftResult.draft?.intent === "conta_a_receber"
+      ? (draftResult.draft as unknown as Record<string, unknown>)
+      : {};
+    const missingFields = getMissingFields("conta_a_receber", draftData);
+    const draftReady = Object.keys(draftData).length >= 2;
+    const draftContent = `Nao encontrei nenhum recebimento pendente. Vou criar um rascunho de conta a receber.\n\n${buildHumanDraftMessage({
+      intent: "conta_a_receber",
+      draftData,
+      missingFields,
+      draftReady,
+      catalogs,
+    })}`;
+    await updateCollectedData(organization_id, profileId, draftData);
+    await setConversationIntent(organization_id, profileId, "conta_a_receber");
+    await addMessage(organization_id, profileId, "assistant", draftContent);
     return NextResponse.json({
       result: {
-        content: noMatchContent,
-        classification: { intent: "conta_a_receber", actionType: "receber", confidence: "medium" as const },
-        conversationComplete: true,
-        draftReady: false,
+        content: draftContent,
+        classification: { intent: "conta_a_receber", actionType: "criar", confidence: classification?.confidence ?? ("medium" as const) },
+        conversationComplete: missingFields.length === 0,
+        draftReady,
+        draft: draftData,
       },
     });
   }
@@ -792,6 +821,14 @@ async function handlePendingPayableSelection(
       .select("id, bank_name")
       .eq("organization_id", organization_id)
       .eq("family_member_id", bill.responsible_member_id);
+    memberBankAccounts = (banks ?? []).map((b) => ({ id: b.id, name: b.bank_name }));
+  }
+  if (memberBankAccounts.length === 0) {
+    const { data: banks } = await supabase
+      .from("banks")
+      .select("id, bank_name")
+      .eq("organization_id", organization_id)
+      .order("bank_name", { ascending: true });
     memberBankAccounts = (banks ?? []).map((b) => ({ id: b.id, name: b.bank_name }));
   }
 
@@ -859,6 +896,14 @@ async function handlePendingReceivableSelection(
       .select("id, bank_name")
       .eq("organization_id", organization_id)
       .eq("family_member_id", income.receiver_member_id);
+    memberBankAccounts = (banks ?? []).map((b) => ({ id: b.id, name: b.bank_name }));
+  }
+  if (memberBankAccounts.length === 0) {
+    const { data: banks } = await supabase
+      .from("banks")
+      .select("id, bank_name")
+      .eq("organization_id", organization_id)
+      .order("bank_name", { ascending: true });
     memberBankAccounts = (banks ?? []).map((b) => ({ id: b.id, name: b.bank_name }));
   }
 
@@ -1496,6 +1541,7 @@ export async function POST(request: NextRequest) {
       const memberBankAccounts = (bankAccounts ?? []).filter(
         (b) => b.family_member_id === matchedBill.responsible_member_id,
       );
+      const selectableBankAccounts = memberBankAccounts.length > 0 ? memberBankAccounts : (bankAccounts ?? []);
 
       const draftData: Record<string, unknown> = {
         intent: "acao_pagamento",
@@ -1504,7 +1550,7 @@ export async function POST(request: NextRequest) {
         billAmount: matchedBill.amount,
         billDueDate: matchedBill.due_date,
         memberName,
-        memberBankAccounts: memberBankAccounts.map((b) => ({ id: b.id, name: b.bank_name })),
+        memberBankAccounts: selectableBankAccounts.map((b) => ({ id: b.id, name: b.bank_name })),
       };
 
       conv = await updateCollectedData(organization_id, profile.id, draftData);
@@ -1547,7 +1593,7 @@ export async function POST(request: NextRequest) {
         };
         return await handlePendingReceivableSelection(opt, supabase, organization_id, profile.id, members, classification);
       }
-      return await handleMarkReceivedIntent(allUserTexts, supabase, organization_id, profile.id, members, bankAccounts, classification);
+      return await handleMarkReceivedIntent(allUserTexts, today, supabase, organization_id, profile.id, members, receivableSources, bankAccounts, classification);
     }
 
     if (isUpdate || classification.actionType === "editar") {

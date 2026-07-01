@@ -14,13 +14,13 @@ export async function checkRateLimit(key: string): Promise<{
   const cutoff = new Date(Date.now() - WINDOW_MS).toISOString();
 
   const { count, error } = await supabase
-    .from("ai_conversations")
+    .from("ai_actions")
     .select("*", { count: "exact", head: true })
-    .eq("user_id", key)
+    .eq("created_by", key)
     .gte("created_at", cutoff);
 
   if (error) {
-    return { allowed: true, remaining: MAX_REQUESTS, resetInMs: WINDOW_MS };
+    return { allowed: false, remaining: 0, resetInMs: WINDOW_MS };
   }
 
   const used = count ?? 0;

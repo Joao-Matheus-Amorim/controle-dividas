@@ -41,6 +41,10 @@ type AuthorizedEmailResult =
   | { allowed: true; name: string; role: string }
   | { allowed: false; error: string };
 
+type PublicSignupResult =
+  | { allowed: true; next: "confirm_email" }
+  | { allowed: false; error: string };
+
 function sanitizeOrigin(origin: string | null) {
   const value = origin?.trim();
 
@@ -182,4 +186,49 @@ export async function createAuthorizedFamilyAccess(email: unknown, password: unk
   }
 
   return authorization;
+}
+
+export async function createInitialOrganizationAccess(email: unknown, password: unknown): Promise<PublicSignupResult> {
+  const normalizedEmail = normalizeAuthorizedEmail(typeof email === "string" ? email : null);
+  const rateLimit = checkSensitiveOperationRateLimit({
+    ...signupSubmitRateLimit,
+    actorKey: getSignupRateLimitActorKey(normalizedEmail),
+    organizationId: "public-auth",
+  });
+
+  if (!rateLimit.allowed) {
+    return {
+      allowed: false,
+      error: "Muitas tentativas de criacao de acesso. Tente novamente em alguns minutos.",
+    };
+  }
+
+  if (!normalizedEmail) {
+    return { allowed: false, error: "Informe seu email." };
+  }
+
+  if (!isValidSignupEmail(normalizedEmail)) {
+    return { allowed: false, error: "Informe um email valido." };
+  }
+
+  if (typeof password !== "string" || !password) {
+    return { allowed: false, error: "Informe a senha." };
+  }
+
+  const supabase = await createClient();
+  const emailRedirectTo = await getSignupEmailRedirectTo();
+  const { error } = await supabase.auth.signUp({
+    email: normalizedEmail,
+    password,
+    options: emailRedirectTo ? { emailRedirectTo } : undefined,
+  });
+
+  if (error) {
+    return {
+      allowed: false,
+      error: error.message,
+    };
+  }
+
+  return { allowed: true, next: "confirm_email" };
 }

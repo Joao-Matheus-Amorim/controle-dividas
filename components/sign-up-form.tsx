@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { createAuthorizedFamilyAccess } from "@/app/auth/sign-up/actions";
+import { createInitialOrganizationAccess } from "@/app/auth/sign-up/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,7 +19,6 @@ export function SignUpForm({
   const [password, setPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [authorizedName, setAuthorizedName] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
@@ -27,7 +26,6 @@ export function SignUpForm({
     e.preventDefault();
     setIsLoading(true);
     setError(null);
-    setAuthorizedName(null);
 
     if (password !== repeatPassword) {
       setError("As senhas não conferem.");
@@ -36,14 +34,12 @@ export function SignUpForm({
     }
 
     try {
-      const authorization = await createAuthorizedFamilyAccess(email, password);
+      const authorization = await createInitialOrganizationAccess(email, password);
 
       if (!authorization.allowed) {
         setError(authorization.error || "Este email ainda não foi autorizado pelo Admin familiar.");
         return;
       }
-
-      setAuthorizedName(authorization.name ?? null);
 
       router.push("/auth/sign-up-success");
     } catch (error: unknown) {
@@ -78,21 +74,21 @@ export function SignUpForm({
           Criar acesso
         </h1>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          Use apenas o email que o Admin familiar cadastrou para você.
+          Crie sua conta para iniciar uma organização financeira ou aceitar um acesso depois.
         </p>
       </div>
 
       <form onSubmit={handleSignUp} className="space-y-5">
         <div className="space-y-2">
           <Label htmlFor="email" className="text-xs font-bold uppercase tracking-[0.18em] text-ff-subtle-foreground">
-            Email autorizado
+            Email
           </Label>
           <div className="relative">
             <Mail className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-ff-subtle-foreground" />
             <Input
               id="email"
               type="email"
-              placeholder="email cadastrado pelo Admin"
+              placeholder="voce@email.com"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -135,12 +131,6 @@ export function SignUpForm({
           </div>
         </div>
 
-        {authorizedName ? (
-          <div className="rounded-2xl border border-ff-success bg-ff-success-soft px-4 py-3 text-sm text-ff-success">
-            Acesso autorizado para {authorizedName}.
-          </div>
-        ) : null}
-
         {error ? (
           <div className="rounded-2xl border border-ff-destructive bg-ff-destructive-soft px-4 py-3 text-sm text-ff-destructive">
             {error}
@@ -152,7 +142,7 @@ export function SignUpForm({
           className="h-13 w-full rounded-2xl bg-primary text-base font-bold text-foreground shadow-ff-lg transition active:scale-[0.98] hover:bg-ff-primary-hover"
           disabled={isLoading}
         >
-          {isLoading ? "Validando..." : "Criar acesso"}
+          {isLoading ? "Criando..." : "Criar conta"}
           <ArrowRight className="h-4 w-4" />
         </Button>
 
@@ -162,7 +152,7 @@ export function SignUpForm({
               <ShieldCheck className="h-4 w-4" />
             </div>
             <p className="text-xs leading-5 text-ff-subtle-foreground">
-              O cadastro só funciona para emails previamente liberados pelo Admin familiar.
+              Depois de confirmar o email, você poderá criar sua organização financeira e será o admin/owner dela.
             </p>
           </div>
         </div>

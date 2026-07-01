@@ -6,6 +6,7 @@ import type { DbBankAccount, DbReceivableIncomeSource } from "@/lib/finance/type
 const sources = [
   { id: "source-salary", name: "Salario" },
   { id: "source-freelance", name: "Freelance" },
+  { id: "source-commission", name: "Comissão" },
   { id: "source-sales", name: "Vendas" },
 ] as DbReceivableIncomeSource[];
 
@@ -57,5 +58,21 @@ describe("receivable income draft suggestion", () => {
 
     expect(draft.amount).toBe("500");
     expect(draft.expectedDate).toBe("2026-06-20");
+  });
+
+  it("splits payer from commission source in received income text", () => {
+    const draft = buildReceivableIncomeDraftSuggestion(
+      "recebi 100 euros do Danyel da comissao",
+      sources,
+      bankAccounts,
+      "2026-06-18",
+    );
+
+    expect(draft).toMatchObject({
+      amount: "100",
+      paymentOrigin: "Danyel",
+      source: "Comissão",
+      status: "recebido",
+    });
   });
 });
