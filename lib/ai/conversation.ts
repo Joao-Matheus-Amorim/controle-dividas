@@ -13,14 +13,15 @@ export type PendingOption = {
   id: string;
   name: string;
   amount: number;
-  dueDate: string;
+  dueDate?: string;
   memberId?: string;
   memberName?: string;
 };
 
 export type PendingOptionsState = {
-  action: "pay" | "receive";
+  action: "pay" | "receive" | "edit" | "delete";
   options: PendingOption[];
+  intent?: string;
 };
 
 export type QueryContextResult = {
@@ -44,7 +45,7 @@ export function getPendingOptions(conv: Conversation): PendingOptionsState | nul
   const pending = conv.collectedData[PENDING_KEY];
   if (!pending || typeof pending !== "object") return null;
   const p = pending as Record<string, unknown>;
-  if (p.action !== "pay" && p.action !== "receive") return null;
+  if (p.action !== "pay" && p.action !== "receive" && p.action !== "edit" && p.action !== "delete") return null;
   if (!Array.isArray(p.options) || p.options.length === 0) return null;
   return p as unknown as PendingOptionsState;
 }
