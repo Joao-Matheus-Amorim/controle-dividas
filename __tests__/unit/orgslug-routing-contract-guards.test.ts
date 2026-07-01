@@ -60,7 +60,7 @@ describe("orgSlug routing contract", () => {
     expect(read("tests/e2e/orgslug-authenticated-gated.spec.ts")).toContain("visao do mes");
     expect(read("tests/e2e/orgslug-authenticated-gated.spec.ts")).not.toContain("visa£o do maªs");
     expect(orgLayout).toContain("requireorganizationaccess(orgslug)");
-    expect(orgLayout).toContain("seedinitialfinancedata(orgslug)");
+    expect(orgLayout).not.toContain("seedinitialfinancedata");
     expect(revalidation).toContain("revalidateorganizationpaths");
     expect(revalidation).toContain("getorgpathfromprotectedpath");
     expect(revalidation).toContain("revalidatepath(orgpath)");
