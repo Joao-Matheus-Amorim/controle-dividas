@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
+import { cache } from "react";
 
 import { createClient } from "@/lib/supabase/server";
 import { normalizeBillingPlanKey } from "@/lib/billing/plans";
@@ -15,7 +16,7 @@ type OrganizationRow = Organization & {
   stripe_customer_id?: string | null;
 };
 
-async function getCurrentUser(): Promise<CurrentUser> {
+const getCurrentUser = cache(async function getCurrentUser(): Promise<CurrentUser> {
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getClaims();
 
@@ -27,7 +28,7 @@ async function getCurrentUser(): Promise<CurrentUser> {
     id: String(data.claims.sub),
     email: typeof data.claims.email === "string" ? data.claims.email : null,
   };
-}
+});
 
 function normalizeOrganization(row: OrganizationRow): Organization {
   return {
@@ -59,12 +60,12 @@ export function getDefaultOrganizationContext(contexts: OrganizationContext[]) {
   return contexts[0] ?? null;
 }
 
-async function getPreferredOrganizationId() {
+const getPreferredOrganizationId = cache(async function getPreferredOrganizationId() {
   const cookieStore = await cookies();
   const value = cookieStore.get(ACTIVE_ORGANIZATION_COOKIE_NAME)?.value ?? null;
 
   return value && value.trim().length > 0 ? value : null;
-}
+});
 
 async function getActiveOrganizationContext(contexts: OrganizationContext[]) {
   const preferredOrganizationId = await getPreferredOrganizationId();
@@ -105,7 +106,7 @@ export async function getCurrentOrganizationContext(
   return contexts.find((context) => context.organization.id === organizationIdOrSlug) ?? null;
 }
 
-export async function getUserOrganizations(): Promise<OrganizationContext[]> {
+export const getUserOrganizations = cache(async function getUserOrganizations(): Promise<OrganizationContext[]> {
   const supabase = await createClient();
   const user = await getCurrentUser();
 
@@ -156,7 +157,7 @@ export async function getUserOrganizations(): Promise<OrganizationContext[]> {
       return { organization, membership };
     })
     .filter((context): context is OrganizationContext => Boolean(context));
-}
+});
 
 export async function getCurrentOrganization(orgSlug?: string) {
   return (await getCurrentOrganizationContext(orgSlug))?.organization ?? null;

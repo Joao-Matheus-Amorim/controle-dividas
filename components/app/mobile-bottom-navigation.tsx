@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 
 import {
   Sheet,
@@ -74,10 +75,12 @@ function MobileNavigationLink({
   item,
   className,
   showIndicator,
+  onNavigate,
 }: {
   item: MobileNavigationItem;
   className?: string;
   showIndicator?: boolean;
+  onNavigate?: () => void;
 }) {
   const pathname = usePathname();
   const Icon = iconMap[item.iconKey];
@@ -86,6 +89,7 @@ function MobileNavigationLink({
   return (
     <Link
       href={item.href}
+      onClick={onNavigate}
       className={cn(
         "group relative flex min-w-0 items-center justify-center gap-2 text-muted-foreground transition hover:text-primary",
         active && "text-primary",
@@ -106,6 +110,7 @@ export function MobileBottomNavigation({
   allItems,
 }: MobileBottomNavigationProps) {
   const pathname = usePathname();
+  const [menuOpen, setMenuOpen] = useState(false);
   const hasHiddenItems = allItems.length > primaryItems.length;
   const moreIsActive = allItems
     .filter((item) => !primaryItems.some((primary) => primary.href === item.href))
@@ -128,7 +133,7 @@ export function MobileBottomNavigation({
         ))}
 
         {hasHiddenItems ? (
-          <Sheet>
+          <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
             <SheetTrigger
               className={cn(
                 "group relative flex min-w-0 flex-1 flex-col items-center justify-center gap-1 px-1 py-2.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground transition hover:text-primary",
@@ -154,6 +159,7 @@ export function MobileBottomNavigation({
                   <SheetClose asChild key={item.href}>
                     <MobileNavigationLink
                       item={item}
+                      onNavigate={() => setMenuOpen(false)}
                       className="justify-start rounded-2xl border border-border bg-ff-bg-soft px-4 py-3 text-sm font-semibold"
                     />
                   </SheetClose>

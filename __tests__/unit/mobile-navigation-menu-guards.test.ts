@@ -31,10 +31,19 @@ describe("mobile navigation menu guards", () => {
     expect(mobileNavigation).toContain("Todas as áreas liberadas");
     expect(mobileNavigation).toContain("allItems.map");
     expect(mobileNavigation).toContain("SheetClose asChild");
+    expect(mobileNavigation).toContain("const [menuOpen, setMenuOpen] = useState(false)");
+    expect(mobileNavigation).toContain("<Sheet open={menuOpen} onOpenChange={setMenuOpen}>");
+    expect(mobileNavigation).toContain("onNavigate={() => setMenuOpen(false)}");
     expect(mobileNavigation).toContain("primaryItems.map");
     expect(mobileNavigation).toContain("SheetContent");
     expect(mobileNavigation).toContain("receivables: TrendingUp");
     expect(mobileNavigation).toContain("reports: BarChart3");
     expect(mobileNavigation).toContain("settings: Settings");
+  });
+
+  it("closes the full mobile menu when navigating", () => {
+    expect(mobileNavigation).toContain("const [menuOpen, setMenuOpen] = useState(false)");
+    expect(mobileNavigation).toContain("<Sheet open={menuOpen} onOpenChange={setMenuOpen}>");
+    expect(mobileNavigation).toContain("onNavigate={() => setMenuOpen(false)}");
   });
 });
