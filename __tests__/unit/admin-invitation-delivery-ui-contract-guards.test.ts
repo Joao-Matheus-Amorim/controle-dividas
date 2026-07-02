@@ -22,6 +22,8 @@ describe("admin invitation delivery and UI contract guards", () => {
   const acceptanceForm = read("components/admin-invitation-acceptance-form.tsx");
   const loginPage = read("app/auth/login/page.tsx");
   const loginForm = read("components/login-form.tsx");
+  const signupPage = read("app/auth/sign-up/page.tsx");
+  const signupForm = read("components/sign-up-form.tsx");
 
   it("tracks delivery adapter, acceptance UI, expiry cron, and ADMIN_EMAIL runtime-gate removal", () => {
     expect(contract).toContain("status docdoc: atual como contrato com delivery adapter e ui de aceite");
@@ -63,10 +65,16 @@ describe("admin invitation delivery and UI contract guards", () => {
     expect(acceptanceForm).toContain("acceptadmininvitation");
     expect(acceptanceForm).toContain("type=\"hidden\"");
     expect(acceptanceForm).toContain("/auth/login?next=");
+    expect(acceptanceForm).toContain("/auth/sign-up?next=");
+    expect(acceptanceForm).toContain("crie sua conta com o mesmo email convidado");
     expect(loginPage).toContain("getinvitereturnpath");
     expect(loginPage).toContain('url.pathname !== "/auth/convite"');
     expect(loginPage).toContain("loginform redirectto={invitereturnpath}");
     expect(loginForm).toContain("router.push(redirectto ?? \"/convites\")");
+    expect(loginForm).toContain("/auth/sign-up?next=");
+    expect(signupPage).toContain("getinvitereturnpath");
+    expect(signupPage).toContain("signupform redirectto={invitereturnpath}");
+    expect(signupForm).toContain("createinitialorganizationaccess(email, password, redirectto)");
     expect(acceptanceForm).not.toContain("localstorage");
     expect(acceptanceForm).not.toContain("sessionstorage");
     expect(acceptanceForm).not.toContain("document.cookie");

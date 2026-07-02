@@ -55,12 +55,36 @@ function sanitizeOrigin(origin: string | null) {
   return value;
 }
 
-async function getSignupEmailRedirectTo() {
+function normalizeSignupRedirectTo(value: unknown) {
+  if (typeof value !== "string") {
+    return "/protected";
+  }
+
+  try {
+    const url = new URL(value, "https://familyfinance.local");
+
+    if (url.origin !== "https://familyfinance.local") {
+      return "/protected";
+    }
+
+    if (url.pathname !== "/auth/convite" || !url.searchParams.get("token")) {
+      return "/protected";
+    }
+
+    return `${url.pathname}${url.search}`;
+  } catch {
+    return "/protected";
+  }
+}
+
+async function getSignupEmailRedirectTo(nextPath: string = "/protected") {
   const requestHeaders = await headers();
   const origin = sanitizeOrigin(requestHeaders.get("origin"));
+  const safeNextPath = normalizeSignupRedirectTo(nextPath);
+  const encodedNextPath = encodeURIComponent(safeNextPath);
 
   if (origin) {
-    return `${origin}/auth/confirm?next=/protected`;
+    return `${origin}/auth/confirm?next=${encodedNextPath}`;
   }
 
   const forwardedHost = requestHeaders.get("x-forwarded-host")?.split(",")[0]?.trim();
@@ -73,7 +97,7 @@ async function getSignupEmailRedirectTo() {
   const forwardedProto = requestHeaders.get("x-forwarded-proto")?.split(",")[0]?.trim();
   const protocol = forwardedProto || (host.startsWith("localhost") ? "http" : "https");
 
-  return `${protocol}://${host}/auth/confirm?next=/protected`;
+  return `${protocol}://${host}/auth/confirm?next=${encodedNextPath}`;
 }
 
 export async function checkAuthorizedFamilyEmail(email: unknown): Promise<AuthorizedEmailResult> {
@@ -188,7 +212,11 @@ export async function createAuthorizedFamilyAccess(email: unknown, password: unk
   return authorization;
 }
 
-export async function createInitialOrganizationAccess(email: unknown, password: unknown): Promise<PublicSignupResult> {
+export async function createInitialOrganizationAccess(
+  email: unknown,
+  password: unknown,
+  redirectTo?: unknown,
+): Promise<PublicSignupResult> {
   const normalizedEmail = normalizeAuthorizedEmail(typeof email === "string" ? email : null);
   const rateLimit = checkSensitiveOperationRateLimit({
     ...signupSubmitRateLimit,
@@ -216,7 +244,7 @@ export async function createInitialOrganizationAccess(email: unknown, password: 
   }
 
   const supabase = await createClient();
-  const emailRedirectTo = await getSignupEmailRedirectTo();
+  const emailRedirectTo = await getSignupEmailRedirectTo(normalizeSignupRedirectTo(redirectTo));
   const { error } = await supabase.auth.signUp({
     email: normalizedEmail,
     password,

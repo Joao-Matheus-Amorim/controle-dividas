@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, CheckCircle2, KeyRound, LogIn, ShieldCheck } from "lucide-react";
+import { ArrowRight, CheckCircle2, KeyRound, LogIn, ShieldCheck, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { useActionState } from "react";
 
@@ -27,6 +27,15 @@ function getLoginHref(token: string) {
   return `/auth/login?next=${encodeURIComponent(invitePath)}`;
 }
 
+function getSignUpHref(token: string) {
+  if (!token) {
+    return "/auth/sign-up";
+  }
+
+  const invitePath = `/auth/convite?token=${encodeURIComponent(token)}`;
+  return `/auth/sign-up?next=${encodeURIComponent(invitePath)}`;
+}
+
 export function AdminInvitationAcceptanceForm({
   token,
   className,
@@ -34,6 +43,8 @@ export function AdminInvitationAcceptanceForm({
   const [state, formAction, isPending] = useActionState(acceptAdminInvitation, initialState);
   const hasToken = token.length > 0;
   const loginHref = getLoginHref(token);
+  const signUpHref = getSignUpHref(token);
+  const needsAuthentication = state.status === "unauthenticated";
 
   return (
     <div
@@ -92,7 +103,37 @@ export function AdminInvitationAcceptanceForm({
             </div>
           ) : null}
 
-          {state.error ? (
+          {needsAuthentication ? (
+            <div className="space-y-4 rounded-2xl border border-border bg-background/55 p-4">
+              <div>
+                <p className="text-sm font-bold text-foreground">Este convite precisa de uma conta</p>
+                <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                  Crie sua conta com o mesmo email convidado. Se voce ja tem conta, entre para continuar o aceite.
+                </p>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Button
+                  asChild
+                  className="h-11 rounded-2xl bg-primary text-sm font-bold text-foreground shadow-ff-sm transition active:scale-[0.98] hover:bg-ff-primary-hover"
+                >
+                  <Link href={signUpHref}>
+                    <UserPlus className="h-4 w-4" />
+                    Criar conta
+                  </Link>
+                </Button>
+                <Button
+                  asChild
+                  variant="outline"
+                  className="h-11 rounded-2xl border-border bg-card text-sm font-bold text-foreground transition active:scale-[0.98] hover:bg-ff-bg-soft"
+                >
+                  <Link href={loginHref}>
+                    <LogIn className="h-4 w-4" />
+                    Entrar
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          ) : state.error ? (
             <div className="rounded-2xl border border-ff-destructive bg-ff-destructive-soft px-4 py-3 text-sm text-ff-destructive">
               {state.error}
             </div>
@@ -119,7 +160,11 @@ export function AdminInvitationAcceptanceForm({
           </div>
 
           <p className="text-center text-sm text-muted-foreground">
-            Ainda nao entrou na conta?{" "}
+            Ainda nao tem conta?{" "}
+            <Link href={signUpHref} className="font-semibold text-foreground underline-offset-4 hover:underline">
+              Criar conta
+            </Link>
+            {" ou "}
             <Link href={loginHref} className="font-semibold text-foreground underline-offset-4 hover:underline">
               <LogIn className="mr-1 inline h-3.5 w-3.5" />
               Entrar

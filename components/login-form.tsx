@@ -143,7 +143,10 @@ export function LoginForm({
 
         <p className="text-center text-sm text-muted-foreground">
           Ainda não tem conta?{" "}
-          <Link href="/auth/sign-up" className="font-semibold text-foreground underline-offset-4 hover:underline">
+          <Link
+            href={redirectTo ? `/auth/sign-up?next=${encodeURIComponent(redirectTo)}` : "/auth/sign-up"}
+            className="font-semibold text-foreground underline-offset-4 hover:underline"
+          >
             Criar conta
           </Link>
         </p>

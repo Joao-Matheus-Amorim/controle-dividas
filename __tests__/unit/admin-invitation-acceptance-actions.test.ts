@@ -190,7 +190,10 @@ describe("admin invitation acceptance action", () => {
       token: "raw-invite-token",
     }));
 
-    expect(result).toEqual({ error: "Entre na sua conta para aceitar o convite." });
+    expect(result).toEqual({
+      error: "Crie sua conta ou entre na conta existente para aceitar este convite.",
+      status: "unauthenticated",
+    });
     expect(mockState.rateLimitChecks).toHaveLength(0);
     expect(mockState.rpcCalls).toHaveLength(0);
   });
