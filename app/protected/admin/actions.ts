@@ -320,6 +320,30 @@ async function findAuthUserIdByEmail(email: string) {
   return null;
 }
 
+async function upsertFamilyUserMembership({
+  organizationId,
+  authUserId,
+}: {
+  organizationId: string;
+  authUserId: string;
+}) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("organization_memberships")
+    .upsert({
+      organization_id: organizationId,
+      auth_user_id: authUserId,
+      role: "member",
+      is_active: true,
+    }, {
+      onConflict: "organization_id,auth_user_id",
+    });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
 export async function createFamilyUser(
   _prevState: ProfileFormState,
   formData: FormData,
@@ -594,12 +618,24 @@ export async function syncFamilyUserAuthLink(formData: FormData): Promise<Family
 
   if (linkError) return { error: linkError.message };
 
+  try {
+    await upsertFamilyUserMembership({
+      organizationId: organization.id,
+      authUserId,
+    });
+  } catch (error) {
+    return {
+      error: error instanceof Error ? error.message : "Nao foi possivel liberar o acesso a organizacao.",
+    };
+  }
+
   await recordAdminUserAuditEvent({
     organizationId: organization.id,
     action: "admin.user.auth_link.sync",
     profileId: profile.id,
     metadata: {
       auth_linked: true,
+      membership_synced: true,
     },
   });
 

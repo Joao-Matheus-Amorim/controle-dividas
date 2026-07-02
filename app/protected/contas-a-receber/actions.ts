@@ -5,6 +5,7 @@ import {
   assertCanAccessMember,
   getCurrentProfile,
 } from "@/lib/finance/access-control";
+import { convertCurrencyAmount } from "@/lib/finance/exchange-rates";
 import type { PermissionAction } from "@/lib/finance/permissions";
 import type { ReceivableIncomeFormState } from "@/lib/finance/types";
 import { revalidateOrganizationPaths } from "@/lib/organizations/revalidation";
@@ -258,6 +259,24 @@ function validateReceivableIncomeInput(
   return null;
 }
 
+async function buildReceivableMovementAmount(
+  amount: number,
+  sourceCurrency: string,
+  bank: Record<string, unknown>,
+) {
+  const bankCurrency = String(bank.currency ?? "").trim().toUpperCase();
+  const movementAmount = await convertCurrencyAmount(amount, sourceCurrency, bankCurrency);
+
+  if (!bankCurrency || movementAmount === null) {
+    throw new Error("Nao foi possivel converter o recebimento para a moeda do banco.");
+  }
+
+  return {
+    amount: movementAmount,
+    currency: bankCurrency,
+  };
+}
+
 function hasReceivableIncomeWriteChanges(
   income: Record<string, unknown>,
   input: ReturnType<typeof parseReceivableIncomeForm>,
@@ -294,6 +313,7 @@ export async function createReceivableIncome(
     const { organization } = await requireOrganizationAccess();
     const shouldCreateReceivedMovement = input.status === "recebido";
     let receivedMovementBank: Record<string, unknown> | null = null;
+    let receivedMovementAmount: Awaited<ReturnType<typeof buildReceivableMovementAmount>> | null = null;
 
     await assertReceiverMemberBelongsToOrganization(
       organization.id,
@@ -309,12 +329,12 @@ export async function createReceivableIncome(
       input.receiverMemberId,
     );
 
-    if (
-      shouldCreateReceivedMovement &&
-      receivedMovementBank?.id &&
-      String(receivedMovementBank?.currency ?? "").trim().toUpperCase() !== input.currency
-    ) {
-      throw new Error("O banco do recebimento precisa usar a mesma moeda da entrada.");
+    if (shouldCreateReceivedMovement && receivedMovementBank?.id) {
+      receivedMovementAmount = await buildReceivableMovementAmount(
+        input.amount,
+        input.currency,
+        receivedMovementBank,
+      );
     }
 
     const rateLimit = checkSensitiveOperationRateLimit({
@@ -369,6 +389,8 @@ export async function createReceivableIncome(
         target_bank_id: String(receivedMovementBank.id),
         target_profile_id: profile.id,
         target_recorded_timezone: input.recordedTimezone,
+        target_movement_amount: receivedMovementAmount!.amount,
+        target_movement_currency: receivedMovementAmount!.currency,
       });
 
       if (movementError) {
@@ -449,6 +471,7 @@ export async function updateReceivableIncome(
     const statusChanged = String(income.status) !== input.status;
     const transitionToReceived = String(income.status) !== "recebido" && input.status === "recebido";
     let receivedMovementBank: Record<string, unknown> | null = null;
+    let receivedMovementAmount: Awaited<ReturnType<typeof buildReceivableMovementAmount>> | null = null;
 
     if (String(income.status) === "recebido" && input.status !== "recebido") {
       return { error: "Recebimento ja possui movimentacao. Estorno sera tratado pelo fluxo de movimentacoes." };
@@ -463,12 +486,12 @@ export async function updateReceivableIncome(
       );
     }
 
-    if (
-      transitionToReceived &&
-      receivedMovementBank?.id &&
-      String(receivedMovementBank?.currency ?? "").trim().toUpperCase() !== input.currency
-    ) {
-      throw new Error("O banco do recebimento precisa usar a mesma moeda da entrada.");
+    if (transitionToReceived && receivedMovementBank?.id) {
+      receivedMovementAmount = await buildReceivableMovementAmount(
+        input.amount,
+        input.currency,
+        receivedMovementBank,
+      );
     }
 
     const receivableStatusRateLimitInput = {
@@ -605,6 +628,8 @@ export async function updateReceivableIncome(
         target_bank_id: String(receivedMovementBank.id),
         target_profile_id: profile.id,
         target_recorded_timezone: input.recordedTimezone,
+        target_movement_amount: receivedMovementAmount!.amount,
+        target_movement_currency: receivedMovementAmount!.currency,
       });
 
       if (movementError) {
@@ -678,11 +703,19 @@ export async function updateReceivableIncomeStatus(
     }
 
     const transitionToReceived = String(income.status) !== "recebido" && status === "recebido";
+    let receivedMovementBank: Record<string, unknown> | null = null;
+    let receivedMovementAmount: Awaited<ReturnType<typeof buildReceivableMovementAmount>> | null = null;
+
     if (transitionToReceived) {
-      await assertMovementBankBelongsToMember(
+      receivedMovementBank = await assertMovementBankBelongsToMember(
         organization.id,
         bankId,
         String(income.receiver_member_id),
+      );
+      receivedMovementAmount = await buildReceivableMovementAmount(
+        Number(income.amount ?? 0),
+        String(income.currency ?? "EUR"),
+        receivedMovementBank,
       );
     }
 
@@ -719,6 +752,8 @@ export async function updateReceivableIncomeStatus(
         target_bank_id: bankId,
         target_profile_id: profile.id,
         target_recorded_timezone: recordedTimezone,
+        target_movement_amount: receivedMovementAmount!.amount,
+        target_movement_currency: receivedMovementAmount!.currency,
       });
 
       if (error) {
