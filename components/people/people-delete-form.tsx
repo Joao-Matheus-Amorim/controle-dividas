@@ -31,8 +31,8 @@ export function PeopleDeleteForm({ member }: { member: DbFamilyMember }) {
         </p>
         <p className="text-sm text-muted-foreground">
           Exclui apenas pessoas sem gastos, contas, bancos, movimentacoes ou
-          acesso vinculado. Desative a pessoa em vez de excluir quando ja houver
-          historico.
+          login ativo. Se houver apenas convite pendente, o acesso pendente
+          tambem sera removido.
         </p>
       </div>
 

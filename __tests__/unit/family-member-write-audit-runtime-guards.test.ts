@@ -41,7 +41,7 @@ describe("family member write audit runtime guards", () => {
   const createAction = functionBlock(peopleActions, "createfamilymember");
   const updateAction = functionBlock(peopleActions, "updatefamilymember");
   const deleteAction = functionBlock(peopleActions, "deletefamilymember");
-  const deleteMigration = read("supabase/migrations/063_guarded_family_member_delete.sql");
+  const deleteMigration = read("supabase/migrations/078_allow_pending_family_access_cleanup_on_member_delete.sql");
   const memberCreateRateLimitCall = rateLimitCallBlock(createAction, "familymembercreateratelimit");
   const memberUpdateRateLimitCall = updateAction;
   const actions = [peopleActions, writeControls].join("\n");
@@ -98,6 +98,9 @@ describe("family member write audit runtime guards", () => {
     expect(deleteMigration).toContain("from public.receivable_incomes");
     expect(deleteMigration).toContain("from public.banks");
     expect(deleteMigration).toContain("from public.profiles");
+    expect(deleteMigration).toContain("auth_user_id is not null or role = 'admin'");
+    expect(deleteMigration).toContain("delete from public.profiles");
+    expect(deleteMigration).toContain("status = 'revoked'");
     expect(deleteMigration).toContain("from public.financial_movements");
     expect(deleteMigration).toContain("delete from public.family_members");
   });
