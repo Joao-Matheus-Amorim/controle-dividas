@@ -66,7 +66,7 @@ describe("admin invitation delivery and UI contract guards", () => {
     expect(loginPage).toContain("getinvitereturnpath");
     expect(loginPage).toContain('url.pathname !== "/auth/convite"');
     expect(loginPage).toContain("loginform redirectto={invitereturnpath}");
-    expect(loginForm).toContain("router.push(redirectto ?? \"/protected\")");
+    expect(loginForm).toContain("router.push(redirectto ?? \"/convites\")");
     expect(acceptanceForm).not.toContain("localstorage");
     expect(acceptanceForm).not.toContain("sessionstorage");
     expect(acceptanceForm).not.toContain("document.cookie");

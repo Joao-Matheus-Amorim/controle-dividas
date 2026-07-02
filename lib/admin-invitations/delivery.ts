@@ -29,14 +29,20 @@ function getProviderUrl() {
   return env("ADMIN_INVITATION_EMAIL_WEBHOOK_URL");
 }
 
-function buildInvitationUrl(rawToken: string) {
+export function buildAdminInvitationUrl(rawToken: string) {
   const appUrl = getAppUrl();
 
   if (!appUrl) {
-    return null;
+    return `/auth/convite?token=${encodeURIComponent(rawToken)}`;
   }
 
   return `${appUrl}/auth/convite?token=${encodeURIComponent(rawToken)}`;
+}
+
+function buildProviderInvitationUrl(rawToken: string) {
+  const invitationUrl = buildAdminInvitationUrl(rawToken);
+
+  return invitationUrl.startsWith("http") ? invitationUrl : null;
 }
 
 export async function sendAdminInvitationEmail({
@@ -52,7 +58,7 @@ export async function sendAdminInvitationEmail({
   }
 
   const providerUrl = getProviderUrl();
-  const invitationUrl = buildInvitationUrl(rawToken);
+  const invitationUrl = buildProviderInvitationUrl(rawToken);
 
   if (!providerUrl || !invitationUrl) {
     return { delivered: false, reason: "missing_configuration" };

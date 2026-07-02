@@ -3,6 +3,7 @@ import type { DbProfile } from "@/lib/finance/admin-types";
 import type { DbFamilyMember } from "@/lib/finance/types";
 import { AdminUserDeleteForm } from "./admin-user-delete-form";
 import { AdminUserEditForm } from "./admin-user-edit-form";
+import { AdminUserInvitationForm } from "./admin-user-invitation-form";
 import { AdminUserStatusForm } from "./admin-user-status-form";
 import { AdminUserSyncForm } from "./admin-user-sync-form";
 import { initials } from "./admin-users-utils";
@@ -37,6 +38,7 @@ export function AdminUsersListItem({ profile, adminProfileId, members }: AdminUs
         </div>
 
         <div className="flex flex-wrap items-start gap-2 md:justify-end">
+          {!isCurrentAdmin && !profile.auth_user_id ? <AdminUserInvitationForm profileId={profile.id} /> : null}
           {!isCurrentAdmin && !profile.auth_user_id ? <AdminUserSyncForm profileId={profile.id} /> : null}
           <AdminUserStatusForm profileId={profile.id} isActive={profile.is_active} disabled={isCurrentAdmin} />
           {!isCurrentAdmin ? <AdminUserDeleteForm profileId={profile.id} /> : null}

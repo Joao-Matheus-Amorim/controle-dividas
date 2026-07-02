@@ -17,6 +17,16 @@ export type DbProfile = {
   family_members?: Pick<DbFamilyMember, "id" | "name"> | null;
 };
 
+export type DbOrganizationInvitation = {
+  id: string;
+  organization_id: string;
+  invited_email_normalized: string;
+  role: string;
+  status: string;
+  expires_at: string;
+  created_at: string;
+};
+
 export type DbModulePermission = {
   id: string;
   owner_id: string;
@@ -47,6 +57,7 @@ export type DbFeaturePermission = {
 export type ProfileFormState = {
   error?: string;
   success?: string;
+  invitationUrl?: string;
 };
 
 export type PermissionFormState = {

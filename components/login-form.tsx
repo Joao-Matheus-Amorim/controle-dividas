@@ -34,7 +34,7 @@ export function LoginForm({
         throw new Error(result.error);
       }
 
-      router.push(redirectTo ?? "/protected");
+      router.push(redirectTo ?? "/convites");
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "Não foi possível entrar.");
     } finally {
