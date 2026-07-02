@@ -12,7 +12,7 @@ export function AdminUsersCreateSection({ members, memberCreateHref }: AdminUser
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-ff-subtle-foreground">Novo acesso</p>
-          <p className="mt-1 text-sm text-muted-foreground">Crie um login vinculado a um membro da família.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Convide uma pessoa para entrar direto na família.</p>
         </div>
         <FamilyUserFormDialog members={members} memberCreateHref={memberCreateHref} />
       </div>

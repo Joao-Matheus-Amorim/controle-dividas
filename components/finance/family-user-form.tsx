@@ -73,13 +73,13 @@ export function FamilyUserForm({ members, memberCreateHref }: { members: DbFamil
       </div>
 
       <div className="rounded-2xl border border-border bg-ff-bg-soft p-3 text-xs leading-5 text-ff-subtle-foreground">
-        O modelo de acesso só define as permissões iniciais. Depois o Admin pode liberar ou bloquear qualquer módulo em Admin &gt; Permissões.
+        O modelo de acesso define as permissões iniciais. Ao cadastrar, o app envia um convite para este email entrar direto na família.
       </div>
 
       <AppActionFeedback error={state.error} success={state.success} />
 
       <Button type="submit" disabled={isPending || !hasMembers}>
-        {isPending ? "Salvando..." : "Cadastrar acesso familiar"}
+        {isPending ? "Enviando convite..." : "Enviar convite familiar"}
       </Button>
     </form>
   );

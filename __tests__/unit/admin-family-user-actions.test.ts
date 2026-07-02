@@ -187,6 +187,10 @@ vi.mock("@/lib/audit/events", () => ({
   recordAuditEvent: mockState.recordAuditEvent,
 }));
 
+vi.mock("@/lib/admin-invitations/delivery", () => ({
+  sendAdminInvitationEmail: vi.fn(async () => ({ delivered: true })),
+}));
+
 vi.mock("@/lib/security/sensitive-rate-limit", () => ({
   checkSensitiveOperationRateLimit: vi.fn((input: Record<string, unknown>) => {
     mockState.rateLimitChecks.push(input);

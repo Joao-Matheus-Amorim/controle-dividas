@@ -10,8 +10,8 @@ export function FamilyUserFormDialog({ members, memberCreateHref }: { members: D
   return (
     <AppFormSheet
       title="Novo usuário"
-      description="Cadastre um acesso familiar e vincule a um membro financeiro."
-      triggerLabel="Novo usuário"
+      description="Envie um convite de acesso vinculado a um membro financeiro."
+      triggerLabel="Convidar usuário"
       icon={UserPlus}
     >
       <FamilyUserForm members={members} memberCreateHref={memberCreateHref} />

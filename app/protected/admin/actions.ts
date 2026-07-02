@@ -1,5 +1,8 @@
 "use server";
 
+import { createHash, randomBytes } from "node:crypto";
+
+import { sendAdminInvitationEmail } from "@/lib/admin-invitations/delivery";
 import { recordAuditEvent } from "@/lib/audit/events";
 import { ensureAdminProfile } from "@/lib/finance/admin-server";
 import type { PermissionFormState, ProfileFormState } from "@/lib/finance/admin-types";
@@ -60,6 +63,25 @@ const adminUserRateLimits = {
     windowMs: 10 * 60 * 1000,
   },
 };
+
+const familyInvitationExpiresInMs = 7 * 24 * 60 * 60 * 1000;
+
+function invitationTokenHash(token: string) {
+  return createHash("sha256").update(token).digest("hex");
+}
+
+function createInvitationCredential() {
+  const token = randomBytes(32).toString("base64url");
+
+  return {
+    rawToken: token,
+    tokenHash: invitationTokenHash(token),
+  };
+}
+
+function invitationExpiresAt(now = Date.now()) {
+  return new Date(now + familyInvitationExpiresInMs).toISOString();
+}
 
 function normalizeScope(value: FormDataEntryValue | null): PermissionScope {
   if (value === "selected" || value === "family") {
@@ -344,6 +366,57 @@ async function upsertFamilyUserMembership({
   }
 }
 
+async function createFamilyAccessInvitation({
+  organizationId,
+  organizationSlug,
+  invitedByAuthUserId,
+  invitedEmail,
+  role,
+}: {
+  organizationId: string;
+  organizationSlug: string;
+  invitedByAuthUserId: string;
+  invitedEmail: string;
+  role: "admin" | "member";
+}) {
+  const supabase = await createClient();
+  const credential = createInvitationCredential();
+  const expiresAt = invitationExpiresAt();
+
+  const { data, error } = await supabase
+    .from("organization_invitations")
+    .insert({
+      organization_id: organizationId,
+      invited_email_normalized: invitedEmail,
+      invited_by_auth_user_id: invitedByAuthUserId,
+      role,
+      status: "pending",
+      token_hash: credential.tokenHash,
+      expires_at: expiresAt,
+    })
+    .select("id")
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const invitationId = String(data.id);
+  const delivery = await sendAdminInvitationEmail({
+    invitationId,
+    invitedEmail,
+    organizationSlug,
+    role,
+    rawToken: credential.rawToken,
+    expiresAt,
+  });
+
+  return {
+    invitationId,
+    deliveryStatus: delivery.delivered ? "sent" : delivery.reason,
+  };
+}
+
 export async function createFamilyUser(
   _prevState: ProfileFormState,
   formData: FormData,
@@ -361,7 +434,7 @@ export async function createFamilyUser(
   try {
     const supabase = await createClient();
     const adminProfile = await ensureAdminProfile();
-    const { organization } = await requireOrganizationAdmin();
+    const { organization, membership } = await requireOrganizationAdmin();
     const legacyOwnerId = organization.owner_auth_user_id;
 
     await ensureUniqueEmail({ organizationId: organization.id, email });
@@ -435,6 +508,14 @@ export async function createFamilyUser(
 
       if (permissionsError) return { error: permissionsError.message };
 
+      const invitation = await createFamilyAccessInvitation({
+        organizationId: organization.id,
+        organizationSlug: organization.slug,
+        invitedByAuthUserId: membership.auth_user_id,
+        invitedEmail: email,
+        role: role === "admin" ? "admin" : "member",
+      });
+
       await recordAdminUserAuditEvent({
         organizationId: organization.id,
         action: "admin.user.create",
@@ -443,6 +524,8 @@ export async function createFamilyUser(
           role,
           access_model: accessModel,
           default_permission_count: permissionRows.length,
+          invitation_id: invitation.invitationId,
+          invitation_delivery_status: invitation.deliveryStatus,
         },
       });
     }
@@ -452,7 +535,7 @@ export async function createFamilyUser(
       organization.slug,
     );
 
-    return { success: "Acesso familiar cadastrado com sucesso." };
+    return { success: "Acesso familiar cadastrado e convite enviado/preparado com sucesso." };
   } catch (error) {
     return {
       error:
