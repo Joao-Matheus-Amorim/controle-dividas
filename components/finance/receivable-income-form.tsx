@@ -241,7 +241,7 @@ export function ReceivableIncomeForm({
       >
         <div className={financeGridThreeClass}>
           <div className={financeFieldClass}>
-            <Label htmlFor={isEditing ? `source-${income?.id}` : "source"}>Origem (opcional)</Label>
+            <Label htmlFor={isEditing ? `source-${income?.id}` : "source"}>Origem</Label>
             <Input
               id={isEditing ? `source-${income?.id}` : "source"}
               name="source"
@@ -249,9 +249,10 @@ export function ReceivableIncomeForm({
               value={source}
               onChange={(event) => setSource(event.target.value)}
               className={financeInputClass}
+              required
             />
             <p className={financeHelperTextClass}>
-              Use um texto livre para identificar o tipo de entrada, quando fizer sentido.
+              Identifique o tipo de entrada.
             </p>
           </div>
 
