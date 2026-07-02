@@ -2,6 +2,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 
+vi.mock("next/headers", () => ({
+  headers: vi.fn(async () => new Headers({ host: "app.example.test" })),
+}));
+
 const mockState = vi.hoisted(() => ({
   adminProfile: {
     id: "admin-profile-1",
