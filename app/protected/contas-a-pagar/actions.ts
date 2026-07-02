@@ -213,7 +213,7 @@ function parsePayableBillForm(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   const category = String(formData.get("category") ?? "").trim();
   const amount = Number(formData.get("amount") ?? 0);
-  const currency = String(formData.get("currency") ?? "EUR").trim().toUpperCase() || "EUR";
+  const currency = String(formData.get("currency") ?? "").trim().toUpperCase();
   const dueDate = String(formData.get("due_date") ?? "");
   const responsibleMemberId = String(formData.get("responsible_member_id") ?? "");
   const status = String(formData.get("status") ?? "pendente");

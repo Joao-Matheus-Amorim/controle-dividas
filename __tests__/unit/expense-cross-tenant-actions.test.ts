@@ -54,6 +54,7 @@ function validExpenseForm(overrides: Record<string, string> = {}) {
     description: "Mercado",
     purchase_location: "Padaria",
     amount: "45.90",
+    currency: "BRL",
     payment_method: "pix",
     bank_or_card: "Conta principal",
     notes: "Compra semanal",

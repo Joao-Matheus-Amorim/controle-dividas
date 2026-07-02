@@ -1,4 +1,4 @@
-import { compactCurrency } from "@/lib/finance/formatting";
+import { compactCurrency, compactCurrencyForCode } from "@/lib/finance/formatting";
 import type { DbFinancialMovement, FinancialMovementType } from "@/lib/finance/types";
 
 export { compactCurrency };
@@ -32,12 +32,12 @@ export function movementTypeLabelFromType(type: FinancialMovementType) {
 }
 
 export function movementAmount(movement: DbFinancialMovement) {
-  const amount = compactCurrency(Number(movement.amount));
+  const amount = compactCurrencyForCode(Number(movement.amount), movementCurrencyLabel(movement));
   return movement.direction === "outflow" ? `-${amount}` : `+${amount}`;
 }
 
 export function movementCurrencyLabel(movement: DbFinancialMovement) {
-  return movement.currency || movement.banks?.currency || "EUR";
+  return movement.currency || movement.banks?.currency || "";
 }
 
 export function movementBankLabel(movement: DbFinancialMovement) {

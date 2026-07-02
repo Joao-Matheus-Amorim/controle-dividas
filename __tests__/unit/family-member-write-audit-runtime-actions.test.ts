@@ -32,6 +32,7 @@ const mockState = vi.hoisted(() => ({
 
 function createFormData(values: Record<string, string>) {
   const formData = new FormData();
+  formData.set("currency", "BRL");
 
   Object.entries(values).forEach(([key, value]) => {
     formData.set(key, value);
@@ -188,7 +189,7 @@ describe("family member write audit runtime actions", () => {
           name: "Joao",
           role: "Filho",
           monthly_limit: 300,
-          currency: "EUR",
+          currency: "BRL",
           is_active: true,
         },
       },

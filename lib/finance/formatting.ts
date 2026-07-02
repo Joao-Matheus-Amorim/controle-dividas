@@ -1,8 +1,8 @@
 import { isSystemCurrencyOption } from "@/lib/finance/bank-options";
 
 export const currencyFormatter = new Intl.NumberFormat("pt-PT", {
-  style: "currency",
-  currency: "EUR",
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
 });
 
 export function formatCurrency(value: number) {

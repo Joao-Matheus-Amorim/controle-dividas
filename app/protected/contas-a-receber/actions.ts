@@ -189,10 +189,9 @@ function parseReceivableIncomeForm(formData: FormData) {
   const receiverMemberId = String(formData.get("receiver_member_id") ?? "");
   const source = String(formData.get("source") ?? "").trim();
   const category = String(formData.get("category") ?? "").trim();
-  const paymentOrigin = String(formData.get("payment_origin") ?? "").trim();
   const incomeType = String(formData.get("income_type") ?? "fixa");
   const amount = Number(formData.get("amount") ?? 0);
-  const currency = String(formData.get("currency") ?? "EUR").trim().toUpperCase() || "EUR";
+  const currency = String(formData.get("currency") ?? "").trim().toUpperCase();
   const expectedDate = String(formData.get("expected_date") ?? "");
   const status = String(formData.get("status") ?? "previsto");
   const receivingBank = String(formData.get("receiving_bank") ?? "").trim();
@@ -205,7 +204,6 @@ function parseReceivableIncomeForm(formData: FormData) {
     receiverMemberId,
     source,
     category,
-    paymentOrigin,
     incomeType,
     amount,
     currency,
@@ -227,6 +225,10 @@ function validateReceivableIncomeInput(
 
   if (!input.source) {
     return { error: "Informe a origem do recebimento." };
+  }
+
+  if (!input.category) {
+    return { error: "Informe a categoria do recebimento." };
   }
 
   if (!receivableIncomeTypes.includes(input.incomeType as (typeof receivableIncomeTypes)[number])) {
@@ -264,7 +266,7 @@ function hasReceivableIncomeWriteChanges(
     String(income.receiver_member_id ?? "") !== input.receiverMemberId ||
     String(income.source ?? "").trim() !== input.source ||
     String(income.category ?? "").trim() !== input.category ||
-    String(income.payment_origin ?? "").trim() !== input.paymentOrigin ||
+    String(income.payment_origin ?? "").trim() !== "" ||
     String(income.income_type ?? "fixa") !== input.incomeType ||
     Number(income.amount ?? 0) !== input.amount ||
     String(income.currency ?? "EUR") !== input.currency ||
@@ -342,8 +344,8 @@ export async function createReceivableIncome(
       organization_id: organization.id,
       receiver_member_id: input.receiverMemberId,
       source: input.source,
-      category: input.category || null,
-      payment_origin: input.paymentOrigin || null,
+      category: input.category,
+      payment_origin: null,
       income_type: input.incomeType,
       amount: input.amount,
       currency: input.currency,
@@ -572,9 +574,9 @@ export async function updateReceivableIncome(
       .from("receivable_incomes")
       .update({
         receiver_member_id: input.receiverMemberId,
-      source: input.source,
-        category: input.category || null,
-        payment_origin: input.paymentOrigin || null,
+        source: input.source,
+        category: input.category,
+        payment_origin: null,
         income_type: input.incomeType,
         amount: input.amount,
         currency: input.currency,

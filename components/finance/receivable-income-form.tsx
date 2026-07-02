@@ -7,6 +7,7 @@ import { CalendarDays, CircleDollarSign, FileText, Landmark, UserRound, WalletCa
 import { createReceivableIncome, updateReceivableIncome } from "@/app/protected/contas-a-receber/actions";
 import { AppActionFeedback } from "@/components/app/app-action-feedback";
 import { AssistedDraftReviewBoundary } from "@/components/finance/assisted-draft-review-boundary";
+import { CurrencyCodeInput } from "@/components/finance/currency-code-input";
 import { FinanceDateField } from "@/components/finance/finance-date-field";
 import {
   financeAutomaticMemberClass,
@@ -33,7 +34,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { buildReceivableIncomeDraftSuggestion } from "@/lib/finance/receivable-draft";
-import { systemCurrencyOptions } from "@/lib/finance/bank-options";
 import type {
   DbBankAccount,
   DbFamilyMember,
@@ -112,13 +112,10 @@ export function ReceivableIncomeForm({
   const [incomeType, setIncomeType] = useState<ReceivableIncomeType>(
     income?.income_type ?? ((draftData?.incomeType as ReceivableIncomeType) ?? "fixa"),
   );
-  const [paymentOrigin, setPaymentOrigin] = useState(
-    income?.payment_origin ?? (draftData?.paymentOrigin as string) ?? "",
-  );
   const [amount, setAmount] = useState(
     income ? String(income.amount) : (draftData?.amount ? String(draftData.amount) : ""),
   );
-  const [currency, setCurrency] = useState(income?.currency ?? "EUR");
+  const [currency, setCurrency] = useState(income?.currency ?? (draftData?.currency as string) ?? "");
   const [expectedDate, setExpectedDate] = useState(
     income?.expected_date ?? (draftData?.expectedDate as string) ?? today,
   );
@@ -165,7 +162,6 @@ export function ReceivableIncomeForm({
 
     setSource(suggestion.source);
     setIncomeType(suggestion.incomeType);
-    setPaymentOrigin(suggestion.paymentOrigin);
     setAmount(suggestion.amount);
     setCurrency(memberBankAccounts.find((account) => account.bank_name === suggestion.receivingBank)?.currency ?? currency);
     setExpectedDate(suggestion.expectedDate);
@@ -257,7 +253,7 @@ export function ReceivableIncomeForm({
           </div>
 
           <div className={financeFieldClass}>
-            <Label htmlFor={isEditing ? `category-${income?.id}` : "category"}>Categoria (opcional)</Label>
+            <Label htmlFor={isEditing ? `category-${income?.id}` : "category"}>Categoria</Label>
             <Input
               id={isEditing ? `category-${income?.id}` : "category"}
               name="category"
@@ -265,9 +261,10 @@ export function ReceivableIncomeForm({
               value={category}
               onChange={(event) => setCategory(event.target.value)}
               className={financeInputClass}
+              required
             />
             <p className={financeHelperTextClass}>
-              Categoria separada apenas para contas a receber.
+              Classifique a entrada para relatórios e filtros.
             </p>
           </div>
 
@@ -284,23 +281,6 @@ export function ReceivableIncomeForm({
             </Select>
             <p className={financeHelperTextClass}>
               Use fixa para entradas recorrentes e variável para comissões, vendas e extras.
-            </p>
-          </div>
-
-          <div className={financeFieldClass}>
-            <Label htmlFor={isEditing ? `payment_origin-${income?.id}` : "payment_origin"}>
-              De onde/de quem vem o pagamento
-            </Label>
-            <Input
-              id={isEditing ? `payment_origin-${income?.id}` : "payment_origin"}
-              name="payment_origin"
-              placeholder="Ex: Empresa, cliente, pessoa ou plataforma"
-              value={paymentOrigin}
-              onChange={(event) => setPaymentOrigin(event.target.value)}
-              className={financeInputClass}
-            />
-            <p className={financeHelperTextClass}>
-              Identifique o pagador ou a origem concreta do dinheiro.
             </p>
           </div>
 
@@ -326,19 +306,13 @@ export function ReceivableIncomeForm({
 
           <div className={financeFieldClass}>
             <Label htmlFor={isEditing ? `currency-${income?.id}` : "currency"}>Moeda</Label>
-            <select
-              id={isEditing ? `currency-${income?.id}` : "currency"}
-              name="currency"
-              value={currency}
-              onChange={(event) => setCurrency(event.target.value)}
-              className={financeNativeSelectClass}
-            >
-              {systemCurrencyOptions.map((currencyOption) => (
-                <option key={currencyOption} value={currencyOption}>
-                  {currencyOption}
-                </option>
-              ))}
-            </select>
+              <CurrencyCodeInput
+                id={isEditing ? `currency-${income?.id}` : "currency"}
+                name="currency"
+                value={currency}
+                onChange={(event) => setCurrency(event.target.value)}
+                className={financeInputClass}
+              />
           </div>
         </div>
       </FormSection>

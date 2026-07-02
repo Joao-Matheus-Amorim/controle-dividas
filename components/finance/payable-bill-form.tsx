@@ -5,6 +5,7 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import { createPayableBill, updatePayableBill } from "@/app/protected/contas-a-pagar/actions";
 import { AppActionFeedback } from "@/components/app/app-action-feedback";
 import { AssistedDraftReviewBoundary } from "@/components/finance/assisted-draft-review-boundary";
+import { CurrencyCodeInput } from "@/components/finance/currency-code-input";
 import { FinanceDateField } from "@/components/finance/finance-date-field";
 import {
   financeAutomaticMemberClass,
@@ -23,7 +24,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { buildPayableBillDraftSuggestion } from "@/lib/finance/payable-draft";
-import { systemCurrencyOptions } from "@/lib/finance/bank-options";
 import type {
   DbBankAccount,
   DbExpenseCategory,
@@ -83,7 +83,7 @@ export function PayableBillForm({
   const [amount, setAmount] = useState(
     bill ? String(bill.amount) : (draftData?.amount ? String(draftData.amount) : ""),
   );
-  const [currency, setCurrency] = useState(bill?.currency ?? "EUR");
+  const [currency, setCurrency] = useState(bill?.currency ?? (draftData?.currency as string) ?? "");
   const [dueDate, setDueDate] = useState(
     bill?.due_date ?? (draftData?.dueDate as string) ?? today,
   );
@@ -304,19 +304,13 @@ export function PayableBillForm({
 
         <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `currency-${bill?.id}` : "currency"}>Moeda</Label>
-          <select
+          <CurrencyCodeInput
             id={isEditing ? `currency-${bill?.id}` : "currency"}
             name="currency"
             value={currency}
             onChange={(event) => setCurrency(event.target.value)}
-            className={financeNativeSelectClass}
-          >
-            {systemCurrencyOptions.map((currencyOption) => (
-              <option key={currencyOption} value={currencyOption}>
-                {currencyOption}
-              </option>
-            ))}
-          </select>
+            className={financeInputClass}
+          />
         </div>
 
         <div className={financeFieldClass}>

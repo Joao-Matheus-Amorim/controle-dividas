@@ -99,7 +99,8 @@ describe("finance list UI contract guards", () => {
     const list = readNormalized("components/banks/bank-list.tsx");
     const item = readSource("components/banks/bank-list-item.tsx");
 
-    expect(list).toContain("bancos cadastrados");
+    expect(list).toContain("bancos por pessoa");
+    expect(list).toContain("triggerlabel=\"+ banco\"");
     expect(list).toContain("nenhum banco cadastrado");
     expect(list).toContain("novo banco");
     expect(list).toContain("cancreate");

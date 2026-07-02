@@ -24,8 +24,10 @@ function validReceivableIncomeForm(overrides: Record<string, string> = {}) {
   return createFormData({
     receiver_member_id: "member-1",
     source: "Salario",
+    category: "Trabalho",
     income_type: "fixa",
     amount: "2500.75",
+    currency: "BRL",
     expected_date: "2026-05-25",
     status: "previsto",
     receiving_bank: "Conta principal",

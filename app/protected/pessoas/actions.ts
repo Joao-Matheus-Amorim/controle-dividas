@@ -33,6 +33,7 @@ export async function createFamilyMember(
   const name = String(formData.get("name") ?? "").trim();
   const role = String(formData.get("role") ?? "").trim();
   const monthlyLimit = Number(formData.get("monthly_limit") ?? 0);
+  const currency = String(formData.get("currency") ?? "").trim().toUpperCase();
 
   if (!name) {
     return { error: "Informe o nome da pessoa." };
@@ -40,6 +41,10 @@ export async function createFamilyMember(
 
   if (Number.isNaN(monthlyLimit) || monthlyLimit < 0) {
     return { error: "Informe um limite mensal valido." };
+  }
+
+  if (!/^[A-Z]{3}$/.test(currency)) {
+    return { error: "Informe uma moeda valida para o limite mensal." };
   }
 
   try {
@@ -72,7 +77,7 @@ export async function createFamilyMember(
       name,
       role: role || null,
       monthly_limit: monthlyLimit,
-      currency: "EUR",
+      currency,
       is_active: true,
     }).select("id").single();
 

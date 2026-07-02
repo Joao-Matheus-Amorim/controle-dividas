@@ -5,12 +5,14 @@ import { useActionState, useEffect, useState } from "react";
 import { createBankAccount, updateBankAccount } from "@/app/protected/bancos/actions";
 import { AppActionFeedback } from "@/components/app/app-action-feedback";
 import { AssistedDraftReviewBoundary } from "@/components/finance/assisted-draft-review-boundary";
+import { CurrencyCodeInput } from "@/components/finance/currency-code-input";
 import {
   financeAutomaticMemberClass,
   financeFieldClass,
   financeFormClass,
   financeGridFourClass,
   financeGridTwoClass,
+  financeHelperTextClass,
   financeInputClass,
   financeNativeSelectClass,
   financeSelectTriggerClass,
@@ -32,7 +34,6 @@ import {
   isSystemCurrencyOption,
   systemBankAccountTypeOptions,
   systemBankOptions,
-  systemCurrencyOptions,
 } from "@/lib/finance/bank-options";
 import { buildBankAccountDraftSuggestion } from "@/lib/finance/bank-draft";
 import type { BankAccountFormState, DbBankAccount, DbFamilyMember } from "@/lib/finance/types";
@@ -72,7 +73,7 @@ export function BankAccountForm({
   const legacyBankName = selectedBankName && !isSystemBankOption(selectedBankName)
     ? selectedBankName
     : null;
-  const selectedCurrency = account?.currency ?? (draftData?.currency as string) ?? "EUR";
+  const selectedCurrency = account?.currency ?? (draftData?.currency as string) ?? "";
   const [currency, setCurrency] = useState(selectedCurrency);
   const [currentBalance, setCurrentBalance] = useState(
     account ? String(account.current_balance) : (draftData?.currentBalance ? String(draftData.currentBalance) : ""),
@@ -111,7 +112,7 @@ export function BankAccountForm({
           value={draftPrompt}
           applied={draftApplied}
           description="Descreva a conta e revise os campos antes de cadastrar."
-          placeholder="Ex: Cartao Itau saldo 500 EUR"
+          placeholder="Ex: Cartao Itau saldo 500 BRL"
           onValueChange={(value) => {
             setDraftPrompt(value);
             setDraftApplied(false);
@@ -208,23 +209,16 @@ export function BankAccountForm({
       <div className={financeGridTwoClass}>
         <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `currency-${account?.id}` : "currency"}>Moeda</Label>
-          <select
+          <CurrencyCodeInput
             id={isEditing ? `currency-${account?.id}` : "currency"}
             name="currency"
             value={currency}
             onChange={(event) => setCurrency(event.target.value)}
-            required
-            className={financeNativeSelectClass}
-          >
-            {legacyCurrency ? (
-              <option value={legacyCurrency}>{legacyCurrency} (cadastrada)</option>
-            ) : null}
-            {systemCurrencyOptions.map((currency) => (
-              <option key={currency} value={currency}>
-                {currency}
-              </option>
-            ))}
-          </select>
+            className={financeInputClass}
+          />
+          {legacyCurrency ? (
+            <p className={financeHelperTextClass}>Moeda cadastrada: {legacyCurrency}</p>
+          ) : null}
         </div>
 
         <div className={financeFieldClass}>

@@ -176,23 +176,23 @@ describe("finance beta UX contract guards", () => {
     expect(receivableForm).toContain('name="category"');
     expect(receivableForm).toContain(">Origem</Label>");
     expect(receivableForm).toContain("required");
-    expect(receivableForm).toContain("Categoria (opcional)");
+    expect(receivableForm).toContain(">Categoria</Label>");
+    expect(receivableForm).toContain("Classifique a entrada para relatórios e filtros.");
   });
 
-  it("keeps receivable incomes tracking who or where the payment comes from", () => {
+  it("keeps receivable incomes using source and category without duplicated payment origin input", () => {
     const receivableForm = readSource("components/finance/receivable-income-form.tsx");
     const receivableActions = readSource("app/protected/contas-a-receber/actions.ts");
     const receivableReadModel = readSource("lib/organizations/receivables.ts");
     const receivableListItem = readSource("components/receivables/receivable-list-item.tsx");
     const migration = readSource("supabase/migrations/056_receivable_incomes_payment_origin.sql");
 
-    expect(receivableForm).toContain('name="payment_origin"');
-    expect(receivableForm).toContain("De onde/de quem vem o pagamento");
-    expect(receivableForm).toContain("Identifique o pagador ou a origem concreta do dinheiro.");
-    expect(receivableActions).toContain('formData.get("payment_origin")');
-    expect(receivableActions).toContain("payment_origin: input.paymentOrigin || null");
+    expect(receivableForm).not.toContain('name="payment_origin"');
+    expect(receivableForm).not.toContain("De onde/de quem vem o pagamento");
+    expect(receivableActions).not.toContain('formData.get("payment_origin")');
+    expect(receivableActions).toContain("payment_origin: null");
     expect(receivableReadModel).toContain("payment_origin");
-    expect(receivableListItem).toContain("Origem do pagamento:");
+    expect(receivableListItem).not.toContain("Origem do pagamento:");
     expect(migration).toContain("add column if not exists payment_origin text");
   });
 

@@ -25,6 +25,7 @@ function validPayableBillForm(overrides: Record<string, string> = {}) {
     name: "Internet",
     category: "Casa",
     amount: "120.50",
+    currency: "BRL",
     due_date: "2026-05-20",
     responsible_member_id: "member-1",
     status: "pendente",

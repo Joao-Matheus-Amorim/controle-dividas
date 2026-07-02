@@ -29,9 +29,11 @@ function readAiDraft(): { data: Record<string, unknown>; actionType: string } | 
 export function BankAccountFormDialog({
   members,
   defaultMemberId,
+  triggerLabel = "Novo banco",
 }: {
   members: DbFamilyMember[];
   defaultMemberId?: string;
+  triggerLabel?: string;
 }) {
   const [initialDraft] = useState<{ data: Record<string, unknown>; actionType: string } | null>(() => readAiDraft());
   const [open, setOpen] = useState(() => Boolean(initialDraft));
@@ -77,7 +79,7 @@ export function BankAccountFormDialog({
       }}
       title={isEdit ? "Editar banco" : "Novo banco"}
       description={isEdit ? "Atualize os dados da conta bancaria." : "Cadastre uma conta, banco, cartao ou saldo em dinheiro."}
-      triggerLabel="Novo banco"
+      triggerLabel={triggerLabel}
       icon={Banknote}
     >
       {loadingRecord ? (

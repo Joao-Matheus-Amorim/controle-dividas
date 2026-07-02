@@ -28,24 +28,18 @@ import {
 import { compactCurrencyForCode } from "@/lib/finance/formatting";
 
 describe("finance calculations", () => {
-  it("formats currency in EUR for European family", () => {
+  it("formats generic amounts without forcing EUR", () => {
     expect(formatCurrency(0)).toMatch(/0[,\.]00/);
-    expect(formatCurrency(0)).toContain("€");
     expect(formatCurrency(150)).toMatch(/150[,\.]00/);
-    expect(formatCurrency(150)).toContain("€");
     expect(formatCurrency(-20)).toContain("20");
     expect(formatCurrency(1_000_000)).toContain("1");
     expect(formatCurrency(1_000_000)).toContain("000");
   });
 
-  it("compacts EUR currency without changing currency semantics", () => {
-    expect(compactCurrency(0)).toContain("€");
+  it("compacts generic amounts without currency semantics", () => {
     expect(compactCurrency(0)).toMatch(/0[,\.]00/);
-    expect(compactCurrency(150)).toContain("€");
     expect(compactCurrency(150)).toMatch(/150[,\.]00/);
-    expect(compactCurrency(-20)).toContain("€");
     expect(compactCurrency(-20)).toContain("20");
-    expect(compactCurrency(1_000_000)).toContain("€");
     expect(compactCurrency(1_000_000)).toContain("1");
     expect(compactCurrency(1_000_000)).toContain("000");
   });

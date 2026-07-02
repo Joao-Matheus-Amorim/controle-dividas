@@ -4,7 +4,7 @@ export type DefaultFamilyMember = {
   name: string;
   role: string;
   monthlyLimit: number;
-  currency: "EUR";
+  currency: string;
 };
 
 export type DefaultExpenseCategory = {

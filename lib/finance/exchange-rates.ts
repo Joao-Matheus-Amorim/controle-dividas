@@ -5,7 +5,7 @@ type CachedRate = {
   expiresAt: number;
 };
 
-const RATE_TTL_MS = 60 * 60 * 1000;
+const RATE_TTL_MS = 5 * 60 * 1000;
 const rateCache = new Map<string, CachedRate>();
 
 function normalizeCurrencyCode(currency: string) {
@@ -35,7 +35,7 @@ async function fetchExchangeRate(fromCurrency: string, toCurrency: string) {
     const response = await fetch(
       `https://economia.awesomeapi.com.br/json/last/${from}-${to}`,
       {
-        next: { revalidate: 3600 },
+        cache: "no-store",
       },
     );
 

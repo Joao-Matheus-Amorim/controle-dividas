@@ -60,6 +60,7 @@ const mockState = vi.hoisted(() => ({
 
 function createFormData(values: Record<string, string>) {
   const formData = new FormData();
+  formData.set("currency", "BRL");
 
   Object.entries(values).forEach(([key, value]) => {
     formData.set(key, value);
