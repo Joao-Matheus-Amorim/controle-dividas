@@ -20,6 +20,7 @@ describe("family invitation link and email acceptance guards", () => {
 
   it("returns and displays a copyable invitation link for family access creation and resend", () => {
     expect(adminActions).toContain("buildadmininvitationurl");
+    expect(adminActions).toContain("await buildadmininvitationurl");
     expect(adminActions).toContain("invitationurl");
     expect(adminActions).toContain("resendfamilyuserinvitation");
     expect(adminActions).toContain('operationkey: "admin.user.invitation.resend"');
