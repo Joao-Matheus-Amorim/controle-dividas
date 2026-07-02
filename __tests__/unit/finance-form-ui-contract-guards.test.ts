@@ -152,7 +152,8 @@ describe("finance form UI contract guards", () => {
     expect(source).toContain('<SelectItem value="previsto">');
     expect(source).toContain('<SelectItem value="recebido">');
     expect(source).toContain("sources?: DbReceivableIncomeSource[]");
-    expect(source).toContain("Origem (opcional)");
+    expect(source).toContain(">Origem</Label>");
+    expect(source).toContain("required");
     expect(source).toContain("Categoria (opcional)");
     expect(source).not.toContain("customIncomeSourceValue");
     expect(normalized).toContain("variavel / pontual");
