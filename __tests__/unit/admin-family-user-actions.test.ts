@@ -23,9 +23,12 @@ const mockState = vi.hoisted(() => ({
   } as Record<string, unknown> | null,
   profileLookupError: null as { message: string } | null,
   updatedPayloads: [] as Array<Record<string, unknown>>,
+  upsertedMemberships: [] as Array<Record<string, unknown>>,
   deletedIds: [] as string[],
   updateError: null as { message: string } | null,
+  upsertError: null as { message: string } | null,
   deleteError: null as { message: string } | null,
+  authUsers: [{ id: "auth-user-1", email: "maria@example.com" }] as Array<{ id: string; email?: string }>,
   rateLimitAllowed: true,
   rateLimitChecks: [] as Array<Record<string, unknown>>,
   recordAuditEvent: vi.fn(async () => true),
@@ -51,7 +54,9 @@ function makeProfilesQuery() {
   let deleteMode = false;
 
   const finishWriteIfReady = () => {
-    if (!filters.organization_id) {
+    const hasWriteTarget = filters.organization_id && (filters.id || filters.auth_user_id);
+
+    if (!hasWriteTarget) {
       return query;
     }
 
@@ -118,9 +123,22 @@ function makeProfilesQuery() {
   return query;
 }
 
+function makeMembershipsQuery() {
+  return {
+    upsert(payload: Record<string, unknown>, options?: Record<string, unknown>) {
+      mockState.upsertedMemberships.push({ ...payload, options });
+      return Promise.resolve({ error: mockState.upsertError });
+    },
+  };
+}
+
 function makeSupabaseClient() {
   return {
     from(table: string) {
+      if (table === "organization_memberships") {
+        return makeMembershipsQuery();
+      }
+
       if (!["profiles", "family_members"].includes(table)) {
         throw new Error(`Unexpected table: ${table}`);
       }
@@ -136,6 +154,19 @@ vi.mock("next/cache", () => ({
 
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(async () => makeSupabaseClient()),
+}));
+
+vi.mock("@/lib/supabase/admin", () => ({
+  createAdminClient: vi.fn(() => ({
+    auth: {
+      admin: {
+        listUsers: vi.fn(async () => ({
+          data: { users: mockState.authUsers },
+          error: null,
+        })),
+      },
+    },
+  })),
 }));
 
 vi.mock("@/lib/organizations/server", () => ({
@@ -186,9 +217,12 @@ describe("admin family user actions", () => {
     };
     mockState.profileLookupError = null;
     mockState.updatedPayloads = [];
+    mockState.upsertedMemberships = [];
     mockState.deletedIds = [];
     mockState.updateError = null;
+    mockState.upsertError = null;
     mockState.deleteError = null;
+    mockState.authUsers = [{ id: "auth-user-1", email: "maria@example.com" }];
     mockState.rateLimitAllowed = true;
     mockState.rateLimitChecks = [];
     mockState.recordAuditEvent.mockClear();
@@ -444,5 +478,46 @@ describe("admin family user actions", () => {
 
     expect(result).toEqual({ success: "Acesso familiar excluido com sucesso." });
     expect(mockState.deletedIds).toEqual(["profile-1"]);
+  });
+
+  it("syncs auth link and organization membership for family users", async () => {
+    const { syncFamilyUserAuthLink } = await import("@/app/protected/admin/actions");
+    mockState.profileLookup = {
+      id: "profile-1",
+      email: "maria@example.com",
+      role: "user",
+    };
+
+    const result = await syncFamilyUserAuthLink(createFormData({
+      id: "profile-1",
+    }));
+
+    expect(result).toEqual({ success: "Login sincronizado com sucesso." });
+    expect(mockState.updatedPayloads).toContainEqual(expect.objectContaining({
+      auth_user_id: "auth-user-1",
+      organization_id: "org-1",
+      filters: expect.objectContaining({
+        id: "profile-1",
+        organization_id: "org-1",
+      }),
+    }));
+    expect(mockState.upsertedMemberships).toEqual([
+      {
+        organization_id: "org-1",
+        auth_user_id: "auth-user-1",
+        role: "member",
+        is_active: true,
+        options: { onConflict: "organization_id,auth_user_id" },
+      },
+    ]);
+    expect(mockState.recordAuditEvent).toHaveBeenCalledWith(expect.objectContaining({
+      organizationId: "org-1",
+      action: "admin.user.auth_link.sync",
+      targetId: "profile-1",
+      metadata: {
+        auth_linked: true,
+        membership_synced: true,
+      },
+    }));
   });
 });
