@@ -10,6 +10,9 @@ function read(path: string) {
 describe("admin invitation acceptance rpc guards", () => {
   const migration = read("supabase/migrations/045_accept_admin_invitation_rpc.sql");
   const profileCreationMigration = read("supabase/migrations/047_accept_admin_invitation_profile_creation.sql");
+  const digestSearchPathFixMigration = read(
+    "supabase/migrations/080_fix_invitation_token_digest_search_path.sql",
+  );
   const action = read("app/auth/convite/actions.ts");
 
   it("keeps invitation acceptance server-side and transactional", () => {
@@ -47,6 +50,16 @@ describe("admin invitation acceptance rpc guards", () => {
       profileCreationMigration.indexOf("insert into public.organization_memberships"),
     );
     expect(action).toContain("profile_created");
+  });
+
+  it("keeps token hashing compatible with pgcrypto installed outside public", () => {
+    expect(digestSearchPathFixMigration).toContain("set search_path = public, extensions");
+    expect(digestSearchPathFixMigration).toContain(
+      "encode(digest(convert_to(normalized_token, 'utf8'), 'sha256'::text), 'hex')",
+    );
+    expect(digestSearchPathFixMigration).toContain(
+      "grant execute on function public.accept_organization_invitation(text) to authenticated",
+    );
   });
 
   it("keeps raw invitation tokens out of storage and audit metadata", () => {
