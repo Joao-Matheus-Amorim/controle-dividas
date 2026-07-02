@@ -325,18 +325,15 @@ export function ReceivableIncomeForm({
         <div className="mb-4 grid gap-2 md:grid-cols-2">
           <label className={financeChoiceOptionClass}>
             <input
-              type="radio"
-              name="payment_form"
-              value="dinheiro"
-              checked={paymentForm === "dinheiro"}
-              onChange={() => {
-                setPaymentForm("dinheiro");
-                setReceivingBank("");
-              }}
-              className="sr-only"
-            />
-            <span className="text-sm font-semibold text-foreground">Dinheiro</span>
-            <span className="mt-1 block text-xs leading-5 text-ff-subtle-foreground">Recebimento em dinheiro vivo, sem movimentacao bancaria.</span>
+                type="radio"
+                name="payment_form"
+                value="dinheiro"
+                checked={paymentForm === "dinheiro"}
+                onChange={() => setPaymentForm("dinheiro")}
+                className="sr-only"
+              />
+              <span className="text-sm font-semibold text-foreground">Dinheiro</span>
+              <span className="mt-1 block text-xs leading-5 text-ff-subtle-foreground">Recebimento em dinheiro vivo. Use uma carteira Dinheiro cadastrada em Bancos.</span>
           </label>
           <label className={financeChoiceOptionClass}>
             <input
@@ -381,7 +378,7 @@ export function ReceivableIncomeForm({
 
           <div className={financeFieldClass}>
             <Label htmlFor={isEditing ? `receiving_bank-${income?.id}` : "receiving_bank"}>
-              {paymentForm === "conta" ? "Banco de recebimento (obrigatorio)" : "Banco de recebimento (opcional)"}
+              {paymentForm === "conta" || status === "recebido" ? "Conta/carteira de recebimento (obrigatorio)" : "Conta/carteira de recebimento (opcional)"}
             </Label>
             <div className="relative">
               <Landmark className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ff-subtle-foreground" aria-hidden="true" />
@@ -397,14 +394,12 @@ export function ReceivableIncomeForm({
                     setCurrency(matchedAccount.currency);
                   }
                 }}
-                required={paymentForm === "conta"}
+                required={paymentForm === "conta" || status === "recebido"}
                 className={`${financeNativeSelectClass} pl-10`}
               >
-                {paymentForm === "conta" ? (
-                  <option value="">Selecione um banco</option>
-                ) : (
-                  <option value="">Sem banco / dinheiro vivo</option>
-                )}
+                <option value="">
+                  {paymentForm === "dinheiro" ? "Selecione a carteira Dinheiro" : "Selecione um banco"}
+                </option>
                 {keepsLegacyReceivingBank ? (
                   <option value={selectedReceivingBank}>{selectedReceivingBank}</option>
                 ) : null}
@@ -421,7 +416,7 @@ export function ReceivableIncomeForm({
               </p>
             ) : (
               <p className={financeHelperTextClass}>
-                Nao sera criada movimentacao financeira. Para receber em banco, selecione Conta / cartao como forma de pagamento.
+                Dinheiro vivo tambem movimenta o saldo familiar quando voce seleciona uma carteira Dinheiro cadastrada.
               </p>
             )}
           </div>

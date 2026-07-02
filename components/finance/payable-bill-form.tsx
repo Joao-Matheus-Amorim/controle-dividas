@@ -115,6 +115,7 @@ export function PayableBillForm({
   const selectedBankUsedValue = bankUsedBelongsToSelectedMember || keepsLegacyBankUsed
     ? bankUsed
     : "";
+  const requiresPaymentAccount = paymentForm === "conta" || status === "pago";
 
   useEffect(() => {
     if (state.success) {
@@ -330,19 +331,16 @@ export function PayableBillForm({
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ff-subtle-foreground">Forma de pagamento</p>
         <div className="mt-3 grid gap-2 md:grid-cols-2">
           <label className={financeChoiceOptionClass}>
-            <input
-              type="radio"
-              name="payment_form"
-              value="dinheiro"
-              checked={paymentForm === "dinheiro"}
-              onChange={() => {
-                setPaymentForm("dinheiro");
-                setBankUsed("");
-              }}
-              className="sr-only"
-            />
-            <span className="text-sm font-semibold text-foreground">Dinheiro</span>
-            <span className="mt-1 block text-xs leading-5 text-ff-subtle-foreground">Pagamento em dinheiro vivo, sem movimentacao bancaria.</span>
+              <input
+                type="radio"
+                name="payment_form"
+                value="dinheiro"
+                checked={paymentForm === "dinheiro"}
+                onChange={() => setPaymentForm("dinheiro")}
+                className="sr-only"
+              />
+              <span className="text-sm font-semibold text-foreground">Dinheiro</span>
+              <span className="mt-1 block text-xs leading-5 text-ff-subtle-foreground">Pagamento em dinheiro vivo. Use uma carteira Dinheiro cadastrada em Bancos.</span>
           </label>
           <label className={financeChoiceOptionClass}>
             <input
@@ -418,7 +416,7 @@ export function PayableBillForm({
 
         <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `bank_used-${bill?.id}` : "bank_used"}>
-            {paymentForm === "conta" ? "Banco utilizado (obrigatorio)" : "Banco utilizado (opcional)"}
+              {requiresPaymentAccount ? "Conta/carteira utilizada (obrigatorio)" : "Conta/carteira utilizada (opcional)"}
           </Label>
           <select
             id={isEditing ? `bank_used-${bill?.id}` : "bank_used"}
@@ -432,14 +430,12 @@ export function PayableBillForm({
                 setCurrency(matchedAccount.currency);
               }
             }}
-            required={paymentForm === "conta"}
+            required={requiresPaymentAccount}
             className={financeNativeSelectClass}
           >
-            {paymentForm === "conta" ? (
-              <option value="">Selecione um banco</option>
-            ) : (
-              <option value="">Sem banco / dinheiro vivo</option>
-            )}
+            <option value="">
+              {paymentForm === "dinheiro" ? "Selecione a carteira Dinheiro" : "Selecione um banco"}
+            </option>
             {keepsLegacyBankUsed ? (
               <option value={selectedBankUsed}>{selectedBankUsed}</option>
             ) : null}
@@ -455,7 +451,7 @@ export function PayableBillForm({
             </p>
           ) : (
             <p className={financeHelperTextClass}>
-              Nao sera criada movimentacao financeira. Para registrar em banco, selecione Conta / cartao como forma de pagamento.
+              Dinheiro vivo tambem movimenta o saldo familiar quando voce seleciona uma carteira Dinheiro cadastrada.
             </p>
           )}
         </div>
