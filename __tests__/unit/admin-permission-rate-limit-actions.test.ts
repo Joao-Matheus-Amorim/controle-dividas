@@ -117,6 +117,10 @@ vi.mock("@/lib/audit/events", () => ({
   }),
 }));
 
+vi.mock("@/lib/admin-invitations/delivery", () => ({
+  sendAdminInvitationEmail: vi.fn(async () => ({ delivered: true })),
+}));
+
 vi.mock("@/lib/finance/permissions", () => ({
   FINANCE_MODULES: [
     { key: "GASTOS", label: "Gastos" },
