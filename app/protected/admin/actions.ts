@@ -420,7 +420,7 @@ async function createFamilyAccessInvitation({
 
   return {
     invitationId,
-    invitationUrl: buildAdminInvitationUrl(credential.rawToken),
+    invitationUrl: await buildAdminInvitationUrl(credential.rawToken),
     deliveryStatus: delivery.delivered ? "sent" : delivery.reason,
   };
 }
@@ -653,7 +653,7 @@ export async function resendFamilyUserInvitation(formData: FormData): Promise<Fa
   if (!invitation?.id) return { error: "O status deste convite mudou. Atualize a pagina e tente novamente." };
 
   const invitationId = String(invitation.id);
-  const invitationUrl = buildAdminInvitationUrl(credential.rawToken);
+  const invitationUrl = await buildAdminInvitationUrl(credential.rawToken);
   const delivery = await sendAdminInvitationEmail({
     invitationId,
     invitedEmail,

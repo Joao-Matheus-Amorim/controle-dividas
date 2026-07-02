@@ -4,6 +4,13 @@ const originalEnv = { ...process.env };
 
 vi.mock("server-only", () => ({}));
 
+vi.mock("next/headers", () => ({
+  headers: vi.fn(async () => new Headers({
+    "x-forwarded-host": "app.headers.test",
+    "x-forwarded-proto": "https",
+  })),
+}));
+
 describe("admin invitation delivery adapter", () => {
   beforeEach(() => {
     process.env = { ...originalEnv };
@@ -75,5 +82,14 @@ describe("admin invitation delivery adapter", () => {
     );
     const body = String(fetchSpy.mock.calls[0][1]?.body ?? "");
     expect(body).toContain("https://app.example.test/auth/convite?token=raw%20token");
+  });
+
+  it("builds a complete invite link from request headers when app url is not configured", async () => {
+    delete process.env.NEXT_PUBLIC_APP_URL;
+    const { buildAdminInvitationUrl } = await import("@/lib/admin-invitations/delivery");
+
+    await expect(buildAdminInvitationUrl("raw token")).resolves.toBe(
+      "https://app.headers.test/auth/convite?token=raw%20token",
+    );
   });
 });
