@@ -32,6 +32,7 @@ const mockState = vi.hoisted(() => ({
     payment_origin: null,
     income_type: "fixa",
     amount: 1800,
+    currency: "BRL",
     expected_date: "2026-05-31",
     status: "previsto",
     receiving_bank: null,
@@ -201,6 +202,8 @@ function makeSupabaseClient() {
           status: "recebido",
           organization_id: payload.target_organization_id,
           recorded_timezone: payload.target_recorded_timezone,
+          movement_amount: payload.target_movement_amount,
+          movement_currency: payload.target_movement_currency,
           filters: {
             id: payload.target_receivable_income_id,
             organization_id: payload.target_organization_id,
@@ -274,6 +277,24 @@ vi.mock("@/lib/security/sensitive-rate-limit", () => ({
   }),
 }));
 
+vi.mock("@/lib/finance/exchange-rates", () => ({
+  convertCurrencyAmount: vi.fn(async (amount: number, fromCurrency: string, toCurrency: string) => {
+    if (fromCurrency === toCurrency) {
+      return amount;
+    }
+
+    if (fromCurrency === "BRL" && toCurrency === "EUR") {
+      return amount / 6;
+    }
+
+    if (fromCurrency === "BRL" && toCurrency === "USD") {
+      return amount / 5;
+    }
+
+    return null;
+  }),
+}));
+
 describe("receivable income actions", () => {
   beforeEach(() => {
     mockState.insertedPayloads = [];
@@ -295,9 +316,10 @@ describe("receivable income actions", () => {
       source: "Salario",
       category: "Trabalho",
       payment_origin: null,
-      income_type: "fixa",
-      amount: 1800,
-      expected_date: "2026-05-31",
+        income_type: "fixa",
+        amount: 1800,
+        currency: "BRL",
+        expected_date: "2026-05-31",
       status: "previsto",
       receiving_bank: null,
       notes: null,
@@ -429,6 +451,34 @@ describe("receivable income actions", () => {
         },
       }),
     ]);
+  });
+
+  it("converts received income to the bank currency before recording the movement", async () => {
+    const { createReceivableIncome } = await import("@/app/protected/contas-a-receber/actions");
+    mockState.bankLookup = {
+      id: "bank-1",
+      organization_id: "org-1",
+      family_member_id: "member-1",
+      currency: "EUR",
+    };
+
+    const result = await createReceivableIncome({}, createFormData({
+      receiver_member_id: "member-1",
+      source: "Freelance",
+      category: "Renda extra",
+      income_type: "variavel",
+      amount: "300",
+      expected_date: "2026-06-10",
+      status: "recebido",
+      receiving_bank: "Banco A",
+      currency: "BRL",
+    }));
+
+    expect(result).toEqual({ success: "Conta a receber cadastrada com sucesso." });
+    expect(lastUpdatePayload()).toEqual(expect.objectContaining({
+      movement_amount: 50,
+      movement_currency: "EUR",
+    }));
   });
 
   it("does not create receivable income when the create rate limit blocks the action", async () => {

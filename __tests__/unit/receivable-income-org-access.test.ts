@@ -86,6 +86,9 @@ vi.mock("@/lib/finance/access-control", () => ({
     if (mockState.accessError) throw mockState.accessError;
   }),
 }));
+vi.mock("@/lib/finance/exchange-rates", () => ({
+  convertCurrencyAmount: vi.fn(async (amount: number) => amount),
+}));
 
 describe("receivable income organization access actions", () => {
   beforeEach(() => {
