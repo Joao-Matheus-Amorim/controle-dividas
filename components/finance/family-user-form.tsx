@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import { createFamilyUser } from "@/app/protected/admin/actions";
 import { AppActionFeedback } from "@/components/app/app-action-feedback";
+import { AdminInvitationLinkFeedback } from "@/components/admin/users/admin-invitation-link-feedback";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -77,6 +78,7 @@ export function FamilyUserForm({ members, memberCreateHref }: { members: DbFamil
       </div>
 
       <AppActionFeedback error={state.error} success={state.success} />
+      <AdminInvitationLinkFeedback invitationUrl={state.invitationUrl} />
 
       <Button type="submit" disabled={isPending || !hasMembers}>
         {isPending ? "Enviando convite..." : "Enviar convite familiar"}

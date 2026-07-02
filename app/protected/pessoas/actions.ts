@@ -467,7 +467,7 @@ export async function deleteFamilyMember(
 
   if (error) {
     if (error.code === "23503" || error.message.toLowerCase().includes("vinculos")) {
-      return { error: "Esta pessoa possui vinculos financeiros ou acesso criado. Desative a pessoa em vez de excluir." };
+      return { error: "Esta pessoa possui vinculos financeiros ou login ativo. Desative a pessoa em vez de excluir." };
     }
 
     return { error: error.message };

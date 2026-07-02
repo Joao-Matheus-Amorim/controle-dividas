@@ -2,6 +2,7 @@
 
 import {
   deleteFamilyUser,
+  resendFamilyUserInvitation,
   syncFamilyUserAuthLink,
   toggleFamilyUserStatus,
   updateFamilyUser,
@@ -27,6 +28,13 @@ export async function deleteFamilyUserWithState(
   formData: FormData,
 ): Promise<FamilyUserActionState> {
   return deleteFamilyUser(formData);
+}
+
+export async function resendFamilyUserInvitationWithState(
+  _prevState: FamilyUserActionState,
+  formData: FormData,
+): Promise<FamilyUserActionState> {
+  return resendFamilyUserInvitation(formData);
 }
 
 export async function toggleFamilyUserStatusWithState(

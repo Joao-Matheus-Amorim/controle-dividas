@@ -2,7 +2,7 @@
 
 import { createHash, randomBytes } from "node:crypto";
 
-import { sendAdminInvitationEmail } from "@/lib/admin-invitations/delivery";
+import { buildAdminInvitationUrl, sendAdminInvitationEmail } from "@/lib/admin-invitations/delivery";
 import { recordAuditEvent } from "@/lib/audit/events";
 import { ensureAdminProfile } from "@/lib/finance/admin-server";
 import type { PermissionFormState, ProfileFormState } from "@/lib/finance/admin-types";
@@ -22,6 +22,7 @@ import { createClient } from "@/lib/supabase/server";
 export type FamilyUserActionState = {
   error?: string;
   success?: string;
+  invitationUrl?: string;
 };
 
 const adminPermissionUpdateRateLimit = {
@@ -59,6 +60,11 @@ const adminUserRateLimits = {
   },
   status: {
     operationKey: "admin.user.status.update",
+    limit: 5,
+    windowMs: 10 * 60 * 1000,
+  },
+  invitationResend: {
+    operationKey: "admin.user.invitation.resend",
     limit: 5,
     windowMs: 10 * 60 * 1000,
   },
@@ -146,7 +152,8 @@ async function recordAdminUserAuditEvent({
     | "admin.user.activate"
     | "admin.user.deactivate"
     | "admin.user.delete"
-    | "admin.user.auth_link.sync";
+    | "admin.user.auth_link.sync"
+    | "admin.user.invitation.resend";
   profileId: string;
   targetType?: "profile" | "family_member";
   outcome?: "success" | "denied";
@@ -413,6 +420,7 @@ async function createFamilyAccessInvitation({
 
   return {
     invitationId,
+    invitationUrl: buildAdminInvitationUrl(credential.rawToken),
     deliveryStatus: delivery.delivered ? "sent" : delivery.reason,
   };
 }
@@ -483,6 +491,8 @@ export async function createFamilyUser(
 
     if (error) return { error: error.message };
 
+    let invitationUrl: string | undefined;
+
     if (profile?.id) {
       const permissionRows = FINANCE_MODULES.map((module) => {
         const defaults = getDefaultPermissionForAccessModel(accessModel, module.key as FinanceModuleKey);
@@ -515,6 +525,7 @@ export async function createFamilyUser(
         invitedEmail: email,
         role: role === "admin" ? "admin" : "member",
       });
+      invitationUrl = invitation.invitationUrl;
 
       await recordAdminUserAuditEvent({
         organizationId: organization.id,
@@ -535,7 +546,10 @@ export async function createFamilyUser(
       organization.slug,
     );
 
-    return { success: "Acesso familiar cadastrado e convite enviado/preparado com sucesso." };
+    return {
+      success: "Acesso familiar cadastrado e convite enviado/preparado com sucesso.",
+      invitationUrl,
+    };
   } catch (error) {
     return {
       error:
@@ -544,6 +558,127 @@ export async function createFamilyUser(
           : "Nao foi possivel cadastrar este acesso.",
     };
   }
+}
+
+export async function resendFamilyUserInvitation(formData: FormData): Promise<FamilyUserActionState> {
+  const id = String(formData.get("id") ?? "").trim();
+
+  if (!id) return { error: "Acesso familiar nao encontrado." };
+
+  const supabase = await createClient();
+  const adminProfile = await ensureAdminProfile();
+  const { organization, membership } = await requireOrganizationAdmin();
+
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("id, email, role, auth_user_id")
+    .eq("id", id)
+    .eq("organization_id", organization.id)
+    .maybeSingle();
+
+  if (profileError) return { error: profileError.message };
+  if (!profile?.id) return { error: "Acesso familiar nao encontrado." };
+  if (profile.auth_user_id) return { error: "Este acesso ja possui login ativo." };
+
+  const invitedEmail = String(profile.email ?? "").trim().toLowerCase();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(invitedEmail)) {
+    return { error: "Este acesso familiar nao possui email valido para convite." };
+  }
+
+  const rateLimit = checkSensitiveOperationRateLimit({
+    ...adminUserRateLimits.invitationResend,
+    actorKey: adminProfile.id,
+    organizationId: organization.id,
+    targetKey: id,
+  });
+
+  if (!rateLimit.allowed) {
+    await recordAdminUserAuditEvent({
+      organizationId: organization.id,
+      action: "admin.user.invitation.resend",
+      profileId: id,
+      outcome: "denied",
+      metadata: {
+        status: "rate_limited",
+      },
+    });
+
+    return { error: "Muitas tentativas de reenvio de convite. Tente novamente em alguns minutos." };
+  }
+
+  const credential = createInvitationCredential();
+  const expiresAt = invitationExpiresAt();
+  const inviteRole = profile.role === "admin" ? "admin" : "member";
+
+  const { data: existingInvitation, error: invitationLookupError } = await supabase
+    .from("organization_invitations")
+    .select("id")
+    .eq("organization_id", organization.id)
+    .eq("invited_email_normalized", invitedEmail)
+    .eq("status", "pending")
+    .maybeSingle();
+
+  if (invitationLookupError) return { error: invitationLookupError.message };
+
+  const invitationMutation = existingInvitation?.id
+    ? supabase
+      .from("organization_invitations")
+      .update({
+        token_hash: credential.tokenHash,
+        expires_at: expiresAt,
+        role: inviteRole,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", existingInvitation.id)
+      .eq("organization_id", organization.id)
+      .eq("status", "pending")
+      .select("id")
+      .maybeSingle()
+    : supabase
+      .from("organization_invitations")
+      .insert({
+        organization_id: organization.id,
+        invited_email_normalized: invitedEmail,
+        invited_by_auth_user_id: membership.auth_user_id,
+        role: inviteRole,
+        status: "pending",
+        token_hash: credential.tokenHash,
+        expires_at: expiresAt,
+      })
+      .select("id")
+      .single();
+
+  const { data: invitation, error: invitationError } = await invitationMutation;
+  if (invitationError) return { error: invitationError.message };
+  if (!invitation?.id) return { error: "O status deste convite mudou. Atualize a pagina e tente novamente." };
+
+  const invitationId = String(invitation.id);
+  const invitationUrl = buildAdminInvitationUrl(credential.rawToken);
+  const delivery = await sendAdminInvitationEmail({
+    invitationId,
+    invitedEmail,
+    organizationSlug: organization.slug,
+    role: inviteRole,
+    rawToken: credential.rawToken,
+    expiresAt,
+  });
+
+  await recordAdminUserAuditEvent({
+    organizationId: organization.id,
+    action: "admin.user.invitation.resend",
+    profileId: id,
+    metadata: {
+      invitation_id: invitationId,
+      invitation_delivery_status: delivery.delivered ? "sent" : delivery.reason,
+    },
+  });
+
+  revalidateOrganizationPaths(["/protected/admin", "/protected/admin/usuarios"], organization.slug);
+
+  return {
+    success: delivery.delivered ? "Convite reenviado com sucesso." : "Convite preparado. Copie o link e envie para a pessoa.",
+    invitationUrl,
+  };
 }
 
 export async function updateFamilyUser(formData: FormData): Promise<FamilyUserActionState> {
