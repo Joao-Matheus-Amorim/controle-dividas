@@ -170,12 +170,12 @@ describe("finance beta UX contract guards", () => {
     expect(payableForm).toContain("required={!isCustomCategory}");
 
     expect(receivableForm).toContain("sources?: DbReceivableIncomeSource[]");
-    expect(receivableForm).toContain("sourceNames = sources.map");
-    expect(receivableForm).toContain("customIncomeSourceValue");
-    expect(receivableForm).toContain('name={isCustomSource ? "source_preset" : "source"}');
+    expect(receivableForm).not.toContain("sourceNames = sources.map");
+    expect(receivableForm).not.toContain("customIncomeSourceValue");
     expect(receivableForm).toContain('name="source"');
-    expect(receivableForm).toContain("Digite a origem");
-    expect(receivableForm).toContain("required={!isCustomSource}");
+    expect(receivableForm).toContain('name="category"');
+    expect(receivableForm).toContain("Origem (opcional)");
+    expect(receivableForm).toContain("Categoria (opcional)");
   });
 
   it("keeps receivable incomes tracking who or where the payment comes from", () => {

@@ -5,7 +5,7 @@ import { requireOrganizationAccess } from "@/lib/organizations/server";
 import { createClient } from "@/lib/supabase/server";
 
 const receivableIncomeSelectFields =
-  "id, owner_id, receiver_member_id, source, income_type, amount, expected_date, status, receiving_bank, notes, created_at, family_members(id, name)";
+  "id, owner_id, receiver_member_id, source, category, income_type, amount, expected_date, status, receiving_bank, notes, created_at, family_members(id, name)";
 
 type RawReceivableIncome = Omit<DbReceivableIncome, "family_members"> & {
   family_members: MaybeArray<Pick<DbFamilyMember, "id" | "name">>;

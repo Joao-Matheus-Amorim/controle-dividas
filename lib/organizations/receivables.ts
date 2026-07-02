@@ -109,7 +109,7 @@ export async function getOrganizationReceivableIncomes(orgSlug?: string) {
   const { data, error } = await supabase
     .from("receivable_incomes")
     .select(
-      "id, owner_id, receiver_member_id, source, payment_origin, income_type, amount, currency, expected_date, status, receiving_bank, notes, created_at",
+      "id, owner_id, receiver_member_id, source, category, payment_origin, income_type, amount, currency, expected_date, status, receiving_bank, notes, created_at",
     )
     .eq("organization_id", organization.id)
     .in("receiver_member_id", accessibleMemberIds)

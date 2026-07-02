@@ -24,7 +24,8 @@ type BankAccountSummary = {
 };
 type IncomeSummary = {
   id: string;
-  source: string;
+  source: string | null;
+  category?: string | null;
   income_type: "fixa" | "variavel";
   amount: number;
   currency: string;
@@ -160,7 +161,7 @@ export function DashboardIncomeSummary({ canReceivables, incomes }: { canReceiva
                 {income.income_type === "fixa" ? <CreditCard className="h-5 w-5" /> : <TrendingUp className="h-5 w-5" />}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-foreground">{income.source}</p>
+                <p className="truncate text-sm font-semibold text-foreground">{income.source || income.category || "Entrada sem origem"}</p>
                 <p className="mt-0.5 truncate text-xs text-muted-foreground">{income.family_members?.name || "Sem pessoa"} · {income.income_type}</p>
               </div>
               <p className="shrink-0 text-sm font-bold text-ff-success">{compactCurrencyForCode(Number(income.amount), income.currency)}</p>

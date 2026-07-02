@@ -31,6 +31,7 @@ function createBill(overrides: Partial<DbPayableBill>): DbPayableBill {
     responsible_member_id: "member-1",
     status: "pendente",
     bill_type: "avulsa",
+    payment_form: null,
     bank_used: null,
     recurrence: null,
     notes: null,

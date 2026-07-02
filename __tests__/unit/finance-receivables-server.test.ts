@@ -71,7 +71,7 @@ describe("finance receivables server", () => {
     ]);
     expect(calls.from).toHaveBeenCalledWith("receivable_incomes");
     expect(calls.select).toHaveBeenCalledWith(
-      "id, owner_id, receiver_member_id, source, income_type, amount, expected_date, status, receiving_bank, notes, created_at, family_members(id, name)",
+      "id, owner_id, receiver_member_id, source, category, income_type, amount, expected_date, status, receiving_bank, notes, created_at, family_members(id, name)",
     );
     expect(calls.eq).toHaveBeenCalledWith("owner_id", ownerId);
     expect(calls.organizationEq).toHaveBeenCalledWith("organization_id", organizationId);

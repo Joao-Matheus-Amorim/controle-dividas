@@ -31,6 +31,7 @@ function createIncome(overrides: Partial<DbReceivableIncome>): DbReceivableIncom
     currency: "BRL",
     expected_date: "2999-01-01",
     status: "previsto",
+    payment_form: null,
     receiving_bank: null,
     notes: null,
     created_at: "2026-05-01T00:00:00.000Z",

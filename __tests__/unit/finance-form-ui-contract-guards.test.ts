@@ -123,6 +123,7 @@ describe("finance form UI contract guards", () => {
     expect(source).toContain('name="responsible_member_id"');
     expect(source).toContain('name="status"');
     expect(source).toContain('name="bank_used"');
+    expect(source).toContain('name="payment_form"');
     expect(source).toContain('name="recurrence"');
     expect(source).toContain('name="recorded_timezone"');
     expect(source).toContain("captureRecordedTimezone");
@@ -138,22 +139,24 @@ describe("finance form UI contract guards", () => {
     expect(source).toContain('name="id"');
     expect(source).toContain('name="receiver_member_id"');
     expect(source).toContain('name="source"');
+    expect(source).toContain('name="category"');
     expect(source).toContain('name="income_type"');
     expect(source).toContain('name="amount"');
     expect(source).toContain('name="expected_date"');
     expect(source).toContain('name="status"');
     expect(source).toContain('name="receiving_bank"');
+    expect(source).toContain('name="payment_form"');
     expect(source).toContain('name="recorded_timezone"');
     expect(source).toContain("captureRecordedTimezone");
     expect(source).toContain('name="notes"');
     expect(source).toContain('<SelectItem value="previsto">');
     expect(source).toContain('<SelectItem value="recebido">');
     expect(source).toContain("sources?: DbReceivableIncomeSource[]");
-    expect(source).toContain("sourceNames = sources.map");
-    expect(source).toContain("sourceNames.map");
-    expect(source).toContain("customIncomeSourceValue");
+    expect(source).toContain("Origem (opcional)");
+    expect(source).toContain("Categoria (opcional)");
+    expect(source).not.toContain("customIncomeSourceValue");
     expect(normalized).toContain("variavel / pontual");
-    expect(source).toContain("legacyIncomeSourceLabels");
+    expect(source).not.toContain("legacyIncomeSourceLabels");
   });
 
   it("keeps bank account form create/edit fields and account type bridge", () => {
@@ -189,21 +192,21 @@ describe("finance form UI contract guards", () => {
     expect(payableForm).toContain("memberBankAccounts.map");
     expect(payableForm).toContain("keepsLegacyBankUsed");
     expect(payableForm).toContain('name="bank_used"');
-    expect(payableForm).toContain("Selecione um banco cadastrado");
+    expect(payableForm).toContain("Sem banco / dinheiro vivo");
     expect(payableForm).not.toContain('placeholder="Ex: Revolut, Wise"');
 
     expect(receivableForm).toContain("bankAccounts?: DbBankAccount[]");
     expect(receivableForm).toContain("memberBankAccounts.map");
     expect(receivableForm).toContain("keepsLegacyReceivingBank");
     expect(receivableForm).toContain('name="receiving_bank"');
-    expect(receivableForm).toContain("Selecione um banco cadastrado");
+    expect(receivableForm).toContain("Sem banco / dinheiro vivo");
     expect(receivableForm).not.toContain('placeholder="Ex: Revolut, Wise"');
 
     expect(expenseForm).toContain("bankAccounts?: DbBankAccount[]");
     expect(expenseForm).toContain("memberBankAccounts.map");
     expect(expenseForm).toContain("keepsLegacyBankOrCard");
     expect(expenseForm).toContain('name="bank_or_card"');
-    expect(expenseForm).toContain("Selecione um banco cadastrado");
+    expect(expenseForm).toContain("Sem banco / dinheiro vivo");
 
     expect(payableActions).toContain("assertBankNameBelongsToResponsibleMember");
     expect(payableActions).toContain(".limit(1)");
@@ -239,5 +242,16 @@ describe("finance form UI contract guards", () => {
     expect(settings).toContain("Use as categorias padrao sempre que possivel");
     expect(settings).not.toContain("ExpenseCategoryForm");
     expect(editDialog).toContain('submitLayout="sheet"');
+  });
+
+  it("uses AI draft category/source ids to preselect existing options in create forms", () => {
+    const payable = readSource("components/finance/payable-bill-form.tsx");
+    const receivable = readSource("components/finance/receivable-income-form.tsx");
+
+    expect(payable).toContain("draftData?.categoryId");
+    expect(payable).toContain("categories.find((category) => category.id === draftData.categoryId)?.name");
+    expect(receivable).toContain("draftData?.sourceId");
+    expect(receivable).toContain("sources.find((source) => source.id === draftData.sourceId)?.name");
+    expect(receivable).toContain('name="category"');
   });
 });
