@@ -65,3 +65,14 @@ export async function summarizeAmountsInCurrency(
     complete: convertedCount === amounts.length,
   };
 }
+
+export async function formatAmountsInCurrency(
+  amounts: MoneyAmount[],
+  targetCurrency: string,
+) {
+  const converted = await summarizeAmountsInCurrency(amounts, targetCurrency);
+
+  return converted.complete
+    ? compactCurrencyForCode(converted.total, targetCurrency)
+    : formatGroupedCurrencyTotals(amounts);
+}

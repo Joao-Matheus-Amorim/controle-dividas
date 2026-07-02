@@ -6,6 +6,7 @@ import { createExpense, updateExpense } from "@/app/protected/gastos/actions";
 import { AppActionFeedback } from "@/components/app/app-action-feedback";
 import { AssistedDraftReviewBoundary } from "@/components/finance/assisted-draft-review-boundary";
 import { Button } from "@/components/ui/button";
+import { CurrencyCodeInput } from "@/components/finance/currency-code-input";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FinanceDateField } from "@/components/finance/finance-date-field";
@@ -26,7 +27,6 @@ import {
 } from "@/components/finance/finance-form-ui";
 import { buildExpenseCategoryLabelMap } from "@/lib/finance/category-labels";
 import { buildExpenseDraftSuggestion } from "@/lib/finance/expense-draft";
-import { systemCurrencyOptions } from "@/lib/finance/bank-options";
 import type {
   DbBankAccount,
   DbExpense,
@@ -87,6 +87,9 @@ export function ExpenseForm({
   const [bankId, setBankId] = useState(
     (draftData?.bankId as string) ?? "",
   );
+  const [cashCurrency, setCashCurrency] = useState(
+    expense?.currency ?? (draftData?.currency as string) ?? "",
+  );
   const [notes, setNotes] = useState(
     expense?.notes ?? (draftData?.notes as string) ?? "",
   );
@@ -112,9 +115,10 @@ export function ExpenseForm({
   const selectedBankId = memberBankAccounts.some((account) => account.id === bankId)
     ? bankId
     : "";
-  const selectedExpenseCurrency = isEditing
-    ? String(expense?.currency ?? "EUR")
-    : (memberBankAccounts.find((account) => account.id === selectedBankId)?.currency ?? "EUR");
+  const selectedBankCurrency = memberBankAccounts.find((account) => account.id === selectedBankId)?.currency ?? "";
+  const selectedExpenseCurrency = paymentMethod === "conta"
+    ? selectedBankCurrency
+    : cashCurrency;
 
   function applyDraftSuggestion() {
     const suggestion = buildExpenseDraftSuggestion(
@@ -138,7 +142,6 @@ export function ExpenseForm({
   return (
     <form action={formAction} className={financeFormClass}>
       {expense ? <input type="hidden" name="id" value={expense.id} /> : null}
-      <input type="hidden" name="currency" value={selectedExpenseCurrency} />
 
       {!isEditing ? (
         <AssistedDraftReviewBoundary
@@ -195,8 +198,9 @@ export function ExpenseForm({
             value={categoryId}
             onChange={(event) => setCategoryId(event.target.value)}
             className={financeNativeSelectClass}
+            required
           >
-            <option value="">Sem categoria</option>
+            <option value="">Selecione uma categoria</option>
             {categories.map((category) => (
               <option key={category.id} value={category.id}>
                 {categoryLabels.get(category.id) ?? category.name}
@@ -237,18 +241,19 @@ export function ExpenseForm({
 
         <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `currency-preview-${expense?.id}` : "currency-preview"}>Moeda</Label>
-          <select
+          <CurrencyCodeInput
             id={isEditing ? `currency-preview-${expense?.id}` : "currency-preview"}
+            name="currency"
             value={selectedExpenseCurrency}
-            disabled
-            className={financeNativeSelectClass}
-          >
-            {systemCurrencyOptions.map((currencyOption) => (
-              <option key={currencyOption} value={currencyOption}>
-                {currencyOption}
-              </option>
-            ))}
-          </select>
+            onChange={(event) => setCashCurrency(event.target.value)}
+            readOnly={paymentMethod === "conta"}
+            className={financeInputClass}
+          />
+          {paymentMethod === "conta" ? (
+            <p className={financeHelperTextClass}>A moeda vem do banco selecionado.</p>
+          ) : (
+            <p className={financeHelperTextClass}>Informe a moeda do gasto em dinheiro.</p>
+          )}
         </div>
       </div>
 

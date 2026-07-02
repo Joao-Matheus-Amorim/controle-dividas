@@ -5,7 +5,7 @@ import {
   assertCanAccessMember,
   getCurrentProfile,
 } from "@/lib/finance/access-control";
-import { isSystemBankOption, isSystemCurrencyOption } from "@/lib/finance/bank-options";
+import { isSystemBankOption } from "@/lib/finance/bank-options";
 import type { PermissionAction } from "@/lib/finance/permissions";
 import type { BankAccountFormState } from "@/lib/finance/types";
 import { revalidateOrganizationPaths } from "@/lib/organizations/revalidation";
@@ -135,7 +135,7 @@ function parseBankAccountForm(formData: FormData) {
   const bankName = String(formData.get("bank_name") ?? "").trim();
   const accountType = String(formData.get("account_type") ?? "").trim();
   const currentBalance = Number(formData.get("current_balance") ?? 0);
-  const currency = String(formData.get("currency") ?? "EUR").trim() || "EUR";
+  const currency = String(formData.get("currency") ?? "").trim().toUpperCase();
   const notes = String(formData.get("notes") ?? "").trim();
 
   return {
@@ -151,7 +151,6 @@ function parseBankAccountForm(formData: FormData) {
 function validateBankAccountInput(
   input: ReturnType<typeof parseBankAccountForm>,
   existingBankName?: string | null,
-  existingCurrency?: string | null,
 ): BankAccountFormState | null {
   if (!input.familyMemberId) {
     return { error: "Selecione a pessoa vinculada ao banco." };
@@ -172,11 +171,8 @@ function validateBankAccountInput(
     return { error: "Informe um saldo valido." };
   }
 
-  const preservesExistingLegacyCurrency =
-    existingCurrency && input.currency === existingCurrency;
-
-  if (!isSystemCurrencyOption(input.currency) && !preservesExistingLegacyCurrency) {
-    return { error: "Selecione uma moeda da lista do sistema." };
+  if (!/^[A-Z]{3}$/.test(input.currency)) {
+    return { error: "Informe uma moeda valida para o banco." };
   }
 
   return null;
@@ -293,7 +289,6 @@ export async function updateBankAccount(
     const validationError = validateBankAccountInput(
       input,
       String(account.bank_name ?? ""),
-      String(account.currency ?? "EUR"),
     );
 
     if (validationError) {

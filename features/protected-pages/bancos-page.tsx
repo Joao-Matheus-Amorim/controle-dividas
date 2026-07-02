@@ -1,10 +1,10 @@
 import { BankCreateSection } from "@/components/banks/bank-create-section";
 import { BankHeroSummary } from "@/components/banks/bank-hero-summary";
 import { BankList } from "@/components/banks/bank-list";
-import { BankMemberBalances } from "@/components/banks/bank-member-balances";
 import { BankPageHeader } from "@/components/banks/bank-page-header";
 import { BankSummaryCards } from "@/components/banks/bank-summary-cards";
 import { getCurrentOrganizationProfile, getModulePermission } from "@/lib/finance/access-control";
+import { formatAmountsInCurrency } from "@/lib/finance/currency-summary";
 import { getAccessibleMemberOptions } from "@/lib/finance/member-options";
 import { getOrganizationBanksDashboardData } from "@/lib/organizations/banks";
 import { requireOrganizationAccess } from "@/lib/organizations/server";
@@ -29,27 +29,33 @@ export async function BancosPage({ orgSlug }: BancosPageProps = {}) {
   const createMembers = canCreate
     ? await getAccessibleMemberOptions("BANCOS", "can_create", orgSlug)
     : [];
-  const { members, accounts, accountsByMember, totalBalance, totalAccounts } = bankData;
+  const { members, accounts, totalAccounts } = bankData;
+  const displayCurrency = organizationContext.organization.display_currency;
+  const totalBalanceLabel = await formatAmountsInCurrency(
+    accounts.map((account) => ({
+      amount: Number(account.current_balance),
+      currency: account.currency,
+    })),
+    displayCurrency,
+  );
 
   return (
     <div className="app-container">
       <BankPageHeader />
 
       <BankHeroSummary
-        totalBalance={totalBalance}
+        totalBalanceLabel={totalBalanceLabel}
         totalAccounts={totalAccounts}
         memberCount={members.length}
       />
 
       <BankSummaryCards
-        totalBalance={totalBalance}
+        totalBalanceLabel={totalBalanceLabel}
         totalAccounts={totalAccounts}
         memberCount={members.length}
       />
 
       <BankCreateSection canCreate={canCreate} members={createMembers} orgSlug={orgSlug} />
-
-      <BankMemberBalances members={accountsByMember} />
 
       <BankList
         accounts={accounts}

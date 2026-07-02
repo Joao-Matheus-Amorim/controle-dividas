@@ -52,9 +52,6 @@ export function ReceivableListItem({
         <p className="mt-1 truncate text-xs text-ff-subtle-foreground">
           {income.family_members?.name || "Sem pessoa vinculada"}
         </p>
-        {income.payment_origin ? (
-          <p className="mt-0.5 truncate text-xs text-ff-subtle-foreground">Origem do pagamento: {income.payment_origin}</p>
-        ) : null}
         {reversedAtLabel ? (
           <p className="mt-0.5 truncate text-xs text-amber-100/70">
             Ultimo estorno: {reversedAtLabel}{reversedBankLabel}

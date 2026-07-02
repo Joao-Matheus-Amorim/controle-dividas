@@ -28,6 +28,7 @@ const mockState = vi.hoisted(() => ({
     owner_id: "owner-1",
     receiver_member_id: "member-1",
     source: "Salario",
+    category: "Trabalho",
     payment_origin: null,
     income_type: "fixa",
     amount: 1800,
@@ -59,6 +60,8 @@ const mockState = vi.hoisted(() => ({
 
 function createFormData(values: Record<string, string>) {
   const formData = new FormData();
+  formData.set("category", "Trabalho");
+  formData.set("currency", "BRL");
 
   Object.entries(values).forEach(([key, value]) => {
     formData.set(key, value);
@@ -290,6 +293,7 @@ describe("receivable income actions", () => {
       owner_id: "owner-1",
       receiver_member_id: "member-1",
       source: "Salario",
+      category: "Trabalho",
       payment_origin: null,
       income_type: "fixa",
       amount: 1800,
@@ -325,7 +329,7 @@ describe("receivable income actions", () => {
     const result = await createReceivableIncome({}, createFormData({
       receiver_member_id: "member-1",
       source: "Freelance",
-      payment_origin: "Cliente ACME",
+      category: "Renda extra",
       income_type: "variavel",
       amount: "1500",
       expected_date: "2026-06-10",
@@ -350,7 +354,8 @@ describe("receivable income actions", () => {
         organization_id: "org-1",
         receiver_member_id: "member-1",
         source: "Freelance",
-        payment_origin: "Cliente ACME",
+        category: "Renda extra",
+        payment_origin: null,
         income_type: "variavel",
         amount: 1500,
         expected_date: "2026-06-10",
@@ -377,7 +382,7 @@ describe("receivable income actions", () => {
     const result = await createReceivableIncome({}, createFormData({
       receiver_member_id: "member-1",
       source: "Freelance",
-      payment_origin: "Cliente ACME",
+      category: "Renda extra",
       income_type: "variavel",
       amount: "1500",
       expected_date: "2026-06-10",
@@ -433,7 +438,7 @@ describe("receivable income actions", () => {
     const result = await createReceivableIncome({}, createFormData({
       receiver_member_id: "member-1",
       source: "Freelance",
-      payment_origin: "Cliente XPTO",
+      category: "Renda extra",
       income_type: "variavel",
       amount: "1500",
       expected_date: "2026-06-10",
@@ -701,7 +706,7 @@ describe("receivable income actions", () => {
       id: "income-1",
       receiver_member_id: "member-1",
       source: "Freelance",
-      payment_origin: "Cliente XPTO",
+      category: "Renda extra",
       income_type: "variavel",
       amount: "2000",
       expected_date: "2026-06-30",
@@ -723,7 +728,8 @@ describe("receivable income actions", () => {
     expect(lastUpdatePayload()).toEqual(expect.objectContaining({
       receiver_member_id: "member-1",
       source: "Freelance",
-      payment_origin: "Cliente XPTO",
+      category: "Renda extra",
+      payment_origin: null,
       income_type: "variavel",
       amount: 2000,
       expected_date: "2026-06-30",

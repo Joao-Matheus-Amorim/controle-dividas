@@ -186,7 +186,7 @@ function parseExpenseForm(formData: FormData) {
   const description = String(formData.get("description") ?? "").trim();
   const purchaseLocation = String(formData.get("purchase_location") ?? "").trim();
   const amount = Number(formData.get("amount") ?? 0);
-  const currency = String(formData.get("currency") ?? "EUR").trim().toUpperCase() || "EUR";
+  const currency = String(formData.get("currency") ?? "").trim().toUpperCase();
   const paymentMethod = String(formData.get("payment_method") ?? "").trim();
   const bankOrCard = String(formData.get("bank_or_card") ?? "").trim();
   const bankId = String(formData.get("bank_id") ?? "");
@@ -216,6 +216,10 @@ function validateExpenseInput(
 
   if (!input.expenseDate) {
     return { error: "Informe a data do gasto." };
+  }
+
+  if (!input.categoryId) {
+    return { error: "Selecione a categoria do gasto." };
   }
 
   if (!input.description) {

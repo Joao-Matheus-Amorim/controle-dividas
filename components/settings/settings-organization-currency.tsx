@@ -5,10 +5,10 @@ import { useActionState } from "react";
 import { updateOrganizationDisplayCurrency } from "@/app/protected/configuracoes/actions";
 import { AppActionFeedback } from "@/components/app/app-action-feedback";
 import { AppCard, AppSectionTitle } from "@/components/app/app-card";
-import { financeFieldClass, financeFormClass, financeNativeSelectClass, financeSubmitBarClass, financeSubmitButtonClass } from "@/components/finance/finance-form-ui";
+import { CurrencyCodeInput } from "@/components/finance/currency-code-input";
+import { financeFieldClass, financeFormClass, financeInputClass, financeSubmitBarClass, financeSubmitButtonClass } from "@/components/finance/finance-form-ui";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { systemCurrencyOptions } from "@/lib/finance/bank-options";
 
 type SettingsOrganizationCurrencyProps = {
   currentCurrency: string;
@@ -35,19 +35,13 @@ export function SettingsOrganizationCurrency({
       <form action={formAction} className={financeFormClass}>
         <div className={financeFieldClass}>
           <Label htmlFor="display_currency">Moeda principal</Label>
-          <select
+          <CurrencyCodeInput
             id="display_currency"
             name="display_currency"
             defaultValue={currentCurrency}
             disabled={!canManageCurrency}
-            className={financeNativeSelectClass}
-          >
-            {systemCurrencyOptions.map((currency) => (
-              <option key={currency} value={currency}>
-                {currency}
-              </option>
-            ))}
-          </select>
+            className={financeInputClass}
+          />
         </div>
 
         <div className={financeSubmitBarClass}>

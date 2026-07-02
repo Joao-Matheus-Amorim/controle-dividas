@@ -4,7 +4,6 @@ import { redirect } from "next/navigation";
 
 import { recordAuditEvent } from "@/lib/audit/events";
 import { getCurrentProfile } from "@/lib/finance/access-control";
-import { isSystemCurrencyOption } from "@/lib/finance/bank-options";
 import {
   familyMemberLimitRateLimit,
   recordFamilyMemberLimitAuditEvent,
@@ -876,8 +875,8 @@ export async function updateOrganizationDisplayCurrency(
     .trim()
     .toUpperCase();
 
-  if (!isSystemCurrencyOption(displayCurrency)) {
-    return { error: "Selecione uma moeda valida da lista." };
+  if (!/^[A-Z]{3}$/.test(displayCurrency)) {
+    return { error: "Informe uma moeda valida com 3 letras, como EUR, BRL ou USD." };
   }
 
   const supabase = await createClient();

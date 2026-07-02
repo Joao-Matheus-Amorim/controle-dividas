@@ -15,7 +15,7 @@ interface BankListItemProps {
 
 export function BankListItem({ account, members, canEdit, canDelete }: BankListItemProps) {
   return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-border bg-background/50 p-3 md:flex-row md:items-center md:justify-between">
+    <div className="flex flex-col gap-3 rounded-2xl border border-border bg-ff-bg-soft p-3 md:flex-row md:items-center md:justify-between">
       <div className="flex min-w-0 flex-1 items-start gap-3">
         <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary"><Banknote className="h-5 w-5" /></div>
         <div className="min-w-0">

@@ -15,6 +15,7 @@ export type DraftField = {
   type: "text" | "currency" | "date" | "select" | "member" | "category" | "bank" | "boolean";
   required?: boolean;
   reason?: string;
+  currency?: string;
   options?: { value: string; label: string }[];
   onChange?: (value: string) => void;
 };
@@ -63,9 +64,14 @@ function FormatValue({ field }: { field: DraftField }) {
   if (field.type === "currency") {
     const num = Number(field.value);
     if (!Number.isFinite(num)) return <span>{String(field.value)}</span>;
+    const currency = String(field.currency ?? "").trim().toUpperCase();
+    if (!/^[A-Z]{3}$/.test(currency)) {
+      return <span>{num.toLocaleString("pt-BR")}</span>;
+    }
+
     return (
       <span>
-        {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "EUR" }).format(num)}
+        {new Intl.NumberFormat("pt-BR", { style: "currency", currency }).format(num)}
       </span>
     );
   }

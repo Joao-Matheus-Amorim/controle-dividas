@@ -28,11 +28,11 @@ describe("bank controlled options contract", () => {
     expect(options).toContain("Mercado Pago");
 
     expect(form).toContain("systemBankOptions.map");
-    expect(form).toContain("systemCurrencyOptions.map");
+    expect(form).toContain("CurrencyCodeInput");
     expect(form).toContain("legacyBankName");
     expect(form).toContain("legacyCurrency");
     expect(form).toContain("(cadastrado)");
-    expect(form).toContain("(cadastrada)");
+    expect(form).toContain("Moeda cadastrada:");
     expect(form).toContain("<select");
     expect(form).toContain('name="bank_name"');
     expect(form).toContain("Selecione um banco");
@@ -42,14 +42,12 @@ describe("bank controlled options contract", () => {
   it("validates controlled bank names on the server action boundary", () => {
     expect(actions).toContain("@/lib/finance/bank-options");
     expect(actions).toContain("isSystemBankOption(input.bankName)");
-    expect(actions).toContain("isSystemCurrencyOption(input.currency)");
+    expect(actions).toContain("/^[A-Z]{3}$/.test(input.currency)");
     expect(actions).toContain("existingBankName && input.bankName === existingBankName");
-    expect(actions).toContain("existingCurrency && input.currency === existingCurrency");
     expect(actions).toContain("validateBankAccountInput(");
     expect(actions).toContain("String(account.bank_name");
-    expect(actions).toContain("String(account.currency");
     expect(actions).toContain("Selecione um banco da lista do sistema.");
-    expect(actions).toContain("Selecione uma moeda da lista do sistema.");
+    expect(actions).toContain("Informe uma moeda valida para o banco.");
     expect(actions).toContain("bank_name: input.bankName");
   });
 

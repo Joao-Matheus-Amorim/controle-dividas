@@ -154,7 +154,9 @@ describe("finance form UI contract guards", () => {
     expect(source).toContain("sources?: DbReceivableIncomeSource[]");
     expect(source).toContain(">Origem</Label>");
     expect(source).toContain("required");
-    expect(source).toContain("Categoria (opcional)");
+    expect(source).toContain(">Categoria</Label>");
+    expect(source).toContain("Classifique a entrada para relatórios e filtros.");
+    expect(source).not.toContain('name="payment_origin"');
     expect(source).not.toContain("customIncomeSourceValue");
     expect(normalized).toContain("variavel / pontual");
     expect(source).not.toContain("legacyIncomeSourceLabels");

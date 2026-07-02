@@ -4,6 +4,7 @@ import { useActionState } from "react";
 
 import { createFamilyMember } from "@/app/protected/pessoas/actions";
 import { AppActionFeedback } from "@/components/app/app-action-feedback";
+import { CurrencyCodeInput } from "@/components/finance/currency-code-input";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,7 +20,7 @@ export function FamilyMemberForm() {
 
   return (
     <form action={formAction} className="space-y-4">
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-4">
         <div className="space-y-2">
           <Label htmlFor="name">Nome</Label>
           <Input id="name" name="name" placeholder="Ex: Responsavel financeiro" required />
@@ -29,7 +30,7 @@ export function FamilyMemberForm() {
           <Input id="role" name="role" placeholder="Ex: Responsavel" />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="monthly_limit">Limite mensal em euro</Label>
+          <Label htmlFor="monthly_limit">Limite mensal</Label>
           <Input
             id="monthly_limit"
             name="monthly_limit"
@@ -39,6 +40,10 @@ export function FamilyMemberForm() {
             placeholder="150.00"
             required
           />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="currency">Moeda do limite</Label>
+          <CurrencyCodeInput id="currency" name="currency" />
         </div>
       </div>
 
