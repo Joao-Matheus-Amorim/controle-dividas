@@ -174,7 +174,8 @@ describe("finance beta UX contract guards", () => {
     expect(receivableForm).not.toContain("customIncomeSourceValue");
     expect(receivableForm).toContain('name="source"');
     expect(receivableForm).toContain('name="category"');
-    expect(receivableForm).toContain("Origem (opcional)");
+    expect(receivableForm).toContain(">Origem</Label>");
+    expect(receivableForm).toContain("required");
     expect(receivableForm).toContain("Categoria (opcional)");
   });
 

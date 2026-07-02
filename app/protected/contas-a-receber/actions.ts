@@ -225,6 +225,10 @@ function validateReceivableIncomeInput(
     return { error: "Selecione a pessoa que ira receber." };
   }
 
+  if (!input.source) {
+    return { error: "Informe a origem do recebimento." };
+  }
+
   if (!receivableIncomeTypes.includes(input.incomeType as (typeof receivableIncomeTypes)[number])) {
     return { error: "Tipo de renda invalido." };
   }
@@ -337,7 +341,7 @@ export async function createReceivableIncome(
       owner_id: organization.owner_auth_user_id,
       organization_id: organization.id,
       receiver_member_id: input.receiverMemberId,
-      source: input.source || null,
+      source: input.source,
       category: input.category || null,
       payment_origin: input.paymentOrigin || null,
       income_type: input.incomeType,
@@ -568,7 +572,7 @@ export async function updateReceivableIncome(
       .from("receivable_incomes")
       .update({
         receiver_member_id: input.receiverMemberId,
-        source: input.source || null,
+      source: input.source,
         category: input.category || null,
         payment_origin: input.paymentOrigin || null,
         income_type: input.incomeType,
