@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { InstallPrompt } from "@/components/app/install-prompt";
+import { GlobalBackControl } from "@/components/app/global-back-control";
 import { ServiceWorkerRegister } from "@/components/app/service-worker-register";
 import { ToasterWrapper } from "@/components/app/toaster-wrapper";
 import "./globals.css";
@@ -59,6 +60,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
+          <GlobalBackControl />
           <ToasterWrapper />
           <ServiceWorkerRegister />
           <InstallPrompt />
