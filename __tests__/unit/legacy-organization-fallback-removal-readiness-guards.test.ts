@@ -78,7 +78,9 @@ describe("legacy organization fallback removal readiness", () => {
     expect(componentSource).toContain("canmanagecategories");
     expect(componentSource).toContain("canmanagecategories = false");
     expect(componentSource).toContain("canmanagecategories ? (");
-    expect(componentSource).toContain("<expensecategoryform");
+    expect(componentSource).not.toContain("<expensecategoryform");
+    expect(componentSource).toContain("expensecategoryeditdialog");
+    expect(componentSource).toContain("settingscategorydeleteform");
     expect(componentSource).toContain("!category.is_default && canmanagecategories");
   });
 

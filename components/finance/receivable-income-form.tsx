@@ -10,6 +10,7 @@ import { AssistedDraftReviewBoundary } from "@/components/finance/assisted-draft
 import { FinanceDateField } from "@/components/finance/finance-date-field";
 import {
   financeAutomaticMemberClass,
+  financeChoiceOptionClass,
   financeFieldClass,
   financeFormClass,
   financeGridThreeClass,
@@ -43,16 +44,8 @@ import type {
 
 const initialState: ReceivableIncomeFormState = {};
 
-const customIncomeSourceValue = "__custom_income_source__";
-
 type ReceivableIncomeStatus = "previsto" | "recebido" | "atrasado";
 type ReceivableIncomeType = "fixa" | "variavel";
-
-const legacyIncomeSourceLabels: Record<string, string> = {
-  Salario: "Salário",
-  Comissao: "Comissão",
-  "Empresa / servicos": "Freelance / serviços",
-};
 
 type FormSectionProps = {
   icon: typeof UserRound;
@@ -108,14 +101,14 @@ export function ReceivableIncomeForm({
   const isEditing = mode === "edit" && Boolean(income);
   const initialMemberId = income?.receiver_member_id ?? defaultMemberId ?? (draftData?.memberId as string) ?? "";
   const [selectedMemberId, setSelectedMemberId] = useState(initialMemberId);
-  const sourceNames = sources.map((source) => source.name);
   const automaticMember = !isEditing && defaultMemberId
     ? members.find((member) => member.id === defaultMemberId) ?? null
     : null;
-  const selectedSource = income?.source ?? "";
-  const [sourceValue, setSourceValue] = useState(
-    selectedSource && !sourceNames.includes(selectedSource) ? customIncomeSourceValue : selectedSource,
-  );
+  const draftSource = typeof draftData?.sourceId === "string"
+    ? sources.find((source) => source.id === draftData.sourceId)?.name ?? ""
+    : "";
+  const [source, setSource] = useState(income?.source ?? (draftSource || (draftData?.source as string) || ""));
+  const [category, setCategory] = useState(income?.category ?? (draftData?.category as string) ?? "");
   const [incomeType, setIncomeType] = useState<ReceivableIncomeType>(
     income?.income_type ?? ((draftData?.incomeType as ReceivableIncomeType) ?? "fixa"),
   );
@@ -132,9 +125,11 @@ export function ReceivableIncomeForm({
   const [status, setStatus] = useState<ReceivableIncomeStatus>(
     (income?.status ?? (draftData?.status as ReceivableIncomeStatus)) ?? "previsto",
   );
+  const [paymentForm, setPaymentForm] = useState(
+    income?.payment_form ?? "dinheiro",
+  );
   const [receivingBank, setReceivingBank] = useState(income?.receiving_bank ?? "");
   const [notes, setNotes] = useState(income?.notes ?? (draftData?.notes as string) ?? "");
-  const isCustomSource = sourceValue === customIncomeSourceValue;
   const memberBankAccounts = bankAccounts.filter(
     (account) => account.family_member_id === selectedMemberId,
   );
@@ -168,7 +163,7 @@ export function ReceivableIncomeForm({
       today,
     );
 
-    setSourceValue(suggestion.source);
+    setSource(suggestion.source);
     setIncomeType(suggestion.incomeType);
     setPaymentOrigin(suggestion.paymentOrigin);
     setAmount(suggestion.amount);
@@ -246,42 +241,32 @@ export function ReceivableIncomeForm({
       >
         <div className={financeGridThreeClass}>
           <div className={financeFieldClass}>
-            <Label htmlFor={isEditing ? `source-${income?.id}` : "source"}>Entrada de dinheiro</Label>
-            <select
+            <Label htmlFor={isEditing ? `source-${income?.id}` : "source"}>Origem (opcional)</Label>
+            <Input
               id={isEditing ? `source-${income?.id}` : "source"}
-              name={isCustomSource ? "source_preset" : "source"}
-              value={sourceValue}
-              onChange={(event) => setSourceValue(event.target.value)}
-              required={!isCustomSource}
-              className={financeNativeSelectClass}
-            >
-              <option value="">Selecione a origem</option>
-              {isCustomSource ? (
-                <option value={customIncomeSourceValue}>{selectedSource}</option>
-              ) : null}
-              {sourceNames.map((source) => (
-                <option key={source} value={source}>
-                  {legacyIncomeSourceLabels[source] ?? source}
-                </option>
-              ))}
-            </select>
-            {isCustomSource ? (
-              <>
-                <Label className="sr-only" htmlFor={isEditing ? `source-custom-${income?.id}` : "source-custom"}>
-                  Nova origem
-                </Label>
-                <Input
-                  id={isEditing ? `source-custom-${income?.id}` : "source-custom"}
-                  name="source"
-                  placeholder="Digite a origem"
-                  defaultValue={selectedSource && !sourceNames.includes(selectedSource) ? selectedSource : ""}
-                  required
-                  className={financeInputClass}
-                />
-              </>
-            ) : null}
+              name="source"
+              placeholder="Ex: comissão, venda, aluguel, reembolso"
+              value={source}
+              onChange={(event) => setSource(event.target.value)}
+              className={financeInputClass}
+            />
             <p className={financeHelperTextClass}>
-              Ex: salário, comissão, venda, aluguel recebido ou reembolso.
+              Use um texto livre para identificar o tipo de entrada, quando fizer sentido.
+            </p>
+          </div>
+
+          <div className={financeFieldClass}>
+            <Label htmlFor={isEditing ? `category-${income?.id}` : "category"}>Categoria (opcional)</Label>
+            <Input
+              id={isEditing ? `category-${income?.id}` : "category"}
+              name="category"
+              placeholder="Ex: Trabalho, vendas, renda extra"
+              value={category}
+              onChange={(event) => setCategory(event.target.value)}
+              className={financeInputClass}
+            />
+            <p className={financeHelperTextClass}>
+              Categoria separada apenas para contas a receber.
             </p>
           </div>
 
@@ -362,6 +347,36 @@ export function ReceivableIncomeForm({
         title="Previsão"
         description="Informe quando o dinheiro deve entrar e acompanhe o status do recebimento."
       >
+        <div className="mb-4 grid gap-2 md:grid-cols-2">
+          <label className={financeChoiceOptionClass}>
+            <input
+              type="radio"
+              name="payment_form"
+              value="dinheiro"
+              checked={paymentForm === "dinheiro"}
+              onChange={() => {
+                setPaymentForm("dinheiro");
+                setReceivingBank("");
+              }}
+              className="sr-only"
+            />
+            <span className="text-sm font-semibold text-foreground">Dinheiro</span>
+            <span className="mt-1 block text-xs leading-5 text-ff-subtle-foreground">Recebimento em dinheiro vivo, sem movimentacao bancaria.</span>
+          </label>
+          <label className={financeChoiceOptionClass}>
+            <input
+              type="radio"
+              name="payment_form"
+              value="conta"
+              checked={paymentForm === "conta"}
+              onChange={() => setPaymentForm("conta")}
+              className="sr-only"
+            />
+            <span className="text-sm font-semibold text-foreground">Conta / cartao</span>
+            <span className="mt-1 block text-xs leading-5 text-ff-subtle-foreground">Recebimento via conta bancaria. Exige selecao de banco.</span>
+          </label>
+        </div>
+
         <div className={financeGridThreeClass}>
           <div className={financeFieldClass}>
             <FinanceDateField
@@ -390,7 +405,9 @@ export function ReceivableIncomeForm({
           </div>
 
           <div className={financeFieldClass}>
-            <Label htmlFor={isEditing ? `receiving_bank-${income?.id}` : "receiving_bank"}>Banco de recebimento</Label>
+            <Label htmlFor={isEditing ? `receiving_bank-${income?.id}` : "receiving_bank"}>
+              {paymentForm === "conta" ? "Banco de recebimento (obrigatorio)" : "Banco de recebimento (opcional)"}
+            </Label>
             <div className="relative">
               <Landmark className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ff-subtle-foreground" aria-hidden="true" />
               <select
@@ -405,9 +422,14 @@ export function ReceivableIncomeForm({
                     setCurrency(matchedAccount.currency);
                   }
                 }}
+                required={paymentForm === "conta"}
                 className={`${financeNativeSelectClass} pl-10`}
               >
-                <option value="">Selecione um banco cadastrado</option>
+                {paymentForm === "conta" ? (
+                  <option value="">Selecione um banco</option>
+                ) : (
+                  <option value="">Sem banco / dinheiro vivo</option>
+                )}
                 {keepsLegacyReceivingBank ? (
                   <option value={selectedReceivingBank}>{selectedReceivingBank}</option>
                 ) : null}
@@ -418,9 +440,15 @@ export function ReceivableIncomeForm({
                 ))}
               </select>
             </div>
-            <p className={financeHelperTextClass}>
-              Use somente bancos cadastrados na aba Bancos para a pessoa recebedora.
-            </p>
+            {paymentForm === "conta" ? (
+              <p className={financeHelperTextClass}>
+                Selecione o banco de recebimento para gerar a movimentacao financeira automaticamente.
+              </p>
+            ) : (
+              <p className={financeHelperTextClass}>
+                Nao sera criada movimentacao financeira. Para receber em banco, selecione Conta / cartao como forma de pagamento.
+              </p>
+            )}
           </div>
         </div>
       </FormSection>

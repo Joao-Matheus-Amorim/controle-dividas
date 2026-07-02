@@ -230,6 +230,10 @@ function validateExpenseInput(
     return { error: "Informe uma moeda valida para o gasto." };
   }
 
+  if (input.paymentMethod === "conta" && !input.bankId) {
+    return { error: "Selecione o banco usado para pagamento via conta." };
+  }
+
   return null;
 }
 
@@ -259,10 +263,6 @@ export async function createExpense(
     );
     await assertCanAccessMember("GASTOS", "can_create", input.familyMemberId);
 
-    if (!input.bankId) {
-      return { error: "Selecione o banco usado no gasto." };
-    }
-
     const rateLimit = checkSensitiveOperationRateLimit({
       ...expenseCreateRateLimit,
       actorKey: profile.id,
@@ -285,20 +285,35 @@ export async function createExpense(
       return { error: "Muitas tentativas de cadastro de gasto. Tente novamente em alguns minutos." };
     }
 
-    const { data: createdExpenseId, error } = await supabase.rpc("create_expense_with_movement", {
-      target_organization_id: organization.id,
-      target_owner_id: organization.owner_auth_user_id,
-      target_family_member_id: input.familyMemberId,
-      target_category_id: input.categoryId || null,
-      target_expense_date: input.expenseDate,
-      target_description: input.description,
-      target_purchase_location: input.purchaseLocation,
-      target_amount: input.amount,
-      target_payment_method: input.paymentMethod,
-      target_bank_id: input.bankId,
-      target_notes: input.notes,
-      target_profile_id: profile.id,
-    });
+    const { data: createdExpenseId, error } = input.bankId
+      ? await supabase.rpc("create_expense_with_movement", {
+          target_organization_id: organization.id,
+          target_owner_id: organization.owner_auth_user_id,
+          target_family_member_id: input.familyMemberId,
+          target_category_id: input.categoryId || null,
+          target_expense_date: input.expenseDate,
+          target_description: input.description,
+          target_purchase_location: input.purchaseLocation,
+          target_amount: input.amount,
+          target_payment_method: input.paymentMethod,
+          target_bank_id: input.bankId,
+          target_notes: input.notes,
+          target_profile_id: profile.id,
+        })
+      : await supabase.from("expenses").insert({
+          owner_id: organization.owner_auth_user_id,
+          organization_id: organization.id,
+          family_member_id: input.familyMemberId,
+          category_id: input.categoryId || null,
+          expense_date: input.expenseDate,
+          description: input.description,
+          purchase_location: input.purchaseLocation || null,
+          amount: input.amount,
+          currency: input.currency,
+          payment_method: input.paymentMethod || null,
+          bank_or_card: null,
+          notes: input.notes || null,
+        }).select("id").single();
 
     if (error) {
       return { error: error.message };
@@ -307,7 +322,7 @@ export async function createExpense(
     await recordExpenseAuditEvent({
       organizationId: organization.id,
       action: "finance.expense.create",
-      expenseId: createdExpenseId ? String(createdExpenseId) : null,
+      expenseId: createdExpenseId ? String(typeof createdExpenseId === "object" && "id" in createdExpenseId ? createdExpenseId.id : createdExpenseId) : null,
       metadata: {
         expense_created: true,
         family_member_id: input.familyMemberId,

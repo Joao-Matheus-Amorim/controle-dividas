@@ -11,11 +11,14 @@ import { Label } from "@/components/ui/label";
 import { FinanceDateField } from "@/components/finance/finance-date-field";
 import {
   financeAutomaticMemberClass,
+  financeChoiceGroupClass,
+  financeChoiceOptionClass,
   financeFieldClass,
   financeFormClass,
   financeGridFourClass,
   financeGridThreeClass,
   financeGridTwoClass,
+  financeHelperTextClass,
   financeInputClass,
   financeNativeSelectClass,
   financeSubmitBarClass,
@@ -79,7 +82,7 @@ export function ExpenseForm({
     expense?.purchase_location ?? (draftData?.purchaseLocation as string) ?? "",
   );
   const [paymentMethod, setPaymentMethod] = useState(
-    expense?.payment_method ?? (draftData?.paymentMethod as string) ?? "",
+    expense?.payment_method ?? (draftData?.paymentMethod as string) ?? "dinheiro",
   );
   const [bankId, setBankId] = useState(
     (draftData?.bankId as string) ?? "",
@@ -276,19 +279,47 @@ export function ExpenseForm({
         </div>
       </div>
 
-      <div className={financeGridThreeClass}>
-        <div className={financeFieldClass}>
-          <Label htmlFor={isEditing ? `payment_method-${expense?.id}` : "payment_method"}>Forma de pagamento</Label>
-          <Input
-            id={isEditing ? `payment_method-${expense?.id}` : "payment_method"}
-            name="payment_method"
-            placeholder="Cartao, dinheiro, transferencia"
-            value={paymentMethod}
-            onChange={(event) => setPaymentMethod(event.target.value)}
-            className={financeInputClass}
-          />
+      <div className={`${financeChoiceGroupClass} ${financeGridThreeClass}`}>
+        <div className="md:col-span-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ff-subtle-foreground">Forma de pagamento</p>
+          <div className="mt-3 grid gap-2 md:grid-cols-2">
+            <label className={financeChoiceOptionClass}>
+              <input
+                type="radio"
+                name="payment_method"
+                value="dinheiro"
+                checked={paymentMethod === "dinheiro"}
+                onChange={() => {
+                  setPaymentMethod("dinheiro");
+                  setBankId("");
+                }}
+                className="sr-only"
+              />
+              <span className="text-sm font-semibold text-foreground">Dinheiro</span>
+              <span className="mt-1 block text-xs leading-5 text-ff-subtle-foreground">Pagamento em dinheiro vivo, sem movimentacao bancaria.</span>
+            </label>
+            <label className={financeChoiceOptionClass}>
+              <input
+                type="radio"
+                name="payment_method"
+                value="conta"
+                checked={paymentMethod === "conta"}
+                onChange={() => setPaymentMethod("conta")}
+                className="sr-only"
+              />
+              <span className="text-sm font-semibold text-foreground">Conta / cartao</span>
+              <span className="mt-1 block text-xs leading-5 text-ff-subtle-foreground">Pagamento via conta bancaria ou cartao. Exige selecao de banco.</span>
+            </label>
+          </div>
+          {isEditing && paymentMethod !== "dinheiro" && paymentMethod !== "conta" && (
+            <p className="mt-2 text-xs text-ff-subtle-foreground">
+              Forma atual: <strong>{paymentMethod}</strong>. Selecione acima para alterar.
+            </p>
+          )}
         </div>
+      </div>
 
+      <div className={financeGridThreeClass}>
         {isEditing ? (
           <div className={financeFieldClass}>
             <Label htmlFor={`bank_or_card-${expense?.id}`}>Banco ou cartao</Label>
@@ -311,22 +342,37 @@ export function ExpenseForm({
           </div>
         ) : (
           <div className={financeFieldClass}>
-            <Label htmlFor="bank_id">Banco usado</Label>
+            <Label htmlFor="bank_id">
+              {paymentMethod === "conta" ? "Banco usado (obrigatorio)" : "Banco usado (opcional)"}
+            </Label>
             <select
               id="bank_id"
               name="bank_id"
               value={selectedBankId}
               onChange={(event) => setBankId(event.target.value)}
-              required
+              required={paymentMethod === "conta"}
               className={financeNativeSelectClass}
             >
-              <option value="">Selecione o banco</option>
+              {paymentMethod === "conta" ? (
+                <option value="">Selecione um banco</option>
+              ) : (
+                <option value="">Sem banco / dinheiro vivo</option>
+              )}
               {memberBankAccounts.map((account) => (
                 <option key={account.id} value={account.id}>
                   {account.bank_name} - {account.account_type ?? "Conta"}
                 </option>
               ))}
             </select>
+            {paymentMethod === "conta" ? (
+              <p className={financeHelperTextClass}>
+                Selecione o banco usado para gerar a movimentacao financeira automaticamente.
+              </p>
+            ) : (
+              <p className={financeHelperTextClass}>
+                Nao sera criada movimentacao financeira. Para registrar em banco, selecione Conta / cartao como forma de pagamento.
+              </p>
+            )}
           </div>
         )}
 

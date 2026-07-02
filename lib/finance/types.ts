@@ -65,6 +65,7 @@ export type DbPayableBill = {
   responsible_member_id: string | null;
   status: "pago" | "pendente" | "atrasado";
   bill_type: PayableBillType;
+  payment_form: string | null;
   bank_used: string | null;
   recurrence: string | null;
   notes: string | null;
@@ -77,13 +78,15 @@ export type DbReceivableIncome = {
   id: string;
   owner_id: string;
   receiver_member_id: string | null;
-  source: string;
+  source: string | null;
+  category?: string | null;
   payment_origin: string | null;
   income_type: "fixa" | "variavel";
   amount: number;
   currency: string;
   expected_date: string;
   status: "previsto" | "recebido" | "atrasado";
+  payment_form: string | null;
   receiving_bank: string | null;
   notes: string | null;
   created_at: string;

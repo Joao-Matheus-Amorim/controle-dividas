@@ -72,7 +72,7 @@ export function ExpenseCategoryForm({
         </div>
         <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `parent_category_id-${category?.id}` : "parent_category_id"}>
-            Categoria principal
+            Categoria principal (opcional)
           </Label>
           <select
             id={isEditing ? `parent_category_id-${category?.id}` : "parent_category_id"}
@@ -80,7 +80,7 @@ export function ExpenseCategoryForm({
             defaultValue={category?.parent_category_id ?? ""}
             className={financeInputClass}
           >
-            <option value="">Categoria principal</option>
+            <option value="">Criar como categoria principal</option>
             {parentCategoryOptions.map((option) => (
               <option key={option.id} value={option.id}>
                 {categoryLabels.get(option.id) ?? option.name}

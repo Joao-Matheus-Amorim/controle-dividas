@@ -222,6 +222,8 @@ function parsePayableBillForm(formData: FormData) {
     ? (rawBillType as PayableBillType)
     : "avulsa";
   const bankUsed = String(formData.get("bank_used") ?? "").trim();
+  const rawPaymentForm = String(formData.get("payment_form") ?? "");
+  const paymentForm = rawPaymentForm === "dinheiro" || rawPaymentForm === "conta" ? rawPaymentForm : "dinheiro";
   const recordedTimezone = String(formData.get("recorded_timezone") ?? "").trim() || null;
   const recurrence = billType === "fixa" ? "mensal" : "";
   const notes = String(formData.get("notes") ?? "").trim();
@@ -236,6 +238,7 @@ function parsePayableBillForm(formData: FormData) {
     status,
     billType,
     bankUsed,
+    paymentForm,
     recordedTimezone,
     recurrence,
     notes,
@@ -271,6 +274,10 @@ function validatePayableBillInput(input: ReturnType<typeof parsePayableBillForm>
     return { error: "Status invalido." };
   }
 
+  if (input.paymentForm === "conta" && !input.bankUsed) {
+    return { error: "Selecione o banco usado para pagamento via conta." };
+  }
+
   return null;
 }
 
@@ -286,6 +293,7 @@ function hasPayableBillWriteChanges(
     String(bill.due_date ?? "") !== input.dueDate ||
     String(bill.responsible_member_id ?? "") !== input.responsibleMemberId ||
     String(bill.bill_type ?? "avulsa") !== input.billType ||
+    String(bill.payment_form ?? "conta") !== input.paymentForm ||
     String(bill.bank_used ?? "").trim() !== input.bankUsed ||
     String(bill.recurrence ?? "").trim() !== input.recurrence ||
     String(bill.notes ?? "").trim() !== input.notes
@@ -328,12 +336,9 @@ export async function createPayableBill(
       input.responsibleMemberId,
     );
 
-    if (shouldCreatePaidMovement && !paidMovementBank?.id) {
-      throw new Error("Selecione um banco cadastrado para registrar o pagamento.");
-    }
-
     if (
       shouldCreatePaidMovement &&
+      paidMovementBank?.id &&
       String(paidMovementBank?.currency ?? "").trim().toUpperCase() !== input.currency
     ) {
       throw new Error("O banco do pagamento precisa usar a mesma moeda da conta.");
@@ -370,8 +375,9 @@ export async function createPayableBill(
       currency: input.currency,
       due_date: input.dueDate,
       responsible_member_id: input.responsibleMemberId,
-      status: shouldCreatePaidMovement ? "pendente" : input.status,
+      status: shouldCreatePaidMovement && paidMovementBank?.id ? "pendente" : input.status,
       bill_type: input.billType,
+      payment_form: input.paymentForm,
       bank_used: input.bankUsed || null,
       recurrence: input.recurrence || null,
       notes: input.notes || null,
@@ -496,12 +502,9 @@ export async function updatePayableBill(
       );
     }
 
-    if (transitionToPaid && !paidMovementBank?.id) {
-      throw new Error("Selecione um banco cadastrado para registrar o pagamento.");
-    }
-
     if (
       transitionToPaid &&
+      paidMovementBank?.id &&
       String(paidMovementBank?.currency ?? "").trim().toUpperCase() !== input.currency
     ) {
       throw new Error("O banco do pagamento precisa usar a mesma moeda da conta.");
@@ -616,8 +619,9 @@ export async function updatePayableBill(
           currency: input.currency,
           due_date: input.dueDate,
           responsible_member_id: input.responsibleMemberId,
-          status: transitionToPaid ? String(bill.status) : input.status,
+          status: transitionToPaid && paidMovementBank?.id ? String(bill.status) : input.status,
           bill_type: input.billType,
+          payment_form: input.paymentForm,
           bank_used: input.bankUsed || null,
           recurrence: input.recurrence || null,
           notes: input.notes || null,

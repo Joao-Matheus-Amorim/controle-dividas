@@ -101,7 +101,7 @@ async function assertCanManageReceivableIncome(
 
   const { data: income, error } = await supabase
     .from("receivable_incomes")
-    .select("id, owner_id, receiver_member_id, source, payment_origin, income_type, amount, currency, expected_date, status, receiving_bank, notes")
+    .select("id, owner_id, receiver_member_id, source, category, payment_origin, income_type, amount, currency, expected_date, status, receiving_bank, notes")
     .eq("id", incomeId)
     .eq("organization_id", organization.id)
     .maybeSingle();
@@ -185,33 +185,10 @@ async function assertBankNameBelongsToReceiverMember(
   return banks[0];
 }
 
-async function assertReceivableSourceBelongsToOrganization(
-  organizationId: string,
-  sourceName: string,
-) {
-  const supabase = await createClient();
-  const { data: source, error } = await supabase
-    .from("receivable_income_sources")
-    .select("id")
-    .eq("organization_id", organizationId)
-    .ilike("name", sourceName)
-    .limit(1)
-    .maybeSingle();
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  if (!source) {
-    throw new Error("Selecione uma origem cadastrada em Configuracoes.");
-  }
-
-  return source;
-}
-
 function parseReceivableIncomeForm(formData: FormData) {
   const receiverMemberId = String(formData.get("receiver_member_id") ?? "");
   const source = String(formData.get("source") ?? "").trim();
+  const category = String(formData.get("category") ?? "").trim();
   const paymentOrigin = String(formData.get("payment_origin") ?? "").trim();
   const incomeType = String(formData.get("income_type") ?? "fixa");
   const amount = Number(formData.get("amount") ?? 0);
@@ -219,12 +196,15 @@ function parseReceivableIncomeForm(formData: FormData) {
   const expectedDate = String(formData.get("expected_date") ?? "");
   const status = String(formData.get("status") ?? "previsto");
   const receivingBank = String(formData.get("receiving_bank") ?? "").trim();
+  const rawPaymentForm = String(formData.get("payment_form") ?? "");
+  const paymentForm = rawPaymentForm === "dinheiro" || rawPaymentForm === "conta" ? rawPaymentForm : "dinheiro";
   const recordedTimezone = String(formData.get("recorded_timezone") ?? "").trim() || null;
   const notes = String(formData.get("notes") ?? "").trim();
 
   return {
     receiverMemberId,
     source,
+    category,
     paymentOrigin,
     incomeType,
     amount,
@@ -232,6 +212,7 @@ function parseReceivableIncomeForm(formData: FormData) {
     expectedDate,
     status,
     receivingBank,
+    paymentForm,
     recordedTimezone,
     notes,
   };
@@ -242,10 +223,6 @@ function validateReceivableIncomeInput(
 ): ReceivableIncomeFormState | null {
   if (!input.receiverMemberId) {
     return { error: "Selecione a pessoa que ira receber." };
-  }
-
-  if (!input.source) {
-    return { error: "Informe a origem do dinheiro." };
   }
 
   if (!receivableIncomeTypes.includes(input.incomeType as (typeof receivableIncomeTypes)[number])) {
@@ -268,6 +245,10 @@ function validateReceivableIncomeInput(
     return { error: "Status invalido." };
   }
 
+  if (input.paymentForm === "conta" && !input.receivingBank) {
+    return { error: "Selecione o banco de recebimento para recebimento via conta." };
+  }
+
   return null;
 }
 
@@ -278,11 +259,13 @@ function hasReceivableIncomeWriteChanges(
   return (
     String(income.receiver_member_id ?? "") !== input.receiverMemberId ||
     String(income.source ?? "").trim() !== input.source ||
+    String(income.category ?? "").trim() !== input.category ||
     String(income.payment_origin ?? "").trim() !== input.paymentOrigin ||
     String(income.income_type ?? "fixa") !== input.incomeType ||
     Number(income.amount ?? 0) !== input.amount ||
     String(income.currency ?? "EUR") !== input.currency ||
     String(income.expected_date ?? "") !== input.expectedDate ||
+    String(income.payment_form ?? "conta") !== input.paymentForm ||
     String(income.receiving_bank ?? "").trim() !== input.receivingBank ||
     String(income.notes ?? "").trim() !== input.notes
   );
@@ -314,22 +297,15 @@ export async function createReceivableIncome(
     if (shouldCreateReceivedMovement) {
       await assertCanAccessMember("CONTAS_A_RECEBER", "can_edit", input.receiverMemberId);
     }
-    await assertReceivableSourceBelongsToOrganization(
-      organization.id,
-      input.source,
-    );
     receivedMovementBank = await assertBankNameBelongsToReceiverMember(
       organization.id,
       input.receivingBank,
       input.receiverMemberId,
     );
 
-    if (shouldCreateReceivedMovement && !receivedMovementBank?.id) {
-      throw new Error("Selecione um banco cadastrado para registrar o recebimento.");
-    }
-
     if (
       shouldCreateReceivedMovement &&
+      receivedMovementBank?.id &&
       String(receivedMovementBank?.currency ?? "").trim().toUpperCase() !== input.currency
     ) {
       throw new Error("O banco do recebimento precisa usar a mesma moeda da entrada.");
@@ -361,13 +337,15 @@ export async function createReceivableIncome(
       owner_id: organization.owner_auth_user_id,
       organization_id: organization.id,
       receiver_member_id: input.receiverMemberId,
-      source: input.source,
+      source: input.source || null,
+      category: input.category || null,
       payment_origin: input.paymentOrigin || null,
       income_type: input.incomeType,
       amount: input.amount,
       currency: input.currency,
       expected_date: input.expectedDate,
-      status: shouldCreateReceivedMovement ? "previsto" : input.status,
+      status: shouldCreateReceivedMovement && receivedMovementBank?.id ? "previsto" : input.status,
+      payment_form: input.paymentForm,
       receiving_bank: input.receivingBank || null,
       notes: input.notes || null,
     }).select("id").single();
@@ -462,13 +440,6 @@ export async function updateReceivableIncome(
       await assertCanAccessMember("CONTAS_A_RECEBER", "can_edit", input.receiverMemberId);
     }
 
-    if (String(income.source ?? "").trim() !== input.source) {
-      await assertReceivableSourceBelongsToOrganization(
-        organization.id,
-        input.source,
-      );
-    }
-
     const statusChanged = String(income.status) !== input.status;
     const transitionToReceived = String(income.status) !== "recebido" && input.status === "recebido";
     let receivedMovementBank: Record<string, unknown> | null = null;
@@ -486,12 +457,9 @@ export async function updateReceivableIncome(
       );
     }
 
-    if (transitionToReceived && !receivedMovementBank?.id) {
-      throw new Error("Selecione um banco cadastrado para registrar o recebimento.");
-    }
-
     if (
       transitionToReceived &&
+      receivedMovementBank?.id &&
       String(receivedMovementBank?.currency ?? "").trim().toUpperCase() !== input.currency
     ) {
       throw new Error("O banco do recebimento precisa usar a mesma moeda da entrada.");
@@ -600,13 +568,15 @@ export async function updateReceivableIncome(
       .from("receivable_incomes")
       .update({
         receiver_member_id: input.receiverMemberId,
-        source: input.source,
+        source: input.source || null,
+        category: input.category || null,
         payment_origin: input.paymentOrigin || null,
         income_type: input.incomeType,
         amount: input.amount,
         currency: input.currency,
         expected_date: input.expectedDate,
-        status: transitionToReceived ? String(income.status) : input.status,
+        status: transitionToReceived && receivedMovementBank?.id ? String(income.status) : input.status,
+        payment_form: input.paymentForm,
         receiving_bank: input.receivingBank || null,
         notes: input.notes || null,
         organization_id: organization.id,

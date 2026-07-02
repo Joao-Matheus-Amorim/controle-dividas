@@ -72,7 +72,10 @@ export function PayableBillForm({
   const initialMemberId = bill?.responsible_member_id ?? defaultMemberId ?? (draftData?.memberId as string) ?? "";
   const [selectedMemberId, setSelectedMemberId] = useState(initialMemberId);
   const categoryNames = categories.map((category) => category.name);
-  const selectedCategory = bill?.category ?? "";
+  const draftCategory = typeof draftData?.categoryId === "string"
+    ? categories.find((category) => category.id === draftData.categoryId)?.name ?? ""
+    : "";
+  const selectedCategory = bill?.category ?? draftCategory;
   const [categoryValue, setCategoryValue] = useState(
     selectedCategory && !categoryNames.includes(selectedCategory) ? customCategoryValue : selectedCategory,
   );
@@ -89,6 +92,9 @@ export function PayableBillForm({
   );
   const [billType, setBillType] = useState<PayableBillType>(
     bill?.bill_type ?? ((draftData?.billType as PayableBillType) ?? "avulsa"),
+  );
+  const [paymentForm, setPaymentForm] = useState(
+    bill?.payment_form ?? "dinheiro",
   );
   const [bankUsed, setBankUsed] = useState(bill?.bank_used ?? "");
   const [notes, setNotes] = useState(bill?.notes ?? (draftData?.notes as string) ?? "");
@@ -326,6 +332,39 @@ export function PayableBillForm({
         </div>
       </div>
 
+      <div className={financeChoiceGroupClass}>
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ff-subtle-foreground">Forma de pagamento</p>
+        <div className="mt-3 grid gap-2 md:grid-cols-2">
+          <label className={financeChoiceOptionClass}>
+            <input
+              type="radio"
+              name="payment_form"
+              value="dinheiro"
+              checked={paymentForm === "dinheiro"}
+              onChange={() => {
+                setPaymentForm("dinheiro");
+                setBankUsed("");
+              }}
+              className="sr-only"
+            />
+            <span className="text-sm font-semibold text-foreground">Dinheiro</span>
+            <span className="mt-1 block text-xs leading-5 text-ff-subtle-foreground">Pagamento em dinheiro vivo, sem movimentacao bancaria.</span>
+          </label>
+          <label className={financeChoiceOptionClass}>
+            <input
+              type="radio"
+              name="payment_form"
+              value="conta"
+              checked={paymentForm === "conta"}
+              onChange={() => setPaymentForm("conta")}
+              className="sr-only"
+            />
+            <span className="text-sm font-semibold text-foreground">Conta / cartao</span>
+            <span className="mt-1 block text-xs leading-5 text-ff-subtle-foreground">Pagamento via conta bancaria ou cartao. Exige selecao de banco.</span>
+          </label>
+        </div>
+      </div>
+
       <div className={financeGridFourClass}>
         <div className={financeFieldClass}>
           <Label htmlFor={isEditing ? `responsible_member_id-${bill?.id}` : "responsible_member_id"}>
@@ -384,7 +423,9 @@ export function PayableBillForm({
         </div>
 
         <div className={financeFieldClass}>
-          <Label htmlFor={isEditing ? `bank_used-${bill?.id}` : "bank_used"}>Banco utilizado</Label>
+          <Label htmlFor={isEditing ? `bank_used-${bill?.id}` : "bank_used"}>
+            {paymentForm === "conta" ? "Banco utilizado (obrigatorio)" : "Banco utilizado (opcional)"}
+          </Label>
           <select
             id={isEditing ? `bank_used-${bill?.id}` : "bank_used"}
             name="bank_used"
@@ -397,9 +438,14 @@ export function PayableBillForm({
                 setCurrency(matchedAccount.currency);
               }
             }}
+            required={paymentForm === "conta"}
             className={financeNativeSelectClass}
           >
-            <option value="">Selecione um banco cadastrado</option>
+            {paymentForm === "conta" ? (
+              <option value="">Selecione um banco</option>
+            ) : (
+              <option value="">Sem banco / dinheiro vivo</option>
+            )}
             {keepsLegacyBankUsed ? (
               <option value={selectedBankUsed}>{selectedBankUsed}</option>
             ) : null}
@@ -409,9 +455,15 @@ export function PayableBillForm({
               </option>
             ))}
           </select>
-          <p className={financeHelperTextClass}>
-            Use somente bancos cadastrados na aba Bancos para a pessoa responsavel.
-          </p>
+          {paymentForm === "conta" ? (
+            <p className={financeHelperTextClass}>
+              Selecione o banco usado para gerar a movimentacao financeira automaticamente.
+            </p>
+          ) : (
+            <p className={financeHelperTextClass}>
+              Nao sera criada movimentacao financeira. Para registrar em banco, selecione Conta / cartao como forma de pagamento.
+            </p>
+          )}
         </div>
 
         <div className={financeFieldClass}>
