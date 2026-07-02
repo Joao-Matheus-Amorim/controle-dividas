@@ -12,9 +12,10 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
 export function SignUpForm({
+  redirectTo,
   className,
   ...props
-}: React.ComponentPropsWithoutRef<"div">) {
+}: React.ComponentPropsWithoutRef<"div"> & { redirectTo?: string }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
@@ -34,7 +35,7 @@ export function SignUpForm({
     }
 
     try {
-      const authorization = await createInitialOrganizationAccess(email, password);
+      const authorization = await createInitialOrganizationAccess(email, password, redirectTo);
 
       if (!authorization.allowed) {
         setError(authorization.error || "Este email ainda não foi autorizado pelo Admin familiar.");
@@ -74,7 +75,7 @@ export function SignUpForm({
           Criar acesso
         </h1>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          Crie sua conta para iniciar uma organização financeira ou aceitar um acesso depois.
+          Crie sua conta para iniciar uma organização financeira ou aceitar um convite recebido.
         </p>
       </div>
 
@@ -159,7 +160,10 @@ export function SignUpForm({
 
         <p className="text-center text-sm text-muted-foreground">
           Já tem acesso?{" "}
-          <Link href="/auth/login" className="font-semibold text-foreground underline-offset-4 hover:underline">
+          <Link
+            href={redirectTo ? `/auth/login?next=${encodeURIComponent(redirectTo)}` : "/auth/login"}
+            className="font-semibold text-foreground underline-offset-4 hover:underline"
+          >
             Entrar
           </Link>
         </p>

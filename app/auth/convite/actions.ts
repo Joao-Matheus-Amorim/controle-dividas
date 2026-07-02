@@ -10,6 +10,7 @@ import { createClient } from "@/lib/supabase/server";
 export type AcceptAdminInvitationState = {
   error?: string;
   success?: string;
+  status?: "unauthenticated";
 };
 
 type AcceptInvitationRpcResult = {
@@ -40,7 +41,7 @@ function invitationTokenLookupKey(token: string) {
 function acceptErrorMessage(status: string | undefined) {
   switch (status) {
     case "unauthenticated":
-      return "Entre na sua conta para aceitar o convite.";
+      return "Crie sua conta ou entre na conta existente para aceitar este convite.";
     case "missing_token":
     case "not_found":
     case "expired":
@@ -97,7 +98,7 @@ export async function acceptAdminInvitation(
 
   const authUserId = await getCurrentAuthUserId();
   if (!authUserId) {
-    return { error: acceptErrorMessage("unauthenticated") };
+    return { error: acceptErrorMessage("unauthenticated"), status: "unauthenticated" };
   }
 
   const rateLimit = checkSensitiveOperationRateLimit({

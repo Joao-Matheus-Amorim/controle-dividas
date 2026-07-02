@@ -122,7 +122,7 @@ describe("auth signup submit rate limit runtime actions", () => {
         email: "maria@example.com",
         password: "secret-123",
         options: {
-          emailRedirectTo: "https://app.example.com/auth/confirm?next=/protected",
+          emailRedirectTo: "https://app.example.com/auth/confirm?next=%2Fprotected",
         },
       },
     ]);
@@ -190,7 +190,28 @@ describe("auth signup submit rate limit runtime actions", () => {
         email: "owner@example.com",
         password: "secret-123",
         options: {
-          emailRedirectTo: "https://app.example.com/auth/confirm?next=/protected",
+          emailRedirectTo: "https://app.example.com/auth/confirm?next=%2Fprotected",
+        },
+      },
+    ]);
+  });
+
+  it("preserves a safe invitation return path when creating an invited account", async () => {
+    const { createInitialOrganizationAccess } = await import("@/app/auth/sign-up/actions");
+
+    await expect(
+      createInitialOrganizationAccess("owner@example.com", "secret-123", "/auth/convite?token=raw-token"),
+    ).resolves.toEqual({
+      allowed: true,
+      next: "confirm_email",
+    });
+
+    expect(mockState.signUpCalls).toEqual([
+      {
+        email: "owner@example.com",
+        password: "secret-123",
+        options: {
+          emailRedirectTo: "https://app.example.com/auth/confirm?next=%2Fauth%2Fconvite%3Ftoken%3Draw-token",
         },
       },
     ]);
