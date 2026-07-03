@@ -179,6 +179,36 @@ async function assertBankNameBelongsToExpenseMember(
   return banks[0];
 }
 
+async function assertBankIdBelongsToExpenseMember(
+  organizationId: string,
+  bankId: string,
+  familyMemberId: string,
+) {
+  const supabase = await createClient();
+  const { data: bank, error } = await supabase
+    .from("banks")
+    .select("id, bank_name, account_type, currency")
+    .eq("id", bankId)
+    .eq("family_member_id", familyMemberId)
+    .eq("organization_id", organizationId)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (!bank) {
+    throw new Error("Selecione uma conta ou carteira cadastrada para a pessoa responsavel pelo gasto.");
+  }
+
+  return bank;
+}
+
+function isCashAccount(account: Record<string, unknown> | null) {
+  return String(account?.bank_name ?? "").trim().toLowerCase() === "dinheiro"
+    || String(account?.account_type ?? "").trim().toLowerCase() === "dinheiro";
+}
+
 function parseExpenseForm(formData: FormData) {
   const familyMemberId = String(formData.get("family_member_id") ?? "");
   const categoryId = String(formData.get("category_id") ?? "");
@@ -234,8 +264,8 @@ function validateExpenseInput(
     return { error: "Informe uma moeda valida para o gasto." };
   }
 
-  if (input.paymentMethod === "conta" && !input.bankId) {
-    return { error: "Selecione o banco usado para pagamento via conta." };
+  if (!input.bankId) {
+    return { error: "Selecione a conta ou carteira usada no gasto." };
   }
 
   return null;
@@ -266,6 +296,16 @@ export async function createExpense(
       input.categoryId,
     );
     await assertCanAccessMember("GASTOS", "can_create", input.familyMemberId);
+
+    const paymentAccount = await assertBankIdBelongsToExpenseMember(
+      organization.id,
+      input.bankId,
+      input.familyMemberId,
+    );
+
+    if (input.paymentMethod === "dinheiro" && !isCashAccount(paymentAccount)) {
+      throw new Error("Gasto em dinheiro deve usar uma carteira Dinheiro cadastrada para a pessoa responsavel.");
+    }
 
     const rateLimit = checkSensitiveOperationRateLimit({
       ...expenseCreateRateLimit,

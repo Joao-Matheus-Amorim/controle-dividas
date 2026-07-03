@@ -685,32 +685,6 @@ describe("receivable income actions", () => {
         actorKey: "profile-1",
         organizationId: "org-1",
         targetKey: "income-1",
-        consume: false,
-      },
-      {
-        operationKey: "finance.receivable.update",
-        limit: 10,
-        windowMs: 10 * 60 * 1000,
-        actorKey: "profile-1",
-        organizationId: "org-1",
-        targetKey: "income-1",
-        consume: false,
-      },
-      {
-        operationKey: "finance.receivable.status.update",
-        limit: 10,
-        windowMs: 10 * 60 * 1000,
-        actorKey: "profile-1",
-        organizationId: "org-1",
-        targetKey: "income-1",
-      },
-      {
-        operationKey: "finance.receivable.update",
-        limit: 10,
-        windowMs: 10 * 60 * 1000,
-        actorKey: "profile-1",
-        organizationId: "org-1",
-        targetKey: "income-1",
       },
     ]);
     expect(lastUpdatePayload()).toEqual(expect.objectContaining({
@@ -723,17 +697,6 @@ describe("receivable income actions", () => {
       },
     }));
     expect(mockState.auditEvents).toEqual([
-      expect.objectContaining({
-        p_organization_id: "org-1",
-        p_action: "finance.receivable.update",
-        p_target_type: "receivable_income",
-        p_target_id: "income-1",
-        p_outcome: "success",
-        p_metadata: {
-          receivable_changed: true,
-          receiver_member_id: "member-1",
-        },
-      }),
       expect.objectContaining({
         p_organization_id: "org-1",
         p_action: "finance.receivable.status.update",

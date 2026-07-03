@@ -168,7 +168,7 @@ async function assertBankNameBelongsToResponsibleMember(
   const supabase = await createClient();
   const { data: banks, error } = await supabase
     .from("banks")
-    .select("id, currency")
+    .select("id, bank_name, account_type, currency")
     .eq("bank_name", bankName)
     .eq("family_member_id", responsibleMemberId)
     .eq("organization_id", organizationId)
@@ -183,6 +183,11 @@ async function assertBankNameBelongsToResponsibleMember(
   }
 
   return banks[0];
+}
+
+function isCashAccount(account: Record<string, unknown> | null) {
+  return String(account?.bank_name ?? "").trim().toLowerCase() === "dinheiro"
+    || String(account?.account_type ?? "").trim().toLowerCase() === "dinheiro";
 }
 
 async function assertPayableCategoryBelongsToOrganization(
@@ -223,7 +228,11 @@ function parsePayableBillForm(formData: FormData) {
     : "avulsa";
   const bankUsed = String(formData.get("bank_used") ?? "").trim();
   const rawPaymentForm = String(formData.get("payment_form") ?? "");
-  const paymentForm = rawPaymentForm === "dinheiro" || rawPaymentForm === "conta" ? rawPaymentForm : "dinheiro";
+  const paymentForm = rawPaymentForm === "dinheiro" || rawPaymentForm === "conta"
+    ? rawPaymentForm
+    : bankUsed
+      ? "conta"
+      : "dinheiro";
   const recordedTimezone = String(formData.get("recorded_timezone") ?? "").trim() || null;
   const recurrence = billType === "fixa" ? "mensal" : "";
   const notes = String(formData.get("notes") ?? "").trim();
@@ -272,6 +281,10 @@ function validatePayableBillInput(input: ReturnType<typeof parsePayableBillForm>
 
   if (!payableBillStatuses.includes(input.status as (typeof payableBillStatuses)[number])) {
     return { error: "Status invalido." };
+  }
+
+  if (input.status === "pago" && !input.bankUsed) {
+    return { error: "Selecione a conta ou carteira usada no pagamento." };
   }
 
   if (input.paymentForm === "conta" && !input.bankUsed) {
@@ -335,6 +348,10 @@ export async function createPayableBill(
       input.bankUsed,
       input.responsibleMemberId,
     );
+
+    if (input.paymentForm === "dinheiro" && paidMovementBank && !isCashAccount(paidMovementBank)) {
+      throw new Error("Pagamento em dinheiro deve usar uma carteira Dinheiro cadastrada para o responsavel.");
+    }
 
     if (
       shouldCreatePaidMovement &&
@@ -500,6 +517,10 @@ export async function updatePayableBill(
         input.bankUsed,
         input.responsibleMemberId,
       );
+    }
+
+    if (input.paymentForm === "dinheiro" && paidMovementBank && !isCashAccount(paidMovementBank)) {
+      throw new Error("Pagamento em dinheiro deve usar uma carteira Dinheiro cadastrada para o responsavel.");
     }
 
     if (

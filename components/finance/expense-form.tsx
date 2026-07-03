@@ -116,9 +116,7 @@ export function ExpenseForm({
     ? bankId
     : "";
   const selectedBankCurrency = memberBankAccounts.find((account) => account.id === selectedBankId)?.currency ?? "";
-  const selectedExpenseCurrency = paymentMethod === "conta"
-    ? selectedBankCurrency
-    : cashCurrency;
+  const selectedExpenseCurrency = selectedBankCurrency || cashCurrency;
 
   function applyDraftSuggestion() {
     const suggestion = buildExpenseDraftSuggestion(
@@ -294,14 +292,11 @@ export function ExpenseForm({
                 name="payment_method"
                 value="dinheiro"
                 checked={paymentMethod === "dinheiro"}
-                onChange={() => {
-                  setPaymentMethod("dinheiro");
-                  setBankId("");
-                }}
+                onChange={() => setPaymentMethod("dinheiro")}
                 className="sr-only"
               />
               <span className="text-sm font-semibold text-foreground">Dinheiro</span>
-              <span className="mt-1 block text-xs leading-5 text-ff-subtle-foreground">Pagamento em dinheiro vivo, sem movimentacao bancaria.</span>
+              <span className="mt-1 block text-xs leading-5 text-ff-subtle-foreground">Pagamento em dinheiro vivo. Use uma carteira Dinheiro cadastrada em Bancos.</span>
             </label>
             <label className={financeChoiceOptionClass}>
               <input
@@ -348,21 +343,19 @@ export function ExpenseForm({
         ) : (
           <div className={financeFieldClass}>
             <Label htmlFor="bank_id">
-              {paymentMethod === "conta" ? "Banco usado (obrigatorio)" : "Banco usado (opcional)"}
+              {paymentMethod === "dinheiro" ? "Carteira usada (obrigatorio)" : "Banco usado (obrigatorio)"}
             </Label>
             <select
               id="bank_id"
               name="bank_id"
               value={selectedBankId}
               onChange={(event) => setBankId(event.target.value)}
-              required={paymentMethod === "conta"}
+              required
               className={financeNativeSelectClass}
             >
-              {paymentMethod === "conta" ? (
-                <option value="">Selecione um banco</option>
-              ) : (
-                <option value="">Sem banco / dinheiro vivo</option>
-              )}
+              <option value="">
+                {paymentMethod === "dinheiro" ? "Selecione a carteira Dinheiro" : "Selecione um banco"}
+              </option>
               {memberBankAccounts.map((account) => (
                 <option key={account.id} value={account.id}>
                   {account.bank_name} - {account.account_type ?? "Conta"}
@@ -375,7 +368,7 @@ export function ExpenseForm({
               </p>
             ) : (
               <p className={financeHelperTextClass}>
-                Nao sera criada movimentacao financeira. Para registrar em banco, selecione Conta / cartao como forma de pagamento.
+                Dinheiro vivo tambem movimenta o saldo familiar quando voce seleciona uma carteira Dinheiro cadastrada.
               </p>
             )}
           </div>

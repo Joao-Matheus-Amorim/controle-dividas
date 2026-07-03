@@ -169,7 +169,7 @@ async function assertBankNameBelongsToReceiverMember(
   const supabase = await createClient();
   const { data: banks, error } = await supabase
     .from("banks")
-    .select("id, currency")
+    .select("id, bank_name, account_type, currency")
     .eq("bank_name", bankName)
     .eq("family_member_id", receiverMemberId)
     .eq("organization_id", organizationId)
@@ -186,6 +186,11 @@ async function assertBankNameBelongsToReceiverMember(
   return banks[0];
 }
 
+function isCashAccount(account: Record<string, unknown> | null) {
+  return String(account?.bank_name ?? "").trim().toLowerCase() === "dinheiro"
+    || String(account?.account_type ?? "").trim().toLowerCase() === "dinheiro";
+}
+
 function parseReceivableIncomeForm(formData: FormData) {
   const receiverMemberId = String(formData.get("receiver_member_id") ?? "");
   const source = String(formData.get("source") ?? "").trim();
@@ -197,7 +202,11 @@ function parseReceivableIncomeForm(formData: FormData) {
   const status = String(formData.get("status") ?? "previsto");
   const receivingBank = String(formData.get("receiving_bank") ?? "").trim();
   const rawPaymentForm = String(formData.get("payment_form") ?? "");
-  const paymentForm = rawPaymentForm === "dinheiro" || rawPaymentForm === "conta" ? rawPaymentForm : "dinheiro";
+  const paymentForm = rawPaymentForm === "dinheiro" || rawPaymentForm === "conta"
+    ? rawPaymentForm
+    : receivingBank
+      ? "conta"
+      : "dinheiro";
   const recordedTimezone = String(formData.get("recorded_timezone") ?? "").trim() || null;
   const notes = String(formData.get("notes") ?? "").trim();
 
@@ -250,6 +259,10 @@ function validateReceivableIncomeInput(
 
   if (!receivableIncomeStatuses.includes(input.status as (typeof receivableIncomeStatuses)[number])) {
     return { error: "Status invalido." };
+  }
+
+  if (input.status === "recebido" && !input.receivingBank) {
+    return { error: "Selecione a conta ou carteira que recebeu o dinheiro." };
   }
 
   if (input.paymentForm === "conta" && !input.receivingBank) {
@@ -328,6 +341,10 @@ export async function createReceivableIncome(
       input.receivingBank,
       input.receiverMemberId,
     );
+
+    if (input.paymentForm === "dinheiro" && receivedMovementBank && !isCashAccount(receivedMovementBank)) {
+      throw new Error("Recebimento em dinheiro deve usar uma carteira Dinheiro cadastrada para a pessoa recebedora.");
+    }
 
     if (shouldCreateReceivedMovement && receivedMovementBank?.id) {
       receivedMovementAmount = await buildReceivableMovementAmount(
@@ -484,6 +501,10 @@ export async function updateReceivableIncome(
         input.receivingBank,
         input.receiverMemberId,
       );
+    }
+
+    if (input.paymentForm === "dinheiro" && receivedMovementBank && !isCashAccount(receivedMovementBank)) {
+      throw new Error("Recebimento em dinheiro deve usar uma carteira Dinheiro cadastrada para a pessoa recebedora.");
     }
 
     if (transitionToReceived && receivedMovementBank?.id) {

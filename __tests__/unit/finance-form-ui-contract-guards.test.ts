@@ -195,21 +195,24 @@ describe("finance form UI contract guards", () => {
     expect(payableForm).toContain("memberBankAccounts.map");
     expect(payableForm).toContain("keepsLegacyBankUsed");
     expect(payableForm).toContain('name="bank_used"');
-    expect(payableForm).toContain("Sem banco / dinheiro vivo");
+    expect(payableForm).toContain("Selecione a carteira Dinheiro");
+    expect(payableForm).toContain("carteira Dinheiro cadastrada");
     expect(payableForm).not.toContain('placeholder="Ex: Revolut, Wise"');
 
     expect(receivableForm).toContain("bankAccounts?: DbBankAccount[]");
     expect(receivableForm).toContain("memberBankAccounts.map");
     expect(receivableForm).toContain("keepsLegacyReceivingBank");
     expect(receivableForm).toContain('name="receiving_bank"');
-    expect(receivableForm).toContain("Sem banco / dinheiro vivo");
+    expect(receivableForm).toContain("Selecione a carteira Dinheiro");
+    expect(receivableForm).toContain("carteira Dinheiro cadastrada");
     expect(receivableForm).not.toContain('placeholder="Ex: Revolut, Wise"');
 
     expect(expenseForm).toContain("bankAccounts?: DbBankAccount[]");
     expect(expenseForm).toContain("memberBankAccounts.map");
     expect(expenseForm).toContain("keepsLegacyBankOrCard");
     expect(expenseForm).toContain('name="bank_or_card"');
-    expect(expenseForm).toContain("Sem banco / dinheiro vivo");
+    expect(expenseForm).toContain("Selecione a carteira Dinheiro");
+    expect(expenseForm).toContain("carteira Dinheiro cadastrada");
 
     expect(payableActions).toContain("assertBankNameBelongsToResponsibleMember");
     expect(payableActions).toContain(".limit(1)");
